@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicFindReferences))
+        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicFindReferences))
         {
         }
 
@@ -109,6 +109,12 @@ End Class
                         Assert.Equal(expected: 34, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false);
+            // Assert we are in the right file now
+            VisualStudio.Editor.Activate();
+            Assert.Equal("Class1.vb", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Alpha As Int32", VisualStudio.Editor.GetLineTextAfterCaret());
         }
     }
 }

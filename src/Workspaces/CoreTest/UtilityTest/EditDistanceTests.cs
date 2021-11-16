@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
@@ -210,7 +212,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wish","with","woman","women","wonder","wont","wood","word","work","world","would","write","written",
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             };
-
 
         [Fact]
         public void Top1000Test()

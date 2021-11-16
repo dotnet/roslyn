@@ -18,13 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
         {
         }
 
-        protected override bool IsSupported(ParseOptions options)
+        protected override bool IsSupported(Compilation compilation)
         {
-            var csOptions = (CSharpParseOptions)options;
-            return csOptions.LanguageVersion >= LanguageVersion.CSharp7;
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp7;
         }
 
-        protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+        protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken)
             => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

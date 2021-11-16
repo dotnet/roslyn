@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,12 +13,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyInterpolation)]
     public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyInterpolationTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
@@ -38,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             Assert.Equal(
                 new[] {
                     ("IDE0071", DiagnosticSeverity.Info),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                 },
                 diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
         }
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNoParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -67,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(int someValue)
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithEscapeSequences()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -107,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -127,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithVerbatimEscapeSequencesInsideNonVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -147,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNonVerbatimEscapeSequencesInsideVerbatimInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(System.DateTime someValue)
@@ -209,9 +215,117 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
+        public async Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
+        {
+            // Invariance remains explicit, so this is okay.
+
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DateTimeFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.DateTimeFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NumberFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.NumberFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(System.Globalization.CultureInfo.InvariantCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(""|}some format code{|Unnecessary:"", System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue:some format code} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.InvariantCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
         public async Task PadLeftWithIntegerLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -231,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithIntegerLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -251,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWithComplexConstantExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -273,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftWithSpaceChar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -293,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithSpaceChar()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -339,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -387,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithNoParameterWhenAlignmentComponentIsSpecified()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -525,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task ToStringWithoutFormatThenPadLeft()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -544,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenToStringWithoutFormat()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -563,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenToStringWithoutFormatWhenAlignmentComponentIsSpecified()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -582,7 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         [Fact]
         public async Task PadLeftThenPadRight_WithoutAlignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M(string someValue)
@@ -791,7 +905,7 @@ class Derived : Base
         [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
         public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public override string ToString() => $""Test: {base.ToString()[||].PadLeft(10)}"";
@@ -820,7 +934,7 @@ struct TypeNotImplementingIFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task FormatComponentSimplificationIsOfferedOnIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -852,7 +966,7 @@ struct TypeImplementingIFormattable : IFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(TypeNotImplementingIFormattable value) => $""Test: {value[||].ToString()}"";
@@ -876,7 +990,7 @@ struct TypeNotImplementingIFormattable
         [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
         public async Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(TypeNotImplementingIFormattable value) => $""Test: {value.ToString(""a"")[||].PadLeft(10)}"";
@@ -915,7 +1029,7 @@ ref struct RefStruct
         [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
         public async Task PadLeftSimplificationIsStillOfferedOnRefStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     string M(RefStruct someValue) => $""Test: {someValue.ToString()[||].PadLeft(10)}"";
@@ -933,6 +1047,127 @@ ref struct RefStruct
 ref struct RefStruct
 {
     public override string ToString() => ""A"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task ShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task OverridenShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideShadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task DoubleOverridenToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}} suffix"";
+    }
+}",
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString()|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2)}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2):g}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""){|Unnecessary:[||].PadLeft(|}3{|Unnecessary:)|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""),3}"";
+    }
 }");
         }
     }

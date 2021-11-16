@@ -4,36 +4,38 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class OnErrorKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OnErrorResumeNextInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "On Error Resume Next")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OnErrorGoToInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "On Error GoTo")
-        End Function
+        Public Sub OnErrorResumeNextInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error Resume Next")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OnErrorResumeNextNotInLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub OnErrorGoToInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "On Error GoTo")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub OnErrorResumeNextNotInLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() 
             |
 End Sub
 </MethodBody>, "On Error Resume Next")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OnErrorGoToNotInLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub OnErrorGoToNotInLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() 
             |
 End Sub
 </MethodBody>, "On Error GoTo")
-        End Function
+        End Sub
     End Class
 End Namespace

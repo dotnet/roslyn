@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -406,10 +409,10 @@ class C<T>
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString), "T");
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString), "T");
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString), "T");
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString), "T");
         }
 
         [Fact]
@@ -433,10 +436,10 @@ class C
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString), "T");
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString), "T");
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x");
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x");
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString), "T");
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString), "T");
         }
 
         [Fact]
@@ -460,10 +463,10 @@ class C
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 value");
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 value");
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 value");
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 value");
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString));
         }
 
         [Fact]
@@ -487,10 +490,10 @@ class C
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString));
         }
 
         [Fact]
@@ -514,10 +517,10 @@ class C
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString));
         }
 
         [Fact]
@@ -541,10 +544,10 @@ class C
             int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x");
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString), "System.Int32 x");
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos4).Select(SymbolExtensions.ToTestDisplayString));
         }
 
         [Fact]
@@ -569,9 +572,9 @@ class C<T>
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             // As in Dev11, we do not consider the value parameter.
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
             AssertEx.SetEqual(model.LookupSymbols(pos4), compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").TypeParameters.Single());
         }
 
@@ -597,9 +600,9 @@ class C<T>
             int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             // As in Dev11, we do not consider the value parameter.
-            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
-            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolUtilities.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolExtensions.ToTestDisplayString));
+            AssertEx.SetEqual(model.LookupSymbols(pos3).Select(SymbolExtensions.ToTestDisplayString));
             AssertEx.SetEqual(model.LookupSymbols(pos4), compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").TypeParameters.Single());
         }
 

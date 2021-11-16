@@ -2,79 +2,64 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesWpfResources.resx">
     <body>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="translated">Échec du téléchargement de l'index</target>
+      <trans-unit id="Building_Project">
+        <source>Building Project</source>
+        <target state="translated">Génération du projet</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="translated">Échec du téléchargement de l'index : {0}</target>
+      <trans-unit id="Copying_selection_to_Interactive_Window">
+        <source>Copying selection to Interactive Window.</source>
+        <target state="translated">Copie de la sélection dans la fenêtre interactive.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="translated">Téléchargement de l'index IntelliSense pour {0}</target>
+      <trans-unit id="Error_performing_rename_0">
+        <source>Error performing rename: '{0}'</source>
+        <target state="translated">Erreur au moment du renommage : '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Collecte des suggestions - '{0}'</target>
+      <trans-unit id="Executing_selection_in_Interactive_Window">
+        <source>Executing selection in Interactive Window.</source>
+        <target state="translated">Exécution de la sélection dans la fenêtre interactive.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Collecte des suggestions - Attente du chargement complet de la solution</target>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="translated">Plateforme de processus hôte interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Comment">
-        <source>Regex - Comment</source>
-        <target state="translated">Regex - commentaire</target>
+      <trans-unit id="Print_a_list_of_referenced_assemblies">
+        <source>Print a list of referenced assemblies.</source>
+        <target state="translated">Affichez la liste des assemblys référencés.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Character_Class">
-        <source>Regex - Character Class</source>
-        <target state="translated">Regex - classe de caractères</target>
+      <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
+        <source>Reset the execution environment to the initial state, keep history.</source>
+        <target state="translated">Rétablir l'état initial de l'environnement d'exécution, conserver l'historique.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Alternation">
-        <source>Regex - Alternation</source>
-        <target state="translated">Regex - alternance</target>
+      <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
+        <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
+        <target state="translated">Rétablir un environnement propre (seul mscorlib est référencé), ne pas exécuter de script d'initialisation.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Anchor">
-        <source>Regex - Anchor</source>
-        <target state="translated">Regex - ancre</target>
+      <trans-unit id="Resetting_Interactive">
+        <source>Resetting Interactive</source>
+        <target state="translated">Réinitialisation interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Quantifier">
-        <source>Regex - Quantifier</source>
-        <target state="translated">Regex - quantificateur</target>
+      <trans-unit id="Resetting_execution_engine">
+        <source>Resetting execution engine.</source>
+        <target state="translated">Réinitialisation du moteur d'exécution.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_SelfEscapedCharacter">
-        <source>Regex - Self Escaped Character</source>
-        <target state="translated">Regex - caractère auto-échappé</target>
+      <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
+        <source>The CurrentWindow property may only be assigned once.</source>
+        <target state="translated">La propriété CurrentWindow ne peut être assignée qu'une seule fois.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Grouping">
-        <source>Regex - Grouping</source>
-        <target state="translated">Regex - regroupement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Text">
-        <source>Regex - Text</source>
-        <target state="translated">Regex - texte</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_OtherEscape">
-        <source>Regex - Other Escape</source>
-        <target state="translated">Regex - autre échappement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_or_Configure_issues">
-        <source>Suppress or Configure issues</source>
-        <target state="translated">Supprimer ou configurer les problèmes</target>
+      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
+        <source>The references command is not supported in this Interactive Window implementation.</source>
+        <target state="translated">La commande references n'est pas prise en charge dans cette implémentation de fenêtre interactive.</target>
         <note />
       </trans-unit>
     </body>

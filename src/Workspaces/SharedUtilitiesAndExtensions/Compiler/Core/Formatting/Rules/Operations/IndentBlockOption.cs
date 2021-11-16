@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// Options for IndentBlockOperation
+    /// Options for <see cref="IndentBlockOperation"/>.
     /// </summary>
     [Flags]
     internal enum IndentBlockOption
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         RelativeToFirstTokenOnBaseTokenLine = 0x2,
 
         /// <summary>
-        /// IndentationDeltaOrPosition will be interpreted as delta of its enclosing indentation
+        /// <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> will be interpreted as delta of its enclosing indentation
         /// </summary>
         RelativePosition = 0x4,
 
         /// <summary>
-        /// IndentationDeltaOrPosition will be interpreted as absolute position
+        /// <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> will be interpreted as absolute position
         /// </summary>
         AbsolutePosition = 0x8,
 
@@ -33,8 +33,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         RelativePositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition,
 
         /// <summary>
-        /// Mask for position options
+        /// Mask for position options.
         /// </summary>
-        PositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition | AbsolutePosition
+        /// <remarks>
+        /// Each <see cref="IndentBlockOperation"/> specifies one of the position options to indicate the primary
+        /// behavior for the operation.
+        /// </remarks>
+        PositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition | AbsolutePosition,
+
+        /// <summary>
+        /// Increase the <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> if the block is part of a
+        /// condition of the anchor token. For example:
+        /// 
+        /// <code>
+        /// if (value is
+        ///     { // This open brace token is part of a condition of the 'if' token.
+        ///         Length: 2
+        ///     })
+        /// </code>
+        /// </summary>
+        IndentIfConditionOfAnchorToken = 0x10,
     }
 }

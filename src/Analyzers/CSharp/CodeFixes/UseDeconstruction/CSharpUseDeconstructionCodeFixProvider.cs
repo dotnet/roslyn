@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,7 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseDeconstruction), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -120,10 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
             // tuple expression.
             return SyntaxFactory.ForEachVariableStatement(
-#if !CODE_STYLE // ForEachStatementSyntax.AttributeLists is not available in the version of Microsoft.CodeAnalysis used by CodeStyle layer
-                // https://github.com/dotnet/roslyn/issues/41462#issuecomment-595893953 tracks removing these conditional directives.
                 forEachStatement.AttributeLists,
-#endif
                 forEachStatement.AwaitKeyword,
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
@@ -156,11 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
             return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
-                ? (ExpressionSyntax)CreateTupleExpression(tupleTypeSyntax)
+                ? CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 
-        private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
+        private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
             => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
                     SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpEscapingReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
         public CSharpEscapingReducer() : base(s_pool)
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             if (SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) == SyntaxKind.AwaitKeyword)
             {
-                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
+                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
                 if (enclosingLambdaExpression != null)
                 {
                     if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -63,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var underlyingConversions = _conversion.UnderlyingConversions;
+                var deconstructConversionInfo = _conversion.DeconstructConversionInfo;
 
-                return underlyingConversions.IsDefault
+                return deconstructConversionInfo.IsDefault
                     ? ImmutableArray<DeconstructionInfo>.Empty
-                    : underlyingConversions.SelectAsArray(c => new DeconstructionInfo(c));
+                    : deconstructConversionInfo.SelectAsArray(c => new DeconstructionInfo(BoundNode.GetConversion(c.conversion, c.placeholder)));
             }
         }
 

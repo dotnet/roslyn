@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -294,7 +294,7 @@ End Module
 #End Region
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_01(kind As TestKind, host As TestHost) As Task
@@ -326,7 +326,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_02(kind As TestKind, host As TestHost) As Task
@@ -358,7 +358,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_03(kind As TestKind, host As TestHost) As Task
@@ -390,7 +390,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_CS_04(kind As TestKind, host As TestHost) As Task
@@ -422,7 +422,7 @@ static class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_01(kind As TestKind, host As TestHost) As Task
@@ -452,7 +452,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_02(kind As TestKind, host As TestHost) As Task
@@ -482,7 +482,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_03(kind As TestKind, host As TestHost) As Task
@@ -512,7 +512,7 @@ End Module
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
         <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
         Public Async Function TupleElementVsLocal_VB_04(kind As TestKind, host As TestHost) As Task
@@ -541,5 +541,84 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLocal_ValueUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void Goo()
+            {
+                int {|Definition:$$i|} = 0;
+                Console.WriteLine({|ValueUsageInfo.Read:[|i|]|});
+                {|ValueUsageInfo.Write:[|i|]|} = 0;
+                {|ValueUsageInfo.ReadWrite:[|i|]|}++;
+                Goo2(in {|ValueUsageInfo.ReadableReference:[|i|]|}, ref {|ValueUsageInfo.ReadableWritableReference:[|i|]|});
+                Goo3(out {|ValueUsageInfo.WritableReference:[|i|]|});
+                Console.WriteLine(nameof({|ValueUsageInfo.Name:[|i|]|}));
+            }
+
+            void Goo2(in int j, ref int k)
+            {
+            }
+
+            void Goo3(out int i)
+            {
+                i = 0;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C(int goo) { }
+
+    C M()
+    {
+        var {|Definition:$$goo|} = 1;
+        return new(goo: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C(int {|Definition:$$goo|}) { }
+
+    C M()
+    {
+        var goo = 1;
+        return new([|goo|]: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

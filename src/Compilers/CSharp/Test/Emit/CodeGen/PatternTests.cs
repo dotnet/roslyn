@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,6 +16,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class PatternTests : EmitMetadataTestBase
     {
         #region Miscellaneous
+
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493()
+        {
+            var source = @"
+using System;
+using System.Linq;
+
+namespace Sample
+{
+    internal class Row
+    {
+        public string Message { get; set; } = """";
+    }
+
+    internal class Program
+    {
+        private static void Main()
+        {
+            Console.WriteLine(ProcessRow(new Row()));
+        }
+
+        private static string ProcessRow(Row row)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+            return row switch
+            {
+                { Message: ""stringA"" } => ""stringB"",
+                var r when new[] { ""stringC"", ""stringD"" }.Any(x => r.Message.Contains(x)) => ""stringE"",
+                { Message: ""stringF"" } => ""stringG"",
+                _ => ""stringH"",
+            };
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "stringH");
+        }
+
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493_Simple()
+        {
+            var source = @"
+using System;
+
+internal class Widget
+{
+    public bool IsGood { get; set; }
+}
+
+internal class Program
+{
+    private static bool M0(Func<bool> fn) => fn();
+
+    private static void Main()
+    {
+        Console.Write(new Widget() switch
+        {
+            { IsGood: true } => 1,
+            _ when M0(() => true) => 2,
+            { } => 3,
+        });
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"2");
+        }
 
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
@@ -493,11 +558,11 @@ class Program
   IL_000e:  unbox.any  ""double""
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
-  IL_0015:  call       ""bool double.IsNaN(double)""
-  IL_001a:  brtrue.s   IL_004b
-  IL_001c:  ldloc.1
-  IL_001d:  ldc.r8     3.14
-  IL_0026:  beq.s      IL_0055
+  IL_0015:  ldc.r8     3.14
+  IL_001e:  beq.s      IL_0055
+  IL_0020:  ldloc.1
+  IL_0021:  call       ""bool double.IsNaN(double)""
+  IL_0026:  brtrue.s   IL_004b
   IL_0028:  br.s       IL_005f
   IL_002a:  ldloc.0
   IL_002b:  isinst     ""float""
@@ -506,11 +571,11 @@ class Program
   IL_0033:  unbox.any  ""float""
   IL_0038:  stloc.2
   IL_0039:  ldloc.2
-  IL_003a:  call       ""bool float.IsNaN(float)""
-  IL_003f:  brtrue.s   IL_0050
+  IL_003a:  ldc.r4     3.14
+  IL_003f:  beq.s      IL_005a
   IL_0041:  ldloc.2
-  IL_0042:  ldc.r4     3.14
-  IL_0047:  beq.s      IL_005a
+  IL_0042:  call       ""bool float.IsNaN(float)""
+  IL_0047:  brtrue.s   IL_0050
   IL_0049:  br.s       IL_005f
   IL_004b:  ldc.i4.1
   IL_004c:  stloc.s    V_4
@@ -708,26 +773,29 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       33 (0x21)
+  // Code size       35 (0x23)
   .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""bool bool?.HasValue.get""
-  IL_0007:  brfalse.s  IL_0016
-  IL_0009:  br.s       IL_0018
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0012:  brtrue.s   IL_001d
-  IL_0014:  br.s       IL_001f
-  IL_0016:  ldc.i4.1
-  IL_0017:  ret
-  IL_0018:  ldarg.1
-  IL_0019:  brfalse.s  IL_000b
-  IL_001b:  ldc.i4.2
-  IL_001c:  ret
-  IL_001d:  ldc.i4.3
+  .locals init (bool? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool bool?.HasValue.get""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  br.s       IL_001a
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0014:  brtrue.s   IL_001f
+  IL_0016:  br.s       IL_0021
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_000d
+  IL_001d:  ldc.i4.2
   IL_001e:  ret
-  IL_001f:  ldc.i4.4
+  IL_001f:  ldc.i4.3
   IL_0020:  ret
+  IL_0021:  ldc.i4.4
+  IL_0022:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
@@ -989,35 +1057,38 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.SwitchBasedPatternMatching",
 @"{
-  // Code size       67 (0x43)
+  // Code size       69 (0x45)
   .maxstack  2
-  .locals init (int V_0) //n
+  .locals init (int V_0, //n
+                object V_1)
   IL_0000:  ldarg.1
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_0011
-  IL_0008:  ldarg.1
-  IL_0009:  unbox.any  ""int""
-  IL_000e:  stloc.0
-  IL_000f:  br.s       IL_001a
-  IL_0011:  ldarg.1
-  IL_0012:  isinst     ""string""
-  IL_0017:  brtrue.s   IL_0029
-  IL_0019:  ret
-  IL_001a:  ldloc.0
-  IL_001b:  ldc.i4.1
-  IL_001c:  bne.un.s   IL_0034
-  IL_001e:  ldstr      ""1""
-  IL_0023:  call       ""void System.Console.WriteLine(string)""
-  IL_0028:  ret
-  IL_0029:  ldstr      ""s""
-  IL_002e:  call       ""void System.Console.WriteLine(string)""
-  IL_0033:  ret
-  IL_0034:  ldloc.0
-  IL_0035:  ldc.i4.2
-  IL_0036:  bne.un.s   IL_0042
-  IL_0038:  ldstr      ""2""
-  IL_003d:  call       ""void System.Console.WriteLine(string)""
-  IL_0042:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.1
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_001c
+  IL_0013:  ldloc.1
+  IL_0014:  isinst     ""string""
+  IL_0019:  brtrue.s   IL_002b
+  IL_001b:  ret
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  bne.un.s   IL_0036
+  IL_0020:  ldstr      ""1""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""s""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+  IL_0036:  ldloc.0
+  IL_0037:  ldc.i4.2
+  IL_0038:  bne.un.s   IL_0044
+  IL_003a:  ldstr      ""2""
+  IL_003f:  call       ""void System.Console.WriteLine(string)""
+  IL_0044:  ret
 }");
         }
 
@@ -1154,37 +1225,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       85 (0x55)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0054
+  IL_0001:  brfalse.s  IL_0051
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_003f
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0029
-  IL_001a:  ldloc.0
-  IL_001b:  ldstr      ""Bob""
-  IL_0020:  call       ""bool string.op_Equality(string, string)""
-  IL_0025:  brtrue.s   IL_0034
-  IL_0027:  br.s       IL_003f
-  IL_0029:  ldstr      ""Hey Bill!""
-  IL_002e:  call       ""void System.Console.WriteLine(string)""
-  IL_0033:  ret
-  IL_0034:  ldstr      ""Hey Bob!""
-  IL_0039:  call       ""void System.Console.WriteLine(string)""
-  IL_003e:  ret
-  IL_003f:  ldstr      ""Hello ""
-  IL_0044:  ldloc.0
-  IL_0045:  ldstr      ""!""
-  IL_004a:  call       ""string string.Concat(string, string, string)""
-  IL_004f:  call       ""void System.Console.WriteLine(string)""
-  IL_0054:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0026
+  IL_0017:  ldloc.0
+  IL_0018:  ldstr      ""Bob""
+  IL_001d:  call       ""bool string.op_Equality(string, string)""
+  IL_0022:  brtrue.s   IL_0031
+  IL_0024:  br.s       IL_003c
+  IL_0026:  ldstr      ""Hey Bill!""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
+  IL_0031:  ldstr      ""Hey Bob!""
+  IL_0036:  call       ""void System.Console.WriteLine(string)""
+  IL_003b:  ret
+  IL_003c:  ldstr      ""Hello ""
+  IL_0041:  ldloc.0
+  IL_0042:  ldstr      ""!""
+  IL_0047:  call       ""string string.Concat(string, string, string)""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  ret
 }");
         }
 
@@ -1272,33 +1341,31 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0043
+  IL_0001:  brfalse.s  IL_0040
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0023
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002e
-  IL_0022:  ret
-  IL_0023:  ldstr      ""Hey Bill!""
-  IL_0028:  call       ""void System.Console.WriteLine(string)""
-  IL_002d:  ret
-  IL_002e:  ldstr      ""Hello student ""
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""!""
-  IL_0039:  call       ""string string.Concat(string, string, string)""
-  IL_003e:  call       ""void System.Console.WriteLine(string)""
-  IL_0043:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0020
+  IL_0017:  ldarg.1
+  IL_0018:  isinst     ""Student""
+  IL_001d:  brtrue.s   IL_002b
+  IL_001f:  ret
+  IL_0020:  ldstr      ""Hey Bill!""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""Hello student ""
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""!""
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }");
         }
 
@@ -1592,35 +1659,30 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       56 (0x38)
+  // Code size       51 (0x33)
   .maxstack  2
-  .locals init (string V_0, //name
-                string V_1)
+  .locals init (string V_0)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0034
+  IL_0001:  brfalse.s  IL_002f
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0024
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002c
-  IL_0022:  br.s       IL_0034
-  IL_0024:  ldstr      ""Hey Bill!""
-  IL_0029:  stloc.1
-  IL_002a:  br.s       IL_0036
-  IL_002c:  ldstr      ""Hello student { name}!""
-  IL_0031:  stloc.1
-  IL_0032:  br.s       IL_0036
-  IL_0034:  ldnull
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_001f
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  brtrue.s   IL_0027
+  IL_001d:  br.s       IL_002f
+  IL_001f:  ldstr      ""Hey Bill!""
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0031
+  IL_0027:  ldstr      ""Hello student { name}!""
+  IL_002c:  stloc.0
+  IL_002d:  br.s       IL_0031
+  IL_002f:  ldnull
+  IL_0030:  stloc.0
+  IL_0031:  ldloc.0
+  IL_0032:  ret
 }");
         }
 
@@ -1652,33 +1714,31 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       68 (0x44)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (string V_0) //name
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0043
+  IL_0001:  brfalse.s  IL_0040
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.0
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0023
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  brtrue.s   IL_002e
-  IL_0022:  ret
-  IL_0023:  ldstr      ""Hey Bill!""
-  IL_0028:  call       ""void System.Console.WriteLine(string)""
-  IL_002d:  ret
-  IL_002e:  ldstr      ""Hello student ""
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""!""
-  IL_0039:  call       ""string string.Concat(string, string, string)""
-  IL_003e:  call       ""void System.Console.WriteLine(string)""
-  IL_0043:  ret
+  IL_000b:  ldstr      ""Bill""
+  IL_0010:  call       ""bool string.op_Equality(string, string)""
+  IL_0015:  brtrue.s   IL_0020
+  IL_0017:  ldarg.1
+  IL_0018:  isinst     ""Student""
+  IL_001d:  brtrue.s   IL_002b
+  IL_001f:  ret
+  IL_0020:  ldstr      ""Hey Bill!""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""Hello student ""
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""!""
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }");
         }
 
@@ -1715,40 +1775,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       78 (0x4e)
+  // Code size       73 (0x49)
   .maxstack  3
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_004d
+  IL_0001:  brfalse.s  IL_0048
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_004d
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Person.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Hello student ""
-  IL_003d:  ldloc.0
-  IL_003e:  ldstr      ""!""
-  IL_0043:  call       ""string string.Concat(string, string, string)""
-  IL_0048:  call       ""void System.Console.WriteLine(string)""
-  IL_004d:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_0048
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Person.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Hello student ""
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""!""
+  IL_003e:  call       ""string string.Concat(string, string, string)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
 }");
         }
 
@@ -1787,41 +1842,36 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       83 (0x53)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0052
+  IL_0001:  brfalse.s  IL_004d
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_0052
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Person.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Student has name of length {0}!""
-  IL_003d:  ldloc.0
-  IL_003e:  callvirt   ""int string.Length.get""
-  IL_0043:  box        ""int""
-  IL_0048:  call       ""string string.Format(string, object)""
-  IL_004d:  call       ""void System.Console.WriteLine(string)""
-  IL_0052:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_004d
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Person.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Student has name of length {0}!""
+  IL_0038:  ldloc.0
+  IL_0039:  callvirt   ""int string.Length.get""
+  IL_003e:  box        ""int""
+  IL_0043:  call       ""string string.Format(string, object)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
 }");
         }
 
@@ -1856,38 +1906,41 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       73 (0x49)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (string V_0, //name
-                string V_1) //name
+                string V_1, //name
+                Person V_2)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0048
-  IL_0003:  ldarg.1
-  IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_0015
-  IL_000c:  ldarg.1
-  IL_000d:  isinst     ""Student""
-  IL_0012:  brtrue.s   IL_0029
-  IL_0014:  ret
-  IL_0015:  ldloc.0
-  IL_0016:  brtrue.s   IL_000c
-  IL_0018:  ldstr      ""Hey ""
-  IL_001d:  ldloc.0
-  IL_001e:  call       ""string string.Concat(string, string)""
-  IL_0023:  call       ""void System.Console.WriteLine(string)""
-  IL_0028:  ret
-  IL_0029:  ldloc.0
-  IL_002a:  stloc.1
-  IL_002b:  ldloc.1
-  IL_002c:  brfalse.s  IL_0048
-  IL_002e:  ldstr      ""Student has name of length {0}!""
-  IL_0033:  ldloc.1
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  box        ""int""
-  IL_003e:  call       ""string string.Format(string, object)""
-  IL_0043:  call       ""void System.Console.WriteLine(string)""
-  IL_0048:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_004a
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""string Person.Name.get""
+  IL_000b:  stloc.0
+  IL_000c:  br.s       IL_0017
+  IL_000e:  ldloc.2
+  IL_000f:  isinst     ""Student""
+  IL_0014:  brtrue.s   IL_002b
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  brtrue.s   IL_000e
+  IL_001a:  ldstr      ""Hey ""
+  IL_001f:  ldloc.0
+  IL_0020:  call       ""string string.Concat(string, string)""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldloc.0
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.1
+  IL_002e:  brfalse.s  IL_004a
+  IL_0030:  ldstr      ""Student has name of length {0}!""
+  IL_0035:  ldloc.1
+  IL_0036:  callvirt   ""int string.Length.get""
+  IL_003b:  box        ""int""
+  IL_0040:  call       ""string string.Format(string, object)""
+  IL_0045:  call       ""void System.Console.WriteLine(string)""
+  IL_004a:  ret
 }");
         }
 
@@ -1987,40 +2040,85 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       78 (0x4e)
+  // Code size       73 (0x49)
   .maxstack  3
   .locals init (string V_0, //name
-                string V_1,
-                Student V_2)
+                Student V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_004d
+  IL_0001:  brfalse.s  IL_0048
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  ldloc.1
-  IL_000e:  ldstr      ""Bill""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_002d
-  IL_001a:  ldarg.1
-  IL_001b:  isinst     ""Student""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  brfalse.s  IL_004d
-  IL_0024:  ldloc.2
-  IL_0025:  callvirt   ""string Student.Name.get""
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0038
-  IL_002d:  ldstr      ""Hey Bill!""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldstr      ""Hello student ""
-  IL_003d:  ldloc.0
-  IL_003e:  ldstr      ""!""
-  IL_0043:  call       ""string string.Concat(string, string, string)""
-  IL_0048:  call       ""void System.Console.WriteLine(string)""
-  IL_004d:  ret
+  IL_0009:  ldstr      ""Bill""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  brtrue.s   IL_0028
+  IL_0015:  ldarg.1
+  IL_0016:  isinst     ""Student""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_0048
+  IL_001f:  ldloc.1
+  IL_0020:  callvirt   ""string Student.Name.get""
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0033
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Hello student ""
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""!""
+  IL_003e:  call       ""string string.Concat(string, string, string)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
+}");
+        }
+
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void PropertyOverrideLacksAccessor()
+        {
+            var source = @"
+#nullable enable
+
+class Base
+{
+  public virtual bool IsOk { get { return true; } set { } }
+}
+
+class C : Base
+{
+  public override bool IsOk { set { } }
+  public string? Value { get; }
+
+  public string M()
+  {
+    switch (this)
+    {
+      case { IsOk: true }:
+        return Value;
+      default:
+        return Value;
+    }
+  }
+}
+";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0013
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""bool Base.IsOk.get""
+  IL_000b:  pop
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""string C.Value.get""
+  IL_0012:  ret
+  IL_0013:  ldarg.0
+  IL_0014:  call       ""string C.Value.get""
+  IL_0019:  ret
 }");
         }
 
@@ -2308,91 +2406,100 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Door.ChangeState0",
 @"{
-  // Code size       59 (0x3b)
+  // Code size       61 (0x3d)
   .maxstack  2
-  .locals init (Door.DoorState V_0) //oldState
+  .locals init (Door.DoorState V_0, //oldState
+                Door.Action V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  switch    (
-        IL_0016,
-        IL_001c,
-        IL_0025)
-  IL_0014:  br.s       IL_0039
-  IL_0016:  ldarg.1
-  IL_0017:  ldc.i4.1
-  IL_0018:  beq.s      IL_002b
-  IL_001a:  br.s       IL_0039
-  IL_001c:  ldarg.1
-  IL_001d:  brfalse.s  IL_002d
-  IL_001f:  ldarg.1
-  IL_0020:  ldc.i4.2
-  IL_0021:  beq.s      IL_002f
-  IL_0023:  br.s       IL_0039
-  IL_0025:  ldarg.1
-  IL_0026:  ldc.i4.3
-  IL_0027:  beq.s      IL_0034
-  IL_0029:  br.s       IL_0039
-  IL_002b:  ldc.i4.1
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  switch    (
+        IL_0018,
+        IL_001e,
+        IL_0027)
+  IL_0016:  br.s       IL_003b
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_002d
+  IL_001c:  br.s       IL_003b
+  IL_001e:  ldloc.1
+  IL_001f:  brfalse.s  IL_002f
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_0031
+  IL_0025:  br.s       IL_003b
+  IL_0027:  ldloc.1
+  IL_0028:  ldc.i4.3
+  IL_0029:  beq.s      IL_0036
+  IL_002b:  br.s       IL_003b
+  IL_002d:  ldc.i4.1
   IL_002e:  ret
-  IL_002f:  ldarg.2
-  IL_0030:  brfalse.s  IL_0039
-  IL_0032:  ldc.i4.2
-  IL_0033:  ret
-  IL_0034:  ldarg.2
-  IL_0035:  brfalse.s  IL_0039
-  IL_0037:  ldc.i4.1
-  IL_0038:  ret
-  IL_0039:  ldloc.0
+  IL_002f:  ldc.i4.0
+  IL_0030:  ret
+  IL_0031:  ldarg.2
+  IL_0032:  brfalse.s  IL_003b
+  IL_0034:  ldc.i4.2
+  IL_0035:  ret
+  IL_0036:  ldarg.2
+  IL_0037:  brfalse.s  IL_003b
+  IL_0039:  ldc.i4.1
   IL_003a:  ret
+  IL_003b:  ldloc.0
+  IL_003c:  ret
 }");
             compVerifier.VerifyIL("Door.ChangeState1",
 @"{
-  // Code size       67 (0x43)
+  // Code size       71 (0x47)
   .maxstack  2
-  .locals init (Door.DoorState V_0)
+  .locals init (Door.DoorState V_0,
+                Door.DoorState V_1,
+                Door.Action V_2)
   IL_0000:  ldarg.0
-  IL_0001:  switch    (
-        IL_0014,
-        IL_001a,
-        IL_0023)
-  IL_0012:  br.s       IL_003f
-  IL_0014:  ldarg.1
-  IL_0015:  ldc.i4.1
-  IL_0016:  beq.s      IL_0029
-  IL_0018:  br.s       IL_003f
-  IL_001a:  ldarg.1
-  IL_001b:  brfalse.s  IL_002d
-  IL_001d:  ldarg.1
-  IL_001e:  ldc.i4.2
-  IL_001f:  beq.s      IL_0031
-  IL_0021:  br.s       IL_003f
-  IL_0023:  ldarg.1
-  IL_0024:  ldc.i4.3
-  IL_0025:  beq.s      IL_0038
-  IL_0027:  br.s       IL_003f
-  IL_0029:  ldc.i4.1
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0041
-  IL_002d:  ldc.i4.0
+  IL_0001:  stloc.1
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.2
+  IL_0004:  ldloc.1
+  IL_0005:  switch    (
+        IL_0018,
+        IL_001e,
+        IL_0027)
+  IL_0016:  br.s       IL_0043
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_002d
+  IL_001c:  br.s       IL_0043
+  IL_001e:  ldloc.2
+  IL_001f:  brfalse.s  IL_0031
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_0035
+  IL_0025:  br.s       IL_0043
+  IL_0027:  ldloc.2
+  IL_0028:  ldc.i4.3
+  IL_0029:  beq.s      IL_003c
+  IL_002b:  br.s       IL_0043
+  IL_002d:  ldc.i4.1
   IL_002e:  stloc.0
-  IL_002f:  br.s       IL_0041
-  IL_0031:  ldarg.2
-  IL_0032:  brfalse.s  IL_003f
-  IL_0034:  ldc.i4.2
-  IL_0035:  stloc.0
-  IL_0036:  br.s       IL_0041
-  IL_0038:  ldarg.2
-  IL_0039:  brfalse.s  IL_003f
-  IL_003b:  ldc.i4.1
-  IL_003c:  stloc.0
-  IL_003d:  br.s       IL_0041
-  IL_003f:  ldarg.0
+  IL_002f:  br.s       IL_0045
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0045
+  IL_0035:  ldarg.2
+  IL_0036:  brfalse.s  IL_0043
+  IL_0038:  ldc.i4.2
+  IL_0039:  stloc.0
+  IL_003a:  br.s       IL_0045
+  IL_003c:  ldarg.2
+  IL_003d:  brfalse.s  IL_0043
+  IL_003f:  ldc.i4.1
   IL_0040:  stloc.0
-  IL_0041:  ldloc.0
-  IL_0042:  ret
+  IL_0041:  br.s       IL_0045
+  IL_0043:  ldarg.0
+  IL_0044:  stloc.0
+  IL_0045:  ldloc.0
+  IL_0046:  ret
 }");
         }
 
@@ -2433,54 +2540,53 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("Program.M1",
 @"{
-  // Code size       53 (0x35)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (string V_0)
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  brfalse.s  IL_0034
-  IL_0005:  ldloc.0
-  IL_0006:  ldstr      ""a""
-  IL_000b:  call       ""bool string.op_Equality(string, string)""
-  IL_0010:  brtrue.s   IL_0034
-  IL_0012:  ldloc.0
-  IL_0013:  ldstr      ""b""
-  IL_0018:  call       ""bool string.op_Equality(string, string)""
-  IL_001d:  brtrue.s   IL_002c
-  IL_001f:  ldloc.0
-  IL_0020:  ldstr      ""c""
-  IL_0025:  call       ""bool string.op_Equality(string, string)""
-  IL_002a:  pop
-  IL_002b:  ret
-  IL_002c:  ldarga.s   V_1
-  IL_002e:  call       ""bool Program.Mutate(ref string)""
-  IL_0033:  pop
-  IL_0034:  ret
+  IL_0003:  ldstr      ""a""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brtrue.s   IL_0031
+  IL_000f:  ldloc.0
+  IL_0010:  ldstr      ""b""
+  IL_0015:  call       ""bool string.op_Equality(string, string)""
+  IL_001a:  brtrue.s   IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""c""
+  IL_0022:  call       ""bool string.op_Equality(string, string)""
+  IL_0027:  pop
+  IL_0028:  ret
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  call       ""bool Program.Mutate(ref string)""
+  IL_0030:  pop
+  IL_0031:  ret
 }");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size       50 (0x32)
+  // Code size       49 (0x31)
   .maxstack  2
+  .locals init (string V_0)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0031
-  IL_0003:  ldarg.1
-  IL_0004:  ldstr      ""a""
-  IL_0009:  call       ""bool string.op_Equality(string, string)""
-  IL_000e:  brtrue.s   IL_0031
-  IL_0010:  ldarg.1
-  IL_0011:  ldstr      ""b""
-  IL_0016:  call       ""bool string.op_Equality(string, string)""
-  IL_001b:  brtrue.s   IL_002a
-  IL_001d:  ldarg.1
-  IL_001e:  ldstr      ""c""
-  IL_0023:  call       ""bool string.op_Equality(string, string)""
-  IL_0028:  pop
-  IL_0029:  ret
-  IL_002a:  ldarg.1
-  IL_002b:  call       ""bool Program.Pure(string)""
-  IL_0030:  pop
-  IL_0031:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldstr      ""a""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brtrue.s   IL_0030
+  IL_000f:  ldloc.0
+  IL_0010:  ldstr      ""b""
+  IL_0015:  call       ""bool string.op_Equality(string, string)""
+  IL_001a:  brtrue.s   IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""c""
+  IL_0022:  call       ""bool string.op_Equality(string, string)""
+  IL_0027:  pop
+  IL_0028:  ret
+  IL_0029:  ldarg.1
+  IL_002a:  call       ""bool Program.Pure(string)""
+  IL_002f:  pop
+  IL_0030:  ret
 }");
         }
 
@@ -3208,9 +3314,9 @@ static class C {
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
-                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
                 //     public static bool M(int i) => i switch { 1 => true };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(9, 38)
                 );
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -3218,9 +3324,9 @@ static class C {
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),
-                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
                 //     public static bool M(int i) => i switch { 1 => true };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(9, 38)
                 );
         }
 
@@ -3349,7 +3455,7 @@ public class Program
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
             v.VerifyIL(qualifiedMethodName: "Program.Main", @"
     {
-      // Code size       53 (0x35)
+      // Code size       61 (0x3d)
       .maxstack  2
       .locals init (int V_0, //i
                     Program V_1, //y
@@ -3360,31 +3466,45 @@ public class Program
       IL_0001:  ldc.i4.0
       IL_0002:  stloc.0
       // sequence point: var y = (i s ...   }).Chain()
-      IL_0003:  ldloc.0
-      IL_0004:  brfalse.s  IL_000e
-      IL_0006:  br.s       IL_0008
-      IL_0008:  ldloc.0
-      IL_0009:  ldc.i4.1
-      IL_000a:  beq.s      IL_0016
-      IL_000c:  br.s       IL_001e
-      IL_000e:  newobj     ""Program..ctor()""
-      IL_0013:  stloc.2
-      IL_0014:  br.s       IL_0026
-      IL_0016:  newobj     ""Program..ctor()""
-      IL_001b:  stloc.2
-      IL_001c:  br.s       IL_0026
-      IL_001e:  newobj     ""Program..ctor()""
-      IL_0023:  stloc.2
-      IL_0024:  br.s       IL_0026
-      IL_0026:  ldloc.2
-      IL_0027:  callvirt   ""Program Program.Chain()""
-      IL_002c:  stloc.1
+      IL_0003:  ldc.i4.1
+      IL_0004:  brtrue.s   IL_0007
+      // sequence point: switch ...         }
+      IL_0006:  nop
+      // sequence point: <hidden>
+      IL_0007:  ldloc.0
+      IL_0008:  brfalse.s  IL_0012
+      IL_000a:  br.s       IL_000c
+      IL_000c:  ldloc.0
+      IL_000d:  ldc.i4.1
+      IL_000e:  beq.s      IL_001a
+      IL_0010:  br.s       IL_0022
+      // sequence point: new Program()
+      IL_0012:  newobj     ""Program..ctor()""
+      IL_0017:  stloc.2
+      IL_0018:  br.s       IL_002a
+      // sequence point: new Program()
+      IL_001a:  newobj     ""Program..ctor()""
+      IL_001f:  stloc.2
+      IL_0020:  br.s       IL_002a
+      // sequence point: new Program()
+      IL_0022:  newobj     ""Program..ctor()""
+      IL_0027:  stloc.2
+      IL_0028:  br.s       IL_002a
+      // sequence point: <hidden>
+      IL_002a:  ldc.i4.1
+      IL_002b:  brtrue.s   IL_002e
+      // sequence point: var y = (i s ...   }).Chain()
+      IL_002d:  nop
+      // sequence point: <hidden>
+      IL_002e:  ldloc.2
+      IL_002f:  callvirt   ""Program Program.Chain()""
+      IL_0034:  stloc.1
       // sequence point: y.Chain2();
-      IL_002d:  ldloc.1
-      IL_002e:  callvirt   ""Program Program.Chain2()""
-      IL_0033:  pop
+      IL_0035:  ldloc.1
+      IL_0036:  callvirt   ""Program Program.Chain2()""
+      IL_003b:  pop
       // sequence point: }
-      IL_0034:  ret
+      IL_003c:  ret
     }
 ", sequencePoints: "Program.Main", source: source);
         }
@@ -3416,34 +3536,40 @@ public class Class1
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     compVerifier.VerifyIL("Class1.M", @"
-{
-      // Code size       37 (0x25)
+    {
+      // Code size       45 (0x2d)
       .maxstack  2
       .locals init (bool V_0,
                     int V_1,
                     bool V_2)
       IL_0000:  nop
-      IL_0001:  ldarg.0
-      IL_0002:  isinst     ""int""
-      IL_0007:  brfalse.s  IL_001b
-      IL_0009:  ldarg.0
-      IL_000a:  unbox.any  ""int""
-      IL_000f:  stloc.1
-      IL_0010:  ldloc.1
-      IL_0011:  ldc.i4.s   42
-      IL_0013:  beq.s      IL_0017
-      IL_0015:  br.s       IL_001b
-      IL_0017:  ldc.i4.1
-      IL_0018:  stloc.0
+      IL_0001:  ldc.i4.1
+      IL_0002:  brtrue.s   IL_0005
+      IL_0004:  nop
+      IL_0005:  ldarg.0
+      IL_0006:  isinst     ""int""
+      IL_000b:  brfalse.s  IL_001f
+      IL_000d:  ldarg.0
+      IL_000e:  unbox.any  ""int""
+      IL_0013:  stloc.1
+      IL_0014:  ldloc.1
+      IL_0015:  ldc.i4.s   42
+      IL_0017:  beq.s      IL_001b
       IL_0019:  br.s       IL_001f
-      IL_001b:  ldc.i4.0
+      IL_001b:  ldc.i4.1
       IL_001c:  stloc.0
-      IL_001d:  br.s       IL_001f
-      IL_001f:  ldloc.0
-      IL_0020:  stloc.2
+      IL_001d:  br.s       IL_0023
+      IL_001f:  ldc.i4.0
+      IL_0020:  stloc.0
       IL_0021:  br.s       IL_0023
-      IL_0023:  ldloc.2
-      IL_0024:  ret
+      IL_0023:  ldc.i4.1
+      IL_0024:  brtrue.s   IL_0027
+      IL_0026:  nop
+      IL_0027:  ldloc.0
+      IL_0028:  stloc.2
+      IL_0029:  br.s       IL_002b
+      IL_002b:  ldloc.2
+      IL_002c:  ret
     }
 ");
                 }
@@ -3963,6 +4089,646 @@ public class C
 ");
         }
 
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
+        public void NoRedundantNullCheckForStringConstantPattern_01()
+        {
+            var source =
+@"public class C
+{
+    public static bool M1(string s) => s is ""Frog"";
+    public static bool M2(string s) => s == ""Frog"";
+    public static bool M3(string s) => s switch { ""Frog"" => true, _ => false };
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1(string)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""Frog""
+  IL_0006:  call       ""bool string.op_Equality(string, string)""
+  IL_000b:  ret
+}
+");
+            compVerifier.VerifyIL("C.M2(string)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""Frog""
+  IL_0006:  call       ""bool string.op_Equality(string, string)""
+  IL_000b:  ret
+}
+");
+            compVerifier.VerifyIL("C.M3(string)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""Frog""
+  IL_0006:  call       ""bool string.op_Equality(string, string)""
+  IL_000b:  brfalse.s  IL_0011
+  IL_000d:  ldc.i4.1
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0013
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
+        public void NoRedundantNullCheckForStringConstantPattern_02()
+        {
+            var source =
+@"public class C
+{
+    public static bool M1(string s) => s switch { ""Frog"" => true, ""Newt"" => true, _ => false };
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1(string)", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""Frog""
+  IL_0006:  call       ""bool string.op_Equality(string, string)""
+  IL_000b:  brtrue.s   IL_001c
+  IL_000d:  ldarg.0
+  IL_000e:  ldstr      ""Newt""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0020
+  IL_001a:  br.s       IL_0024
+  IL_001c:  ldc.i4.1
+  IL_001d:  stloc.0
+  IL_001e:  br.s       IL_0026
+  IL_0020:  ldc.i4.1
+  IL_0021:  stloc.0
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldc.i4.0
+  IL_0025:  stloc.0
+  IL_0026:  ldloc.0
+  IL_0027:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
+        public void NoRedundantNullCheckForStringConstantPattern_03()
+        {
+            var source =
+@"public class C
+{
+    public static bool M1(System.Type x) => x is { Name: ""Program"" };
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1(System.Type)", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0014
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0009:  ldstr      ""Program""
+  IL_000e:  call       ""bool string.op_Equality(string, string)""
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(42912, "https://github.com/dotnet/roslyn/issues/42912")]
+        [WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
+        public void NoRedundantNullCheckForNullableConstantPattern_04()
+        {
+            // Note that we do not produce the same code for `x is 1` and `x == 1`.
+            // The latter has been optimized to avoid branches.
+
+            var source =
+@"public class C
+{
+    public static bool M1(int? x) => x is 1;
+    public static bool M2(int? x) => x == 1;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1(int?)", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0014
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""int int?.GetValueOrDefault()""
+  IL_0010:  ldc.i4.1
+  IL_0011:  ceq
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
+}
+");
+            compVerifier.VerifyIL("C.M2(int?)", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (int? V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""int int?.GetValueOrDefault()""
+  IL_000b:  ldloc.1
+  IL_000c:  ceq
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  and
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SwitchExpressionAsExceptionFilter_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string K1 = ""frog"";
+    const string K2 = ""toad"";
+    public static void M(string msg)
+    {
+        try
+        {
+            T(msg);
+        }
+        catch (Exception e) when (e.Message switch
+            {
+                K1 => true,
+                K2 => true,
+                _ => false,
+            })
+        {
+            throw new Exception(e.Message);
+        }
+        catch
+        {
+        }
+    }
+    static void T(string msg)
+    {
+        throw new Exception(msg);
+    }
+    static void Main()
+    {
+        Try(K1);
+        Try(K2);
+        Try(""fox"");
+    }
+    static void Try(string s)
+    {
+        try { M(s); } catch (Exception ex) { Console.WriteLine(ex.Message); }
+    }
+}
+";
+            var expectedOutput =
+@"frog
+toad";
+            foreach (var compilationOptions in new[] { TestOptions.ReleaseExe, TestOptions.DebugExe })
+            {
+                var compilation = CreateCompilation(source, options: compilationOptions);
+                compilation.VerifyDiagnostics();
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (compilationOptions.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("C.M(string)", @"
+{
+  // Code size      108 (0x6c)
+  .maxstack  2
+  .locals init (System.Exception V_0, //e
+                bool V_1,
+                string V_2,
+                bool V_3)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  ldarg.0
+    IL_0003:  call       ""void C.T(string)""
+    IL_0008:  nop
+    IL_0009:  nop
+    IL_000a:  leave.s    IL_006b
+  }
+  filter
+  {
+    IL_000c:  isinst     ""System.Exception""
+    IL_0011:  dup
+    IL_0012:  brtrue.s   IL_0018
+    IL_0014:  pop
+    IL_0015:  ldc.i4.0
+    IL_0016:  br.s       IL_0056
+    IL_0018:  stloc.0
+    IL_0019:  ldloc.0
+    IL_001a:  callvirt   ""string System.Exception.Message.get""
+    IL_001f:  stloc.2
+    IL_0020:  ldc.i4.1
+    IL_0021:  brtrue.s   IL_0024
+    IL_0023:  nop
+    IL_0024:  ldloc.2
+    IL_0025:  ldstr      ""frog""
+    IL_002a:  call       ""bool string.op_Equality(string, string)""
+    IL_002f:  brtrue.s   IL_0040
+    IL_0031:  ldloc.2
+    IL_0032:  ldstr      ""toad""
+    IL_0037:  call       ""bool string.op_Equality(string, string)""
+    IL_003c:  brtrue.s   IL_0044
+    IL_003e:  br.s       IL_0048
+    IL_0040:  ldc.i4.1
+    IL_0041:  stloc.1
+    IL_0042:  br.s       IL_004c
+    IL_0044:  ldc.i4.1
+    IL_0045:  stloc.1
+    IL_0046:  br.s       IL_004c
+    IL_0048:  ldc.i4.0
+    IL_0049:  stloc.1
+    IL_004a:  br.s       IL_004c
+    IL_004c:  ldc.i4.1
+    IL_004d:  brtrue.s   IL_0050
+    IL_004f:  nop
+    IL_0050:  ldloc.1
+    IL_0051:  stloc.3
+    IL_0052:  ldloc.3
+    IL_0053:  ldc.i4.0
+    IL_0054:  cgt.un
+    IL_0056:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0058:  pop
+    IL_0059:  nop
+    IL_005a:  ldloc.0
+    IL_005b:  callvirt   ""string System.Exception.Message.get""
+    IL_0060:  newobj     ""System.Exception..ctor(string)""
+    IL_0065:  throw
+  }
+  catch object
+  {
+    IL_0066:  pop
+    IL_0067:  nop
+    IL_0068:  nop
+    IL_0069:  leave.s    IL_006b
+  }
+  IL_006b:  ret
+}
+");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("C.M(string)", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  2
+  .locals init (System.Exception V_0, //e
+                bool V_1,
+                string V_2)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""void C.T(string)""
+    IL_0006:  leave.s    IL_0058
+  }
+  filter
+  {
+    IL_0008:  isinst     ""System.Exception""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_0046
+    IL_0014:  stloc.0
+    IL_0015:  ldloc.0
+    IL_0016:  callvirt   ""string System.Exception.Message.get""
+    IL_001b:  stloc.2
+    IL_001c:  ldloc.2
+    IL_001d:  ldstr      ""frog""
+    IL_0022:  call       ""bool string.op_Equality(string, string)""
+    IL_0027:  brtrue.s   IL_0038
+    IL_0029:  ldloc.2
+    IL_002a:  ldstr      ""toad""
+    IL_002f:  call       ""bool string.op_Equality(string, string)""
+    IL_0034:  brtrue.s   IL_003c
+    IL_0036:  br.s       IL_0040
+    IL_0038:  ldc.i4.1
+    IL_0039:  stloc.1
+    IL_003a:  br.s       IL_0042
+    IL_003c:  ldc.i4.1
+    IL_003d:  stloc.1
+    IL_003e:  br.s       IL_0042
+    IL_0040:  ldc.i4.0
+    IL_0041:  stloc.1
+    IL_0042:  ldloc.1
+    IL_0043:  ldc.i4.0
+    IL_0044:  cgt.un
+    IL_0046:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0048:  pop
+    IL_0049:  ldloc.0
+    IL_004a:  callvirt   ""string System.Exception.Message.get""
+    IL_004f:  newobj     ""System.Exception..ctor(string)""
+    IL_0054:  throw
+  }
+  catch object
+  {
+    IL_0055:  pop
+    IL_0056:  leave.s    IL_0058
+  }
+  IL_0058:  ret
+}
+");
+                }
+            }
+        }
+
+        [Fact]
+        public void SwitchExpressionAsExceptionFilter_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch when ((3 is int i) switch { true when M(() => i) => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+        }
+    }
+    static bool M(Func<int> func)
+    {
+        func();
+        return true;
+    }
+}
+";
+            var expectedOutput = @"correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_03()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        Exception ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { InvalidOperationException => true, _ => false })
+        {
+            return;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""correct"");
+        }
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(48259, "https://github.com/dotnet/roslyn/issues/48259")]
+        public void SwitchExpressionAsExceptionFilter_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public static class Program
+{
+    static async Task Main()
+    {
+        Exception ex = new ArgumentException();
+        try
+        {
+            throw ex;
+        }
+        catch (Exception e) when (e switch { ArgumentException => true, _ => false })
+        {
+            Console.WriteLine(""correct"");
+            return;
+        }
+    }
+}
+";
+            var expectedOutput = "correct";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
+        [Theory]
+        [InlineData("void*")]
+        [InlineData("char*")]
+        [InlineData("delegate*<void>")]
+        public void IsNull_01(string pointerType)
+        {
+            var source =
+$@"using static System.Console;
+unsafe class Program
+{{
+    static void Main()
+    {{
+        Check(0);
+        Check(-1);
+    }}
+    static void Check(nint i)
+    {{
+        {pointerType} p = ({pointerType})i;
+        WriteLine(EqualNull(p));
+        WriteLine(IsNull(p));
+        WriteLine(NotEqualNull(p));
+        WriteLine(IsNotNull(p));
+    }}
+    static bool EqualNull({pointerType} p) => p == null;
+    static bool NotEqualNull({pointerType} p) => p != null;
+    static bool IsNull({pointerType} p) => p is null;
+    static bool IsNotNull({pointerType} p) => p is not null;
+}}";
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"True
+True
+False
+False
+False
+False
+True
+True");
+            string expectedEqualNull =
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  ret
+}";
+            string expectedNotEqualNull =
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  ldc.i4.0
+  IL_0006:  ceq
+  IL_0008:  ret
+}";
+            verifier.VerifyIL("Program.EqualNull", expectedEqualNull);
+            verifier.VerifyIL("Program.NotEqualNull", expectedNotEqualNull);
+            verifier.VerifyIL("Program.IsNull", expectedEqualNull);
+            verifier.VerifyIL("Program.IsNotNull", expectedNotEqualNull);
+        }
+
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
+        [Fact]
+        public void IsNull_02()
+        {
+            var source =
+@"using static System.Console;
+unsafe class Program
+{
+    static void Main()
+    {
+        Check(0);
+        Check(-1);
+    }
+    static void Check(nint i)
+    {
+        char* p = (char*)i;
+        WriteLine(EqualNull(p));
+    }
+    static bool EqualNull(char* p) => p switch { null => true, _ => false };
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"True
+False");
+            verifier.VerifyIL("Program.EqualNull",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0009
+  IL_0005:  ldc.i4.1
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_000b
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
+        [Fact]
+        public void IsNull_03()
+        {
+            var source =
+@"using static System.Console;
+unsafe class C
+{
+    public char* P;
+}
+unsafe class Program
+{
+    static void Main()
+    {
+        Check(0);
+        Check(-1);
+    }
+    static void Check(nint i)
+    {
+        char* p = (char*)i;
+        WriteLine(EqualNull(new C() { P = p }));
+    }
+    static bool EqualNull(C c) => c switch { { P: null } => true, _ => false };
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"True
+False");
+            verifier.VerifyIL("Program.EqualNull",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0011
+  IL_0003:  ldarg.0
+  IL_0004:  ldfld      ""char* C.P""
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  bne.un.s   IL_0011
+  IL_000d:  ldc.i4.1
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0013
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ret
+}");
+        }
+
         #endregion Miscellaneous
 
         #region Target Typed Switch
@@ -4222,6 +4988,387 @@ public class B
                     //     [My(1 switch { 1 => 1, _ => string.Empty })]
                     Diagnostic(ErrorCode.ERR_BadArgType, "1 switch { 1 => 1, _ => string.Empty }").WithArguments("1", "<switch expression>", "int").WithLocation(11, 9)
                 );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var switchExpressions = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[0], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[1], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => new A()')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 A.op_Implicit(A a)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new A()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 A.op_Implicit(A a))
+            Operand: 
+              IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A()')
+                Arguments(0)
+                Initializer: 
+                  null
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => new B()')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 B.op_Implicit(B b)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new B()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 B.op_Implicit(B b))
+            Operand: 
+              IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+                Arguments(0)
+                Initializer: 
+                  null
+");
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[2], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => string.Empty')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                Instance Receiver: 
+                  null
+");
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute_NamedArgument()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(Value = 1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute() { }
+    public int Value { get; set; }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [My(Value = 1 switch { 1 => 1, _ => 2 })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 17),
+                // (8,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => new A(), _ => new B() }").WithLocation(8, 17),
+                // (11,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //     [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(11, 41)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[0], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... 1, _ => 2 }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+      Value: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      Arms(2):
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
+            Pattern: 
+              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[1], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... > new B() }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => new A()')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 A.op_Implicit(A a)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new A()')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 A.op_Implicit(A a))
+                    Operand: 
+                      IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => new B()')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 B.op_Implicit(B b)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new B()')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 B.op_Implicit(B b))
+                    Operand: 
+                      IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[2], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... ing.Empty }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => string.Empty')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                        Instance Receiver: 
+                          null
+");
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute_MissingNamedArgument()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(Value = 1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute() { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => 1, _ => 2 })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(5, 9),
+                // (8,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(8, 9),
+                // (11,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(11, 9)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[0], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... 1, _ => 2 }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... 1, _ => 2 }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '1 switch {  ... 1, _ => 2 }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 2')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[1], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... > new B() }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... > new B() }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => new A()')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'new A()')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => new B()')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'new B()')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[2], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... ing.Empty }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... ing.Empty }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => string.Empty')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'string.Empty')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'string.Empty')
+                        Instance Receiver: 
+                          null
+");
         }
 
         [Fact]
@@ -4328,5 +5475,1042 @@ class B
         }
 
         #endregion Target Typed Switch
+
+        #region Pattern Combinators
+
+        [Fact]
+        public void IsPatternDisjunct_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static bool M1(object o) => o is int or long;
+    static bool M2(object o) => o is int || o is long;
+    public static void Main()
+    {
+        Console.Write(M1(1));
+        Console.Write(M1(string.Empty));
+        Console.Write(M1(1L));
+        Console.Write(M1(1UL));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       21 (0x15)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0013
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  ldnull
+      IL_000f:  cgt.un
+      IL_0011:  br.s       IL_0014
+      IL_0013:  ldc.i4.1
+      IL_0014:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            code = @"
+    {
+      // Code size       20 (0x14)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0012
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  ldnull
+      IL_000f:  cgt.un
+      IL_0011:  ret
+      IL_0012:  ldc.i4.1
+      IL_0013:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static string M1(object o) => (o is int or long) ? ""True"" : ""False"";
+    static string M2(object o) => (o is int || o is long) ? ""True"" : ""False"";
+    public static void Main()
+    {
+        Console.Write(M1(1));
+        Console.Write(M1(string.Empty));
+        Console.Write(M1(1L));
+        Console.Write(M1(1UL));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       29 (0x1d)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0017
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  brtrue.s   IL_0017
+      IL_0010:  ldstr      ""False""
+      IL_0015:  br.s       IL_001c
+      IL_0017:  ldstr      ""True""
+      IL_001c:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            code = @"
+    {
+      // Code size       28 (0x1c)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0016
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  brtrue.s   IL_0016
+      IL_0010:  ldstr      ""False""
+      IL_0015:  ret
+      IL_0016:  ldstr      ""True""
+      IL_001b:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static bool M1(object o) => o is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
+    static bool M2(object o) => o is char c && (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z');
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(2));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       47 (0x2f)
+      .maxstack  2
+      .locals init (char V_0,
+                    bool V_1)
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_002b
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   97
+      IL_0012:  blt.s      IL_001b
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   122
+      IL_0017:  ble.s      IL_0027
+      IL_0019:  br.s       IL_002b
+      IL_001b:  ldloc.0
+      IL_001c:  ldc.i4.s   65
+      IL_001e:  blt.s      IL_002b
+      IL_0020:  ldloc.0
+      IL_0021:  ldc.i4.s   90
+      IL_0023:  ble.s      IL_0027
+      IL_0025:  br.s       IL_002b
+      IL_0027:  ldc.i4.1
+      IL_0028:  stloc.1
+      IL_0029:  br.s       IL_002d
+      IL_002b:  ldc.i4.0
+      IL_002c:  stloc.1
+      IL_002d:  ldloc.1
+      IL_002e:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       48 (0x30)
+      .maxstack  2
+      .locals init (char V_0) //c
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_002e
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0019
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_002b
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0028
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  cgt
+      IL_0023:  ldc.i4.0
+      IL_0024:  ceq
+      IL_0026:  br.s       IL_0029
+      IL_0028:  ldc.i4.0
+      IL_0029:  br.s       IL_002c
+      IL_002b:  ldc.i4.1
+      IL_002c:  br.s       IL_002f
+      IL_002e:  ldc.i4.0
+      IL_002f:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       45 (0x2d)
+      .maxstack  2
+      .locals init (char V_0,
+                    bool V_1)
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_0029
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   97
+      IL_0012:  blt.s      IL_001b
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   122
+      IL_0017:  ble.s      IL_0025
+      IL_0019:  br.s       IL_0029
+      IL_001b:  ldloc.0
+      IL_001c:  ldc.i4.s   65
+      IL_001e:  blt.s      IL_0029
+      IL_0020:  ldloc.0
+      IL_0021:  ldc.i4.s   90
+      IL_0023:  bgt.s      IL_0029
+      IL_0025:  ldc.i4.1
+      IL_0026:  stloc.1
+      IL_0027:  br.s       IL_002b
+      IL_0029:  ldc.i4.0
+      IL_002a:  stloc.1
+      IL_002b:  ldloc.1
+      IL_002c:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       45 (0x2d)
+      .maxstack  2
+      .locals init (char V_0) //c
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_002b
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0019
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_0029
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0027
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  cgt
+      IL_0023:  ldc.i4.0
+      IL_0024:  ceq
+      IL_0026:  ret
+      IL_0027:  ldc.i4.0
+      IL_0028:  ret
+      IL_0029:  ldc.i4.1
+      IL_002a:  ret
+      IL_002b:  ldc.i4.0
+      IL_002c:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static int M1(char c) => (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z') ? 1 : 0;
+    static int M2(char c) => (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z') ? 1 : 0;
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(' '));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1010";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       38 (0x26)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   97
+      IL_0003:  blt.s      IL_000c
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   122
+      IL_0008:  ble.s      IL_0018
+      IL_000a:  br.s       IL_001c
+      IL_000c:  ldarg.0
+      IL_000d:  ldc.i4.s   65
+      IL_000f:  blt.s      IL_001c
+      IL_0011:  ldarg.0
+      IL_0012:  ldc.i4.s   90
+      IL_0014:  ble.s      IL_0018
+      IL_0016:  br.s       IL_001c
+      IL_0018:  ldc.i4.1
+      IL_0019:  stloc.0
+      IL_001a:  br.s       IL_001e
+      IL_001c:  ldc.i4.0
+      IL_001d:  stloc.0
+      IL_001e:  ldloc.0
+      IL_001f:  brtrue.s   IL_0024
+      IL_0021:  ldc.i4.0
+      IL_0022:  br.s       IL_0025
+      IL_0024:  ldc.i4.1
+      IL_0025:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       25 (0x19)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0017
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0014
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  ble.s      IL_0017
+      IL_0014:  ldc.i4.0
+      IL_0015:  br.s       IL_0018
+      IL_0017:  ldc.i4.1
+      IL_0018:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       35 (0x23)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   97
+      IL_0003:  blt.s      IL_000c
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   122
+      IL_0008:  ble.s      IL_0016
+      IL_000a:  br.s       IL_001a
+      IL_000c:  ldarg.0
+      IL_000d:  ldc.i4.s   65
+      IL_000f:  blt.s      IL_001a
+      IL_0011:  ldarg.0
+      IL_0012:  ldc.i4.s   90
+      IL_0014:  bgt.s      IL_001a
+      IL_0016:  ldc.i4.1
+      IL_0017:  stloc.0
+      IL_0018:  br.s       IL_001c
+      IL_001a:  ldc.i4.0
+      IL_001b:  stloc.0
+      IL_001c:  ldloc.0
+      IL_001d:  brtrue.s   IL_0021
+      IL_001f:  ldc.i4.0
+      IL_0020:  ret
+      IL_0021:  ldc.i4.1
+      IL_0022:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       24 (0x18)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0016
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0014
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  ble.s      IL_0016
+      IL_0014:  ldc.i4.0
+      IL_0015:  ret
+      IL_0016:  ldc.i4.1
+      IL_0017:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_05()
+        {
+            var source = @"
+using System;
+class C
+{
+    static int M1(char c)
+    {
+        if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+            return 1;
+        else
+            return 0;
+    }
+    static int M2(char c)
+    {
+        if (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z')
+            return 1;
+        else
+            return 0;
+    }
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(' '));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1010";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       46 (0x2e)
+      .maxstack  2
+      .locals init (bool V_0,
+                    bool V_1,
+                    int V_2)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  ldc.i4.s   97
+      IL_0004:  blt.s      IL_000d
+      IL_0006:  ldarg.0
+      IL_0007:  ldc.i4.s   122
+      IL_0009:  ble.s      IL_0019
+      IL_000b:  br.s       IL_001d
+      IL_000d:  ldarg.0
+      IL_000e:  ldc.i4.s   65
+      IL_0010:  blt.s      IL_001d
+      IL_0012:  ldarg.0
+      IL_0013:  ldc.i4.s   90
+      IL_0015:  ble.s      IL_0019
+      IL_0017:  br.s       IL_001d
+      IL_0019:  ldc.i4.1
+      IL_001a:  stloc.0
+      IL_001b:  br.s       IL_001f
+      IL_001d:  ldc.i4.0
+      IL_001e:  stloc.0
+      IL_001f:  ldloc.0
+      IL_0020:  stloc.1
+      IL_0021:  ldloc.1
+      IL_0022:  brfalse.s  IL_0028
+      IL_0024:  ldc.i4.1
+      IL_0025:  stloc.2
+      IL_0026:  br.s       IL_002c
+      IL_0028:  ldc.i4.0
+      IL_0029:  stloc.2
+      IL_002a:  br.s       IL_002c
+      IL_002c:  ldloc.2
+      IL_002d:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       44 (0x2c)
+      .maxstack  2
+      .locals init (bool V_0,
+                    int V_1)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  ldc.i4.s   65
+      IL_0004:  blt.s      IL_000b
+      IL_0006:  ldarg.0
+      IL_0007:  ldc.i4.s   90
+      IL_0009:  ble.s      IL_001d
+      IL_000b:  ldarg.0
+      IL_000c:  ldc.i4.s   97
+      IL_000e:  blt.s      IL_001a
+      IL_0010:  ldarg.0
+      IL_0011:  ldc.i4.s   122
+      IL_0013:  cgt
+      IL_0015:  ldc.i4.0
+      IL_0016:  ceq
+      IL_0018:  br.s       IL_001b
+      IL_001a:  ldc.i4.0
+      IL_001b:  br.s       IL_001e
+      IL_001d:  ldc.i4.1
+      IL_001e:  stloc.0
+      IL_001f:  ldloc.0
+      IL_0020:  brfalse.s  IL_0026
+      IL_0022:  ldc.i4.1
+      IL_0023:  stloc.1
+      IL_0024:  br.s       IL_002a
+      IL_0026:  ldc.i4.0
+      IL_0027:  stloc.1
+      IL_0028:  br.s       IL_002a
+      IL_002a:  ldloc.1
+      IL_002b:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       35 (0x23)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   97
+      IL_0003:  blt.s      IL_000c
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   122
+      IL_0008:  ble.s      IL_0016
+      IL_000a:  br.s       IL_001a
+      IL_000c:  ldarg.0
+      IL_000d:  ldc.i4.s   65
+      IL_000f:  blt.s      IL_001a
+      IL_0011:  ldarg.0
+      IL_0012:  ldc.i4.s   90
+      IL_0014:  bgt.s      IL_001a
+      IL_0016:  ldc.i4.1
+      IL_0017:  stloc.0
+      IL_0018:  br.s       IL_001c
+      IL_001a:  ldc.i4.0
+      IL_001b:  stloc.0
+      IL_001c:  ldloc.0
+      IL_001d:  brfalse.s  IL_0021
+      IL_001f:  ldc.i4.1
+      IL_0020:  ret
+      IL_0021:  ldc.i4.0
+      IL_0022:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       24 (0x18)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0014
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0016
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  bgt.s      IL_0016
+      IL_0014:  ldc.i4.1
+      IL_0015:  ret
+      IL_0016:  ldc.i4.0
+      IL_0017:  ret
+    }
+");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M("""", 0)); // 0
+        Console.Write(M("""", 1)); // 1
+        Console.Write(M("""", 2)); // 2
+        Console.Write(M("""", 3)); // 3
+        Console.Write(M(""a"", 2)); // 2
+        Console.Write(M(""a"", 10)); // 3
+    }
+
+    static int M(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => 0,
+            ("""", 1) => 1,
+            (_, 2) => 2,
+            _ => 3
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "012323", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_0026
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_002c,
+        IL_0030,
+        IL_0034)
+  IL_0024:  br.s       IL_0038
+  IL_0026:  ldarg.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_0034
+  IL_002a:  br.s       IL_0038
+  IL_002c:  ldc.i4.0
+  IL_002d:  stloc.0
+  IL_002e:  br.s       IL_003c
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.0
+  IL_0032:  br.s       IL_003c
+  IL_0034:  ldc.i4.2
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_003c
+  IL_0038:  ldc.i4.3
+  IL_0039:  stloc.0
+  IL_003a:  br.s       IL_003c
+  IL_003c:  ldc.i4.1
+  IL_003d:  brtrue.s   IL_0040
+  IL_003f:  nop
+  IL_0040:  ldloc.0
+  IL_0041:  stloc.1
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ldloc.1
+  IL_0045:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M0("""", 0)); // 0
+        Console.Write(M0("""", 1)); // 1
+        Console.Write(M0("""", 2)); // 2
+        Console.Write(M0("""", 3)); // 3
+        Console.Write(M0(""a"", 2)); // 2
+        Console.Write(M0(""a"", 10)); // 3
+    }
+
+    static int M0(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => M1(0),
+            ("""", 1) => M1(1),
+            (_, 2) => M1(2),
+            _ => M1(3)
+        };
+    }
+
+    static int M1(int z)
+    {
+        Console.Write(' ');
+        return z;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: " 0 1 2 3 2 3", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M0", @"{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_0026
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_002c,
+        IL_0035,
+        IL_003e)
+  IL_0024:  br.s       IL_0047
+  IL_0026:  ldarg.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_003e
+  IL_002a:  br.s       IL_0047
+  IL_002c:  ldc.i4.0
+  IL_002d:  call       ""int Program.M1(int)""
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0050
+  IL_0035:  ldc.i4.1
+  IL_0036:  call       ""int Program.M1(int)""
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0050
+  IL_003e:  ldc.i4.2
+  IL_003f:  call       ""int Program.M1(int)""
+  IL_0044:  stloc.0
+  IL_0045:  br.s       IL_0050
+  IL_0047:  ldc.i4.3
+  IL_0048:  call       ""int Program.M1(int)""
+  IL_004d:  stloc.0
+  IL_004e:  br.s       IL_0050
+  IL_0050:  ldc.i4.1
+  IL_0051:  brtrue.s   IL_0054
+  IL_0053:  nop
+  IL_0054:  ldloc.0
+  IL_0055:  stloc.1
+  IL_0056:  br.s       IL_0058
+  IL_0058:  ldloc.1
+  IL_0059:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M("""", 0)); // 0
+        Console.Write(M("""", 1)); // 1
+        Console.Write(M("""", 2)); // 2
+        Console.Write(M("""", 3)); // 3
+        Console.Write(M("""", 4)); // 4
+        Console.Write(M("""", 5)); // 5
+        Console.Write(M(""a"", 2)); // 2
+        Console.Write(M(""a"", 3)); // 3
+        Console.Write(M(""a"", 4)); // 4
+        Console.Write(M(""a"", 10)); // 5
+    }
+
+    static int M(string x, int y)
+    {
+        return (x, y) switch
+        {
+            ("""", 0) => 0,
+            ("""", 1) => 1,
+            (_, 2) => 2,
+            (_, 3) => 3,
+            (_, 4) => 4,
+            _ => 5
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123452345", options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size       98 (0x62)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brfalse.s  IL_002e
+  IL_0012:  ldarg.1
+  IL_0013:  switch    (
+        IL_0040,
+        IL_0044,
+        IL_0048,
+        IL_004c,
+        IL_0050)
+  IL_002c:  br.s       IL_0054
+  IL_002e:  ldarg.1
+  IL_002f:  ldc.i4.2
+  IL_0030:  beq.s      IL_0048
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldarg.1
+  IL_0035:  ldc.i4.3
+  IL_0036:  beq.s      IL_004c
+  IL_0038:  br.s       IL_003a
+  IL_003a:  ldarg.1
+  IL_003b:  ldc.i4.4
+  IL_003c:  beq.s      IL_0050
+  IL_003e:  br.s       IL_0054
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0058
+  IL_0044:  ldc.i4.1
+  IL_0045:  stloc.0
+  IL_0046:  br.s       IL_0058
+  IL_0048:  ldc.i4.2
+  IL_0049:  stloc.0
+  IL_004a:  br.s       IL_0058
+  IL_004c:  ldc.i4.3
+  IL_004d:  stloc.0
+  IL_004e:  br.s       IL_0058
+  IL_0050:  ldc.i4.4
+  IL_0051:  stloc.0
+  IL_0052:  br.s       IL_0058
+  IL_0054:  ldc.i4.5
+  IL_0055:  stloc.0
+  IL_0056:  br.s       IL_0058
+  IL_0058:  ldc.i4.1
+  IL_0059:  brtrue.s   IL_005c
+  IL_005b:  nop
+  IL_005c:  ldloc.0
+  IL_005d:  stloc.1
+  IL_005e:  br.s       IL_0060
+  IL_0060:  ldloc.1
+  IL_0061:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_04()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M(""a"", ""x"")); // 0
+        Console.Write(M(""a"", ""y"")); // 1
+        Console.Write(M(""a"", ""z"")); // 2
+        Console.Write(M(""a"", ""w"")); // 3
+        Console.Write(M(""b"", ""z"")); // 2
+        Console.Write(M(""c"", ""z"")); // 3
+        Console.Write(M(""c"", ""w"")); // 3
+    }
+
+    static int M(string x, string y)
+    {
+        return (x, y) switch
+        {
+            (""a"", ""x"") => 0,
+            (""a"", ""y"") => 1,
+            (""a"" or ""b"", ""z"") => 2,
+            _ => 3
+        };
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123233", options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", @"{
+  // Code size      115 (0x73)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      ""a""
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""b""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  brtrue.s   IL_004a
+  IL_001f:  br.s       IL_0065
+  IL_0021:  ldarg.1
+  IL_0022:  ldstr      ""z""
+  IL_0027:  call       ""bool string.op_Equality(string, string)""
+  IL_002c:  brtrue.s   IL_0061
+  IL_002e:  ldarg.1
+  IL_002f:  ldstr      ""x""
+  IL_0034:  call       ""bool string.op_Equality(string, string)""
+  IL_0039:  brtrue.s   IL_0059
+  IL_003b:  ldarg.1
+  IL_003c:  ldstr      ""y""
+  IL_0041:  call       ""bool string.op_Equality(string, string)""
+  IL_0046:  brtrue.s   IL_005d
+  IL_0048:  br.s       IL_0065
+  IL_004a:  ldarg.1
+  IL_004b:  ldstr      ""z""
+  IL_0050:  call       ""bool string.op_Equality(string, string)""
+  IL_0055:  brtrue.s   IL_0061
+  IL_0057:  br.s       IL_0065
+  IL_0059:  ldc.i4.0
+  IL_005a:  stloc.0
+  IL_005b:  br.s       IL_0069
+  IL_005d:  ldc.i4.1
+  IL_005e:  stloc.0
+  IL_005f:  br.s       IL_0069
+  IL_0061:  ldc.i4.2
+  IL_0062:  stloc.0
+  IL_0063:  br.s       IL_0069
+  IL_0065:  ldc.i4.3
+  IL_0066:  stloc.0
+  IL_0067:  br.s       IL_0069
+  IL_0069:  ldc.i4.1
+  IL_006a:  brtrue.s   IL_006d
+  IL_006c:  nop
+  IL_006d:  ldloc.0
+  IL_006e:  stloc.1
+  IL_006f:  br.s       IL_0071
+  IL_0071:  ldloc.1
+  IL_0072:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_05()
+        {
+            var source = @"
+using System;
+
+public enum EnumA { A, B, C }
+
+public enum EnumB { X, Y, Z }
+
+public class Class1
+{
+    public string Repro(EnumA a, EnumB b)
+        => (a, b) switch
+        {
+            (EnumA.A, EnumB.X) => ""AX"",
+            (_, EnumB.Y) => ""_Y"",
+            (EnumA.B, EnumB.X) => ""BZ"",
+            (_, EnumB.Z) => ""_Z"",
+            (_, _) => throw new ArgumentException()
+        };
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Class1.Repro", @"{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0004
+  IL_0003:  nop
+  IL_0004:  ldarg.1
+  IL_0005:  brtrue.s   IL_001b
+  IL_0007:  ldarg.2
+  IL_0008:  switch    (
+        IL_002e,
+        IL_0036,
+        IL_0046)
+  IL_0019:  br.s       IL_004e
+  IL_001b:  ldarg.2
+  IL_001c:  ldc.i4.1
+  IL_001d:  beq.s      IL_0036
+  IL_001f:  ldarg.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  bne.un.s   IL_0028
+  IL_0023:  ldarg.2
+  IL_0024:  brfalse.s  IL_003e
+  IL_0026:  br.s       IL_0028
+  IL_0028:  ldarg.2
+  IL_0029:  ldc.i4.2
+  IL_002a:  beq.s      IL_0046
+  IL_002c:  br.s       IL_004e
+  IL_002e:  ldstr      ""AX""
+  IL_0033:  stloc.0
+  IL_0034:  br.s       IL_0054
+  IL_0036:  ldstr      ""_Y""
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0054
+  IL_003e:  ldstr      ""BZ""
+  IL_0043:  stloc.0
+  IL_0044:  br.s       IL_0054
+  IL_0046:  ldstr      ""_Z""
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  newobj     ""System.ArgumentException..ctor()""
+  IL_0053:  throw
+  IL_0054:  ldc.i4.1
+  IL_0055:  brtrue.s   IL_0058
+  IL_0057:  nop
+  IL_0058:  ldloc.0
+  IL_0059:  ret
+}");
+        }
+
+        #endregion Pattern Combinators
     }
 }

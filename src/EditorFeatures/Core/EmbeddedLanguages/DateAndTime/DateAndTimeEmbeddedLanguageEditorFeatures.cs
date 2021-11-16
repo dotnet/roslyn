@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal sealed class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 

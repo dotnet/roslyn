@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
@@ -47,8 +48,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_defaultOptions
         End Function
 
-        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
-            Return Nothing
+        Public Function TryParsePdbCompilationOptions(metadata As IReadOnlyDictionary(Of String, String)) As CompilationOptions Implements ICompilationFactoryService.TryParsePdbCompilationOptions
+            Dim outputKindString As String = Nothing
+            Dim outputKind As OutputKind
+
+            If Not metadata.TryGetValue("output-kind", outputKindString) OrElse
+               Not [Enum].TryParse(outputKindString, outputKind) Then
+                Return Nothing
+            End If
+
+            Return New VisualBasicCompilationOptions(outputKind)
+        End Function
+
+        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider)
         End Function
     End Class
 End Namespace

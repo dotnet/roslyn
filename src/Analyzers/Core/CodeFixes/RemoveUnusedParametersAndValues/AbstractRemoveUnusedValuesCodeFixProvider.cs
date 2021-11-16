@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -54,10 +57,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TSwitchCaseBlockSyntax : SyntaxNode
         where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
-        private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_memberAnnotation = new();
+        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new();
+        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new();
+        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
@@ -101,6 +104,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode newAssignmentTarget,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
+
+        /// <summary>
+        /// Rewrite the parent of a node which was rewritted by <see cref="TryUpdateNameForFlaggedNode"/>.
+        /// </summary>
+        /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="editor">The syntax editor for the code fix.</param>
+        /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
+        /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
+        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        {
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -205,7 +222,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 !IsForEachIterationVariableDiagnostic(diagnostic, document, cancellationToken);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root,
@@ -230,13 +247,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root)
             => diagnostics.GroupBy(d => syntaxFacts.GetContainingMemberDeclaration(root, d.Location.SourceSpan.Start));
 
-        private async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // Track all the member declaration nodes that have diagnostics.
             // We will post process all these tracked nodes after applying the fix (see "PostProcessDocumentAsync" below in this source file).
@@ -280,11 +297,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
-                    var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
                     var containingMemberDeclaration = diagnosticsToFix.Key;
                     using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
 
-                    await FixAllAsync(diagnosticId, orderedDiagnostics, document, semanticModel, root, containingMemberDeclaration, preference,
+                    await FixAllAsync(diagnosticId, diagnosticsToFix.Select(d => d), document, semanticModel, root, containingMemberDeclaration, preference,
                         removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -305,7 +321,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private async Task FixAllAsync(
             string diagnosticId,
-            IOrderedEnumerable<Diagnostic> diagnostics,
+            IEnumerable<Diagnostic> diagnostics,
             Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
@@ -320,12 +336,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
-                    FixAllExpressionValueIsUnusedDiagnostics(diagnostics, semanticModel, root,
+                    // Make sure the inner diagnostics are placed first
+                    FixAllExpressionValueIsUnusedDiagnostics(diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start), semanticModel, root,
                         preference, nameGenerator, editor, syntaxFacts);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
-                    await FixAllValueAssignedIsUnusedDiagnosticsAsync(diagnostics, document, semanticModel, root, containingMemberDeclaration,
+                    // Make sure the diagnostics are placed in order.
+                    // Example: 
+                    // int a = 0; int b = 1;
+                    // After fix it would be int a; int b;
+                    await FixAllValueAssignedIsUnusedDiagnosticsAsync(diagnostics.OrderBy(d => d.Location.SourceSpan.Start), document, semanticModel, root, containingMemberDeclaration,
                         preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                     break;
 
@@ -334,7 +355,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        private void FixAllExpressionValueIsUnusedDiagnostics(
+        private static void FixAllExpressionValueIsUnusedDiagnostics(
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,
@@ -346,7 +367,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
             // based on the user's preference.
-
+            // Note: The diagnostic order here should be inner first and outer second.
+            // Example: Foo1(() => { Foo2(); })
+            // Foo2() should be the first in this case.
             foreach (var diagnostic in diagnostics)
             {
                 var expressionStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<TExpressionStatementSyntax>();
@@ -355,27 +378,35 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     continue;
                 }
 
-                var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
                 switch (preference)
                 {
                     case UnusedValuePreference.DiscardVariable:
                         Debug.Assert(semanticModel.Language != LanguageNames.VisualBasic);
-                        var discardAssignmentExpression = (TExpressionSyntax)editor.Generator.AssignmentStatement(
-                                                                left: editor.Generator.IdentifierName(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName),
-                                                                right: expression.WithoutTrivia())
-                                                            .WithTriviaFrom(expression)
-                                                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
-                        editor.ReplaceNode(expression, discardAssignmentExpression);
+                        var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
+                        editor.ReplaceNode(expression, (node, generator) =>
+                        {
+                            var discardAssignmentExpression = (TExpressionSyntax)generator.AssignmentStatement(
+                                                                    left: generator.IdentifierName(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName),
+                                                                    right: node.WithoutTrivia())
+                                                                .WithTriviaFrom(node)
+                                                                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                            return discardAssignmentExpression;
+                        });
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
-                        // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
-                        var localDecl = editor.Generator.LocalDeclarationStatement(
-                                            name: nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement).ValueText,
-                                            initializer: expression.WithoutLeadingTrivia())
-                                        .WithTriviaFrom(expressionStatement)
-                                        .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
-                        editor.ReplaceNode(expressionStatement, localDecl);
+                        var name = nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement).ValueText;
+                        editor.ReplaceNode(expressionStatement, (node, generator) =>
+                        {
+                            var expression = syntaxFacts.GetExpressionOfExpressionStatement(node);
+                            // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
+                            var localDecl = editor.Generator.LocalDeclarationStatement(
+                                                name: name,
+                                                initializer: expression.WithoutLeadingTrivia())
+                                            .WithTriviaFrom(node)
+                                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                            return localDecl;
+                        });
                         break;
                 }
             }
@@ -503,7 +534,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        nodeReplacementMap.Add(node, newNameNode);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.Parent, newNameNode, editor, syntaxFacts);
+                        if (newParentNode is object)
+                        {
+                            nodeReplacementMap.Add(node.Parent, newParentNode);
+                        }
+                        else
+                        {
+                            nodeReplacementMap.Add(node, newNameNode);
+                        }
                     }
                 }
 
@@ -589,13 +628,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                     }
                 }
+
                 editor.RemoveNode(node, removeOptions);
             }
 
-            foreach (var kvp in nodeReplacementMap)
-            {
-                editor.ReplaceNode(kvp.Key, kvp.Value.WithAdditionalAnnotations(Formatter.Annotation));
-            }
+            foreach (var (node, replacement) in nodeReplacementMap)
+                editor.ReplaceNode(node, replacement.WithAdditionalAnnotations(Formatter.Annotation));
 
             return;
 
@@ -632,13 +670,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
                 else if (insertionNode is TStatementSyntax)
                 {
-                    // If the insertion node is being removed, keep the leading trivia with the new declaration.
+                    // If the insertion node is being removed, keep the leading trivia (following any directives) with
+                    // the new declaration.
                     if (nodesToRemove.Contains(insertionNode) && !processedNodes.Contains(insertionNode))
                     {
-                        declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia());
+                        // Fix 48070 - The Leading Trivia of the insertion node needs to be filtered
+                        // to only include trivia after Directives (if there are any)
+                        var leadingTrivia = insertionNode.GetLeadingTrivia();
+                        var lastDirective = leadingTrivia.LastOrDefault(t => t.IsDirective);
+                        var lastDirectiveIndex = leadingTrivia.IndexOf(lastDirective);
+                        declarationStatement = declarationStatement.WithLeadingTrivia(leadingTrivia.Skip(lastDirectiveIndex + 1));
+
                         // Mark the node as processed so that the trivia only gets added once.
                         processedNodes.Add(insertionNode);
                     }
+
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }

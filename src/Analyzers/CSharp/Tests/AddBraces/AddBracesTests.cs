@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -12,11 +14,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
     public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddBracesTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
@@ -655,7 +663,6 @@ class Program
                 (PreferBracesPreference)bracesPreference,
                 expectDiagnostic);
         }
-
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix - Remove the suppression when https://github.com/dotnet/roslyn/issues/42611 is fixed.
         /// <summary>

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -10,11 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
-                                                     Optional languageVersion As CodeAnalysis.CSharp.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Default,
+                                                     Optional languageVersion As LanguageVersion = LanguageVersion.Default,
                                                      Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
             Dim testState = New TestState(<Workspace>
-                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Integer) %>>
+                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
                                                   <Document>
                                                       <%= documentElement.Value %>
                                                   </Document>
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
             testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
             Return testState
         End Function
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
-                                                            Optional extraExportedTypes As List(Of Type) = Nothing,
+                                                            Optional extraExportedTypes As IEnumerable(Of Type) = Nothing,
                                                             Optional workspaceKind As String = Nothing,
                                                             Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
             testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
             Return testState
         End Function

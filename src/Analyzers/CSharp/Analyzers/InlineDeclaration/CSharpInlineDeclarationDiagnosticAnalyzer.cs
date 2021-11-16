@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                   EnforceOnBuildValues.InlineDeclaration,
                    CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (!(argumentNode.Parent is ArgumentListSyntax argumentList))
+            if (argumentNode.Parent is not ArgumentListSyntax argumentList)
             {
                 return;
             }
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var semanticModel = context.SemanticModel;
-            if (!(semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol is ILocalSymbol outLocalSymbol))
+            if (semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol is not ILocalSymbol outLocalSymbol)
             {
                 // The out-argument wasn't referencing a local.  So we don't have an local
                 // declaration that we can attempt to inline here.
@@ -133,13 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // esoteric and would make us have to write a lot more complex code to support
             // that scenario.
             var localReference = outLocalSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (!(localReference?.GetSyntax(cancellationToken) is VariableDeclaratorSyntax localDeclarator))
+            if (localReference?.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax localDeclarator)
             {
                 return;
             }
 
             var localDeclaration = localDeclarator.Parent as VariableDeclarationSyntax;
-            if (!(localDeclaration?.Parent is LocalDeclarationStatementSyntax localStatement))
+            if (localDeclaration?.Parent is not LocalDeclarationStatementSyntax localStatement)
             {
                 return;
             }
@@ -157,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // "var v = M()" should not be inlined as that could break program semantics.
             if (localDeclarator.Initializer != null)
             {
-                if (!(localDeclarator.Initializer.Value is LiteralExpressionSyntax) &&
-                    !(localDeclarator.Initializer.Value is DefaultExpressionSyntax))
+                if (localDeclarator.Initializer.Value is not LiteralExpressionSyntax and
+                    not DefaultExpressionSyntax)
                 {
                     return;
                 }
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // for references to the local to make sure that no reads/writes happen before
             // the out-argument.  If there are any reads/writes we can't inline as those
             // accesses will become invalid.
-            if (!(localStatement.Parent is BlockSyntax enclosingBlockOfLocalStatement))
+            if (localStatement.Parent is not BlockSyntax enclosingBlockOfLocalStatement)
             {
                 return;
             }
@@ -221,8 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var allLocations = ImmutableArray.Create(
                 localDeclarator.GetLocation(),
                 identifierName.GetLocation(),
-                invocationOrCreation.GetLocation(),
-                containingStatement.GetLocation());
+                invocationOrCreation.GetLocation());
 
             // If the local variable only has one declarator, then report the suggestion on the whole
             // declaration.  Otherwise, return the suggestion only on the single declarator.
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 properties: null));
         }
 
-        private bool WouldCauseDefiniteAssignmentErrors(
+        private static bool WouldCauseDefiniteAssignmentErrors(
             SemanticModel semanticModel,
             LocalDeclarationStatementSyntax localStatement,
             BlockSyntax enclosingBlock,
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
         }
 
-        private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
+        private static SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
         {
             for (var current = argumentExpression; current != null; current = current.Parent)
             {
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return null;
         }
 
-        private bool IsAccessed(
+        private static bool IsAccessed(
             SemanticModel semanticModel,
             ISymbol outSymbol,
             BlockSyntax enclosingBlockOfLocalStatement,

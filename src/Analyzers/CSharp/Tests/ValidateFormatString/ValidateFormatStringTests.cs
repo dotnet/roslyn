@@ -2,35 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public ValidateFormatStringTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
-        private IOptionsCollection CSharpOptionOffVBOptionOn() => OptionsSet(
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false),
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true));
+        private OptionsCollection OptionOff()
+            => new OptionsCollection(GetLanguage())
+            {
+                { ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, false },
+            };
 
-        private IOptionsCollection CSharpOptionOnVBOptionOff() => OptionsSet(
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true),
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false));
+        private OptionsCollection OptionOn()
+            => new OptionsCollection(GetLanguage())
+            {
+                { ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, true },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task OnePlaceholder()
@@ -129,6 +137,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     {
         string[] stringArray = {""test1"", ""test2"", ""test3""};
         string.Format(""This {0} {1} {2[||]} works"", stringArray); 
+    }     
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LiteralArray()
+        {
+            await TestDiagnosticMissingAsync(@" class Program
+{
+    static void Main(string[] args)
+    {
+        string.Format(""This {0[||]} {1} {2} {3} works"", new [] {""test1"", ""test2"", ""test3"", ""test4""}); 
     }     
 }");
         }
@@ -555,7 +575,7 @@ class C
         string.Format(""This [|{1}|] is my test"", ""teststring1"");
     }     
 }";
-            var options = optionOn ? CSharpOptionOnVBOptionOff() : CSharpOptionOffVBOptionOn();
+            var options = optionOn ? OptionOn() : OptionOff();
             if (!expectDiagnostic)
             {
                 await TestDiagnosticMissingAsync(source, new TestParameters(options: options));
@@ -565,7 +585,7 @@ class C
                 await TestDiagnosticInfoAsync(source,
                     options,
                     diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity: DiagnosticSeverity.Warning,
+                    diagnosticSeverity: DiagnosticSeverity.Info,
                     diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
             }
         }
@@ -582,7 +602,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -598,7 +618,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -614,7 +634,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -631,7 +651,7 @@ class C
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -648,7 +668,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -665,7 +685,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -683,7 +703,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -701,7 +721,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -717,7 +737,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -733,7 +753,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -749,7 +769,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -765,7 +785,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -782,7 +802,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -799,7 +819,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -816,7 +836,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -842,7 +862,7 @@ class Program
             await TestDiagnosticInfoAsync(input,
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -859,7 +879,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -876,7 +896,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -893,7 +913,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -910,7 +930,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -927,7 +947,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -944,7 +964,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 
@@ -961,7 +981,7 @@ class Program
 }",
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticSeverity: DiagnosticSeverity.Info,
                 diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
         }
 

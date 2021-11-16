@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,24 +19,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
     [UseExportProvider]
     public abstract class FormattingTestBase
     {
-        protected Task AssertFormatAsync(
+        private protected Task AssertFormatAsync(
             string expected,
             string code,
             string language,
             bool debugMode = false,
-            Dictionary<OptionKey, object>? changedOptionSet = null,
+            OptionsCollection? changedOptionSet = null,
             bool testWithTransformation = true)
         {
             return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length) }, language, debugMode, changedOptionSet, testWithTransformation);
         }
 
-        protected async Task AssertFormatAsync(
+        private protected async Task AssertFormatAsync(
             string expected,
             string code,
             IEnumerable<TextSpan> spans,
             string language,
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/44225
             bool debugMode = false,
-            Dictionary<OptionKey, object>? changedOptionSet = null,
+#pragma warning restore IDE0060 // Remove unused parameter
+            OptionsCollection? changedOptionSet = null,
             bool treeCompare = true,
             ParseOptions? parseOptions = null)
         {

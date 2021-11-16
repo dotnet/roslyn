@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// Checks if <paramref name="operation"/> is a binary subtraction operator. If so, it
         /// will be returned through <paramref name="subtraction"/>.
         /// </summary>
-        public static bool IsSubtraction(IOperation operation, out IBinaryOperation subtraction)
+        public static bool IsSubtraction(IOperation operation, [NotNullWhen(true)] out IBinaryOperation? subtraction)
         {
             if (operation is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract)
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 1 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+               // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
                //
                // When looking for the pattern members, we look for original definitions, not
                // constructed members
@@ -80,16 +81,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// names of the parameters are checked to ensure they are appropriate slice-like.  These
         /// names were picked by examining the patterns in the BCL for slicing members.
         /// </summary>
-        public static bool IsSliceLikeMethod(IMethodSymbol method)
-            => method != null &&
-               IsPublicInstance(method) &&
-               method.Parameters.Length == 2 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
-               //
-               // When looking for the pattern members, we look for original definitions, not
-               // constructed members
-               IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]) &&
-               IsSliceSecondParameter(method.OriginalDefinition.Parameters[1]);
+        public static bool IsTwoArgumentSliceLikeMethod(IMethodSymbol method)
+        {
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            //
+            // When looking for the pattern members, we look for original definitions, not
+            // constructed members
+            return method != null &&
+                IsPublicInstance(method) &&
+                method.Parameters.Length == 2 &&
+                IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]) &&
+                IsSliceSecondParameter(method.OriginalDefinition.Parameters[1]);
+        }
+
+        /// <summary>
+        /// Look for methods like "SomeType MyType.Slice(int start)".  Note that the
+        /// name of the parameter is checked to ensure it is appropriate slice-like.
+        /// This name was picked by examining the patterns in the BCL for slicing members.
+        /// </summary>
+        public static bool IsOneArgumentSliceLikeMethod(IMethodSymbol method)
+        {
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            //
+            // When looking for the pattern members, we look for original definitions, not
+            // constructed members
+            return method != null &&
+                IsPublicInstance(method) &&
+                method.Parameters.Length == 1 &&
+                IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]);
+        }
 
         private static bool IsSliceFirstParameter(IParameterSymbol parameter)
             => parameter.Type.SpecialType == SpecialType.System_Int32 &&
@@ -119,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// The overload must have the same return type as <paramref name="method"/>.  It must only
         /// have a single parameter, with the provided <paramref name="parameterType"/>.
         /// </summary>
-        public static IMethodSymbol GetOverload(IMethodSymbol method, ITypeSymbol parameterType)
+        public static IMethodSymbol? GetOverload(IMethodSymbol method, ITypeSymbol parameterType)
             => method.MethodKind != MethodKind.Ordinary
                 ? null
                 : method.ContainingType.GetMembers(method.Name)

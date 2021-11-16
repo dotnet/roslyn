@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             while (currentToken.Kind() != SyntaxKind.CloseBraceToken && previousToken.Kind() == SyntaxKind.OpenBraceToken)
             {
-                var pair = previousToken.Parent.GetBracePair();
-                if (pair.Item2.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, pair.Item2))
+                var (_, closeBrace) = previousToken.Parent.GetBracePair();
+                if (closeBrace.Kind() == SyntaxKind.None || !AreTwoTokensOnSameLine(previousToken, closeBrace))
                 {
                     return ValueTuple.Create(currentToken, tokenRange.Value.Item2);
                 }
@@ -95,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                         // if we are called due to things in trivia or literals, don't bother
                         // finding a starting token
-                        if (parent.Kind() == SyntaxKind.StringLiteralExpression ||
-                            parent.Kind() == SyntaxKind.CharacterLiteralExpression)
+                        if (parent.Kind() is SyntaxKind.StringLiteralExpression or
+                            SyntaxKind.CharacterLiteralExpression)
                         {
                             return null;
                         }
@@ -116,15 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return null;
             }
 
-            if ((parent is UsingDirectiveSyntax) ||
-                (parent is DelegateDeclarationSyntax) ||
-                (parent is FieldDeclarationSyntax) ||
-                (parent is EventFieldDeclarationSyntax) ||
-                (parent is MethodDeclarationSyntax) ||
-                (parent is PropertyDeclarationSyntax) ||
-                (parent is ConstructorDeclarationSyntax) ||
-                (parent is DestructorDeclarationSyntax) ||
-                (parent is OperatorDeclarationSyntax))
+            if (parent is UsingDirectiveSyntax or
+                DelegateDeclarationSyntax or
+                FieldDeclarationSyntax or
+                EventFieldDeclarationSyntax or
+                MethodDeclarationSyntax or
+                PropertyDeclarationSyntax or
+                ConstructorDeclarationSyntax or
+                DestructorDeclarationSyntax or
+                OperatorDeclarationSyntax)
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // if both accessors are on the same line, format the accessor list
                 // { get; set; }
                 if (GetEnclosingMember(endToken) is PropertyDeclarationSyntax propertyDeclaration &&
-                    AreTwoTokensOnSameLine(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
+                    AreTwoTokensOnSameLine(propertyDeclaration.AccessorList!.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
                 {
                     return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
                 }
@@ -173,8 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // cases such as namespace, type, enum, method almost any top level elements
-            if (parent is MemberDeclarationSyntax ||
-                parent is SwitchStatementSyntax)
+            if (parent is MemberDeclarationSyntax or SwitchStatementSyntax or SwitchExpressionSyntax)
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
             }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 // double initializer case such as
                 // { { }
-                if (parentOfParent is InitializerExpressionSyntax doubleInitializer)
+                if (parentOfParent is InitializerExpressionSyntax)
                 {
                     // if parent block has a missing brace, and current block is on same line, then
                     // don't try to indent inner block.
@@ -334,6 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // now check a special case where previous token belongs to a label.
             if (previousToken.IsLastTokenInLabelStatement())
             {
+                RoslynDebug.AssertNotNull(previousToken.Parent?.Parent);
                 var labelNode = previousToken.Parent.Parent;
                 return GetAppropriatePreviousToken(labelNode.GetFirstToken());
             }
@@ -352,28 +353,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private static bool IsSpecialContainingNode(SyntaxNode node)
         {
             return
-                node.Kind() == SyntaxKind.IfStatement ||
-                node.Kind() == SyntaxKind.ElseClause ||
-                node.Kind() == SyntaxKind.WhileStatement ||
-                node.Kind() == SyntaxKind.ForStatement ||
-                node.Kind() == SyntaxKind.ForEachStatement ||
-                node.Kind() == SyntaxKind.ForEachVariableStatement ||
-                node.Kind() == SyntaxKind.UsingStatement ||
-                node.Kind() == SyntaxKind.DoStatement ||
-                node.Kind() == SyntaxKind.TryStatement ||
-                node.Kind() == SyntaxKind.CatchClause ||
-                node.Kind() == SyntaxKind.FinallyClause ||
-                node.Kind() == SyntaxKind.LabeledStatement ||
-                node.Kind() == SyntaxKind.LockStatement ||
-                node.Kind() == SyntaxKind.FixedStatement ||
-                node.Kind() == SyntaxKind.GetAccessorDeclaration ||
-                node.Kind() == SyntaxKind.SetAccessorDeclaration ||
-                node.Kind() == SyntaxKind.AddAccessorDeclaration ||
-                node.Kind() == SyntaxKind.RemoveAccessorDeclaration;
+                node.Kind() is SyntaxKind.IfStatement or
+                SyntaxKind.ElseClause or
+                SyntaxKind.WhileStatement or
+                SyntaxKind.ForStatement or
+                SyntaxKind.ForEachStatement or
+                SyntaxKind.ForEachVariableStatement or
+                SyntaxKind.UsingStatement or
+                SyntaxKind.DoStatement or
+                SyntaxKind.TryStatement or
+                SyntaxKind.CatchClause or
+                SyntaxKind.FinallyClause or
+                SyntaxKind.LabeledStatement or
+                SyntaxKind.LockStatement or
+                SyntaxKind.FixedStatement or
+                SyntaxKind.UncheckedStatement or
+                SyntaxKind.CheckedStatement or
+                SyntaxKind.GetAccessorDeclaration or
+                SyntaxKind.SetAccessorDeclaration or
+                SyntaxKind.InitAccessorDeclaration or
+                SyntaxKind.AddAccessorDeclaration or
+                SyntaxKind.RemoveAccessorDeclaration;
         }
 
-        private static SyntaxNode GetTopContainingNode(SyntaxNode node)
+        private static SyntaxNode? GetTopContainingNode([DisallowNull] SyntaxNode? node)
         {
+            RoslynDebug.AssertNotNull(node.Parent);
+
             node = node.Parent;
             if (!IsSpecialContainingNode(node))
             {
@@ -406,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool InBetweenTwoMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            if (previousToken.Kind() != SyntaxKind.SemicolonToken && previousToken.Kind() != SyntaxKind.CloseBraceToken)
+            if (previousToken.Kind() is not SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
             {
                 return false;
             }
@@ -424,12 +430,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 && previousMember != nextMember;
         }
 
-        public static MemberDeclarationSyntax GetEnclosingMember(SyntaxToken token)
+        public static MemberDeclarationSyntax? GetEnclosingMember(SyntaxToken token)
         {
+            RoslynDebug.AssertNotNull(token.Parent);
+
             if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
-                if (token.Parent.Kind() == SyntaxKind.Block ||
-                    token.Parent.Kind() == SyntaxKind.AccessorList)
+                if (token.Parent.Kind() is SyntaxKind.Block or
+                    SyntaxKind.AccessorList)
                 {
                     return token.Parent.Parent as MemberDeclarationSyntax;
                 }

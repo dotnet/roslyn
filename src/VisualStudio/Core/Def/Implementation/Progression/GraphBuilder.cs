@@ -6,13 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
@@ -25,51 +23,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed partial class GraphBuilder
     {
-        private readonly Graph _graph = new Graph();
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly Graph _graph = new();
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
         private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
 
-        private readonly CancellationToken _cancellationToken;
-
-        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new Dictionary<GraphNode, Project>();
-        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new Dictionary<GraphNode, Document>();
-        private readonly Dictionary<GraphNode, SymbolAndProjectId> _nodeToSymbolMap = new Dictionary<GraphNode, SymbolAndProjectId>();
+        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new();
+        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new();
+        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new();
 
         /// <summary>
         /// The input solution. Never null.
         /// </summary>
         private readonly Solution _solution;
 
-        public GraphBuilder(Solution solution, CancellationToken cancellationToken)
+        public GraphBuilder(Solution solution)
         {
             _solution = solution;
-            _cancellationToken = cancellationToken;
         }
 
-        public static async Task<GraphBuilder> CreateForInputNodesAsync(Solution solution, IEnumerable<GraphNode> inputNodes, CancellationToken cancellationToken)
+        public static async Task<GraphBuilder> CreateForInputNodesAsync(
+            Solution solution, IEnumerable<GraphNode> inputNodes, CancellationToken cancellationToken)
         {
-            var builder = new GraphBuilder(solution, cancellationToken);
+            var builder = new GraphBuilder(solution);
 
             foreach (var inputNode in inputNodes)
             {
                 if (inputNode.HasCategory(CodeNodeCategories.File))
                 {
-                    builder.PopulateMapsForFileInputNode(inputNode);
+                    builder.PopulateMapsForFileInputNode(inputNode, cancellationToken);
                 }
                 else if (!inputNode.HasCategory(CodeNodeCategories.SourceLocation))
                 {
-                    await builder.PopulateMapsForSymbolInputNodeAsync(inputNode).ConfigureAwait(false);
+                    await builder.PopulateMapsForSymbolInputNodeAsync(inputNode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return builder;
         }
 
-        private void PopulateMapsForFileInputNode(GraphNode inputNode)
+        private void PopulateMapsForFileInputNode(GraphNode inputNode, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 var projectPath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.Assembly);
                 var filePath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.File);
@@ -99,9 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private async Task PopulateMapsForSymbolInputNodeAsync(GraphNode inputNode)
+        private async Task PopulateMapsForSymbolInputNodeAsync(GraphNode inputNode, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 var projectId = (ProjectId)inputNode[RoslynGraphProperties.ContextProjectId];
                 if (projectId == null)
@@ -117,12 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 _nodeToContextProjectMap.Add(inputNode, project);
 
-                var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
-                var symbol = symbolId.Value.Resolve(compilation).Symbol;
+                var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
                 if (symbol != null)
                 {
-                    _nodeToSymbolMap.Add(inputNode, new SymbolAndProjectId(symbol, project.Id));
+                    _nodeToSymbolMap.Add(inputNode, symbol);
                 }
 
                 var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
@@ -137,9 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Project GetContextProject(GraphNode node)
+        public Project GetContextProject(GraphNode node, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 _nodeToContextProjectMap.TryGetValue(node, out var project);
                 return project;
@@ -152,42 +148,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return thisProject.Id;
         }
 
-        public Document GetContextDocument(GraphNode node)
+        public Document GetContextDocument(GraphNode node, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 _nodeToContextDocumentMap.TryGetValue(node, out var document);
                 return document;
             }
         }
 
-        public SymbolAndProjectId GetSymbolAndProjectId(GraphNode node)
+        public ISymbol GetSymbol(GraphNode node, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 _nodeToSymbolMap.TryGetValue(node, out var symbol);
                 return symbol;
             }
         }
 
-        public Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode, CancellationToken cancellationToken)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
-            return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
+            return AddNodeAsync(
+                symbol,
+                GetContextProject(relatedNode, cancellationToken),
+                GetContextDocument(relatedNode, cancellationToken),
+                cancellationToken);
         }
 
-        public async Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbolAndProjectId, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(
+            ISymbol symbol, Project contextProject, Document contextDocument, CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
-
             // Figure out what the location for this node should be. We'll arbitrarily pick the
             // first one, unless we have a contextDocument to restrict it
             var preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
 
             if (contextDocument != null)
             {
-                var syntaxTree = await contextDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await contextDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // If we have one in that tree, use it
                 preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree == syntaxTree) ?? preferredLocation;
@@ -196,18 +195,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             // We may need to look up source code within this solution
             if (preferredLocation == null && symbol.Locations.Any(loc => loc.IsInMetadata))
             {
-                var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, _cancellationToken).ConfigureAwait(false);
+                var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
                 if (newSymbol != null)
-                {
                     preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
-                }
             }
 
-            using (_gate.DisposableWait())
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
+                var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
 
-                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
+                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey(cancellationToken);
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
                 node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
                 node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;
@@ -215,27 +212,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 node[RoslynGraphProperties.SymbolKind] = symbol.Kind;
 
                 if (contextDocument != null)
-                {
                     node[RoslynGraphProperties.ContextDocumentId] = contextDocument.Id;
-                }
 
-                if (preferredLocation != null)
+                if (preferredLocation?.SourceTree != null)
                 {
                     var lineSpan = preferredLocation.GetLineSpan();
-                    var sourceLocation = new SourceLocation(
+                    var sourceLocation = TryCreateSourceLocation(
                         preferredLocation.SourceTree.FilePath,
-                        new Position(lineSpan.StartLinePosition.Line, lineSpan.StartLinePosition.Character),
-                        new Position(lineSpan.EndLinePosition.Line, lineSpan.EndLinePosition.Character));
-                    node[CodeNodeProperties.SourceLocation] = sourceLocation;
+                        lineSpan.Span);
+                    if (sourceLocation != null)
+                        node[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
                 }
 
                 // Keep track of this as a node we have added. Note this is a HashSet, so if the node was already added
                 // we won't double-count.
                 _createdNodes.Add(node);
 
-                _nodeToSymbolMap[node] = symbolAndProjectId;
+                _nodeToSymbolMap[node] = symbol;
                 _nodeToContextProjectMap[node] = contextProject;
-                _nodeToContextDocumentMap[node] = contextDocument;
+
+                if (contextDocument != null)
+                    _nodeToContextDocumentMap[node] = contextDocument;
 
                 return node;
             }
@@ -609,7 +606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             node.AddCategory(CodeNodeCategories.Method);
 
-            var isOperator = method.MethodKind == MethodKind.UserDefinedOperator || method.MethodKind == MethodKind.Conversion;
+            var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             node[DgmlNodeProperties.Icon] = isOperator
                 ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
                 : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
@@ -665,21 +662,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return node;
         }
 
-        public void AddLink(GraphNode from, GraphCategory category, GraphNode to)
+        public void AddLink(GraphNode from, GraphCategory category, GraphNode to, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 _graph.Links.GetOrCreate(from, to).AddCategory(category);
             }
         }
 
-        public GraphNode AddNodeForDocument(Document document)
+        public GraphNode? TryAddNodeForDocument(Document document, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            // Under the covers, progression will attempt to convert a label into a URI.  Ensure that we
+            // can do this safely. before proceeding.
+            //
+            // The corresponding code on the progression side does: new Uri(text, UriKind.RelativeOrAbsolute)
+            // so we check that same kind here.
+            var fileName = Path.GetFileName(document.FilePath);
+            if (!Uri.TryCreate(fileName, UriKind.RelativeOrAbsolute, out _))
+                return null;
+
+            using (_gate.DisposableWait(cancellationToken))
             {
                 var id = GraphNodeIdCreation.GetIdForDocument(document);
 
-                var node = _graph.Nodes.GetOrCreate(id, Path.GetFileName(document.FilePath), CodeNodeCategories.ProjectItem);
+                var node = _graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
 
                 _nodeToContextDocumentMap[node] = document;
                 _nodeToContextProjectMap[node] = document.Project;
@@ -690,9 +696,116 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public void ApplyToGraph(Graph graph)
+        public async Task<GraphNode?> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            var document = result.NavigableItem.Document;
+            var project = document.Project;
+
+            // If it doesn't belong to a document or project we can navigate to, then ignore entirely.
+            if (document.FilePath == null || project.FilePath == null)
+                return null;
+
+            var category = result.Kind switch
+            {
+                NavigateToItemKind.Class => CodeNodeCategories.Class,
+                NavigateToItemKind.Delegate => CodeNodeCategories.Delegate,
+                NavigateToItemKind.Enum => CodeNodeCategories.Enum,
+                NavigateToItemKind.Interface => CodeNodeCategories.Interface,
+                NavigateToItemKind.Module => CodeNodeCategories.Module,
+                NavigateToItemKind.Structure => CodeNodeCategories.Struct,
+                NavigateToItemKind.Method => CodeNodeCategories.Method,
+                NavigateToItemKind.Property => CodeNodeCategories.Property,
+                NavigateToItemKind.Event => CodeNodeCategories.Event,
+                NavigateToItemKind.Constant or
+                NavigateToItemKind.EnumItem or
+                NavigateToItemKind.Field => CodeNodeCategories.Field,
+                _ => null,
+            };
+
+            // If it's not a category that progression understands, then ignore.
+            if (category == null)
+                return null;
+
+            // Get or make a node for this symbol's containing document that will act as the parent node in the UI.
+            var documentNode = this.TryAddNodeForDocument(document, cancellationToken);
+            if (documentNode == null)
+                return null;
+
+            // For purposes of keying this node, just use the display text we will show.  In practice, outside of error
+            // scenarios this will be unique and suitable as an ID (esp. as these names are joined with their parent
+            // document name to form the full ID).
+            var label = result.NavigableItem.DisplayTaggedParts.JoinText();
+            var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
+
+            // If we already have a node that matches this (say there are multiple identical sibling symbols in an error
+            // situation).  We just ignore the second match.
+            var existing = _graph.Nodes.Get(id);
+            if (existing != null)
+                return null;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+            var sourceLocation = TryCreateSourceLocation(document.FilePath, span);
+            if (sourceLocation == null)
+                return null;
+
+            var symbolNode = _graph.Nodes.GetOrCreate(id);
+
+            symbolNode.Label = label;
+            symbolNode.AddCategory(category);
+            symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
+            symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
+            symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
+
+            symbolNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
+
+            this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode, cancellationToken);
+
+            return symbolNode;
+        }
+
+        public static SourceLocation? TryCreateSourceLocation(string path, LinePositionSpan span)
+        {
+            // SourceLocation's constructor attempts to create an absolute uri.  So if we can't do that
+            // bail out immediately.
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri))
+                return null;
+
+            return new SourceLocation(
+                uri,
+                new Position(span.Start.Line, span.Start.Character),
+                new Position(span.End.Line, span.End.Character));
+        }
+
+        private static string? GetIconString(Glyph glyph)
+        {
+            var groupName = glyph switch
+            {
+                Glyph.ClassPublic or Glyph.ClassProtected or Glyph.ClassPrivate or Glyph.ClassInternal => "Class",
+                Glyph.ConstantPublic or Glyph.ConstantProtected or Glyph.ConstantPrivate or Glyph.ConstantInternal => "Field",
+                Glyph.DelegatePublic or Glyph.DelegateProtected or Glyph.DelegatePrivate or Glyph.DelegateInternal => "Delegate",
+                Glyph.EnumPublic or Glyph.EnumProtected or Glyph.EnumPrivate or Glyph.EnumInternal => "Enum",
+                Glyph.EnumMemberPublic or Glyph.EnumMemberProtected or Glyph.EnumMemberPrivate or Glyph.EnumMemberInternal => "EnumMember",
+                Glyph.ExtensionMethodPublic or Glyph.ExtensionMethodProtected or Glyph.ExtensionMethodPrivate or Glyph.ExtensionMethodInternal => "Method",
+                Glyph.EventPublic or Glyph.EventProtected or Glyph.EventPrivate or Glyph.EventInternal => "Event",
+                Glyph.FieldPublic or Glyph.FieldProtected or Glyph.FieldPrivate or Glyph.FieldInternal => "Field",
+                Glyph.InterfacePublic or Glyph.InterfaceProtected or Glyph.InterfacePrivate or Glyph.InterfaceInternal => "Interface",
+                Glyph.MethodPublic or Glyph.MethodProtected or Glyph.MethodPrivate or Glyph.MethodInternal => "Method",
+                Glyph.ModulePublic or Glyph.ModuleProtected or Glyph.ModulePrivate or Glyph.ModuleInternal => "Module",
+                Glyph.PropertyPublic or Glyph.PropertyProtected or Glyph.PropertyPrivate or Glyph.PropertyInternal => "Property",
+                Glyph.StructurePublic or Glyph.StructureProtected or Glyph.StructurePrivate or Glyph.StructureInternal => "Structure",
+                _ => null,
+            };
+
+            if (groupName == null)
+                return null;
+
+            return IconHelper.GetIconName(groupName, GlyphExtensions.GetAccessibility(GlyphTags.GetTags(glyph)));
+        }
+
+        public void ApplyToGraph(Graph graph, CancellationToken cancellationToken)
+        {
+            using (_gate.DisposableWait(cancellationToken))
             {
                 using var graphTransaction = new GraphTransactionScope();
                 graph.Merge(this.Graph);
@@ -707,9 +820,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public void AddDeferredPropertySet(GraphNode node, GraphProperty property, object value)
+        public void AddDeferredPropertySet(GraphNode node, GraphProperty property, object value, CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait())
+            using (_gate.DisposableWait(cancellationToken))
             {
                 _deferredPropertySets.Add(Tuple.Create(node, property, value));
             }
@@ -723,25 +836,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public IEnumerable<GraphNode> CreatedNodes
+        public IEnumerable<GraphNode> GetCreatedNodes(CancellationToken cancellationToken)
         {
-            get
+            using (_gate.DisposableWait(cancellationToken))
             {
-                using (_gate.DisposableWait())
-                {
-                    return _createdNodes.ToArray();
-                }
-            }
-        }
-
-        public IEnumerable<Tuple<GraphNode, GraphProperty, object>> DeferredPropertySets
-        {
-            get
-            {
-                using (_gate.DisposableWait())
-                {
-                    return _deferredPropertySets.ToArray();
-                }
+                return _createdNodes.ToArray();
             }
         }
     }

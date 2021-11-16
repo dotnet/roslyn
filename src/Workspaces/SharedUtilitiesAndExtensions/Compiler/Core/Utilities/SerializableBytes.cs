@@ -5,7 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             var length = stream.Length;
 
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // free any chunks remaining
-        private static void BlowChunks(byte[][] chunks)
+        private static void BlowChunks(byte[][]? chunks)
         {
             if (chunks != null)
             {
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                     if (chunks[c] != null)
                     {
                         SharedPools.ByteArray.Free(chunks[c]);
-                        chunks[c] = null;
+                        chunks[c] = null!;
                     }
                 }
             }
@@ -236,8 +240,24 @@ namespace Microsoft.CodeAnalysis
 
             public ImmutableArray<byte> ToImmutableArray()
             {
-                var array = ToArray();
-                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
+                // ImmutableArray only supports int-sized arrays
+                var count = checked((int)Length);
+                var builder = ImmutableArray.CreateBuilder<byte>(count);
+
+                var chunkIndex = 0;
+                while (count > 0)
+                {
+                    var chunk = chunks[chunkIndex];
+                    var copyCount = Math.Min(chunk.Length, count);
+
+                    builder.AddRange(chunk, copyCount);
+                    count -= copyCount;
+                    chunkIndex++;
+                }
+
+                Debug.Assert(count == 0);
+
+                return builder.MoveToImmutable();
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }
@@ -260,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                         SharedPools.ByteArray.Free(chunk);
                     }
 
-                    chunks = null;
+                    chunks = null!;
                 }
             }
 
@@ -335,7 +355,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
 
                     var trimIndex = chunkIndex + 1;
-                    for (int i = trimIndex; i < chunks.Count; i++)
+                    for (var i = trimIndex; i < chunks.Count; i++)
                     {
                         SharedPools.ByteArray.Free(chunks[i]);
                     }

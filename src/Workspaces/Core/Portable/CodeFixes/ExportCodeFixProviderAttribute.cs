@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Optional name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
-        public string Name { get; set; }
+        [DisallowNull]
+        public string? Name { get; set; }
 
         /// <summary>
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
@@ -38,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 throw new ArgumentNullException(nameof(additionalLanguages));
             }
-
-            this.Name = null;
 
             var languages = new string[additionalLanguages.Length + 1];
             languages[0] = firstLanguage ?? throw new ArgumentNullException(nameof(firstLanguage));

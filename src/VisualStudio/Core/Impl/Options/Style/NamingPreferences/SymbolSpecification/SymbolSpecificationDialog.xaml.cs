@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -54,9 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             modifiersListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.ModifierList));
             modifiersContentControl.Content = modifiersListView;
 
-            symbolKindsListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
-            accessibilitiesListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleAccessibilitiesPreviewKeyDown, true);
-            modifiersListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
+            symbolKindsListView.AddHandler(PreviewKeyDownEvent, HandleSymbolKindsPreviewKeyDown, true);
+            accessibilitiesListView.AddHandler(PreviewKeyDownEvent, HandleAccessibilitiesPreviewKeyDown, true);
+            modifiersListView.AddHandler(PreviewKeyDownEvent, HandleModifiersPreviewKeyDown, true);
         }
 
         private AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)

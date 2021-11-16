@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -53,6 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
         {
             return UnderlyingAssemblySymbol.ResolveForwardedType(fullyQualifiedMetadataName).GetPublicSymbol();
+        }
+
+        ImmutableArray<INamedTypeSymbol> IAssemblySymbol.GetForwardedTypes()
+        {
+            return UnderlyingAssemblySymbol.GetAllTopLevelForwardedTypes().Select(t => t.GetPublicSymbol()).
+                   OrderBy(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat)).AsImmutable();
         }
 
         bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol assemblyWantingAccess)

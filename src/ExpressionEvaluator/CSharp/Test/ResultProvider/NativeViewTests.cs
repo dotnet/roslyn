@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -60,13 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         Verify(children,
                             EvalFailedResult("Native View", "To inspect the native object, enable native code debugging."));
                     }
-
-                    inspectionContext = CreateDkmInspectionContext(flags: DkmEvaluationFlags.NoSideEffects, runtimeInstance: runtime);
-                    evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
-                    Verify(evalResult,
-                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
-                    children = GetChildren(evalResult, inspectionContext);
-                    Verify(children, new DkmEvaluationResult[0]);
                 }
             }
         }

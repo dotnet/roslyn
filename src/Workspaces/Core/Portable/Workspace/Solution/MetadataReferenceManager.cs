@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.CompilerServices;
 
@@ -10,12 +12,12 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataReferenceManager
     {
         private static readonly ConditionalWeakTable<ProjectState, WeakReference<Compilation>> s_compilationReferenceMap =
-            new ConditionalWeakTable<ProjectState, WeakReference<Compilation>>();
+            new();
 
         private static readonly ConditionalWeakTable<ProjectState, WeakReference<Compilation>>.CreateValueCallback s_createValue =
             k => new WeakReference<Compilation>(null);
 
-        private static readonly object s_guard = new object();
+        private static readonly object s_guard = new();
 
         // Hand out the same compilation reference for everyone who asks.  Use 
         // WeakReference<Compilation> so that if no-one is using the MetadataReference,

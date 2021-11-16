@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,18 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly LambdaSimplifierCodeRefactoringProvider _codeIssueProvider;
             private readonly SemanticDocument _document;
             private readonly Func<SyntaxNode, bool> _predicate;
             private readonly CancellationToken _cancellationToken;
 
             public Rewriter(
-                LambdaSimplifierCodeRefactoringProvider codeIssueProvider,
                 SemanticDocument document,
                 Func<SyntaxNode, bool> predicate,
                 CancellationToken cancellationToken)
             {
-                _codeIssueProvider = codeIssueProvider;
                 _document = document;
                 _predicate = predicate;
                 _cancellationToken = cancellationToken;
@@ -42,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 {
                     var symbolMap = SemanticMap.From(_document.SemanticModel, memberAccess.Expression, _cancellationToken);
                     var anySideEffects = symbolMap.AllReferencedSymbols.Any(s =>
-                        s.Kind == SymbolKind.Method || s.Kind == SymbolKind.Property);
+                        s.Kind is SymbolKind.Method or SymbolKind.Property);
 
                     if (anySideEffects)
                     {
-                        var annotation = WarningAnnotation.Create("Warning: Expression may have side effects. Code meaning may change.");
+                        var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_Expression_may_change_code_meaning);
                         expression = expression.ReplaceNode(memberAccess.Expression, memberAccess.Expression.WithAdditionalAnnotations(annotation));
                     }
                 }

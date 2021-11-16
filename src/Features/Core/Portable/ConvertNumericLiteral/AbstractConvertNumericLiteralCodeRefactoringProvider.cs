@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 return;
             }
 
-            var syntaxNode = numericToken.Parent;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxNode = numericToken.GetRequiredParent();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
             if (symbol == null)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var value = IntegerUtilities.ToInt64(valueOpt.Value);
             var numericText = numericToken.ToString();
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
         internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
         {
-            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
             var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             // Insert digit separators in the given interval.
             var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
             // Fix for the case "0x_1111" that is not supported yet.
-            return result[0] == '_' ? result.Substring(1) : result;
+            return result[0] == '_' ? result[1..] : result;
         }
 
         private static bool IsIntegral(SpecialType specialType)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
             {
             }
         }

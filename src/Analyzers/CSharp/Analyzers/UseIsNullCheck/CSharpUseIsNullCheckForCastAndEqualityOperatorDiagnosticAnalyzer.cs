@@ -14,11 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly ImmutableDictionary<string, string> s_properties =
-            ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
+        private static readonly ImmutableDictionary<string, string?> s_properties =
+            ImmutableDictionary<string, string?>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpAnalyzersResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -29,7 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
+            => context.RegisterCompilationStartAction(context =>
+            {
+                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp7)
+                {
+                    return;
+                }
+
+                context.RegisterSyntaxNodeAction(n => AnalyzeSyntax(n), SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
+            });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -37,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
-
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
-            {
-                return;
-            }
 
             var option = context.Options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
             if (!option.Value)

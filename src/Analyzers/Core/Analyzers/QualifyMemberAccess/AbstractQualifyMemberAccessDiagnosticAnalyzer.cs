@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
+                   EnforceOnBuildValues.AddQualification,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -84,51 +85,37 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, IOperation instanceOperation)
+        private void AnalyzeOperation(OperationAnalysisContext context, IOperation operation, IOperation? instanceOperation)
         {
             // this is a static reference so we don't care if it's qualified
             if (instanceOperation == null)
-            {
                 return;
-            }
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (instanceOperation.Kind != OperationKind.InstanceReference)
-            {
                 return;
-            }
 
             // We shouldn't qualify if it is inside a property pattern
-            if (context.Operation.Parent.Kind == OperationKind.PropertySubpattern)
-            {
+            if (context.Operation.Parent?.Kind == OperationKind.PropertySubpattern)
                 return;
-            }
 
             // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
             // will incorrectly fetch the options for method call.
             // We still want to handle InstanceReferenceKind.ContainingTypeInstance
             if ((instanceOperation as IInstanceReferenceOperation)?.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
-            {
                 return;
-            }
 
             // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
             if (!CanMemberAccessBeQualified(context.ContainingSymbol, instanceOperation.Syntax))
-            {
                 return;
-            }
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
             if (IsStaticMemberOrIsLocalFunction(operation))
-            {
                 return;
-            }
 
-            if (!(instanceOperation.Syntax is TSimpleNameSyntax simpleName))
-            {
+            if (instanceOperation.Syntax is not TSimpleNameSyntax simpleName)
                 return;
-            }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
             var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);
@@ -151,7 +138,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
+        private static bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             return operation switch
             {

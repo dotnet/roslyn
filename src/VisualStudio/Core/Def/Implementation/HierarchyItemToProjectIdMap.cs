@@ -16,14 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(IHierarchyItemToProjectIdMap), ServiceLayer.Host), Shared]
     internal class HierarchyItemToProjectIdMap : IHierarchyItemToProjectIdMap
     {
-        private readonly VisualStudioWorkspace _workspace;
+        private readonly VisualStudioWorkspaceImpl _workspace;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public HierarchyItemToProjectIdMap(VisualStudioWorkspace workspace)
+        public HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl workspace)
             => _workspace = workspace;
 
-        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string targetFrameworkMoniker, out ProjectId projectId)
+        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
         {
             // A project node is represented in two different hierarchies: the solution's IVsHierarchy (where it is a leaf node)
             // and the project's own IVsHierarchy (where it is the root node). The IVsHierarchyItem joins them together for the
@@ -31,14 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // project system to the language service, so that's the one the one to query here. To do that we need to get
             // the "nested" hierarchy from the IVsHierarchyItem.
             var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
-            var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
-
-            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out var nestedCanonicalName)
-                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out var nestedName))
-            {
-                projectId = null;
-                return false;
-            }
 
             // First filter the projects by matching up properties on the input hierarchy against properties on each
             // project's hierarchy.
@@ -49,38 +41,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // The properties supported and the interpretation of their values varies from one project system
                     // to another. This code is designed with C# and VB in mind, so we need to filter out everything
                     // else.
-                    if (p.Language != LanguageNames.CSharp
-                        && p.Language != LanguageNames.VisualBasic)
+                    if (p.Language is not LanguageNames.CSharp
+                        and not LanguageNames.VisualBasic)
                     {
                         return false;
                     }
 
-                    // Here we try to match the hierarchy from Solution Explorer to a hierarchy from the Roslyn project.
-                    // The canonical name of a hierarchy item must be unique _within_ an hierarchy, but since we're
-                    // examining multiple hierarchies the canonical name could be the same. Indeed this happens when two
-                    // project files are in the same folder--they both use the full path to the _folder_ as the canonical
-                    // name. To distinguish them we also examine the "regular" name, which will necessarily be different
-                    // if the two projects are in the same folder.
-                    // Note that if a project has been loaded with Lightweight Solution Load it won't even have a
-                    // hierarchy, so we need to check for null first.
                     var hierarchy = _workspace.GetHierarchy(p.Id);
 
-                    if (hierarchy != null
-                        && hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out var projectCanonicalName)
-                        && hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out var projectName)
-                        && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
-                        && projectName.Equals(nestedName))
-                    {
-                        if (targetFrameworkMoniker == null)
-                        {
-                            return true;
-                        }
-
-                        return hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var projectTargetFrameworkMoniker)
-                            && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
-                    }
-
-                    return false;
+                    return hierarchy == nestedHierarchy;
                 })
                 .ToArray();
 
@@ -89,6 +58,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 projectId = candidateProjects[0].Id;
                 return true;
+            }
+
+            // For CPS projects, we may have a string we extracted from a $TFM-prefixed capability; compare that to the string we're given
+            // from CPS to see if this matches.
+            if (targetFrameworkMoniker != null)
+            {
+                var matchingProject = candidateProjects.FirstOrDefault(p => _workspace.TryGetDependencyNodeTargetIdentifier(p.Id) == targetFrameworkMoniker);
+
+                if (matchingProject != null)
+                {
+                    projectId = matchingProject.Id;
+                    return true;
+                }
             }
 
             // If we have multiple candidates then we might be dealing with Web Application Projects. In this case

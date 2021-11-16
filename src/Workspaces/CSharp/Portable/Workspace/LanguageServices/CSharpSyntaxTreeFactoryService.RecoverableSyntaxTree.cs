@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+#nullable disable
+
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParseOptions options,
                     ValueSource<TextAndVersion> text,
                     Encoding encoding,
-                    CompilationUnitSyntax root,
-                    ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+                    CompilationUnitSyntax root)
                 {
                     return new RecoverableSyntaxTree(
                         service,
@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             options,
                             text,
                             encoding,
-                            root.FullSpan.Length,
-                            diagnosticOptions ?? EmptyDiagnosticOptions));
+                            root.FullSpan.Length));
                 }
 
                 public override string FilePath
@@ -80,8 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get { return (CSharpParseOptions)_info.Options; }
                 }
-
-                public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _info.DiagnosticOptions;
 
                 public override int Length
                 {
@@ -166,21 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new RecoverableSyntaxTree(this, _info.WithFilePath(path));
-                }
-
-                public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
-                {
-                    if (options == null)
-                    {
-                        options = EmptyDiagnosticOptions;
-                    }
-
-                    if (ReferenceEquals(_info.DiagnosticOptions, options))
-                    {
-                        return this;
-                    }
-
-                    return new RecoverableSyntaxTree(this, _info.WithDiagnosticOptions(options));
                 }
             }
         }

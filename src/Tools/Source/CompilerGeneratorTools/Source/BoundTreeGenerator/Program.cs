@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -43,7 +45,6 @@ namespace BoundTreeGenerator
                     Console.Error.WriteLine("Language must be \"VB\" or \"CSharp\"");
                     return 1;
             }
-
 
             Tree tree;
             var serializer = new XmlSerializer(typeof(Tree));

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -390,30 +388,6 @@ namespace Roslyn.Utilities
             {
                 var info = new FileInfo(fullPath);
                 return info.Length;
-            }
-            catch (IOException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new IOException(e.Message, e);
-            }
-        }
-
-        internal static Stream OpenFileStream(string path)
-        {
-            try
-            {
-                return File.OpenRead(path);
-            }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                throw new FileNotFoundException(e.Message, path, e);
             }
             catch (IOException)
             {

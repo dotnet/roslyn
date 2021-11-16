@@ -121,8 +121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return Me._useSiteDiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return New UseSiteInfo(Of AssemblySymbol)(Me._useSiteDiagnosticInfo)
         End Function
 
         Public Overrides Function GetHashCode() As Integer

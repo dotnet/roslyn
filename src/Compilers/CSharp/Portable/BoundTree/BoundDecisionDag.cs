@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -67,7 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    _topologicallySortedNodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors, out _topologicallySortedNodes);
+
+                    // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
+                    Debug.Assert(wasAcyclic);
                 }
 
                 return _topologicallySortedNodes;
@@ -180,6 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return d.Value == inputConstant;
                         case BoundDagTypeTest d:
                             return inputConstant.IsNull ? (bool?)false : null;
+                        case BoundDagRelationalTest d:
+                            var f = ValueSetFactory.ForType(input.Type);
+                            if (f is null) return null;
+                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
+                            var set = f.Related(d.Relation.Operator(), d.Value);
+                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
@@ -195,99 +206,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new string Dump()
         {
             var allStates = this.TopologicallySortedNodes;
-            var stateIdentifierMap = PooledDictionary<BoundDecisionDagNode, int>.GetInstance();
-            for (int i = 0; i < allStates.Length; i++)
-            {
-                stateIdentifierMap.Add(allStates[i], i);
-            }
-
-            int nextTempNumber = 0;
-            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
-            int tempIdentifier(BoundDagEvaluation e)
-            {
-                return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
-            }
-
-            string tempName(BoundDagTemp t)
-            {
-                return $"t{tempIdentifier(t.Source)}{(t.Index != 0 ? $".{t.Index.ToString()}" : "")}";
-            }
 
             var resultBuilder = PooledStringBuilder.GetInstance();
             var result = resultBuilder.Builder;
 
             foreach (var state in allStates)
             {
-                result.AppendLine($"State " + stateIdentifierMap[state]);
-                switch (state)
-                {
-                    case BoundTestDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Test)}");
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundEvaluationDecisionDagNode node:
-                        result.AppendLine($"  Test: {dump(node.Evaluation)}");
-                        if (node.Next != null)
-                        {
-                            result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
-                        }
-                        break;
-                    case BoundWhenDecisionDagNode node:
-                        result.AppendLine($"  WhenClause: " + node.WhenExpression?.Syntax);
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundLeafDecisionDagNode node:
-                        result.AppendLine($"  Case: " + node.Syntax);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(state);
-                }
+                result.AppendLine(state.GetDebuggerDisplay());
             }
 
-            stateIdentifierMap.Free();
-            tempIdentifierMap.Free();
             return resultBuilder.ToStringAndFree();
-
-            string dump(BoundDagTest d)
-            {
-                switch (d)
-                {
-                    case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind} {tempName(d.Input)} as {a.Type.ToString()}";
-                    case BoundDagPropertyEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind} {tempName(d.Input)}.{e.Property.Name}";
-                    case BoundDagIndexEvaluation i:
-                        return $"t{tempIdentifier(i)}={i.Kind} {tempName(d.Input)}[{i.Index}]";
-                    case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}, {tempName(d.Input)}";
-                    case BoundDagTypeTest b:
-                        return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
-                    case BoundDagValueTest v:
-                        return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
-                    case BoundDagNonNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} != null";
-                    case BoundDagExplicitNullTest t:
-                        return $"?{d.Kind} {tempName(d.Input)} == null";
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(d);
-                }
-            }
         }
 #endif
     }

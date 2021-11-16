@@ -77,6 +77,74 @@ isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateTypeInsideFileScopedNamespace1()
+        {
+            await TestWithMockedGenerateTypeDialog(
+initial: @"
+namespace A;
+
+class Program
+{
+    void Main()
+    {
+        [|A.Goo$$|] f;
+    }
+}
+",
+languageName: LanguageNames.CSharp,
+typeName: "Goo",
+expected: @"
+namespace A;
+
+class Program
+{
+    void Main()
+    {
+        A.Goo f;
+    }
+}
+
+class Goo
+{
+}",
+isNewFile: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateTypeInsideFileScopedNamespace2()
+        {
+            await TestWithMockedGenerateTypeDialog(
+initial: @"
+namespace A;
+
+class Program
+{
+    void Main()
+    {
+        [|Goo$$|] f;
+    }
+}
+",
+languageName: LanguageNames.CSharp,
+typeName: "Goo",
+expected: @"
+namespace A;
+
+class Program
+{
+    void Main()
+    {
+        Goo f;
+    }
+}
+
+class Goo
+{
+}",
+isNewFile: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInsideQualifiedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(

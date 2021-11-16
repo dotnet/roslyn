@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if !NETCOREAPP
 
 using System;
@@ -32,10 +34,9 @@ namespace Microsoft.CodeAnalysis
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             }
 
-            return LoadImpl(fullPath);
+            var pathToLoad = GetPathToLoad(fullPath);
+            return Assembly.LoadFrom(pathToLoad);
         }
-
-        protected virtual Assembly LoadImpl(string fullPath) => Assembly.LoadFrom(fullPath);
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {

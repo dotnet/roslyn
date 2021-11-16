@@ -13,7 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
     internal abstract class AbstractUseAutoPropertyAnalyzer<
-        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TPropertyDeclaration,
+        TFieldDeclaration,
+        TVariableDeclarator,
+        TExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, EnforceOnBuildValues.UseAutoProperty, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
         {
         }
 
@@ -34,10 +37,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
-        protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
-        protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
+        protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
+        protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
+        protected abstract TExpression? GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         protected abstract void RegisterIneligibleFieldsAction(
             List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
-            if (!(semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol property))
+            if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
             {
                 return;
             }
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                var setterField = GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
+                var setterField = GetSetterField(semanticModel, setMethod, cancellationToken);
                 if (setterField != getterField)
                 {
                     // If there is a getter and a setter, they both need to agree on which field they are 
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            if (!(fieldReference.GetSyntax(cancellationToken) is TVariableDeclarator variableDeclarator))
+            if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator variableDeclarator)
             {
                 return;
             }
@@ -213,15 +216,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            if (!(variableDeclarator?.Parent?.Parent is TFieldDeclaration fieldDeclaration))
+            if (variableDeclarator.Parent?.Parent is not TFieldDeclaration fieldDeclaration)
             {
                 return;
             }
 
             // Can't remove the field if it has attributes on it.
-            if (getterField.GetAttributes().Length > 0)
+            var attributes = getterField.GetAttributes();
+            var suppressMessageAttributeType = semanticModel.Compilation.SuppressMessageAttributeType();
+            foreach (var attribute in attributes)
             {
-                return;
+                if (attribute.AttributeClass != suppressMessageAttributeType)
+                {
+                    return;
+                }
             }
 
             if (!CanConvert(property))
@@ -230,26 +238,27 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration,
-                fieldDeclaration, variableDeclarator, semanticModel, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+            analysisResults.Add(new AnalysisResult(
+                property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, semanticModel,
+                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
             => true;
 
-        private IFieldSymbol GetSetterField(
-            SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
+        private IFieldSymbol? GetSetterField(
+            SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
             return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
         }
 
-        private IFieldSymbol GetGetterField(
+        private IFieldSymbol? GetGetterField(
             SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
+        private static IFieldSymbol? CheckFieldAccessExpression(SemanticModel semanticModel, TExpression? expression)
         {
             if (expression == null)
             {
@@ -304,13 +313,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var propertyDeclaration = result.PropertyDeclaration;
             var variableDeclarator = result.VariableDeclarator;
-            var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
+            var fieldNode = GetFieldNode(result.FieldDeclaration, variableDeclarator);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
             // them when performing the code fix.
             var additionalLocations = ImmutableArray.Create(
-                propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
+                propertyDeclaration.GetLocation(),
+                variableDeclarator.GetLocation());
 
             var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, propertyDeclaration.Language);
             if (option.Notification.Severity == ReportDiagnostic.Suppress)
@@ -322,8 +332,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Place the appropriate marker on the field depending on the user option.
             var diagnostic1 = DiagnosticHelper.Create(
-                UnnecessaryWithSuggestionDescriptor,
-                nodeToFade.GetLocation(),
+                Descriptor,
+                fieldNode.GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: additionalLocations,
                 properties: null);

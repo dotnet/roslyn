@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -90,6 +92,37 @@ namespace [||]{declaredNamespace}
     {
     }
 }";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar";
+
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace [||]{declaredNamespace};
+
+class Class1
+{{
+}}
+</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C;
+
+class Class1
+{
+}
+";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 

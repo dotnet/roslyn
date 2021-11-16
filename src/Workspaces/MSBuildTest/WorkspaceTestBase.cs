@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,18 +36,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return Path.Combine(this.SolutionDirectory.Path, relativeFileName);
         }
 
-        protected void CreateFiles(params string[] fileNames)
-        {
-            var fileNamesAndContent = Array.ConvertAll(fileNames, fileName => (fileName, (object)Resources.GetText(fileName)));
-            var fileSet = new FileSet(fileNamesAndContent);
-            CreateFiles(fileSet);
-        }
-
         protected void CreateFiles(IEnumerable<(string filePath, object fileContent)> fileNamesAndContent)
         {
             foreach (var (filePath, fileContent) in fileNamesAndContent)
             {
-                Debug.Assert(fileContent is string || fileContent is byte[]);
+                Debug.Assert(fileContent is string or byte[]);
 
                 var subdirectory = Path.GetDirectoryName(filePath);
                 var fileName = Path.GetFileName(filePath);
@@ -89,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(GetSimpleCSharpSolutionFiles());
         }
 
-        protected FileSet GetBaseFiles()
+        protected static FileSet GetBaseFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -97,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Directory.Build.targets", Resources.Directory_Build_targets));
         }
 
-        protected FileSet GetSimpleCSharpSolutionFiles()
+        protected static FileSet GetSimpleCSharpSolutionFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -109,7 +104,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
         }
 
-        protected FileSet GetNetCoreApp2Files()
+        protected static FileSet GetSimpleCSharpSolutionWithAdditionaFile()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"TestSolution.sln", Resources.SolutionFiles.CSharp),
+                (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.AdditionalFile),
+                (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
+                (@"CSharpProject\ValidAdditionalFile.txt", Resources.SourceFiles.Text.ValidAdditionalFile));
+        }
+
+        protected static FileSet GetNetCoreApp2Files()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -119,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
-        protected FileSet GetNetCoreApp2AndLibraryFiles()
+        protected static FileSet GetNetCoreApp2AndLibraryFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -131,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndLibrary_Class1));
         }
 
-        protected FileSet GetNetCoreApp2AndTwoLibrariesFiles()
+        protected static FileSet GetNetCoreApp2AndTwoLibrariesFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -145,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library2\Class2.cs", Resources.SourceFiles.CSharp.NetCoreApp2AndTwoLibraries_Class2));
         }
 
-        protected FileSet GetNetCoreMultiTFMFiles()
+        protected static FileSet GetNetCoreMultiTFMFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -155,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
-        protected FileSet GetNetCoreMultiTFMFiles_ExtensionWithConditionOnTFM()
+        protected static FileSet GetNetCoreMultiTFMFiles_ExtensionWithConditionOnTFM()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -165,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"obj\Project.csproj.test.props", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ExtensionWithConditionOnTFM_ProjectTestProps));
         }
 
-        protected FileSet GetNetCoreMultiTFMFiles_ProjectReference()
+        protected static FileSet GetNetCoreMultiTFMFiles_ProjectReference()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -177,19 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Class1));
         }
 
-        protected FileSet GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs()
-        {
-            return new FileSet(
-                (@"NuGet.Config", Resources.NuGet_Config),
-                (@"Directory.Build.props", Resources.Directory_Build_props),
-                (@"Directory.Build.targets", Resources.Directory_Build_targets),
-                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project),
-                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Program),
-                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library),
-                (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1));
-        }
-
-        protected FileSet GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp()
+        protected static FileSet GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -202,7 +198,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"fsharplib\Library.fs", Resources.SourceFiles.FSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib_Library));
         }
 
-        protected FileSet GetMultiProjectSolutionFiles()
+        protected static FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -223,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"VisualBasicProject\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
         }
 
-        protected FileSet GetProjectReferenceSolutionFiles()
+        protected static FileSet GetProjectReferenceSolutionFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole));
         }
 
-        protected FileSet GetDuplicateProjectReferenceSolutionFiles()
+        protected static FileSet GetDuplicateProjectReferenceSolutionFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -252,7 +248,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\EmptyLibrary.dll", Resources.Dlls.EmptyLibrary));
         }
 
-        protected FileSet GetAnalyzerReferenceSolutionFiles()
+        protected static FileSet GetAnalyzerReferenceSolutionFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -274,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"AnalyzerSolution\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
         }
 
-        protected FileSet GetSolutionWithDuplicatedGuidFiles()
+        protected static FileSet GetSolutionWithDuplicatedGuidFiles()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -286,7 +282,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library2\Library2.csproj", Resources.ProjectFiles.CSharp.DuplicatedGuidLibrary2));
         }
 
-        protected FileSet GetSolutionWithCircularProjectReferences()
+        protected static FileSet GetSolutionWithCircularProjectReferences()
         {
             return new FileSet(
                 (@"NuGet.Config", Resources.NuGet_Config),
@@ -297,46 +293,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CircularCSharpProject2.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject2));
         }
 
-        protected static string GetParentDirOfParentDirOfContainingDir(string fileName)
+        protected static FileSet GetVBNetCoreAppWithGlobalImportAndLibraryFiles()
         {
-            var containingDir = Directory.GetParent(fileName).FullName;
-            var parentOfContainingDir = Directory.GetParent(containingDir).FullName;
-
-            return Directory.GetParent(parentOfContainingDir).FullName;
-        }
-
-        protected Document AssertSemanticVersionChanged(Document document, SourceText newText)
-        {
-            var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
-            var projVersion = document.Project.GetSemanticVersionAsync().Result;
-
-            var text = document.GetTextAsync().Result;
-            var newDoc = document.WithText(newText);
-
-            var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
-            var newProjVersion = newDoc.Project.GetSemanticVersionAsync().Result;
-
-            Assert.NotEqual(docVersion, newDocVersion);
-            Assert.NotEqual(projVersion, newProjVersion);
-
-            return newDoc;
-        }
-
-        protected Document AssertSemanticVersionUnchanged(Document document, SourceText newText)
-        {
-            var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
-            var projVersion = document.Project.GetSemanticVersionAsync().Result;
-
-            var text = document.GetTextAsync().Result;
-            var newDoc = document.WithText(newText);
-
-            var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
-            var newProjVersion = newDoc.Project.GetSemanticVersionAsync().Result;
-
-            Assert.Equal(docVersion, newDocVersion);
-            Assert.Equal(projVersion, newProjVersion);
-
-            return newDoc;
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"VBProject\VBProject.vbproj", Resources.ProjectFiles.VisualBasic.VBNetCoreAppWithGlobalImportAndLibrary_VBProject),
+                (@"VBProject\Program.vb", Resources.SourceFiles.VisualBasic.VBNetCoreAppWithGlobalImportAndLibrary_Program),
+                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.VBNetCoreAppWithGlobalImportAndLibrary_Library),
+                (@"Library\MyHelperClass.cs", Resources.SourceFiles.CSharp.VBNetCoreAppWithGlobalImportAndLibrary_MyHelperClass));
         }
     }
 }

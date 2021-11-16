@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -67,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol ConstructedFrom => _constructedFrom;
 
         public override bool IsReadOnly => _constructedFrom.IsReadOnly;
+        public override bool IsInitOnly => _constructedFrom.IsInitOnly;
+
+        public override System.Reflection.MethodImplAttributes MethodImplementationFlags => _constructedFrom.MethodImplementationFlags;
 
         public override IMethodSymbol OverriddenMethod =>
                 // TODO(cyrusn): Construct this.
@@ -96,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol PartialImplementationPart =>
                 // TODO(cyrusn): Construct this.
                 _constructedFrom.PartialImplementationPart;
+
+        public override bool IsPartialDefinition => _constructedFrom.IsPartialDefinition;
 
         protected override CodeGenerationSymbol Clone()
             => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);

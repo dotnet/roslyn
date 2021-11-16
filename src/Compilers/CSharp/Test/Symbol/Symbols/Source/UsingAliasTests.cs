@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -346,6 +349,49 @@ namespace NS
     //     using Short = LongNamespace;
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "LongNamespace").WithArguments("LongNamespace").WithLocation(4, 19)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Short").Skip(1).Single();
+
+            Assert.Equal("Short.MyClass", node.Parent.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            var alias = model.GetAliasInfo(node);
+            Assert.Equal("Short=LongNamespace", alias.ToTestDisplayString());
+            Assert.Equal(SymbolKind.ErrorType, alias.Target.Kind);
+            Assert.Equal("LongNamespace", alias.Target.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+        }
+
+        [ClrOnlyFact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")]
+        public void AliasWithAnErrorFileScopedNamespace()
+        {
+            var text =
+@"
+namespace NS;
+using Short = LongNamespace;
+class Test
+{
+    public object Method1()
+    {
+        return (new Short.MyClass()).Prop;
+    }
+}
+";
+
+            var compilation = CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            compilation.VerifyDiagnostics(
+                // (3,15): error CS0246: The type or namespace name 'LongNamespace' could not be found (are you missing a using directive or an assembly reference?)
+                // using Short = LongNamespace;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "LongNamespace").WithArguments("LongNamespace").WithLocation(3, 15));
 
             var tree = compilation.SyntaxTrees.Single();
 

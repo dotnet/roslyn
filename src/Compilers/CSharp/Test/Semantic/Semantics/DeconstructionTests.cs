@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -906,8 +908,8 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
       NaturalType: (System.Int32, System.String)
       Elements(2):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
+          IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3018,10 +3020,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3062,10 +3061,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 35)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3387,10 +3383,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3431,10 +3424,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3716,7 +3706,7 @@ class C
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
-                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance definition for 'GetEnumerator'
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "M(x1)").WithArguments("(int, int)", "GetEnumerator").WithLocation(6, 34),
                 // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
@@ -4096,7 +4086,8 @@ unsafe class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.UnsafeDebugDll);
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: TestOptions.RegularPreview);
 
             // The precise diagnostics here are not important, and may be sensitive to parser
             // adjustments. This is a test that we don't crash. The errors here are likely to
@@ -4111,9 +4102,6 @@ unsafe class C
                 // (6,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y1").WithArguments("dynamic", "int").WithLocation(6, 19),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int* x1, int y1) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int* x1, int y1)").WithLocation(6, 9),
                 // (7,10): error CS0103: The name 'var' does not exist in the current context
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 10),
@@ -4123,9 +4111,6 @@ unsafe class C
                 // (7,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y2").WithArguments("dynamic", "int").WithLocation(7, 19),
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (var* x2, int y2) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
                 // (8,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int*[] x3").WithArguments("dynamic", "int*[]").WithLocation(8, 10),
@@ -6272,6 +6257,193 @@ IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_1()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((var i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var i, i)").WithLocation(6, 18),
+                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 23),
+                // (6,26): error CS0841: Cannot use local variable 'i' before it is declared
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_2()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (var i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 14),
+                // (6,17): error CS0841: Cannot use local variable 'i' before it is declared
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 17),
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_3()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(int i, i)").WithLocation(6, 18),
+                // (6,26): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "foreach iteration variable").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_4()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (int i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (int i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_01()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)").WithLocation(4, 1),
+                // (5,14): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(5, 14),
+                // (6,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_02()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(4, 1),
+                // (5,14): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 14),
+                // (6,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 1)
+                );
         }
     }
 }

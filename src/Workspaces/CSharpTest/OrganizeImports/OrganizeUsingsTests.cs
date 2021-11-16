@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,22 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
     [UseExportProvider]
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(
+        protected static async Task CheckAsync(
             string initial, string final,
             bool placeSystemNamespaceFirst = false,
             bool separateImportGroups = false,
-            CSharpParseOptions options = null)
+            string? endOfLine = null)
         {
             using var workspace = new AdhocWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-            var document = project.AddDocument("Document", initial.NormalizeLineEndings());
+            var document = project.AddDocument("Document", initial.ReplaceLineEndings(endOfLine ?? Environment.NewLine));
 
             var newOptions = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
             newOptions = newOptions.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
+
+            if (endOfLine is not null)
+                newOptions = newOptions.WithChangedOption(new OptionKey(FormattingOptions2.NewLine, document.Project.Language), endOfLine);
+
             document = document.WithSolutionOptions(newOptions);
 
-            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
-            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetRequiredSyntaxRootAsync(default);
+            Assert.Equal(final.ReplaceLineEndings(endOfLine ?? Environment.NewLine), newRoot.ToFullString());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
@@ -173,6 +178,31 @@ namespace N3
     using N;
   } 
 }";
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task FileScopedNamespace()
+        {
+            var initial =
+@"using B;
+using A;
+
+namespace N;
+
+using D;
+using C;
+";
+
+            var final =
+@"using A;
+using B;
+
+namespace N;
+
+using C;
+using D;
+";
             await CheckAsync(initial, final);
         }
 
@@ -1169,6 +1199,45 @@ using IntList = System.Collections.Generic.List<int>;
 ";
 
             await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true);
+        }
+
+        [WorkItem(20988, "https://github.com/dotnet/roslyn/issues/19306")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("\n")]
+        [InlineData("\r\n")]
+        public async Task TestGrouping3(string endOfLine)
+        {
+            var initial =
+@"// Banner
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+using IntList = System.Collections.Generic.List<int>;
+using static System.Console;";
+
+            var final =
+@"// Banner
+
+using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+using Roslyn.Utilities;
+
+using static System.Console;
+
+using IntList = System.Collections.Generic.List<int>;
+";
+
+            await CheckAsync(initial, final, placeSystemNamespaceFirst: true, separateImportGroups: true, endOfLine: endOfLine);
         }
     }
 }

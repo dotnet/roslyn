@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
             Return binary.GetOperatorPrecedence()
         End Function
 
-        Protected Overrides Function TryGetParentExpression(binary As BinaryExpressionSyntax) As ExpressionSyntax
+        Protected Overrides Function TryGetAppropriateParent(binary As BinaryExpressionSyntax) As ExpressionSyntax
             Return TryCast(binary.Parent, ExpressionSyntax)
         End Function
 

@@ -3,28 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    interface IRemoteDiagnosticAnalyzerService
+    internal interface IRemoteDiagnosticAnalyzerService
     {
-        Task CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken);
-        void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
+        ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, CancellationToken cancellationToken);
+        ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
+        ValueTask<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, TextSpan? pastedTextSpan, CancellationToken cancellationToken);
     }
 
+    [DataContract]
     internal readonly struct AnalyzerPerformanceInfo
     {
+        [DataMember(Order = 0)]
         public readonly string AnalyzerId;
+
+        [DataMember(Order = 1)]
         public readonly bool BuiltIn;
+
+        [DataMember(Order = 2)]
         public readonly TimeSpan TimeSpan;
 
-        public AnalyzerPerformanceInfo(string analyzerid, bool builtIn, TimeSpan timeSpan)
+        public AnalyzerPerformanceInfo(string analyzerId, bool builtIn, TimeSpan timeSpan)
         {
-            AnalyzerId = analyzerid;
+            AnalyzerId = analyzerId;
             BuiltIn = builtIn;
             TimeSpan = timeSpan;
         }

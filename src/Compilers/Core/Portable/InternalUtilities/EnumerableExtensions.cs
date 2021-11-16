@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Threading;
 
 #if DEBUG
 using System.Diagnostics;
@@ -52,6 +51,41 @@ namespace Roslyn.Utilities
             }
 
             return source;
+        }
+
+        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
+        {
+            if (items == null)
+            {
+                return ImmutableArray.Create<T>();
+            }
+
+            if (items is ImmutableArray<T> array)
+            {
+                return array.NullToEmpty();
+            }
+
+            return ImmutableArray.CreateRange<T>(items);
+        }
+
+        public static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
+        {
+            if (items is null)
+            {
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
+            }
+
+            if (items is ImmutableArray<T> array)
+            {
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
+            }
+
+            if (items is ICollection<T> collection && collection.Count == 0)
+            {
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
+            }
+
+            return ImmutableArray.CreateRange(items);
         }
 
         public static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this IEnumerable<T> source)
@@ -170,6 +204,17 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().LastOrDefault();
         }
 
+        public static T? SingleOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+            where T : struct
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            return source.Cast<T?>().SingleOrDefault(v => predicate(v!.Value));
+        }
+
         public static bool IsSingle<T>(this IEnumerable<T> list)
         {
             using var enumerator = list.GetEnumerator();
@@ -198,7 +243,7 @@ namespace Roslyn.Utilities
                 return str.Length == 0;
             }
 
-            foreach (var t in source)
+            foreach (var _ in source)
             {
                 return false;
             }
@@ -264,6 +309,56 @@ namespace Roslyn.Utilities
             builder.AddRange(source.Select(selector));
 
             return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, ValueTask<TResult>> selector)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.Add(await selector(item).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static async ValueTask<IEnumerable<TResult>> SelectManyInParallelAsync<TItem, TResult>(
+           this IEnumerable<TItem> sequence,
+           Func<TItem, CancellationToken, Task<IEnumerable<TResult>>> selector,
+           CancellationToken cancellationToken)
+        {
+            return (await Task.WhenAll(sequence.Select(item => selector(item, cancellationToken))).ConfigureAwait(false)).Flatten();
         }
 
         public static bool All(this IEnumerable<bool> source)
@@ -347,9 +442,19 @@ namespace Roslyn.Utilities
             return source.OrderBy(Functions<T>.Identity, comparer);
         }
 
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, IComparer<T>? comparer)
+        {
+            return source.OrderByDescending(Functions<T>.Identity, comparer);
+        }
+
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
             return source.OrderBy(Comparer<T>.Create(compare));
+        }
+
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, Comparison<T> compare)
+        {
+            return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
@@ -501,7 +606,6 @@ namespace Roslyn.Utilities
         }
 #nullable enable
 
-#if !CODE_STYLE
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
@@ -515,18 +619,16 @@ namespace Roslyn.Utilities
 
             return dictionary;
         }
-#endif
 
         /// <summary>
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
         /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.
         /// </summary>
-        [return: MaybeNull]
-        internal static TSource AsSingleton<TSource>(this IEnumerable<TSource>? source)
+        internal static TSource? AsSingleton<TSource>(this IEnumerable<TSource>? source)
         {
             if (source == null)
             {
-                return default!;
+                return default;
             }
 
             if (source is IList<TSource> list)
@@ -537,13 +639,13 @@ namespace Roslyn.Utilities
             using IEnumerator<TSource> e = source.GetEnumerator();
             if (!e.MoveNext())
             {
-                return default!;
+                return default;
             }
 
             TSource result = e.Current;
             if (e.MoveNext())
             {
-                return default!;
+                return default;
             }
 
             return result;
@@ -613,14 +715,13 @@ namespace System.Linq
             return true;
         }
 
-        [return: MaybeNull]
-        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        public static T? AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
         {
             using (var e = source.GetEnumerator())
             {
                 if (!e.MoveNext())
                 {
-                    return default!;
+                    return default;
                 }
 
                 var result = e.Current;

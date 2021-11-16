@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             return false;
         }
 
-        private bool TryGetConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             SyntaxNode expression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     out typeToGenerateIn);
         }
 
-        private bool TryGetExplicitConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetExplicitConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             CastExpressionSyntax castExpression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {
@@ -155,7 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             return true;
         }
 
-        private bool TryGetImplicitConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetImplicitConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             SyntaxNode expression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {
@@ -187,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))

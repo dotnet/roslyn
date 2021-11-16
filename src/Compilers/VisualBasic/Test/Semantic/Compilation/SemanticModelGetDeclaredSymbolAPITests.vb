@@ -1943,7 +1943,7 @@ End Module
             Assert.NotNull(label2)
             Assert.Equal("Label2", label2.Name)
             Dim symLabel = DirectCast(label1, LabelSymbol)
-            Assert.False(SymbolExtensions.IsOverloadable(symLabel))
+            Assert.False(symLabel.IsOverloadable())
             Assert.False(symLabel.IsMustOverride)
             Assert.False(symLabel.IsOverrides)
             Assert.False(symLabel.IsOverridable)

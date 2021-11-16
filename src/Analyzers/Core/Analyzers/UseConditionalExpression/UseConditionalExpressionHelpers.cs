@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
-            // Will likely screw things up if the if directive spans any preprocessor directives. So
+            // Will likely not work as intended if the if directive spans any preprocessor directives. So
             // do not offer for now.  Note: we pass in both the node for the ifOperation and the
             // whenFalse portion.  The whenFalse portion isn't necessary under the ifOperation.  For
             // example in:
@@ -50,7 +49,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// Will unwrap a block with a single statement in it to just that block.  Used so we can
         /// support both <c>if (expr) { statement }</c> and <c>if (expr) statement</c>
         /// </summary>
-        public static IOperation UnwrapSingleStatementBlock(IOperation statement)
+        [return: NotNullIfNotNull("statement")]
+        public static IOperation? UnwrapSingleStatementBlock(IOperation? statement)
             => statement is IBlockOperation block && block.Operations.Length == 1
                 ? block.Operations[0]
                 : statement;

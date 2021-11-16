@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
 #nullable enable
 
 using System;
@@ -21,38 +20,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type;
         }
 
-        private static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
+        internal static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
         {
             var decoder = new NativeIntegerTypeDecoder(transformFlags);
             try
             {
                 var result = decoder.TransformType(type);
-                if (decoder._index == transformFlags.Length)
+                if (decoder._hitErrorType)
                 {
+                    // If we failed to decode because there was an error type involved, marking the
+                    // metadata as unsupported means that we'll cover up the error that would otherwise
+                    // be reported for the type. This would likely lead to a worse error message as we
+                    // would just report a BindToBogus, so return the type unchanged.
+                    Debug.Assert(type.ContainsErrorType());
+                    Debug.Assert(result is null);
+                    return type;
+                }
+                else if (decoder._index == transformFlags.Length)
+                {
+                    Debug.Assert(result is object);
                     return result;
                 }
+                else
+                {
+                    return new UnsupportedMetadataTypeSymbol();
+                }
             }
-            catch (ArgumentException)
+            catch (UnsupportedSignatureContent)
             {
+                return new UnsupportedMetadataTypeSymbol();
             }
-            return type;
         }
 
         private readonly ImmutableArray<bool> _transformFlags;
         private int _index;
+        private bool _hitErrorType;
 
         private NativeIntegerTypeDecoder(ImmutableArray<bool> transformFlags)
         {
             _transformFlags = transformFlags;
             _index = 0;
+            _hitErrorType = false;
         }
 
-        private TypeWithAnnotations TransformTypeWithAnnotations(TypeWithAnnotations type)
+        private TypeWithAnnotations? TransformTypeWithAnnotations(TypeWithAnnotations type)
         {
-            return type.WithTypeAndModifiers(TransformType(type.Type), type.CustomModifiers);
+            if (TransformType(type.Type) is { } transformedType)
+            {
+                return type.WithTypeAndModifiers(transformedType, type.CustomModifiers);
+            }
+
+            return null;
         }
 
-        private TypeSymbol TransformType(TypeSymbol type)
+        private TypeSymbol? TransformType(TypeSymbol type)
         {
             switch (type.TypeKind)
             {
@@ -60,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformArrayType((ArrayTypeSymbol)type);
                 case TypeKind.Pointer:
                     return TransformPointerType((PointerTypeSymbol)type);
+                case TypeKind.FunctionPointer:
+                    return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
                     return type;
@@ -71,17 +94,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
-                    throw new ArgumentException();
+                    _hitErrorType = true;
+                    return null;
             }
         }
 
-        private NamedTypeSymbol TransformNamedType(NamedTypeSymbol type)
+        private NamedTypeSymbol? TransformNamedType(NamedTypeSymbol type)
         {
-            int index = Increment();
-
             if (!type.IsGenericType)
             {
-                return _transformFlags[index] ? TransformTypeDefinition(type) : type;
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        if (_index >= _transformFlags.Length)
+                        {
+                            throw new UnsupportedSignatureContent();
+                        }
+                        return (_transformFlags[_index++], type.IsNativeIntegerType) switch
+                        {
+                            (false, true) => type.NativeIntegerUnderlyingType,
+                            (true, false) => type.AsNativeInteger(),
+                            _ => type,
+                        };
+                }
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -91,7 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeWithAnnotations newTypeArgument = TransformTypeWithAnnotations(oldTypeArgument);
+                if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
+                {
+                    return null;
+                }
+
                 if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
@@ -104,36 +144,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return result;
         }
 
-        private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
+        private ArrayTypeSymbol? TransformArrayType(ArrayTypeSymbol type)
         {
-            Increment();
-            return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
-        }
-
-        private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
-        {
-            Increment();
-            return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
-        }
-
-        private int Increment()
-        {
-            if (_index < _transformFlags.Length)
+            if (TransformTypeWithAnnotations(type.ElementTypeWithAnnotations) is { } elementType)
             {
-                return _index++;
+                return type.WithElementType(elementType);
             }
-            throw new ArgumentException();
+
+            return null;
         }
 
-        private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
+        private PointerTypeSymbol? TransformPointerType(PointerTypeSymbol type)
         {
-            switch (type.SpecialType)
+            if (TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations) is { } pointedAtType)
             {
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                    return type.AsNativeInteger();
-                default:
-                    throw new ArgumentException();
+                return type.WithPointedAtType(pointedAtType);
+            }
+
+            return null;
+        }
+
+        private FunctionPointerTypeSymbol? TransformFunctionPointerType(FunctionPointerTypeSymbol type)
+        {
+            if (TransformTypeWithAnnotations(type.Signature.ReturnTypeWithAnnotations) is not { } transformedReturnType)
+            {
+                return null;
+            }
+
+            var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            var paramsModified = false;
+
+            if (type.Signature.ParameterCount > 0)
+            {
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(type.Signature.ParameterCount);
+                foreach (var param in type.Signature.Parameters)
+                {
+                    if (TransformTypeWithAnnotations(param.TypeWithAnnotations) is not { } transformedParam)
+                    {
+                        return null;
+                    }
+
+                    paramsModified = paramsModified || !transformedParam.IsSameAs(param.TypeWithAnnotations);
+                    builder.Add(transformedParam);
+                }
+
+                if (paramsModified)
+                {
+                    transformedParameterTypes = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    transformedParameterTypes = type.Signature.ParameterTypesWithAnnotations;
+                    builder.Free();
+                }
+            }
+
+            if (paramsModified || !transformedReturnType.IsSameAs(type.Signature.ReturnTypeWithAnnotations))
+            {
+                return type.SubstituteTypeSymbol(transformedReturnType, transformedParameterTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+            }
+            else
+            {
+                return type;
             }
         }
     }

@@ -306,30 +306,31 @@ End Module
         End Sub
 
         <Fact>
+        <WorkItem(48417, "https://github.com/dotnet/roslyn/issues/48417")>
         Public Sub CheckPropertyFieldAndAccessorsNamesTest()
             Dim compilationDef =
     <compilation name="CheckPropertyFieldAndAccessorsNamesTest">
         <file name="b.vb">
 Module ModuleB
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .aa = 1 }.aa
-        Dim v2 As Object = New With { Key .AA = "a" }.aa
+        Dim v1 As Object = New With { .aab = 1 }.aab
+        Dim v2 As Object = New With { Key .AAB = "a" }.aab
     End Sub
 End Module
         </file>
         <file name="a.vb">
 Module ModuleA
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .Aa = 1 }.aa
-        Dim v2 As Object = New With { Key .aA = "A" }.aa
+        Dim v1 As Object = New With { .Aab = 1 }.aab
+        Dim v2 As Object = New With { Key .aAB = "A" }.aab
     End Sub
 End Module
         </file>
         <file name="c.vb">
 Module ModuleC
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .AA = 1 }.aa
-        Dim v2 As Object = New With { Key .aa = "A" }.aa
+        Dim v1 As Object = New With { .AAb = 1 }.aab
+        Dim v2 As Object = New With { Key .aaB = "A" }.aab
     End Sub
 End Module
         </file>
@@ -339,14 +340,15 @@ End Module
             For i = 0 To 50
                 CompileAndVerify(compilationDef,
                                  references:={SystemCoreRef},
+                                 options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                  symbolValidator:=Sub(m As ModuleSymbol)
                                                       Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`1")
                                                       Assert.NotNull(type)
-                                                      CheckPropertyAccessorsAndField(m, type, "aa", type.TypeParameters(0), False)
+                                                      CheckPropertyAccessorsAndField(m, type, "aab", type.TypeParameters(0), False)
 
                                                       type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_1`1")
                                                       Assert.NotNull(type)
-                                                      CheckPropertyAccessorsAndField(m, type, "AA", type.TypeParameters(0), True)
+                                                      CheckPropertyAccessorsAndField(m, type, "AAB", type.TypeParameters(0), True)
                                                   End Sub)
             Next
         End Sub
@@ -647,8 +649,7 @@ End Module
 #Region "Utils"
 
         Private Shared Sub CheckPropertyAccessorsAndField(m As ModuleSymbol, type As NamedTypeSymbol, propName As String, propType As TypeSymbol, isKey As Boolean)
-            Dim prop = DirectCast(type.GetMember(propName), PropertySymbol)
-            Assert.NotNull(prop)
+            Dim prop = type.GetMembers().OfType(Of PropertySymbol)().Single()
             Assert.Equal(propType, prop.Type)
             Assert.Equal(propName, prop.Name)
             Assert.Equal(propName, prop.MetadataName)
@@ -682,7 +683,16 @@ End Module
                 Assert.Null(prop.SetMethod)
             End If
 
-            Assert.Equal(0, type.GetMembers("$" & propName).Length)
+            Dim field = type.GetMembers().OfType(Of FieldSymbol)().Single()
+            Assert.Equal(propType, field.Type)
+            Assert.Equal("$" & propName, field.Name)
+            Assert.Equal("$" & propName, field.MetadataName)
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility)
+
+            Dim parameter = type.Constructors.Single().Parameters(0)
+            Assert.Equal(propType, parameter.Type)
+            Assert.Equal(propName, parameter.Name)
+            Assert.Equal(propName, parameter.MetadataName)
         End Sub
 
         Private Shared Sub CheckMethod(m As ModuleSymbol, method As MethodSymbol,
@@ -697,6 +707,7 @@ End Module
 
             Assert.NotNull(method)
             Assert.Equal(name, method.Name)
+            Assert.Equal(name, method.MetadataName)
             Assert.Equal(paramCount, method.ParameterCount)
 
             If isSub Then

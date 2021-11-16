@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -233,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 modifiers,
                 GetTypeSymbol(toType)(context.SemanticModel),
                 fromType(context.SemanticModel),
+                containingType: null,
                 isImplicit,
                 parsedStatements);
 
@@ -360,10 +364,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             if (options != null)
             {
                 var optionSet = workspace.Options;
-                foreach (var kvp in options)
-                {
-                    optionSet = optionSet.WithChangedOption(kvp.Key, kvp.Value);
-                }
+                foreach (var (key, value) in options)
+                    optionSet = optionSet.WithChangedOption(key, value);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }
@@ -420,6 +422,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 getAccessor,
                 setAccessor,
                 isIndexer);
+
+            codeGenerationOptions ??= new CodeGenerationOptions();
+            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? workspace.Options);
             context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions);
         }
 
@@ -452,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             SyntaxToken? target = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
-            var attr = CodeGenerationSymbolFactory.CreateAttributeData((INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel));
+            var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(context.SemanticModel));
             var oldNode = context.GetDestinationNode();
             var newNode = CodeGenerator.AddAttributes(oldNode, context.Document.Project.Solution.Workspace, new[] { attr }, target)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
@@ -462,11 +467,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         internal static async Task TestRemoveAttributeAsync<T>(
             string initial,
             string expected,
-            Type attributeClass,
-            SyntaxToken? target = null) where T : SyntaxNode
+            Type attributeClass) where T : SyntaxNode
         {
             using var context = await TestContext.CreateAsync(initial, expected);
-            var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
+            var attributeType = GetTypeSymbol(attributeClass)(context.SemanticModel);
             var taggedNode = context.GetDestinationNode();
             var attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
             var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
@@ -547,7 +551,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 .GetDocument(documentId)
                 .GetSemanticModelAsync();
 
-            var symbol = context.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
+            var docOptions = await context.Document.GetOptionsAsync();
+            codeGenerationOptions ??= new CodeGenerationOptions();
+            codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? docOptions);
+
+            var symbol = TestContext.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
             var destination = context.GetDestination();
             if (destination.IsType)
             {
@@ -579,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
         private static ITypeSymbol GetTypeSymbol(Compilation compilation, string typeFullName, int arrayRank = 0)
         {
-            return arrayRank == 0 ? (ITypeSymbol)compilation.GetTypeByMetadataName(typeFullName)
+            return arrayRank == 0 ? compilation.GetTypeByMetadataName(typeFullName)
                 : compilation.CreateArrayTypeSymbol(compilation.GetTypeByMetadataName(typeFullName), arrayRank);
         }
 
@@ -759,7 +767,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             private readonly bool _ignoreResult;
 
             public TestContext(
-                string initial,
                 string expected,
                 bool ignoreResult,
                 string language,
@@ -784,7 +791,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var workspace = CreateWorkspaceFromFile(initial.NormalizeLineEndings(), isVisualBasic, null, null);
                 var semanticModel = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSemanticModelAsync();
 
-                return new TestContext(initial, expected, ignoreResult, language, workspace, semanticModel);
+                return new TestContext(expected, ignoreResult, language, workspace, semanticModel);
             }
 
             public Solution Solution { get { return Workspace.CurrentSolution; } }
@@ -810,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
             }
 
-            public T GetSelectedSymbol<T>(TextSpan selection, SemanticModel semanticModel)
+            public static T GetSelectedSymbol<T>(TextSpan selection, SemanticModel semanticModel)
                 where T : class, ISymbol
             {
                 var token = semanticModel.SyntaxTree.GetRoot().FindToken(selection.Start);

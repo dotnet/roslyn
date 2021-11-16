@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -99,23 +97,28 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public Stream CreateReadableStream()
             {
-                // CreateViewAccessor is not guaranteed to be thread-safe
-                lock (_memoryMappedFile.Target)
+                // Note: TryAddReference behaves according to its documentation even if the target object has been
+                // disposed. If it returns non-null, then the object will not be disposed before the returned
+                // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
+                var streamAccessor = _weakReadAccessor.TryAddReference();
+                if (streamAccessor == null)
                 {
-                    // Note: TryAddReference behaves according to its documentation even if the target object has been
-                    // disposed. If it returns non-null, then the object will not be disposed before the returned
-                    // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
-                    var streamAccessor = _weakReadAccessor.TryAddReference();
-                    if (streamAccessor == null)
-                    {
-                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
-                        streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
-                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
-                    }
+                    var rawAccessor = RunWithCompactingGCFallback(
+                        static info =>
+                        {
+                            using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
+                            if (memoryMappedFile is null)
+                                throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
 
-                    Debug.Assert(streamAccessor.Target.CanRead);
-                    return new SharedReadableStream(streamAccessor, Size);
+                            return memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read);
+                        },
+                        this);
+                    streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
+                    _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                 }
+
+                Debug.Assert(streamAccessor.Target.CanRead);
+                return new SharedReadableStream(streamAccessor, Size);
             }
 
             /// <summary>
@@ -124,11 +127,16 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public Stream CreateWritableStream()
             {
-                // CreateViewStream is not guaranteed to be thread-safe
-                lock (_memoryMappedFile.Target)
-                {
-                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write), this);
-                }
+                return RunWithCompactingGCFallback(
+                    static info =>
+                    {
+                        using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
+                        if (memoryMappedFile is null)
+                            throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
+
+                        return memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write);
+                    },
+                    this);
             }
 
             /// <summary>
@@ -178,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedFile.Dispose();
             }
 
-            private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
+            private sealed unsafe class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 

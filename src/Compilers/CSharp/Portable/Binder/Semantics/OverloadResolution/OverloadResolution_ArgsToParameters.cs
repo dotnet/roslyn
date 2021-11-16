@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -310,12 +312,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: parameter array and allow the candidate to be applicable in its
                 // SPEC VIOLATION: expanded form.
 
-                var name = arguments.Names[argumentPosition];
+                Debug.Assert(arguments.Names[argumentPosition].HasValue);
+                var name = arguments.Names[argumentPosition].GetValueOrDefault().Name;
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
                     // p is initialized to zero; it is ok for a named argument to "correspond" to
                     // _any_ parameter (not just the parameters past the point of positional arguments)
-                    if (memberParameters[p].Name == name.Identifier.ValueText)
+                    if (memberParameters[p].Name == name)
                     {
                         if (isValidParams && p == memberParameters.Length - 1)
                         {

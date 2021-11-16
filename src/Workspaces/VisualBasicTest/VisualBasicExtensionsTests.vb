@@ -23,6 +23,7 @@ Module Module1
             For i = 0 To 3000
                 code.Append("""asdf"" + ")
             Next
+
             code.AppendLine(<![CDATA["last"
     End Sub
 End Module]]>.Value)
@@ -31,7 +32,6 @@ End Module]]>.Value)
             Dim trivia = tree.FindTriviaToLeft(4000, CancellationToken.None)
             ' no stack overflow
         End Sub
-
 
     End Class
 

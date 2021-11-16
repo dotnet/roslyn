@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -27,6 +29,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)
         {
+            if (commentDescriptors.IsEmpty)
+                return ImmutableArray<TodoComment>.Empty;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // strongly hold onto text and tree
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     continue;
                 }
 
-                todoList.Add(new TodoComment(commentDescriptor, message.Substring(index), start + index));
+                todoList.Add(new TodoComment(commentDescriptor, message[index..], start + index));
             }
         }
 

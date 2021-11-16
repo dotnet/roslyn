@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_addGlobal))
         End Function
 
-        Private Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
+        Private Shared Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
             expression = expression.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
             expression = expression.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol))
             Return expression
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
         End Function
 
-        Private Function CreateMemberAccessExpression(symbol As ISymbol, container As ExpressionSyntax, simpleName As SimpleNameSyntax) As ExpressionSyntax
+        Private Shared Function CreateMemberAccessExpression(symbol As ISymbol, container As ExpressionSyntax, simpleName As SimpleNameSyntax) As ExpressionSyntax
             Return AddInformationTo(SyntaxFactory.SimpleMemberAccessExpression(container, SyntaxFactory.Token(SyntaxKind.DotToken), simpleName), symbol)
         End Function
     End Class

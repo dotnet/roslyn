@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -16,22 +19,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         IWpfTextViewCreationListener
         where TTag : GraphicsTag
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        protected readonly IThreadingContext ThreadingContext;
+        protected readonly IViewTagAggregatorFactoryService TagAggregatorFactoryService;
+        protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         protected AbstractAdornmentManagerProvider(
             IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _threadingContext = threadingContext;
-            _tagAggregatorFactoryService = tagAggregatorFactoryService;
-            _asyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
+            ThreadingContext = threadingContext;
+            TagAggregatorFactoryService = tagAggregatorFactoryService;
+            GlobalOptions = globalOptions;
+            AsyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
         }
 
         protected abstract string FeatureAttributeName { get; }
         protected abstract string AdornmentLayerName { get; }
+
+        protected abstract void CreateAdornmentManager(IWpfTextView textView);
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -40,13 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!textView.TextBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Adornment))
+            if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Adornment))
             {
                 return;
             }
 
-            // the manager keeps itself alive by listening to text view events.
-            AdornmentManager<TTag>.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            CreateAdornmentManager(textView);
         }
     }
 }

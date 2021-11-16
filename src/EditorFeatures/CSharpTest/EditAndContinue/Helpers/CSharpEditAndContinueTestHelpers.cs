@@ -2,43 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
-        private readonly ImmutableArray<MetadataReference> _fxReferences;
+        private readonly CSharpEditAndContinueAnalyzer _analyzer;
 
-        internal static CSharpEditAndContinueTestHelpers Instance
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended);
+        public CSharpEditAndContinueTestHelpers(Action<SyntaxNode> faultInjector = null)
+        {
+            _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
+        }
 
-        internal static CSharpEditAndContinueTestHelpers Instance40
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore);
-
-        private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
-
-        public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework)
-            => _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
-
-        public override AbstractEditAndContinueAnalyzer Analyzer => s_analyzer;
-
-        public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
-            => CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
-
-        public override SyntaxTree ParseText(string source)
-            => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
+        public override string LanguageName => LanguageNames.CSharp;
+        public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
 
         public override SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {

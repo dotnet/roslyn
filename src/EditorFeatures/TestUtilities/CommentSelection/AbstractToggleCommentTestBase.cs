@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
     public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
+        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
 
-        abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
+        internal abstract TestWorkspace GetWorkspace(string markup, TestComposition composition);
 
         protected void ToggleComment(string markup, string expected)
             => ToggleCommentMultiple(markup, new string[] { expected });
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
-            using (var workspace = GetWorkspace(markup, GetExportProvider()))
+            using (var workspace = GetWorkspace(markup, composition: EditorTestCompositions.EditorFeatures))
             {
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
         {
-            using (var workspace = GetWorkspace(subjectBufferMarkup, GetExportProvider()))
+            using (var workspace = GetWorkspace(subjectBufferMarkup, composition: EditorTestCompositions.EditorFeatures))
             {
                 var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
                 SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
@@ -65,11 +67,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
                 AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
             }
         }
-
-        private static ExportProvider GetExportProvider()
-            => ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-                .CreateExportProvider();
 
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
             => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();

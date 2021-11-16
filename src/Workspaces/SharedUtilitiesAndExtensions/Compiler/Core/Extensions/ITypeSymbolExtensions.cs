@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,13 +17,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        private const string DefaultParameterName = "p";
+        public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
+        public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsIntegralType() == true;
+
+        public static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsSignedIntegralType() == true;
+
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
-#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
-            => type != null && (type.IsReferenceType || type.IsNullable());
-#else
         {
             if (type == null)
                 return false;
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return isNullableValueType || isNonNullableReferenceType;
         }
-#endif
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
@@ -60,6 +60,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        {
+            if (symbol?.IsValueType != true)
+                return false;
+
+            return !symbol.IsNullable();
+        }
+
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
             [NotNullWhen(true)] out ITypeSymbol? underlyingType)
@@ -82,6 +90,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Delegate;
+
+        public static bool IsFunctionPointerType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+            => symbol?.TypeKind == TypeKind.FunctionPointer;
 
         public static bool IsStructType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Struct;
@@ -237,9 +248,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsFormattableString([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        public static bool IsFormattableStringOrIFormattable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            return symbol?.MetadataName == "FormattableString"
+            return symbol?.MetadataName is nameof(FormattableString) or nameof(IFormattable)
                 && symbol.ContainingType == null
                 && symbol.ContainingNamespace?.Name == "System"
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
@@ -289,11 +300,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_Single:
                     case SpecialType.System_Double:
                     case SpecialType.System_Decimal:
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     case SpecialType.System_IntPtr when type.IsNativeIntegerType:
                     case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
-#endif
                         return true;
                 }
             }
@@ -318,16 +326,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
             if (type.IsAnonymousType)
-            {
                 return true;
-            }
 
             foreach (var typeArg in type.GetAllTypeArguments())
             {
                 if (ContainsAnonymousType(typeArg))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -394,11 +398,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_UInt16:
                     case SpecialType.System_UInt32:
                     case SpecialType.System_UInt64:
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     case SpecialType.System_IntPtr when symbol.IsNativeIntegerType:
                     case SpecialType.System_UIntPtr when symbol.IsNativeIntegerType:
-#endif
                         return true;
                 }
             }
@@ -626,8 +627,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsEnumType(this ITypeSymbol type)
-            => type.IsValueType && type.TypeKind == TypeKind.Enum;
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type)
+            => IsEnumType(type, out _);
+
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
+        {
+            if (type != null && type.IsValueType && type.TypeKind == TypeKind.Enum)
+            {
+                enumType = (INamedTypeSymbol)type;
+                return true;
+            }
+
+            enumType = null;
+            return false;
+        }
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {
@@ -679,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (!(member is IFieldSymbol fieldSymbol))
+                if (member is not IFieldSymbol fieldSymbol)
                 {
                     continue;
                 }
@@ -714,22 +727,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 type?.AllInterfaces.Contains(iDisposableType) == true);
 
         public static ITypeSymbol WithNullableAnnotationFrom(this ITypeSymbol type, ITypeSymbol symbolForNullableAnnotation)
-        {
-#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
-            return type;
-#else
-            return type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
-#endif
-        }
-
-        public static ITypeSymbol WithNullableAnnotation(this ITypeSymbol type, NullableAnnotation nullableAnnotation)
-        {
-#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' is available in CodeStyle layer.
-            return type;
-#else
-            return type.WithNullableAnnotation(nullableAnnotation);
-#endif
-        }
+            => type.WithNullableAnnotation(symbolForNullableAnnotation.NullableAnnotation);
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ITypeSymbol? RemoveNullableIfPresent(this ITypeSymbol? symbol)

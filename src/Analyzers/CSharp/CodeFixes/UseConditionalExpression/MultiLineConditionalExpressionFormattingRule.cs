@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
@@ -30,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        private bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
+        private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.QuestionToken ||
-                token.Kind() == SyntaxKind.ColonToken)
+            if (token.Kind() is SyntaxKind.QuestionToken or
+                SyntaxKind.ColonToken)
             {
                 return token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
             }
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-            SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsQuestionOrColonOfNewConditional(currentToken))
             {
@@ -50,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
                 return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         public override void AddIndentBlockOperations(
-            List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+            List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             if (node.HasAnnotation(SpecializedFormattingAnnotation) &&
                 node is ConditionalExpressionSyntax conditional)

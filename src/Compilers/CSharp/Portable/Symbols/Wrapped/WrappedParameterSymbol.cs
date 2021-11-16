@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -134,21 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsIUnknownConstant
         {
             get { return _underlyingParameter.IsIUnknownConstant; }
-        }
-
-        internal override bool IsCallerLineNumber
-        {
-            get { return _underlyingParameter.IsCallerLineNumber; }
-        }
-
-        internal override bool IsCallerFilePath
-        {
-            get { return _underlyingParameter.IsCallerFilePath; }
-        }
-
-        internal override bool IsCallerMemberName
-        {
-            get { return _underlyingParameter.IsCallerMemberName; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations

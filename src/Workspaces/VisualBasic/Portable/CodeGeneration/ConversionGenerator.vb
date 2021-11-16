@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             method As IMethodSymbol,
                             options As CodeGenerationOptions,
                             availableIndices As IList(Of Boolean)) As TypeBlockSyntax
-            Dim methodDeclaration = GenerateConversionDeclaration(method, GetDestination(destination), options)
+            Dim methodDeclaration = GenerateConversionDeclaration(method, options)
 
             Dim members = Insert(destination.Members, methodDeclaration, options, availableIndices,
                                  after:=AddressOf LastOperator)
@@ -22,14 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function GenerateConversionDeclaration(method As IMethodSymbol,
-                                                         destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions) As StatementSyntax
+                                                      options As CodeGenerationOptions) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If
 
-            Dim declaration = GenerateConversionDeclarationWorker(method, destination, options)
+            Dim declaration = GenerateConversionDeclarationWorker(method, options)
 
             Return AddAnnotationsTo(method,
                 AddFormatterAndCodeGeneratorAnnotationsTo(
@@ -37,8 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateConversionDeclarationWorker(method As IMethodSymbol,
-                                                                destination As CodeGenerationDestination,
-                                                                options As CodeGenerationOptions) As StatementSyntax
+                                                             options As CodeGenerationOptions) As StatementSyntax
             Dim modifiers = New List(Of SyntaxToken) From {
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.SharedKeyword)

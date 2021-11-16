@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -85,19 +83,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public static IEnumerable<Document> GetRelatedDocuments(this ITextBuffer buffer)
             => buffer.AsTextContainer().GetRelatedDocuments();
-
-        /// <summary>
-        /// Tries to get the document corresponding to the text from the current partial solution 
-        /// associated with the text's container. If the document does not contain the exact text a document 
-        /// from a new solution containing the specified text is constructed. If no document is associated
-        /// with the specified text's container, or the text's container isn't associated with a workspace,
-        /// then the method returns false.
-        /// </summary>
-        internal static Document? GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
-        {
-            var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            return document?.WithFrozenPartialSemantics(cancellationToken);
-        }
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)
             => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) &&

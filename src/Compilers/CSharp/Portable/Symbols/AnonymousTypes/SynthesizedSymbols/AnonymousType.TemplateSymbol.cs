@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -207,6 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+            internal override bool IsInterpolatedStringHandlerType => false;
 
             internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
@@ -439,6 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
+            internal override bool IsRecord => false;
+
+            internal override bool IsRecordStruct => false;
+
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -458,17 +465,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SynthesizedAttributeData TrySynthesizeDebuggerDisplayAttribute()
             {
+                // Escape open '{' with '\' to avoid parsing it as an embedded expression.
+
                 string displayString;
                 if (this.Properties.Length == 0)
                 {
-                    displayString = "{ }";
+                    displayString = "\\{ }";
                 }
                 else
                 {
                     var builder = PooledStringBuilder.GetInstance();
                     var sb = builder.Builder;
 
-                    sb.Append("{ ");
+                    sb.Append("\\{ ");
                     int displayCount = Math.Min(this.Properties.Length, 10);
 
                     for (var fieldIndex = 0; fieldIndex < displayCount; fieldIndex++)
@@ -501,6 +510,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     namedArguments: ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
                                         WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                         new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
+            }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
+
+            internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+            {
+                return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
             }
         }
     }

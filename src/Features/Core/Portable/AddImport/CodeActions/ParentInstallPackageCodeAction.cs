@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddPackage;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // in this solution.  We'll offer to add those specific versions to this project,
                 // followed by an option to "Find and install latest version."
                 var installedVersions = installerService.GetInstalledVersions(fixData.PackageName).NullToEmpty();
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
 
                 // First add the actions to install a specific version.
                 codeActions.AddRange(installedVersions.Select(
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 // And finally the action to show the package manager dialog.
                 codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, fixData.PackageName));
-                return codeActions.ToImmutableAndFree();
+                return codeActions.ToImmutable();
             }
 
             private static CodeAction CreateCodeAction(

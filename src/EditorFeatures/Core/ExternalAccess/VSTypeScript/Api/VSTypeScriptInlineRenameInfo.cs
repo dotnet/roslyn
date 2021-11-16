@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             }
         }
 
-        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
         {
             return _info.GetConflictEditSpan(new VSTypeScriptInlineRenameLocationWrapper(
                 new InlineRenameLocation(location.Document, location.TextSpan)), replacementText, cancellationToken);
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public string GetFinalSymbolName(string replacementText)
             => _info.GetFinalSymbolName(replacementText);
 
-        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
         {
             return _info.GetReferenceEditSpan(new VSTypeScriptInlineRenameLocationWrapper(
                 new InlineRenameLocation(location.Document, location.TextSpan)), cancellationToken);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 using Microsoft.CodeAnalysis.PooledObjects;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
-            var list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+            var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter.RefKind);
 
             if (isFirstParam &&
                 parameter.ContainingSymbol is IMethodSymbol methodSymbol &&

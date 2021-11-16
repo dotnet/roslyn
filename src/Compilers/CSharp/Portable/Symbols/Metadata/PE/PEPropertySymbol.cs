@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
                 : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
 
             // A property should always have this modreq, and vice versa.
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (propEx != null || isBad)
             {
-                result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result);
+                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result));
             }
 
             return result;
@@ -93,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod,
-            int countOfCustomModifiers,
             ParamInfo<TypeSymbol>[] propertyParams,
             MetadataDecoder metadataDecoder)
         {
@@ -132,12 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBad;
 
             _parameters = setMethodParams is null
-                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
-                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
+                ? GetParameters(moduleSymbol, this, getMethod, propertyParams, getMethodParams, out isBad)
+                : GetParameters(moduleSymbol, this, setMethod, propertyParams, setMethodParams, out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
-                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             var returnInfo = propertyParams[0];
@@ -185,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
             bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore();
+                MustCallMethodsDirectlyCore() ||
+                anyUnexpectedRequiredModifiers(propertyParams);
 
             if (!callMethodsDirectly)
             {
@@ -213,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((mdFlags & PropertyAttributes.RTSpecialName) != 0)
             {
                 _flags |= Flags.IsRuntimeSpecialName;
+            }
+
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            {
+                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
+                                               p.CustomModifiers.AnyRequired());
             }
         }
 
@@ -277,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _name;
             }
         }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
+        }
+
         internal PropertyDefinitionHandle Handle
         {
             get
@@ -663,9 +679,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static ImmutableArray<ParameterSymbol> GetParameters(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol property,
+            PEMethodSymbol accessor,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
-            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -684,11 +700,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // NOTE: this is a best guess at the Dev10 behavior.  The actual behavior is
                 // in the unmanaged helper code that Dev10 uses to load the metadata.
                 var propertyParam = propertyParams[i];
-                var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
+                ParameterHandle paramHandle;
+                Symbol nullableContext;
+                if (i < numAccessorParams)
+                {
+                    paramHandle = accessorParams[i].Handle;
+                    nullableContext = accessor;
+                }
+                else
+                {
+                    paramHandle = propertyParam.Handle;
+                    nullableContext = property;
+                }
                 var ordinal = i - 1;
                 bool isBad;
 
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, accessor.IsMetadataVirtual(), ordinal, paramHandle, propertyParam, nullableContext, out isBad);
 
                 if (isBad)
                 {
@@ -704,16 +731,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
@@ -751,8 +780,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
                 : base(moduleSymbol, containingType, handle, getMethod, setMethod,
-                        propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
-                        propertyParams, metadataDecoder)
+                    propertyParams,
+                    metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);

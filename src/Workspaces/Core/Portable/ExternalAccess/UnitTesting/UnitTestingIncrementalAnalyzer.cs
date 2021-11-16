@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -55,6 +57,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 
         // Unit testing incremental analyzer only supports full solution analysis scope.
         // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
-        public BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
     }
 }

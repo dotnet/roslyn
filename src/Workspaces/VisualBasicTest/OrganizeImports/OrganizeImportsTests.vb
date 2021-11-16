@@ -15,23 +15,29 @@ Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
-                                          Optional separateImportGroups As Boolean = False) As Task
+                                          Optional separateImportGroups As Boolean = False,
+                                                 Optional endOfLine As String = Nothing) As Task
             Using workspace = New AdhocWorkspace()
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
-                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
+                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine))))
 
                 Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
                 options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+
+                If endOfLine IsNot Nothing Then
+                    options = options.WithChangedOption(New OptionKey(FormattingOptions2.NewLine, document.Project.Language), endOfLine)
+                End If
+
                 document = document.WithSolutionOptions(options)
 
                 Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
-                Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
+                Assert.Equal(final.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine)), newRoot.ToFullString())
             End Using
         End Function
 
-        Private Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = New AdhocWorkspace()
@@ -824,6 +830,48 @@ Imports <xmlns:zz="http://NextNamespace">
 ]]></content>
 
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
+        <Theory, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <InlineData(vbLf)>
+        <InlineData(vbCrLf)>
+        Public Async Function TestGrouping3(endOfLine As String) As Task
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports Roslyn.Utilities
+Imports IntList = System.Collections.Generic.List(Of Integer)
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True, endOfLine:=endOfLine)
         End Function
 
         <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>

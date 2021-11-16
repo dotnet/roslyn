@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -281,8 +283,8 @@ a    * /$$
 ";
             Verify(code, expected, workspace =>
             {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                    workspace.CurrentSolution.Options.WithChangedOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false)));
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+                globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp), false);
             });
         }
 
@@ -369,7 +371,7 @@ class C
         protected override (TypeCharCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new TypeCharCommandArgs(textView, textBuffer, '/'), "/");
 
-        internal override ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
-            => new CloseBlockCommentCommandHandler();
+        internal override ICommandHandler<TypeCharCommandArgs> GetCommandHandler(TestWorkspace workspace)
+            => Assert.IsType<CloseBlockCommentCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(CloseBlockCommentCommandHandler)));
     }
 }

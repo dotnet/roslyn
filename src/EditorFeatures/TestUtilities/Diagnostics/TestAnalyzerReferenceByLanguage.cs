@@ -12,10 +12,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
-        public TestAnalyzerReferenceByLanguage(IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
-            => _analyzersMap = analyzersMap;
+        public TestAnalyzerReferenceByLanguage(IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap, string? fullPath = null)
+        {
+            _analyzersMap = analyzersMap;
+            FullPath = fullPath;
+        }
 
-        public override string FullPath => null;
+        public override string? FullPath { get; }
         public override string Display => nameof(TestAnalyzerReferenceByLanguage);
         public override object Id => Display;
 

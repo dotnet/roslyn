@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         /// <remarks>
         /// Reference type so we can read/write atomically.
         /// </remarks>
-        private Tuple<string, Dictionary<int, int>> _lastParsed;
+        private Tuple<string, Dictionary<int, int>>? _lastParsed;
 
         protected abstract int GetKeywordKind(string trimmed);
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             return true;
         }
 
-        public bool TryGetOrComputePreferredOrder(string value, out Dictionary<int, int> preferredOrder)
+        public bool TryGetOrComputePreferredOrder(string value, [NotNullWhen(true)] out Dictionary<int, int>? preferredOrder)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             return true;
         }
 
-        protected virtual bool TryParse(string value, out Dictionary<int, int> parsed)
+        protected virtual bool TryParse(string value, [NotNullWhen(true)] out Dictionary<int, int>? parsed)
         {
             var result = new Dictionary<int, int>();
 

@@ -4,14 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     Public Class ValidateFormatStringTests
@@ -22,24 +18,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function VBOptionOnCSharpOptionOff() As IOptionsCollection
-            Return OptionsSet(
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True))
+        Private Function OptionOn() As OptionsCollection
+            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, True}}
         End Function
 
-        Private Function VBOptionOffCSharpOptionOn() As IOptionsCollection
-            Return OptionsSet(
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))
+        Private Function OptionOff() As OptionsCollection
+            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, False}}
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function ParamsObjectArray() As Task
+        Public Async Function ObjectArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {[||]2} works"", New Object() { ""test"", ""test2"", ""test3"" })
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function LiteralArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0[||]} {1} {2} {3} works"", { ""test"", ""test2"", ""test3"", ""test4"" })
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function StringArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        Dim strings() = {""test"", ""test2""}
+        String.Format(""This {0} {[||]1} works"", strings)
     End Sub
 End Class")
         End Function
@@ -76,7 +90,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -90,7 +104,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -106,7 +120,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -130,7 +144,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -304,14 +318,14 @@ Class C
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = If(optionOn, VBOptionOnCSharpOptionOff(), VBOptionOffCSharpOptionOn())
+            Dim options = If(optionOn, Me.OptionOn(), OptionOff())
             If Not expectDiagnostic Then
                 Await TestDiagnosticMissingAsync(source, New TestParameters(options:=options))
             Else
                 Await TestDiagnosticInfoAsync(source,
                     options,
                     diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity:=DiagnosticSeverity.Warning,
+                    diagnosticSeverity:=DiagnosticSeverity.Info,
                     diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
             End If
         End Function

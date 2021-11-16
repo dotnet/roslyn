@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -189,21 +187,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.NullCoalescingOperator:
                     var boundCoalesce = (BoundNullCoalescingOperator)lowered;
 
-                    if (boundCoalesce.LeftConversion.IsIdentity)
-                    {
-                        // The RHS may be a constant value with an identity conversion to string even
-                        // if it is not a string: in particular, the null literal behaves this way.
-                        // To be safe, check that the constant value is actually a string before
-                        // attempting to access its value as a string.
+                    Debug.Assert(boundCoalesce.LeftPlaceholder is null);
+                    Debug.Assert(boundCoalesce.LeftConversion is null);
 
-                        var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        // See https://github.com/dotnet/roslyn/issues/41964 for eliminating the !. below
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue!.Length == 0)
-                        {
-                            arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
-                            return true;
-                        }
+                    // The RHS may be a constant value with an identity conversion to string even
+                    // if it is not a string: in particular, the null literal behaves this way.
+                    // To be safe, check that the constant value is actually a string before
+                    // attempting to access its value as a string.
+
+                    var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                    if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
+                    {
+                        arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
+                        return true;
                     }
+
                     break;
             }
 
@@ -307,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
@@ -319,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
@@ -332,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -345,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, array);
         }
 
         /// <summary>
@@ -361,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, default(LookupResultKind), loweredLeft, loweredRight, type);
+            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, type);
         }
 
         /// <summary>

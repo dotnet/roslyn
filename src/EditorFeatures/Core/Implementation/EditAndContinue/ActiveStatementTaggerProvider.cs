@@ -4,29 +4,98 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
+    /// <summary>
+    /// Tagger for active statements. Active statements are only tracked for langauges that support EnC (C#, VB).
+    /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(TextMarkerTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Editable)] // TODO (tomat): ?
-    internal sealed class ActiveStatementTaggerProvider : ITaggerProvider
+    [TagType(typeof(ActiveStatementTag))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    internal partial class ActiveStatementTaggerProvider : AsynchronousTaggerProvider<ITextMarkerTag>
     {
-        private readonly IThreadingContext _threadingContext;
+        // We want to track text changes so that we can try to only reclassify a method body if
+        // all edits were contained within one.
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ActiveStatementTaggerProvider(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        public ActiveStatementTaggerProvider(
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
+        {
+        }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-            => new ActiveStatementTagger(_threadingContext, buffer) as ITagger<T>;
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        {
+            AssertIsForeground();
+
+            return TaggerEventSources.Compose(
+                new EventSource(subjectBuffer),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
+        }
+
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
+        {
+            Debug.Assert(context.SpansToTag.IsSingle());
+
+            var spanToTag = context.SpansToTag.Single();
+
+            var document = spanToTag.Document;
+            if (document == null)
+            {
+                return;
+            }
+
+            var activeStatementTrackingService = document.Project.Solution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            if (activeStatementTrackingService == null)
+            {
+                return;
+            }
+
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+
+            var activeStatementSpans = await activeStatementTrackingService.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
+            foreach (var activeStatementSpan in activeStatementSpans)
+            {
+                if (activeStatementSpan.IsLeaf)
+                {
+                    continue;
+                }
+
+                var snapshotSpan = activeStatementSpan.Span.GetSpan(snapshot);
+                if (snapshotSpan.OverlapsWith(spanToTag.SnapshotSpan))
+                {
+                    context.AddTag(new TagSpan<ITextMarkerTag>(snapshotSpan, ActiveStatementTag.Instance));
+                }
+            }
+
+            // Let the context know that this was the span we actually tried to tag.
+            context.SetSpansTagged(SpecializedCollections.SingletonEnumerable(spanToTag));
+        }
     }
 }

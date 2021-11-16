@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_ImplicitInvokeCalls() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -25,7 +25,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -41,7 +41,7 @@ End Class
                                                      expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_ExplicitInvokeCalls() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub MySub($$x As Integer, y As String, z As Boolean)
@@ -55,7 +55,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -71,7 +71,7 @@ End Class
                                                      expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_BeginInvokeCalls() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub MySub(x As Integer$$, y As String, z As Boolean)
@@ -85,7 +85,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -101,7 +101,7 @@ End Class
                                                      expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_SubLambdas() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub MySub(x As Integer, $$y As String, z As Boolean)
@@ -122,7 +122,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -145,7 +145,7 @@ End Class
                                                      expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=1)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_FunctionLambdas() As Task
             Dim markup = <Text><![CDATA[
 Delegate Function MyFunc(x As Integer, y As String, $$z As Boolean) As Integer
@@ -168,7 +168,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -193,7 +193,7 @@ End Class
                                                      expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=2)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_ReferencingLambdas_MethodArgument() As Task
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
@@ -210,7 +210,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -228,7 +228,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_ReferencingLambdas_ReturnValue() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -246,7 +246,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -265,7 +265,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_Recursive() As Task
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As MyFunc
@@ -279,7 +279,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As MyFunc
@@ -294,7 +294,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_DocComments() As Task
             Dim markup = <Text><![CDATA[
 ''' <summary>
@@ -323,7 +323,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 ''' <summary>
@@ -353,7 +353,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_Relaxation_FunctionToSub() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
@@ -370,7 +370,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MySub(z As Boolean, newIntegerParameter As Integer, y As String)
@@ -388,7 +388,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_Relaxation_ParameterlessFunctionToFunction() As Task
             Dim markup = <Text><![CDATA[
 Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
@@ -405,7 +405,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Function MyFunc(z As Boolean, newIntegerParameter As Integer, y As String) As Integer
@@ -423,7 +423,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_CascadeToEvents() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -447,7 +447,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -464,15 +464,15 @@ Class C
     End Event
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
-        RaiseEvent MyEvent2(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
+        RaiseEvent MyEvent2(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Events_ReferencedBy_RaiseEvent() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -485,21 +485,21 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
     Event MyEvent(z As Boolean, newIntegerParameter As Integer, y As String)
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Events_ReferencedBy_AddHandler() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -515,7 +515,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -532,7 +532,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Events_ReferencedBy_GeneratedDelegateTypeInvocations() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -548,7 +548,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -565,7 +565,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Events_ReferencedBy_HandlesClause() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -577,7 +577,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -590,7 +590,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_CustomEvents_ReferencedBy_RaiseEvent() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -611,7 +611,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -626,14 +626,14 @@ Class C
     End Event
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_CustomEvents_ReferencedBy_AddHandler() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -657,7 +657,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -682,7 +682,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_CustomEvents_ReferencedBy_Invocations() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -706,7 +706,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -731,7 +731,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_CustomEvents_ReferencedBy_HandlesClause() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -751,7 +751,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -772,7 +772,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Delegates_Generics() As Task
             Dim markup = <Text><![CDATA[
 Delegate Sub $$MyDelegate(Of T)(t As T)
@@ -787,7 +787,7 @@ Class C
 End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer")}
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer")}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Delegate Sub MyDelegate(Of T)(newIntegerParameter As Integer)
 

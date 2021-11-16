@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(compilationContext =>
+            => context.RegisterCompilationStartAction(context =>
             {
-                var objectType = compilationContext.Compilation.GetSpecialType(SpecialType.System_Object);
-                if (objectType != null)
+                var objectType = context.Compilation.GetSpecialType(SpecialType.System_Object);
+                if (objectType != null && IsLanguageVersionSupported(context.Compilation))
                 {
                     var referenceEqualsMethod = objectType.GetMembers(nameof(ReferenceEquals))
                                                           .OfType<IMethodSymbol>()
@@ -42,26 +41,23 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     if (referenceEqualsMethod != null)
                     {
                         var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+                        var unconstraintedGenericSupported = IsUnconstrainedGenericSupported(context.Compilation);
                         context.RegisterSyntaxNodeAction(
-                            c => AnalyzeSyntax(c, referenceEqualsMethod),
+                            c => AnalyzeSyntax(c, referenceEqualsMethod, unconstraintedGenericSupported),
                             syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.InvocationExpression));
                     }
                 }
             });
 
-        protected abstract bool IsLanguageVersionSupported(ParseOptions options);
+        protected abstract bool IsLanguageVersionSupported(Compilation compilation);
+        protected abstract bool IsUnconstrainedGenericSupported(Compilation compilation);
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod, bool unconstraintedGenericSupported)
         {
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-            if (!IsLanguageVersionSupported(syntaxTree.Options))
-            {
-                return;
-            }
 
             var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
@@ -108,13 +104,13 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(
                 UseIsNullConstants.Kind, UseIsNullConstants.ReferenceEqualsKey);
 
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
             if (genericParameterSymbol != null)
             {
-                if (genericParameterSymbol.HasValueTypeConstraint)
+                if (genericParameterSymbol.IsValueType)
                 {
                     // 'is null' would generate error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                     // '== null' would generate error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
@@ -122,11 +118,13 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     return;
                 }
 
-                if (!genericParameterSymbol.HasReferenceTypeConstraint)
+                // HasReferenceTypeConstraint returns false for base type constraint.
+                // IsReferenceType returns true.
+
+                if (!genericParameterSymbol.IsReferenceType && !unconstraintedGenericSupported)
                 {
                     // Needs special casing for C# as long as
-                    // https://github.com/dotnet/csharplang/issues/1284
-                    // is not implemented.
+                    // 'is null' over unconstrained generic is implemented in C# 8.
                     properties = properties.Add(UseIsNullConstants.UnconstrainedGeneric, "");
                 }
             }

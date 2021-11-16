@@ -366,7 +366,6 @@ class C
 end class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInsertionLocation6() As Task
 

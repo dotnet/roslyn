@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
+        private static IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
             => destination.GetInsertionIndices(cancellationToken);
 
         public override async Task<Document> AddEventAsync(
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // This is a VB event that declares its own type.  i.e. "Public Event E(x As Object)"
                 // We also have to generate "public void delegate EEventHandler(object x)"
                 var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var newDestinationSymbol = destination.GetSymbolKey().Resolve(compilation).Symbol;
+                var newDestinationSymbol = destination.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
                 if (newDestinationSymbol?.ContainingType != null)
                 {
@@ -108,7 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
-            CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
+            // https://github.com/dotnet/roslyn/issues/44425: Add handling for top level statements
+            if (destination is GlobalStatementSyntax)
+            {
+                return destination;
+            }
+
+            CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, BaseNamespaceDeclarationSyntax>(destination);
 
             options = options.With(options: options.Options ?? Workspace.Options);
 
@@ -133,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.IsConstructor())
                 {
                     return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -144,13 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (method.MethodKind == MethodKind.Conversion)
                 {
                     return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
                     return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
-                        typeDeclaration, method, Workspace, options, availableIndices));
+                        typeDeclaration, method, options, availableIndices));
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
@@ -169,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
             }
 
-            var ns = Cast<NamespaceDeclarationSyntax>(destination);
+            var ns = Cast<BaseNamespaceDeclarationSyntax>(destination);
             return Cast<TDeclarationNode>(
                 MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
         }
@@ -223,26 +231,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is TypeDeclarationSyntax)
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
             }
             else
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
+                    Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
             }
         }
 
         protected override TDeclarationNode AddNamedType<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, CodeGenerationOptions options, IList<bool> availableIndices, CancellationToken cancellationToken)
         {
-            CheckDeclarationNode<TypeDeclarationSyntax, NamespaceDeclarationSyntax, CompilationUnitSyntax>(destination);
+            CheckDeclarationNode<TypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, CompilationUnitSyntax>(destination);
 
-            if (destination is TypeDeclarationSyntax)
+            if (destination is TypeDeclarationSyntax typeDeclaration)
             {
-                return Cast<TDeclarationNode>(NamedTypeGenerator.AddNamedTypeTo(this, Cast<TypeDeclarationSyntax>(destination), namedType, options, availableIndices, cancellationToken));
+                return Cast<TDeclarationNode>(NamedTypeGenerator.AddNamedTypeTo(this, typeDeclaration, namedType, options, availableIndices, cancellationToken));
             }
-            else if (destination is NamespaceDeclarationSyntax)
+            else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                return Cast<TDeclarationNode>(NamedTypeGenerator.AddNamedTypeTo(this, Cast<NamespaceDeclarationSyntax>(destination), namedType, options, availableIndices, cancellationToken));
+                return Cast<TDeclarationNode>(NamedTypeGenerator.AddNamedTypeTo(this, namespaceDeclaration, namedType, options, availableIndices, cancellationToken));
             }
             else
             {
@@ -252,15 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddNamespace<TDeclarationNode>(TDeclarationNode destination, INamespaceSymbol @namespace, CodeGenerationOptions options, IList<bool> availableIndices, CancellationToken cancellationToken)
         {
-            CheckDeclarationNode<CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
+            CheckDeclarationNode<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax>(destination);
 
-            if (destination is CompilationUnitSyntax)
+            if (destination is CompilationUnitSyntax compilationUnit)
             {
-                return Cast<TDeclarationNode>(NamespaceGenerator.AddNamespaceTo(this, Cast<CompilationUnitSyntax>(destination), @namespace, options, availableIndices, cancellationToken));
+                return Cast<TDeclarationNode>(NamespaceGenerator.AddNamespaceTo(this, compilationUnit, @namespace, options, availableIndices, cancellationToken));
             }
             else
             {
-                return Cast<TDeclarationNode>(NamespaceGenerator.AddNamespaceTo(this, Cast<NamespaceDeclarationSyntax>(destination), @namespace, options, availableIndices, cancellationToken));
+                return Cast<TDeclarationNode>(NamespaceGenerator.AddNamespaceTo(this, Cast<BaseNamespaceDeclarationSyntax>(destination), @namespace, options, availableIndices, cancellationToken));
             }
         }
 
@@ -323,22 +331,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> members)
         {
-            CheckDeclarationNode<EnumDeclarationSyntax, TypeDeclarationSyntax, NamespaceDeclarationSyntax, CompilationUnitSyntax>(destination);
+            CheckDeclarationNode<EnumDeclarationSyntax, TypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, CompilationUnitSyntax>(destination);
 
-            if (destination is EnumDeclarationSyntax)
+            if (destination is EnumDeclarationSyntax enumDeclaration)
             {
-                return Cast<TDeclarationNode>(Cast<EnumDeclarationSyntax>(destination)
-                    .AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
+                return Cast<TDeclarationNode>(enumDeclaration.AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
             }
-            else if (destination is TypeDeclarationSyntax)
+            else if (destination is TypeDeclarationSyntax typeDeclaration)
             {
-                return Cast<TDeclarationNode>(Cast<TypeDeclarationSyntax>(destination)
-                    .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+                return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
             }
-            else if (destination is NamespaceDeclarationSyntax)
+            else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                return Cast<TDeclarationNode>(Cast<NamespaceDeclarationSyntax>(destination)
-                    .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+                return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
             }
             else
             {
@@ -382,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case MemberDeclarationSyntax member:
                     {
                         // Handle all members including types.
-                        var newAttributeLists = RemoveAttributeFromAttributeLists(member.GetAttributes(), attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(member.GetAttributes(), attributeToRemove, out positionOfRemovedNode, out triviaOfRemovedNode);
                         var newMember = member.WithAttributeLists(newAttributeLists);
                         return Cast<TDeclarationNode>(AppendTriviaAtPosition(newMember, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
                     }
@@ -390,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case AccessorDeclarationSyntax accessor:
                     {
                         // Handle accessors
-                        var newAttributeLists = RemoveAttributeFromAttributeLists(accessor.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(accessor.AttributeLists, attributeToRemove, out positionOfRemovedNode, out triviaOfRemovedNode);
                         var newAccessor = accessor.WithAttributeLists(newAttributeLists);
                         return Cast<TDeclarationNode>(AppendTriviaAtPosition(newAccessor, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
                     }
@@ -398,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case CompilationUnitSyntax compilationUnit:
                     {
                         // Handle global attributes
-                        var newAttributeLists = RemoveAttributeFromAttributeLists(compilationUnit.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(compilationUnit.AttributeLists, attributeToRemove, out positionOfRemovedNode, out triviaOfRemovedNode);
                         var newCompilationUnit = compilationUnit.WithAttributeLists(newAttributeLists);
                         return Cast<TDeclarationNode>(AppendTriviaAtPosition(newCompilationUnit, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
                     }
@@ -406,14 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case ParameterSyntax parameter:
                     {
                         // Handle parameters
-                        var newAttributeLists = RemoveAttributeFromAttributeLists(parameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(parameter.AttributeLists, attributeToRemove, out positionOfRemovedNode, out triviaOfRemovedNode);
                         var newParameter = parameter.WithAttributeLists(newAttributeLists);
                         return Cast<TDeclarationNode>(AppendTriviaAtPosition(newParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
                     }
 
                 case TypeParameterSyntax typeParameter:
                     {
-                        var newAttributeLists = RemoveAttributeFromAttributeLists(typeParameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(typeParameter.AttributeLists, attributeToRemove, out positionOfRemovedNode, out triviaOfRemovedNode);
                         var newTypeParameter = typeParameter.WithAttributeLists(newAttributeLists);
                         return Cast<TDeclarationNode>(AppendTriviaAtPosition(newTypeParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
                     }
@@ -425,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxList<AttributeListSyntax> RemoveAttributeFromAttributeLists(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxNode attributeToRemove,
-            CodeGenerationOptions options,
             out int positionOfRemovedNode,
             out SyntaxTriviaList triviaOfRemovedNode)
         {
@@ -477,13 +481,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
             }
+            else if (destinationMember is CompilationUnitSyntax compilationUnit && options is null)
+            {
+                // This path supports top-level statement insertion. It only applies when 'options'
+                // is null so the fallback code below can handle cases where the insertion location
+                // is provided through options.BestLocation.
+                //
+                // Insert the new global statement(s) at the end of any current global statements.
+                // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
+                var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
+                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(generated => SyntaxFactory.GlobalStatement(generated)).ToArray();
+                return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
+            }
+            else if (destinationMember is StatementSyntax statement && statement.IsParentKind(SyntaxKind.GlobalStatement))
+            {
+                // We are adding a statement to a global statement in script, where the CompilationUnitSyntax is not a
+                // statement container. If the global statement is not already a block, create a block which can hold
+                // both the original statement and any new statements we are adding to it.
+                var block = statement as BlockSyntax ?? SyntaxFactory.Block(statement);
+                return Cast<TDeclarationNode>(block.AddStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
             else
             {
                 return AddStatementsWorker(destinationMember, statements, options, cancellationToken);
             }
         }
 
-        private TDeclarationNode AddStatementsWorker<TDeclarationNode>(
+        private static TDeclarationNode AddStatementsWorker<TDeclarationNode>(
             TDeclarationNode destinationMember,
             IEnumerable<SyntaxNode> statements,
             CodeGenerationOptions options,
@@ -550,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return destination == CodeGenerationDestination.EnumType
                 ? EnumMemberGenerator.GenerateEnumMemberDeclaration(field, null, options)
-                : (SyntaxNode)FieldGenerator.GenerateFieldDeclaration(field, destination, options);
+                : FieldGenerator.GenerateFieldDeclaration(field, options);
         }
 
         public override SyntaxNode CreateMethodDeclaration(
@@ -574,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.IsDestructor())
             {
-                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
+                return DestructorGenerator.GenerateDestructorDeclaration(method, options);
             }
 
             options = options.With(options: options.Options ?? Workspace.Options);
@@ -582,17 +606,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsUserDefinedOperator())
             {
                 return OperatorGenerator.GenerateOperatorDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsConversion())
             {
                 return ConversionGenerator.GenerateConversionDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, options, options.ParseOptions);
             }
             else if (method.IsLocalFunction())
             {
@@ -610,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             return PropertyGenerator.GeneratePropertyOrIndexer(
-                property, destination, Workspace, options, options.ParseOptions);
+                property, destination, options, options.ParseOptions);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(
@@ -622,10 +646,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CreateNamespaceDeclaration(
             INamespaceSymbol @namespace, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, options, cancellationToken);
+            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, destination, options, options?.ParseOptions, cancellationToken);
         }
 
-        private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList, CodeGenerationOptions options)
+        private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList)
             => declaration switch
             {
                 BaseTypeDeclarationSyntax typeDeclaration => Cast<TDeclarationNode>(typeDeclaration.WithModifiers(computeNewModifiersList(typeDeclaration.Modifiers))),
@@ -638,13 +662,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => newModifiers.ToSyntaxTokenList();
-            return UpdateDeclarationModifiers(declaration, computeNewModifiersList, options);
+            return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
         }
 
         public override TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => UpdateDeclarationAccessibility(modifiersList, newAccessibility, options);
-            return UpdateDeclarationModifiers(declaration, computeNewModifiersList, options);
+            return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
         }
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CodeGenerationOptions options)
@@ -665,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (!(declaration is CSharpSyntaxNode syntaxNode))
+            if (declaration is not CSharpSyntaxNode syntaxNode)
             {
                 return declaration;
             }
@@ -795,6 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     case SyntaxKind.CompilationUnit:
                     case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
                         return Cast<TDeclarationNode>(NamespaceGenerator.UpdateCompilationUnitOrNamespaceDeclaration(this, syntaxNode, newMembers, options, cancellationToken));
                 }
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -21,56 +23,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private class PositionalSyntaxReference : SyntaxReference
             {
-                private readonly SyntaxTree _tree;
-                private readonly TextSpan _textSpan;
                 private readonly SyntaxKind _kind;
 
                 public PositionalSyntaxReference(SyntaxNode node)
                 {
-                    _tree = node.SyntaxTree;
-                    _textSpan = node.Span;
+                    SyntaxTree = node.SyntaxTree;
+                    Span = node.Span;
                     _kind = node.Kind();
 
-                    System.Diagnostics.Debug.Assert(_textSpan.Length > 0);
+                    System.Diagnostics.Debug.Assert(Span.Length > 0);
                 }
 
-                public override SyntaxTree SyntaxTree
-                {
-                    get
-                    {
-                        return _tree;
-                    }
-                }
+                public override SyntaxTree SyntaxTree { get; }
 
-                public override TextSpan Span
-                {
-                    get
-                    {
-                        return _textSpan;
-                    }
-                }
+                public override TextSpan Span { get; }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {
                     // Find our node going down in the tree. 
                     // Try not going deeper than needed.
-                    return this.GetNode(_tree.GetRoot(cancellationToken));
+                    return this.GetNode(SyntaxTree.GetRoot(cancellationToken));
                 }
 
-                public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
+                public override async Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
                 {
-                    var root = await _tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     return this.GetNode(root);
                 }
 
                 private SyntaxNode GetNode(SyntaxNode root)
                 {
                     var current = root;
-                    var spanStart = _textSpan.Start;
+                    var spanStart = Span.Start;
 
                     while (current.FullSpan.Contains(spanStart))
                     {
-                        if (current.Kind() == _kind && current.Span == _textSpan)
+                        if (current.Kind() == _kind && current.Span == Span)
                         {
                             return current;
                         }
@@ -93,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Syntax references to nonterminals in structured trivia should be uncommon.
                     // Provide more efficient implementation if that is not true
-                    var descendantsIntersectingSpan = parent.DescendantNodes(_textSpan, descendIntoTrivia: true);
-                    return descendantsIntersectingSpan.First(node => node.IsKind(_kind) && node.Span == _textSpan);
+                    var descendantsIntersectingSpan = parent.DescendantNodes(Span, descendIntoTrivia: true);
+                    return descendantsIntersectingSpan.First(node => node.IsKind(_kind) && node.Span == Span);
                 }
             }
         }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(definitionMap, edits, isAddedSymbol)
         { }
 
-        protected override ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol)
+        protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
             return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
         }

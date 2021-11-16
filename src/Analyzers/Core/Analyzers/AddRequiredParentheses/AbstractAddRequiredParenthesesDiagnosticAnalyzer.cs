@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -21,8 +19,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
-            new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
+        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string?>> s_cachedProperties =
+            new();
 
         private readonly IPrecedenceService _precedenceService;
 
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             {
                 foreach (var includeInFixAll in includeArray)
                 {
-                    var properties = ImmutableDictionary<string, string>.Empty;
+                    var properties = ImmutableDictionary<string, string?>.Empty;
                     if (includeInFixAll)
                     {
                         properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
@@ -56,16 +54,17 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
             => parentPrecedence.Name;
 
-        private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)
+        private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
-        protected abstract TExpressionSyntax? TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract TExpressionSyntax? TryGetAppropriateParent(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
+                   EnforceOnBuildValues.AddRequiredParentheses,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_parentheses_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_should_be_added_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
-            var parent = TryGetParentExpression(binaryLike);
+            var parent = TryGetAppropriateParent(binaryLike);
             if (parent == null || !IsBinaryLike(parent))
             {
                 return;

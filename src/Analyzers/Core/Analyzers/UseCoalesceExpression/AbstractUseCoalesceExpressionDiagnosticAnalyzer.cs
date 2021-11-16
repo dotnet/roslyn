@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceExpression,
                    CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -36,6 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract bool IsTargetTyped(SemanticModel semanticModel, TConditionalExpressionSyntax conditional, System.Threading.CancellationToken cancellationToken);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -46,13 +46,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
             var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
@@ -62,18 +61,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
             var whenFalseNodeLow = syntaxFacts.WalkDownParentheses(whenFalseNodeHigh);
 
-            if (!(conditionNode is TBinaryExpressionSyntax condition))
-            {
+            if (conditionNode is not TBinaryExpressionSyntax condition)
                 return;
-            }
 
             var syntaxKinds = syntaxFacts.SyntaxKinds;
             var isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;
             var isNotEquals = syntaxKinds.ReferenceNotEqualsExpression == condition.RawKind;
             if (!isEquals && !isNotEquals)
-            {
                 return;
-            }
 
             syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeftHigh, out var conditionRightHigh);
 
@@ -90,9 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             if (!conditionRightIsNull && !conditionLeftIsNull)
-            {
                 return;
-            }
 
             if (!syntaxFacts.AreEquivalent(
                     conditionRightIsNull ? conditionLeftLow : conditionRightLow,
@@ -101,9 +94,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
+            // Coalesce expression cannot be target typed.  So if we had a ternary that was target typed
+            // that means the individual parts themselves had no best common type, which would not work
+            // for a coalesce expression.
             var semanticModel = context.SemanticModel;
+            if (IsTargetTyped(semanticModel, conditionalExpression, cancellationToken))
+                return;
+
             var conditionType = semanticModel.GetTypeInfo(
-                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, context.CancellationToken).Type;
+                conditionLeftIsNull ? conditionRightLow : conditionLeftLow, cancellationToken).Type;
             if (conditionType != null &&
                 !conditionType.IsReferenceType)
             {

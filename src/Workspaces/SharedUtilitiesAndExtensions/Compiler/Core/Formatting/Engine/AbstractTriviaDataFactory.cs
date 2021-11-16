@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly int TabSize;
         protected readonly int IndentationSize;
 
-        private readonly Whitespace[] _spaces = new Whitespace[SpaceCacheSize];
-        private readonly Whitespace[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+        private readonly Whitespace[] _spaces;
+        private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
         protected AbstractTriviaDataFactory(TreeData treeInfo, AnalyzerConfigOptions options)
         {
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             TabSize = options.GetOption(FormattingOptions2.TabSize);
             IndentationSize = options.GetOption(FormattingOptions2.IndentationSize);
 
+            _spaces = new Whitespace[SpaceCacheSize];
             for (var i = 0; i < SpaceCacheSize; i++)
             {
                 _spaces[i] = new Whitespace(this.Options, space: i, elastic: false, language: treeInfo.Root.Language);
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     var lineIndex = lineBreaks - 1;
                     EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
-                    return _whitespaces[lineIndex, indentationLevel];
+                    return _whitespaces[lineIndex, indentationLevel]!;
                 }
             }
 
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
         {
-            Contract.ThrowIfFalse(lineIndex >= 0 && lineIndex < LineBreakCacheSize);
+            Contract.ThrowIfFalse(lineIndex is >= 0 and < LineBreakCacheSize);
             Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
 
             // set up caches

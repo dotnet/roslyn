@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -13,12 +15,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDirectives(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveDirectives(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40160")]
+        [WpfFact]
         public void VerifyHostCommandsCompletionList()
         {
             VisualStudio.InteractiveWindow.InsertCode("#");

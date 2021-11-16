@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.SuppressDynamicAttribute &&
                 type.ContainsDynamic() &&
-                compilation.HasDynamicEmitAttributes() &&
+                compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,

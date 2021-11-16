@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using System;
 using System.Text;
@@ -100,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 510,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 225,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 620,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 520, // 510
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1400, // 1310
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 225,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 700, // 620
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
@@ -147,31 +149,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
         public void DeeplyNestedGeneric()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                _ when ExecutionConditionUtil.IsMacOS => 100,
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
-                _ when ExecutionConditionUtil.IsMonoDesktop => 730,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730,
+                // Legacy baselines are indicated by comments
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 370, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 270, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            // for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
-            // {
-            //     var start = DateTime.UtcNow;
-            //     Console.Write($"Depth: {i}");
-            //     runDeeplyNestedGenericTest(i);
-            //     Console.WriteLine($" - {DateTime.UtcNow - start}");
-            // }
+            //Console.WriteLine($"Using architecture: {ExecutionConditionUtil.Architecture}, configuration: {ExecutionConditionUtil.Configuration}");
+            //for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
+            //{
+            //    var start = DateTime.UtcNow;
+            //    Console.Write($"Depth: {i}");
+            //    runDeeplyNestedGenericTest(i);
+            //    Console.WriteLine($" - {DateTime.UtcNow - start}");
+            //}
 
             runDeeplyNestedGenericTest(nestingLevel);
 
@@ -215,7 +217,7 @@ public class Test
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
                     compilation.VerifyDiagnostics();
 
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
@@ -225,7 +227,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -264,22 +266,22 @@ $@"        if (F({i}))
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
             }
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 520,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 180,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 480,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -304,7 +306,7 @@ $@"        if (F({i}))
 
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     var type = comp.GetMember<NamedTypeSymbol>("C0");
                     var typeParameter = type.TypeParameters[0];
                     Assert.True(typeParameter.IsReferenceType);

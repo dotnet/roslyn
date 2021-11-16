@@ -2,31 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
-        private protected override IOptionsCollection PreferNone =>
+        public RemoveUnusedValueExpressionStatementTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
+        private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        private protected override IOptionsCollection PreferDiscard =>
+        private protected override OptionsCollection PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
 
-        private protected override IOptionsCollection PreferUnusedLocal =>
+        private protected override OptionsCollection PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 
@@ -449,8 +454,8 @@ $@"class C
 
     void M(int unused1, int unused2)
     {{
-        {fix2} = M2();
-        {fix3} = M2();           // Another instance in same code block
+        {fix3} = M2();
+        {fix2} = M2();           // Another instance in same code block
         _ = M2();       // Already fixed
         var x = M2();   // Different unused value diagnostic
     }}
@@ -619,6 +624,28 @@ $@"class C
     }
 
     int M2() => 0;
+}", optionName);
+        }
+
+        [WorkItem(43648, "https://github.com/dotnet/roslyn/issues/43648")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_Dynamic(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+            List<dynamic> returnValue = new List<dynamic>();
+
+            dynamic dynamicValue = new object();
+
+            [|returnValue.Add(dynamicValue)|];
+    }
 }", optionName);
         }
     }

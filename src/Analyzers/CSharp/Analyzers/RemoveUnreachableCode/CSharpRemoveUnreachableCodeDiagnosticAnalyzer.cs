@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -20,12 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnreachableCode,
                    option: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   // This analyzer supports fading through AdditionalLocations since it's a user-controlled option
+                   isUnnecessary: false,
                    configurable: false)
         {
         }
@@ -38,9 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
-
-            var tree = context.SemanticModel.SyntaxTree;
+#if CODE_STYLE
+            var fadeCode = true;
+#else
+            var fadeCode = context.GetOption(Fading.FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+#endif
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -110,39 +114,47 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // fix off of.
             var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
-            if (!firstUnreachableStatement.IsParentKind(SyntaxKind.Block) &&
-                !firstUnreachableStatement.IsParentKind(SyntaxKind.SwitchSection))
-            {
-                // Can't actually remove this statement (it's an embedded statement in something 
-                // like an 'if-statement').  Just fade the code out, but don't offer to remove it.
-                if (fadeOutCode)
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
-                }
-                return;
-            }
-
             // 'additionalLocations' is how we always pass along the locaiton of the first unreachable
             // statement in this group.
-            var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
+            var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));
+            if (fadeOutCode)
+            {
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    firstStatementLocation,
+                    ReportDiagnostic.Default,
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: additionalLocations));
+            }
+            else
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(Descriptor, firstStatementLocation, additionalLocations));
+            }
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
             {
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
+                var additionalUnnecessaryLocations = ImmutableArray<Location>.Empty;
 
-                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
+                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                context.ReportDiagnostic(
-                    Diagnostic.Create(descriptor, location, additionalLocations, s_subsequentSectionProperties));
+                if (fadeOutCode)
+                {
+                    additionalUnnecessaryLocations = ImmutableArray.Create(location);
+                }
+
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    location,
+                    ReportDiagnostic.Default,
+                    additionalLocations,
+                    additionalUnnecessaryLocations,
+                    s_subsequentSectionProperties));
             }
         }
     }

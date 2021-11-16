@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -17,7 +15,7 @@ namespace Roslyn.Test.EditorUtilities
 {
     public static class EditorFactory
     {
-        public static ITextBuffer CreateBuffer(
+        public static ITextBuffer2 CreateBuffer(
             ExportProvider exportProvider,
             params string[] lines)
         {
@@ -26,7 +24,7 @@ namespace Roslyn.Test.EditorUtilities
             return CreateBuffer(exportProvider, contentType, lines);
         }
 
-        public static ITextBuffer CreateBuffer(
+        public static ITextBuffer2 CreateBuffer(
             ExportProvider exportProvider,
             IContentType contentType,
             params string[] lines)
@@ -36,7 +34,7 @@ namespace Roslyn.Test.EditorUtilities
             // The overload of CreateTextBuffer that takes just a string doesn't initialize the whitespace tracking logic in the editor,
             // so calls to IIndentationManagerService won't work correctly. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1005541.
             using var reader = new StringReader(text);
-            return exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(reader, contentType);
+            return (ITextBuffer2)exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(reader, contentType);
         }
 
         public static DisposableTextView CreateView(

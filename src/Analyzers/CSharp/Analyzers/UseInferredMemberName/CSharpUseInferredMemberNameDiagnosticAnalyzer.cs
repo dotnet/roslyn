@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -22,9 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.NameColon, SyntaxKind.NameEquals);
 
-        override protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected override void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
@@ -43,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
@@ -54,21 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
 
             // Create a normal diagnostic
+            var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(
+                DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColon.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations: null,
-                    properties: null));
-
-            // Also fade out the part of the name-colon syntax
-            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-            var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)));
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -78,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
-            RoslynDebug.Assert(context.Compilation is object);
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
@@ -88,21 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
 
             // Create a normal diagnostic
+            var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(
+                DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameEquals.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations: null,
-                    properties: null));
-
-            // Also fade out the part of the name-equals syntax
-            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-            var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)));
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
     }
 }

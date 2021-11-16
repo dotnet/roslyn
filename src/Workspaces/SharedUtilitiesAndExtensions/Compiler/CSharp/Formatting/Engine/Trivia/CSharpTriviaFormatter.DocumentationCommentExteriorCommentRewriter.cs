@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return base.VisitTrivia(trivia);
             }
 
-            private bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
+            private static bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
             {
                 var currentParent = trivia.Token.Parent;
 
                 while (currentParent != null)
                 {
-                    if (currentParent.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia ||
-                        currentParent.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                    if (currentParent.Kind() is SyntaxKind.SingleLineDocumentationCommentTrivia or
+                        SyntaxKind.MultiLineDocumentationCommentTrivia)
                     {
                         if (trivia.Span.End == currentParent.SpanStart ||
                             trivia.Span.End == currentParent.Span.End)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
@@ -11,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
     {
-        int IVsExpansionFunction.GetDefaultValue(out string bstrValue, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]out int fHasDefaultValue)
+        int IVsExpansionFunction.GetDefaultValue(out string bstrValue, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] out int fHasDefaultValue)
             => GetDefaultValue(CancellationToken.None, out bstrValue, out fHasDefaultValue);
 
         int IVsExpansionFunction.GetCurrentValue(out string bstrValue, out int fHasCurrentValue)
@@ -34,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         int IVsExpansionFunction.GetListText(int index, out string text)
         {
-            index = 0;
             text = string.Empty;
             return VSConstants.E_NOTIMPL;
         }

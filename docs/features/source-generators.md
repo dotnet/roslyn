@@ -28,113 +28,127 @@ namespace Microsoft.CodeAnalysis
 {
     public interface ISourceGenerator
     {
-        void Execute(SourceGeneratorContext context);
+        void Initialize(GeneratorInitializationContext context);
+        void Execute(GeneratorExecutionContext context);
     }
 }
 ```
 
 Generator implementations are defined in external assemblies passed to the compiler
-using the same `-analyzer:` option used for diagnostic analyzers.
+using the same `-analyzer:` option used for diagnostic analyzers. Implementations are required to
+be annotated with a `Microsoft.CodeAnalysis.GeneratorAttribute` attribute.
 
 An assembly can contain a mix of diagnostic analyzers and source generators.
 Since generators are loaded from external assemblies, a generator cannot be used to build
 the assembly in which it is defined.
 
-`ISourceGenerator` has a single `Execute` method that is called by the host (either the IDE
-or the command-line compiler). `Execute` passes an instance of `SourceGeneratorContext` that provides access 
-to the `Compilation` and allows the generator to alter it by adding source and reporting diagnostics.
+`ISourceGenerator` has an `Initialize` method that is called by the host (either the IDE or
+the command-line compiler) exactly once. `Initialize` passes an instance of `GeneratorInitializationContext`
+which can be used by the generator to register a set of callbacks that affect how future generation
+passes will occur.
+
+The main generation pass occurs via the `Execute` method. `Execute` passes an instance of `GeneratorExecutionContext`
+that provides access to the current `Compilation` and allows the generator to alter the resulting output `Compilation`
+by adding source and reporting diagnostics.
+
+The generator is also able to access any `AnalyzerAdditionalFiles` passed to the compiler via the `AdditionalFiles`
+collection, allowing for generation decisions to based on more than just the user's C# code.
 
 ```csharp
 namespace Microsoft.CodeAnalysis
 {
-    public struct SourceGeneratorContext
+    public readonly struct GeneratorExecutionContext
     {
-        public Compilation Compilation { get; }
-
-        // TODO: replace AnalyzerOptions with an differently named type that is otherwise identical.
-        // The concern being that something added to one isn't necessarily applicable to the other.
-        public AnalyzerOptions AnalyzerOptions { get; }
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         public CancellationToken CancellationToken { get; }
 
-        // TODO: we need to add a way of declaring diagnostic descriptors, presumably the same mechanism used by analyzers
+        public Compilation Compilation { get; }
+
+        public ISyntaxReceiver? SyntaxReceiver { get; }
+
         public void ReportDiagnostic(Diagnostic diagnostic) { throw new NotImplementedException(); }
 
         public void AddSource(string fileNameHint, SourceText sourceText) { throw new NotImplementedException(); }
     }
 }
 ```
-It is assumed that some generators will want to generate more than one `SourceText`, for example in a 1:1 mapping 
+
+It is assumed that some generators will want to generate more than one `SourceText`, for example in a 1:1 mapping
 for additional files. The `fileNameHint` parameter of `AddSource` is intended to address this:
 
-1. If the generated files are emitted to disk, having some ability to put some distinguishing text might be useful. 
+1. If the generated files are emitted to disk, having some ability to put some distinguishing text might be useful.
 For example, if you have two `.resx` files, generating the files with simply names of `ResxGeneratedFile1.cs` and
 `ResxGeneratedFile2.cs` wouldn't be terribly useful -- you'd want it to be something like
 `ResxGeneratedFile-Strings.cs` and `ResxGeneratedFile-Icons.cs` if you had two `.resx` files
  named "Strings" and "Icons" respectively.
 
-2. The IDE needs some concept of a "stable" identifier. Source generators create a couple of fun problems for the IDE: 
-users will want to be able to set breakpoints in a generated file, for example. If a source generator outputs multiple 
-files we need to know which is which so we can know which file the breakpoints go with. A source generator of course is 
-allowed to stop emitting a file if its inputs change (if you delete a `.resx`, then the generated file associated with it 
+2. The IDE needs some concept of a "stable" identifier. Source generators create a couple of fun problems for the IDE:
+users will want to be able to set breakpoints in a generated file, for example. If a source generator outputs multiple
+files we need to know which is which so we can know which file the breakpoints go with. A source generator of course is
+allowed to stop emitting a file if its inputs change (if you delete a `.resx`, then the generated file associated with it
 will also go away), but this gives us some control here.
 
-This was called "hint" in that the compiler is implicitly allowed to control the filename in however it ultimately 
-needs, and if two source generators give the same "hint" it can still distinguish them with any sort of 
+This was called "hint" in that the compiler is implicitly allowed to control the filename in however it ultimately
+needs, and if two source generators give the same "hint" it can still distinguish them with any sort of
 prefix/suffix as necessary.
 
 ### IDE Integration
 
-One of the more complicated aspects of supporting generators is enabling a high-fidelity 
-experience in Visual Studio. For the purposes of determining code correctness, it is 
-expected that all generators will have had to be run. Obviously, it is impractical to run 
-every generator on every keystroke, and still maintain an acceptable level of performance 
+One of the more complicated aspects of supporting generators is enabling a high-fidelity
+experience in Visual Studio. For the purposes of determining code correctness, it is
+expected that all generators will have had to be run. Obviously, it is impractical to run
+every generator on every keystroke, and still maintain an acceptable level of performance
 within the IDE.
 
 #### Progressive complexity opt-in
 
-It is expected instead that source generators would work on an 'opt-in' approach to IDE 
-enablement. 
+It is expected instead that source generators would work on an 'opt-in' approach to IDE
+enablement.
 
 By default, a generator implementing only `ISourceGenerator` would see no IDE integration
-and only be correct at build time. Based on conversations with 1st party customers, 
+and only be correct at build time. Based on conversations with 1st party customers,
 there are several cases where this would be enough.
 
-However, for scenarios such as code first gRPC, and in particular Razor and Blazor, 
-the IDE will need to be able to generate code on-they-fly as those file types are 
-edited and reflect the changes back to other files in the IDE in near real-time. 
+However, for scenarios such as code first gRPC, and in particular Razor and Blazor,
+the IDE will need to be able to generate code on-the-fly as those file types are
+edited and reflect the changes back to other files in the IDE in near real-time.
 
-The proposal is to have a set of advanced interfaces that can be optionally implemented,
+The proposal is to have a set of advanced callbacks that can be optionally implemented,
 that would allow the IDE to query the generator to decide what needs to be run in the case
 of any particular edit.
 
 For example an extension that would cause generation to run after saving a third party
-file might look something like: 
+file might look something like:
 
 ```csharp
 namespace Microsoft.CodeAnalysis
 {
-    public interface ITriggeredByAdditionalFileSavedGenerator : ISourceGenerator
+    public struct GeneratorInitializationContext
     {
-        ImmutableArray<string> SupportedAdditionalFileExtensions { get; }
+        public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback){ }
     }
 }
 ```
-It is expected that there will be various levels of opt in, that can be added to a generator
-in order to achieve the specific level of performance required of it. 
 
-What these exact APIs will look like remains an open question, and it's expected that we will 
+This would allow the generator to register a callback during initialization that would be invoked
+every time an additional file changes.
+
+It is expected that there will be various levels of opt in, that can be added to a generator
+in order to achieve the specific level of performance required of it.
+
+What these exact APIs will look like remains an open question, and it's expected that we will
 need to prototype some real-world generators before knowing what their precise shape will be.
 
 ### Output files
 
-It it desirable that the generated source texts be available for inspection after generation,
+It is desirable that the generated source texts be available for inspection after generation,
 either as part of creating a generator or seeing what code was generated by a third party
 generator.
 
 By default, generated texts will be persisted to a `GeneratedFiles/{GeneratorAssemblyName}` 
 sub-folder within `CommandLineArguments.OutputDirectory`. The `fileNameHint` from 
-`SourceGeneratorContext.AddSource` will be used to create a unique name, with appropriate
+`GeneratorExecutionContext.AddSource` will be used to create a unique name, with appropriate
 collision renaming applied if required. For instance, on Windows a call to 
 `AddSource("MyCode", ...);` from `MyGenerator.dll` for a C# project might be 
 persisted as `obj/debug/GeneratedFiles/MyGenerator.dll/MyCode.cs`.

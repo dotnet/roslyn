@@ -2,35 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
     internal static class FindBaseHelpers
     {
-        public static ImmutableArray<ISymbol> FindBases(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public static ValueTask<ImmutableArray<ISymbol>> FindBasesAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             if (symbol is INamedTypeSymbol namedTypeSymbol &&
                 (namedTypeSymbol.TypeKind == TypeKind.Class ||
                 namedTypeSymbol.TypeKind == TypeKind.Interface ||
                 namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol);
+                var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
+                return ValueTaskFactory.FromResult(result);
             }
-            else if (symbol.Kind == SymbolKind.Property ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Event)
+
+            if (symbol.Kind is SymbolKind.Property or
+                SymbolKind.Method or
+                SymbolKind.Event)
             {
-                return BaseTypeFinder.FindOverriddenAndImplementedMembers(
-                    symbol, project, cancellationToken);
+                return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
             }
-            else
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
+
+            return ValueTaskFactory.FromResult(ImmutableArray<ISymbol>.Empty);
         }
     }
 }

@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         internal abstract int ChildCount { get; }
         internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> ChildAt(int index);
 
+        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[int index] => ChildAt(index);
+        public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> this[Index index] => this[index.GetOffset(this.ChildCount)];
+
         public TextSpan GetSpan()
         {
             var start = int.MaxValue;
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public struct Enumerator
         {

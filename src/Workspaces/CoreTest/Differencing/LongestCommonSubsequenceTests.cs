@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Xunit;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
     public class LongestCommonSubsequenceTests
     {
-        LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+        private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
@@ -28,25 +30,26 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
-        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
+        private static void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
         {
             var sb = new StringBuilder(expectedPairsStr.Length);
             foreach (var actPair in actualPairs)
             {
                 sb.AppendFormat("[{0},{1}]", actPair.Key, actPair.Value);
             }
+
             var actualPairsStr = sb.ToString();
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }
 
-        private void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
+        private static void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
         {
             var oldChars = oldStr.ToCharArray();
             var newChars = new char[newStr.Length];
 
             foreach (var edit in edits)
             {
-                Assert.True(edit.Kind == EditKind.Delete || edit.Kind == EditKind.Insert || edit.Kind == EditKind.Update);
+                Assert.True(edit.Kind is EditKind.Delete or EditKind.Insert or EditKind.Update);
                 switch (edit.Kind)
                 {
                     case EditKind.Delete:
@@ -99,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
-
 
         [Fact]
         public void InsertAtBeginning()
@@ -310,7 +312,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var x9 = new string('x', 9);
             var x10 = new string('x', 10);
             var x99 = new string('x', 99);
-            var x100 = new string('x', 100);
             var x1000 = new string('x', 1000);
 
             var y1000 = new string('y', 1000);

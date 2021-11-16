@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#if DEBUG
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+#endif
     partial class BoundDagTemp
     {
         /// <summary>
@@ -27,19 +29,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 object.Equals(this.Source, other.Source) && this.Index == other.Index;
         }
 
+        /// <summary>
+        /// Determine if two <see cref="BoundDagTemp"/>s represent the same value for the purpose of a pattern evaluation.
+        /// </summary>
+        public bool IsSameValue(BoundDagTemp other)
+        {
+            var current = originalInput(this);
+            other = originalInput(other);
+
+            if ((object)current == other)
+            {
+                return true;
+            }
+
+            return current.Index == other.Index &&
+                (current.Source, other.Source) switch
+                {
+                    (null, null) => true,
+                    ({ } s1, { } s2) => s1.IsSameValueEvaluation(s2),
+                    _ => false
+                };
+
+            static BoundDagTemp originalInput(BoundDagTemp input)
+            {
+                // Type evaluations do not change identity
+                while (input.Source is BoundDagTypeEvaluation source)
+                {
+                    Debug.Assert(input.Index == 0);
+                    input = source.Input;
+                }
+
+                return input;
+            }
+        }
+
         public override int GetHashCode()
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
 
-        public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
+#if DEBUG
+        internal new string GetDebuggerDisplay()
         {
-            return left.Equals(right);
-        }
+            var name = Source?.Id switch
+            {
+                -1 => "<uninitialized>",
 
-        public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
-        {
-            return !left.Equals(right);
+                // Note that we never expect to have a non-null source with id 0
+                // because id 0 is reserved for the original input.
+                // However, we also don't want to assert in a debugger display method.
+                0 => "<error>",
+
+                null => "t0",
+                var id => $"t{id}"
+            };
+            return $"{name}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
         }
+#endif
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -20,15 +19,19 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
+                  EnforceOnBuildValues.SimplifyInterpolation,
                   CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  isUnnecessary: true)
         {
         }
 
         protected abstract IVirtualCharService GetVirtualCharService();
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+            GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                 GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
                 out var formatString, out var unnecessaryLocations);
 
@@ -65,20 +68,17 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                UnnecessaryWithSuggestionDescriptor,
-                unnecessaryLocations.First(),
+            // The diagnostic itself fades the first unnecessary location, and the remaining locations are passed as
+            // additional unnecessary locations.
+            var firstUnnecessaryLocation = unnecessaryLocations[0];
+            var remainingUnnecessaryLocations = unnecessaryLocations.RemoveAt(0);
+
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                firstUnnecessaryLocation,
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
-                properties: null));
-
-            // We start at 1 because the 0th element was used above to make the main diagnostic descriptor.
-            // All the rest are used to just fade out the correct portions of the user's code.
-            for (var i = 1; i < unnecessaryLocations.Length; i++)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor, unnecessaryLocations[i]));
-            }
+                additionalUnnecessaryLocations: remainingUnnecessaryLocations));
         }
     }
 }

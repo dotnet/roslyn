@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("true:suggestion", true, ReportDiagnostic.Info)]
         [InlineData("true:warning", true, ReportDiagnostic.Warn)]
         [InlineData("true:error", true, ReportDiagnostic.Error)]
-        [InlineData("true", false, ReportDiagnostic.Hidden)]
+        [InlineData("true", true, ReportDiagnostic.Hidden)]
         [InlineData("false:none", false, ReportDiagnostic.Suppress)]
         [InlineData("false:refactoring", false, ReportDiagnostic.Hidden)]
         [InlineData("false:silent", false, ReportDiagnostic.Hidden)]
@@ -41,24 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : error", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            var notificationOption = NotificationOption.Silent;
-            switch (severity)
-            {
-                case ReportDiagnostic.Hidden:
-                    notificationOption = NotificationOption.Silent;
-                    break;
-                case ReportDiagnostic.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case ReportDiagnostic.Warn:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case ReportDiagnostic.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-            }
-
-            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, out var result);
+            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, defaultValue: CodeStyleOption2<bool>.Default, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
             Assert.True(result.Notification.Severity == severity,

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 {
     [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeNamespaceService :
-        AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
+        AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,15 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            if (document.Project.FilePath == null
-                || document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
                 || document.IsGeneratedCode(cancellationToken))
             {
                 return default;
             }
 
             TextSpan containerSpan;
-            if (container is NamespaceDeclarationSyntax)
+            if (container is BaseNamespaceDeclarationSyntax)
             {
                 containerSpan = container.Span;
             }
@@ -64,40 +61,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
 
             if (!IsSupportedLinkedDocument(document, out var allDocumentIds))
-            {
                 return default;
-            }
 
-            return await TryGetApplicableContainersFromAllDocumentsAsync(document.Project.Solution, allDocumentIds, containerSpan, cancellationToken)
-                    .ConfigureAwait(false);
+            return await TryGetApplicableContainersFromAllDocumentsAsync(
+                document.Project.Solution, allDocumentIds, containerSpan, cancellationToken).ConfigureAwait(false);
         }
 
         protected override string GetDeclaredNamespace(SyntaxNode container)
         {
-            if (container is CompilationUnitSyntax compilationUnit)
-            {
+            if (container is CompilationUnitSyntax)
                 return string.Empty;
-            }
 
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
-            {
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
                 return CSharpSyntaxGenerator.Instance.GetName(namespaceDecl);
-            }
 
             throw ExceptionUtilities.Unreachable;
         }
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode container)
         {
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
-            {
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
                 return namespaceDecl.Members;
-            }
 
             if (container is CompilationUnitSyntax compilationUnit)
-            {
                 return compilationUnit.Members;
-            }
 
             throw ExceptionUtilities.Unreachable;
         }
@@ -120,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             [NotNullWhen(returnValue: true)] out SyntaxNode? oldNode,
             [NotNullWhen(returnValue: true)] out SyntaxNode? newNode)
         {
-            if (!(reference is SimpleNameSyntax nameRef))
+            if (reference is not SimpleNameSyntax nameRef)
             {
                 oldNode = newNode = null;
                 return false;
@@ -143,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             //
             // Note that qualified type name can appear in QualifiedNameSyntax or MemberAccessSyntax, so we need to handle both cases.
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
+            if (syntaxFacts.IsRightOfQualifiedName(nameRef))
             {
                 RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
@@ -159,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 newNode = newNode.WithTriviaFrom(oldNode);
                 return true;
             }
-            else if (syntaxFacts.IsNameOfMemberAccessExpression(nameRef))
+            else if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameRef) ||
+                     syntaxFacts.IsNameOfMemberBindingExpression(nameRef))
             {
                 RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
@@ -253,13 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts);
             }
 
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
             {
                 // Move everything to global namespace
                 if (IsGlobalNamespace(targetNamespaceParts))
-                {
                     return MoveMembersFromNamespaceToGlobal(root, namespaceDecl);
-                }
 
                 // Change namespace name
                 return root.ReplaceNode(
@@ -273,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDecl)
+        private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(
+            CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax namespaceDecl)
         {
             var (namespaceOpeningTrivia, namespaceClosingTrivia) =
                 GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl);
@@ -321,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts)
         {
-            Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
+            Debug.Assert(!compilationUnit.Members.Any(m => m is BaseNamespaceDeclarationSyntax));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
@@ -358,9 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (span.IsEmpty)
             {
                 if (ContainsNamespaceDeclaration(compilationUnit))
-                {
                     return null;
-                }
 
                 container = compilationUnit;
             }
@@ -369,27 +354,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 // Otherwise, the span should contain a namespace declaration node, which must be the only one
                 // in the entire syntax spine to enable the change namespace operation.
                 if (!compilationUnit.Span.Contains(span))
-                {
                     return null;
-                }
 
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
-                var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
-                if (namespaceDecl == null)
-                {
+                var namespaceDecls = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().ToImmutableArray();
+                if (namespaceDecls.Length != 1)
                     return null;
-                }
+
+                var namespaceDecl = namespaceDecls[0];
+                if (namespaceDecl == null)
+                    return null;
 
                 if (namespaceDecl.Name.GetDiagnostics().Any(diag => diag.DefaultSeverity == DiagnosticSeverity.Error))
-                {
                     return null;
-                }
 
                 if (ContainsNamespaceDeclaration(node))
-                {
                     return null;
-                }
 
                 container = namespaceDecl;
             }
@@ -398,15 +379,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 await ContainsPartialTypeWithMultipleDeclarationsAsync(document, container, cancellationToken).ConfigureAwait(false);
 
             if (containsPartial)
-            {
                 return null;
-            }
 
             return container;
 
             static bool ContainsNamespaceDeclaration(SyntaxNode node)
-                => node.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
-                .OfType<NamespaceDeclarationSyntax>().Any();
+                => node.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
+                       .OfType<BaseNamespaceDeclarationSyntax>().Any();
         }
 
         private static string? GetAliasQualifier(SyntaxNode? name)
@@ -437,11 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             var namePiece = SyntaxFactory.IdentifierName(part);
 
             if (index == 0)
-            {
-                return aliasQualifier == null
-                     ? (NameSyntax)namePiece
-                     : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
-            }
+                return aliasQualifier == null ? namePiece : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
 
             return SyntaxFactory.QualifiedName(CreateNamespaceAsQualifiedName(namespaceParts, aliasQualifier, index - 1), namePiece);
         }
@@ -456,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             if (index == 0)
             {
                 return aliasQualifier == null
-                     ? (NameSyntax)namePiece
+                     ? namePiece
                      : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
             }
 
@@ -472,16 +447,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
         private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
-            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
+            GetOpeningAndClosingTriviaOfNamespaceDeclaration(BaseNamespaceDeclarationSyntax baseNamespace)
         {
             var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
-            openingBuilder.AddRange(namespaceDeclaration.GetLeadingTrivia());
-            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
-            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
-
             var closingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
-            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
-            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
+
+            openingBuilder.AddRange(baseNamespace.GetLeadingTrivia());
+
+            if (baseNamespace is NamespaceDeclarationSyntax namespaceDeclaration)
+            {
+                openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+                openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+
+                closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
+                closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
+            }
+            else if (baseNamespace is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+            {
+                openingBuilder.AddRange(fileScopedNamespace.SemicolonToken.TrailingTrivia);
+            }
 
             return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
         }

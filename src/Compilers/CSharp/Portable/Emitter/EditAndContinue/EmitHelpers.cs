@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -24,14 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
             var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
-            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            var runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
@@ -52,7 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 // TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
-                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+                return new EmitDifferenceResult(
+                    success: false,
+                    diagnostics: diagnostics.ToReadOnlyAndFree(),
+                    baseline: null,
+                    updatedMethods: ImmutableArray<MethodDefinitionHandle>.Empty,
+                    changedTypes: ImmutableArray<TypeDefinitionHandle>.Empty);
             }
 
             if (testData != null)
@@ -62,9 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
-            var changes = moduleBeingBuilt.Changes;
+            var changes = moduleBeingBuilt.EncSymbolChanges;
+            Debug.Assert(changes != null);
 
-            EmitBaseline newBaseline = null;
+            EmitBaseline? newBaseline = null;
+            var updatedMethods = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
+            var changedTypes = ArrayBuilder<TypeDefinitionHandle>.GetInstance();
 
             if (compilation.Compile(
                 moduleBeingBuilt,
@@ -87,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    changedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOptions.PdbFilePath,
@@ -96,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new EmitDifferenceResult(
                 success: newBaseline != null,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
-                baseline: newBaseline);
+                baseline: newBaseline,
+                updatedMethods: updatedMethods.ToImmutableAndFree(),
+                changedTypes: changedTypes.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -111,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             PEDeltaAssemblyBuilder moduleBeingBuilt)
         {
             var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            Debug.Assert(previousGeneration.Compilation != compilation);
+            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
 
             if (previousGeneration.Ordinal == 0)
             {
@@ -121,16 +133,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
+            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
@@ -142,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,

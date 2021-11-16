@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -23,9 +25,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         protected AbstractRegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
+                   EnforceOnBuildValues.Regex,
                    RegularExpressionsOptions.ReportInvalidRegexPatterns,
-                   new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _info = info;
         }
@@ -42,14 +45,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var options = context.Options;
             var option = context.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
             {
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
             if (detector == null)
             {
                 return;
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             if (token.RawKind == _info.StringLiteralTokenKind)
             {
-                var tree = detector.TryParseRegexPattern(token, cancellationToken);
+                var tree = detector.TryParseRegexPattern(token, context.SemanticModel, cancellationToken);
                 if (tree != null)
                 {
                     foreach (var diag in tree.Diagnostics)

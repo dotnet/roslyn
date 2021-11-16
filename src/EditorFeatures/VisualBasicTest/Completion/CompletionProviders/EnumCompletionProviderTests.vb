@@ -2,16 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class EnumCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(EnumCompletionProvider)
@@ -85,6 +80,9 @@ Public Enum MyEnum
     <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)> Member
 End Enum
 ]]></Text>.Value
+
+            HideAdvancedMembers = True
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -92,8 +90,9 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -102,8 +101,7 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <Fact>
@@ -461,7 +459,7 @@ Class C
 End Class
 ]]></Text>.Value
 
-            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
+            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -537,6 +535,21 @@ Class C
 End Class
 ]]></Text>.Value
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInEnumHasFlag() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.IO
+
+Class C
+    Sub Main()
+        Dim f As FileInfo
+        f.Attributes.HasFlag($$
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "FileAttributes.Hidden")
         End Function
     End Class
 End Namespace

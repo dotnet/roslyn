@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -22,18 +24,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                    if (symbol.Symbol is INamedTypeSymbol ||
-                        symbol.Symbol is IMethodSymbol ||
-                        symbol.Symbol is IPropertySymbol ||
-                        symbol.Symbol is IEventSymbol)
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                    if (symbol is INamedTypeSymbol or
+                        IMethodSymbol or
+                        IPropertySymbol or
+                        IEventSymbol)
                     {
                         var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         foreach (var implementation in implementations)
                         {
-                            var symbolNode = await graphBuilder.AddNodeAsync(implementation, relatedNode: node).ConfigureAwait(false);
-                            graphBuilder.AddLink(symbolNode, CodeLinkCategories.Implements, node);
+                            var symbolNode = await graphBuilder.AddNodeAsync(
+                                implementation, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                            graphBuilder.AddLink(
+                                symbolNode, CodeLinkCategories.Implements, node, cancellationToken);
                         }
                     }
                 }

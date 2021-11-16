@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, DiagnosticBag diagnostics)
+        internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, BindingDiagnosticBag diagnostics)
             : base(containingType)
         {
             Debug.Assert(containingType.TypeKind == TypeKind.Submission);
@@ -20,11 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingType.DeclaringCompilation;
 
             var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
-            var useSiteError = submissionArrayType.GetUseSiteDiagnostic();
-            if (useSiteError != null)
-            {
-                diagnostics.Add(useSiteError, NoLocation.Singleton);
-            }
+            var useSiteInfo = submissionArrayType.GetUseSiteInfo();
+            diagnostics.Add(useSiteInfo, NoLocation.Singleton);
 
             _parameters = ImmutableArray.Create<ParameterSymbol>(
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));

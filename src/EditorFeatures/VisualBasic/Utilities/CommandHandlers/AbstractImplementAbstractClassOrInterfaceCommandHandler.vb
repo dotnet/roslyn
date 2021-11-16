@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         Implements ICommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
@@ -28,8 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             End Get
         End Property
 
-        Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
+        Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
+                          globalOptions As IGlobalOptionService)
             _editorOperationsFactoryService = editorOperationsFactoryService
+            _globalOptions = globalOptions
         End Sub
 
         Protected MustOverride Overloads Function TryGetNewDocument(
@@ -76,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
             Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
@@ -96,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Dim applicable As Boolean = False
             Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
         End Function
 
@@ -109,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
+            If Not _globalOptions.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
                 Return False
             End If
 

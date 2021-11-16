@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Return False
         End Function
 
-        Private Function GetInterfaceType(semanticModel As SemanticModel,
+        Private Shared Function GetInterfaceType(semanticModel As SemanticModel,
                                           node As SyntaxNode,
                                           cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -16,9 +17,7 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -31,16 +30,17 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using UIAutomationClient;
-using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
-using ControlType = System.Windows.Automation.ControlType;
+using Xunit;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Used through .NET Remoting.")]
     internal partial class Editor_InProc : TextViewWindow_InProc
     {
-        private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
+        internal static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
         private readonly SendKeys_InProc _sendKeys;
 
@@ -76,10 +76,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var (textViewHost, hr) = TryGetActiveTextViewHost();
             Marshal.ThrowExceptionForHR(hr);
+            Contract.ThrowIfNull(textViewHost);
+
             return textViewHost;
         }
 
-        private static (IWpfTextViewHost textViewHost, int hr) TryGetActiveTextViewHost()
+        private static (IWpfTextViewHost? textViewHost, int hr) TryGetActiveTextViewHost()
         {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
@@ -104,21 +106,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var options = textView.Options.GlobalOptions;
                 EditorOptionKey<bool> optionKey;
-                Option<bool> roslynOption;
+                bool defaultOption;
                 if (IsDebuggerTextView(textView))
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
+                    defaultOption = true;
                 }
                 else
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode;
+                    defaultOption = false;
                 }
 
                 if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
                 {
-                    return roslynOption.DefaultValue;
+                    return defaultOption;
                 }
 
                 return options.GetOptionValue(optionKey);
@@ -139,6 +141,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+
+            if (!value)
+            {
+                // For blocking completion mode, make sure we don't have responsive completion interfering when
+                // integration tests run slowly.
+                ExecuteOnActiveView(view =>
+                {
+                    var options = view.Options.GlobalOptions;
+                    options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
+
+                    var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
+                    options.SetOptionValue(latencyGuardOptionKey, false);
+                });
+            }
+        }
+
+        public void VerifyNotSaved()
+        {
+            Contract.ThrowIfTrue(GetDTE().ActiveDocument.ProjectItem.Saved);
+        }
+
+        public string VerifySaved()
+        {
+            var activeDocument = GetDTE().ActiveDocument;
+            Contract.ThrowIfFalse(activeDocument.ProjectItem.Saved);
+            return activeDocument.FullName;
         }
 
         public string GetActiveBufferName()
@@ -146,9 +174,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return GetDTE().ActiveDocument.Name;
         }
 
+        public string GetActiveWindowName()
+        {
+            return GetDTE().ActiveWindow.Caption;
+        }
+
         public void WaitForActiveView(string expectedView)
         {
-            Retry(GetActiveBufferName, (actual) => actual == expectedView, TimeSpan.FromMilliseconds(100));
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            Retry(_ => GetActiveBufferName(), (actual, _) => actual == expectedView, TimeSpan.FromMilliseconds(100), cts.Token);
+        }
+
+        public void WaitForActiveWindow(string expectedWindow)
+        {
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            Retry(_ => GetActiveWindowName(), (actual, _) => actual == expectedWindow, TimeSpan.FromMilliseconds(100), cts.Token);
         }
 
         public void Activate()
@@ -196,14 +236,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int GetLine()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                 return lineNumber;
             });
 
         public int GetColumn()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                 return characterIndex;
             });
 
@@ -233,6 +273,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var subjectBuffer = view.GetBufferContainingCaret();
+                Contract.ThrowIfNull(subjectBuffer);
+
                 var selectedSpan = view.Selection.SelectedSpans[0];
                 return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
             });
@@ -241,6 +283,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var subjectBuffer = view.GetBufferContainingCaret();
+                Contract.ThrowIfNull(subjectBuffer);
+
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
                 view.Caret.MoveTo(point);
@@ -264,9 +308,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 
         private string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+                => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
-        private string[] GetTags<TTag>(Predicate<TTag> filter = null)
+        private string[] GetTags<TTag>(Predicate<TTag>? filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
@@ -285,7 +329,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                   .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
                   .Where(t => filter(t.Tag))
                   .Cast<IMappingTagSpan<ITag>>();
-                return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+                return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
             });
         }
 
@@ -387,8 +431,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         string.Format("ISuggestionAction {0} not found.  Buffer content type={1}", menuText, bufferType));
                 }
 
-                IWpfTextView preview = null;
-                object pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+                IWpfTextView? preview = null;
+                var pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
                 if (pane is System.Windows.Controls.UserControl)
                 {
                     var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
@@ -411,18 +455,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Array.Empty<ClassifiedToken>();
         }
 
-        private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
+        private static IEnumerable<T> FindDescendants<T>(DependencyObject? rootObject) where T : DependencyObject
         {
             if (rootObject != null)
             {
-                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
+                for (var i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
                 {
-                    DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
+                    var child = VisualTreeHelper.GetChild(rootObject, i);
 
-                    if (child != null && child is T)
+                    if (child is not null and T)
                         yield return (T)child;
 
-                    foreach (T descendant in FindDescendants<T>(child))
+                    foreach (var descendant in FindDescendants<T>(child))
                         yield return descendant;
                 }
             }
@@ -433,7 +477,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -444,7 +488,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, object[] keys)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
+            var dialogAutomationElement = DialogHelpers.GetOpenDialogById(GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             _sendKeys.Send(keys);
@@ -464,47 +508,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
-        }
-
-        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen)
-        {
-            return Retry(
-                () => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: automationElement => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250));
-        }
-
-        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-
-            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
-                new[]
-                {
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
-                });
-
-            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
+            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
         private static IUIAutomationElement FindNavigateTo()
         {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
+            var vsAutomationElement = Helper.Automation.ElementFromHandle(GetDTE().MainWindow.HWnd);
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
-        private T Retry<T>(Func<T> action, Func<T, bool> stoppingCondition, TimeSpan delay)
+        private T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
-            var beginTime = DateTime.UtcNow;
-            var retval = default(T);
-
             do
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                T retval;
                 try
                 {
-                    retval = action();
+                    retval = action(cancellationToken);
                 }
                 catch (COMException)
                 {
@@ -514,7 +536,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     continue;
                 }
 
-                if (stoppingCondition(retval))
+                if (stoppingCondition(retval, cancellationToken))
                 {
                     return retval;
                 }
@@ -592,7 +614,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string propertyTypeName = null)
+        public void EditWinFormButtonProperty(string buttonName, string propertyName, string propertyValue, string? propertyTypeName = null)
         {
             using (var waitHandle = new ManualResetEvent(false))
             {
@@ -690,7 +712,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public string GetWinFormButtonPropertyValue(string buttonName, string propertyName)
+        public string? GetWinFormButtonPropertyValue(string buttonName, string propertyName)
         {
             var designerHost = (IDesignerHost)GetDTE().ActiveWindow.Object;
             var button = designerHost.Container.Components[buttonName];
@@ -743,9 +765,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetActiveVsTextView().GetBuffer(out var textLines);
                 Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
                 Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = languageService as IVsLanguageContextProvider;
+                var languageContextProvider = (IVsLanguageContextProvider)languageService;
 
-                IVsMonitorUserContext monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
+                var monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
                 Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
                 Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
                 var span = new TextManager.Interop.TextSpan()
@@ -758,7 +780,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
                 Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
                     results.Add(value);

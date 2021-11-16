@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class GenericNameSignatureHelpProvider
     {
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -58,11 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private ITypeSymbol GetContainingType(IMethodSymbol method)
+        private static ITypeSymbol? GetContainingType(IMethodSymbol method)
         {
             var result = method.ReceiverType;
-
-            if (result.Kind != SymbolKind.NamedType || !((INamedTypeSymbol)result).IsScriptClass)
+            if (result is not INamedTypeSymbol namedTypeSymbol || !namedTypeSymbol.IsScriptClass)
             {
                 return result;
             }
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>
             {

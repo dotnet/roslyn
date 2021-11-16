@@ -6,36 +6,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        /// <summary>
-        /// Use a <see cref="ConcurrentExclusiveSchedulerPair"/> to simulate a reader-writer lock.
-        /// Read operations are performed on the <see cref="ConcurrentExclusiveSchedulerPair.ConcurrentScheduler"/>
-        /// and writes are performed on the <see cref="ConcurrentExclusiveSchedulerPair.ExclusiveScheduler"/>.
-        ///
-        /// We use this as a condition of using the in-memory shared-cache sqlite DB.  This DB
-        /// doesn't busy-wait when attempts are made to lock the tables in it, which can lead to
-        /// deadlocks.  Specifically, consider two threads doing the following:
-        ///
-        /// Thread A starts a transaction that starts as a reader, and later attempts to perform a
-        /// write. Thread B is a writer (either started that way, or started as a reader and
-        /// promoted to a writer first). B holds a RESERVED lock, waiting for readers to clear so it
-        /// can start writing. A holds a SHARED lock (it's a reader) and tries to acquire RESERVED
-        /// lock (so it can start writing).  The only way to make progress in this situation is for
-        /// one of the transactions to roll back. No amount of waiting will help, so when SQLite
-        /// detects this situation, it doesn't honor the busy timeout.
-        ///
-        /// To prevent this scenario, we control our access to the db explicitly with operations that
-        /// can concurrently read, and operations that exclusively write.
-        /// 
-        /// All code that reads or writes from the db should go through this.
-        /// </summary>
-        private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
-
-        private async Task<TResult> PerformTaskAsync<TArg, TResult>(
+        private static async Task<TResult> PerformTaskAsync<TArg, TResult>(
             Func<TArg, TResult> func, TArg arg,
             TaskScheduler scheduler, CancellationToken cancellationToken) where TArg : struct
         {
@@ -52,15 +29,33 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
         // tasks.
         private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => PerformTaskAsync(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
+        {
+            // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
+            // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
+            // data set by CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ConcurrentScheduler, cancellationToken);
+        }
 
         // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
         // tasks we need to do.
-        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => PerformTaskAsync(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
+        public Task<TResult> PerformWriteAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+        {
+            // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
+            // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
+            // data set by CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ExclusiveScheduler, cancellationToken);
+        }
 
         public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)
-            => PerformWriteAsync(vt =>
+            => PerformWriteAsync(static vt =>
             {
                 vt.Item1();
                 return true;

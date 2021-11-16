@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -10,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymbol, INamespaceOrTypeSymbol
     {
         protected CodeGenerationNamespaceOrTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
         }
 

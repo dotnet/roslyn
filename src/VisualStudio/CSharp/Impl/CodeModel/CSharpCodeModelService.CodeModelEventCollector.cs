@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
 using System;
@@ -241,8 +243,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldMember is BaseTypeDeclarationSyntax ||
-                    oldMember is DelegateDeclarationSyntax)
+                if (oldMember is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
@@ -468,8 +470,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             private bool CompareNamespaceDeclarations(
-                NamespaceDeclarationSyntax oldNamespace,
-                NamespaceDeclarationSyntax newNamespace,
+                BaseNamespaceDeclarationSyntax oldNamespace,
+                BaseNamespaceDeclarationSyntax newNamespace,
                 SyntaxNode newNodeParent,
                 CodeModelEventQueue eventQueue)
             {
@@ -511,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 CodeModelEventQueue eventQueue)
             {
                 Debug.Assert(oldMember != null && newMember != null);
-                Debug.Assert(oldMember is BaseTypeDeclarationSyntax || oldMember is DelegateDeclarationSyntax);
-                Debug.Assert(newMember is BaseTypeDeclarationSyntax || newMember is DelegateDeclarationSyntax);
+                Debug.Assert(oldMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+                Debug.Assert(newMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
 
                 // If the kind doesn't match, it has to be a remove/add.
                 if (oldMember.Kind() != newMember.Kind())
@@ -661,14 +663,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldNamespaceOrType is BaseTypeDeclarationSyntax ||
-                    oldNamespaceOrType is DelegateDeclarationSyntax)
+                if (oldNamespaceOrType is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }
-                else if (oldNamespaceOrType is NamespaceDeclarationSyntax namespaceDecl)
+                else if (oldNamespaceOrType is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
-                    return CompareNamespaceDeclarations(namespaceDecl, (NamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
+                    return CompareNamespaceDeclarations(namespaceDecl, (BaseNamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
                 }
 
                 return false;

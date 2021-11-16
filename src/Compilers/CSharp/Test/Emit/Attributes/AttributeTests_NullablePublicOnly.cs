@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 public class B : A<object?>
 {
 }";
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullablePublicOnlyAttributeDefinition, source };
 
@@ -51,7 +53,7 @@ public class B : A<object?>
             comp.VerifyDiagnostics();
             var ref1 = comp.EmitToImageReference();
 
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions);
@@ -78,7 +80,7 @@ public class B : A<object?>
 public class B : A<object?>
 {
 }";
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions);
@@ -94,7 +96,7 @@ public class B : A<object?>
         public void EmptyProject()
         {
             var source = @"";
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
@@ -134,7 +136,7 @@ public class B : A<object>
 public class B : A<object?>
 {
 }";
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
@@ -154,7 +156,7 @@ public class B : A<object?>
 class B : A<object?>
 {
 }";
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
@@ -174,7 +176,7 @@ class B : A<object?>
 public class B : A<object>
 {
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
@@ -194,7 +196,7 @@ public class B : A<object>
 public class B : A<object?>
 {
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(source, options: options, parseOptions: parseOptions);
@@ -211,7 +213,7 @@ public class B : A<object?>
 @"public class Program
 {
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullableAttributeDefinition, NullableContextAttributeDefinition, source };
 
@@ -265,7 +267,7 @@ public class A
 public class Program
 {
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullableAttributeDefinition, NullableContextAttributeDefinition, NullablePublicOnlyAttributeDefinition, source };
 
@@ -285,7 +287,7 @@ public class Program
 {
     public object F() => null!;
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullableAttributeDefinition, NullableContextAttributeDefinition, NullablePublicOnlyAttributeDefinition, source };
 
@@ -304,7 +306,7 @@ public class Program
 public class Program
 {
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullableAttributeDefinition, NullableContextAttributeDefinition, source };
 
@@ -324,7 +326,7 @@ public class Program
 {
     public object F() => null!;
 }";
-            var options = WithNonNullTypesFalse().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableDisable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             CSharpTestSource sources = new[] { NullableAttributeDefinition, NullableContextAttributeDefinition, source };
 

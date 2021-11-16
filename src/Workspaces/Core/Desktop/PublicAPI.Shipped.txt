@@ -1,4 +1,4 @@
-Microsoft.CodeAnalysis.CommandLineProject
+Microsoft.CodeAnalysis.CommandLineProject (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
@@ -8,8 +8,8 @@ Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension, TMetadata>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension, TMetadata>>
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension>>
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion> (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
-static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
-static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 static Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices.DefaultAssemblies.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>
 static Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices.DefaultServices.get -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 static Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.Create(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> assemblies) -> Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices

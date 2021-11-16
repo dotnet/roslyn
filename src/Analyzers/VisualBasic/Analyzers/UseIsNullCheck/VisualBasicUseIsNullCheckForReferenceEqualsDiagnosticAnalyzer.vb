@@ -16,7 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             MyBase.New(VisualBasicAnalyzersResources.Use_Is_Nothing_check)
         End Sub
 
-        Protected Overrides Function IsLanguageVersionSupported(options As ParseOptions) As Boolean
+        Protected Overrides Function IsLanguageVersionSupported(compilation As Compilation) As Boolean
+            Return True
+        End Function
+
+        Protected Overrides Function IsUnconstrainedGenericSupported(compilation As Compilation) As Boolean
             Return True
         End Function
 

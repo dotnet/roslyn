@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -24,15 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
-        private static readonly HashSet<ITextView> s_registeredViews = new HashSet<ITextView>();
+        private static readonly HashSet<ITextView> s_registeredViews = new();
 #endif
 
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
-            new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
+            new();
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextBufferAssociatedViewService()
         {
         }
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     DebugRegisterView_NoLock(textView);
                 }
             }
+
             this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-        private void DebugRegisterView_NoLock(ITextView textView)
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
             var view = sender as ITextView;
 

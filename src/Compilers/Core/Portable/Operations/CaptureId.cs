@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -15,6 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     {
         internal CaptureId(int value)
         {
+            Debug.Assert(value >= 0);
             Value = value;
         }
 

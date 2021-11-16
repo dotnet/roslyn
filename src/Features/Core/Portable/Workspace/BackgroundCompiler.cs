@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +17,19 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
+        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly TaskQueue _taskQueue;
 
-        // Used to keep a strong reference to the built compilations so they are not GC'd
-        private Compilation[] _mostRecentCompilations;
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
+        private Compilation?[]? _mostRecentCompilations;
 
-        private readonly object _buildGate = new object();
+        private readonly object _buildGate = new();
         private CancellationTokenSource _cancellationSource;
 
         public BackgroundCompiler(Workspace workspace)
         {
             _workspace = workspace;
+            _documentTrackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
@@ -48,17 +51,17 @@ namespace Microsoft.CodeAnalysis.Host
                 _workspace.DocumentOpened -= OnDocumentOpened;
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
-                _workspace = null;
+                _workspace = null!;
             }
         }
 
-        private void OnDocumentOpened(object sender, DocumentEventArgs args)
+        private void OnDocumentOpened(object? sender, DocumentEventArgs args)
             => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
-        private void OnDocumentClosed(object sender, DocumentEventArgs args)
+        private void OnDocumentClosed(object? sender, DocumentEventArgs args)
             => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
         {
             switch (args.Kind)
             {
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void Rebuild(Solution solution, ProjectId initialProject = null)
+        private void Rebuild(Solution solution, ProjectId? initialProject = null)
         {
             lock (_buildGate)
             {
@@ -97,12 +100,13 @@ namespace Microsoft.CodeAnalysis.Host
                 // build the current compilations without rebuilding the entire DeclarationTable
                 CancelBuild(releasePreviousCompilations: false);
 
-                var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
+                var allOpenProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
+                var activeProject = _documentTrackingService.TryGetActiveDocument()?.ProjectId;
 
                 // don't even get started if there is nothing to do
-                if (allProjects.Count > 0)
+                if (allOpenProjects.Count > 0)
                 {
-                    _ = BuildCompilationsAsync(solution, initialProject, allProjects);
+                    _ = BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject);
                 }
             }
         }
@@ -122,20 +126,22 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Task BuildCompilationsAsync(
             Solution solution,
-            ProjectId initialProject,
-            ISet<ProjectId> allProjects)
+            ProjectId? initialProject,
+            ISet<ProjectId> allOpenProjects,
+            ProjectId? activeProject)
         {
             var cancellationToken = _cancellationSource.Token;
             return _taskQueue.ScheduleTask(
                 "BackgroundCompiler.BuildCompilationsAsync",
-                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
+                () => BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject, cancellationToken),
                 cancellationToken);
         }
 
         private Task BuildCompilationsAsync(
             Solution solution,
-            ProjectId initialProject,
+            ProjectId? initialProject,
             ISet<ProjectId> projectsToBuild,
+            ProjectId? activeProject,
             CancellationToken cancellationToken)
         {
             var allProjectIds = new List<ProjectId>();
@@ -152,8 +158,21 @@ namespace Microsoft.CodeAnalysis.Host
             // set the background analysis scope to only analyze active files.
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
-                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
-                .Select(p => p.GetCompilationAsync(cancellationToken))
+                .Select(async p =>
+                {
+                    if (p is null)
+                        return null;
+
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile
+                        && p.Id != activeProject)
+                    {
+                        // For open files with Active File analysis scope, only build the compilation if the project is
+                        // active.
+                        return null;
+                    }
+
+                    return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                })
                 .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {

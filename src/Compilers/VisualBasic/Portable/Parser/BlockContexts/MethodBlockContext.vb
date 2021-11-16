@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Select Case node.Kind
-                ' TODO - This check does not catch error for exit in a block in an method. Is this a syntactic or a
+                ' TODO - This check does not catch error for exit in a block in a method. Is this a syntactic or a
                 ' semantic error? TODO - Exit checking for Property done in parser but other Exit error checking is done
                 ' in semantics.  All "continue" error checking is done in semantics. Remove this check once exit property
                 ' is implemented in semantics.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -17,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class MethodGenerator
     {
-        internal static NamespaceDeclarationSyntax AddMethodTo(
-            NamespaceDeclarationSyntax destination,
+        internal static BaseNamespaceDeclarationSyntax AddMethodTo(
+            BaseNamespaceDeclarationSyntax destination,
             IMethodSymbol method,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
@@ -218,9 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            // Only "unsafe" modifier allowed if we're an explicit impl.
+            // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
             if (method.ExplicitInterfaceImplementations.Any())
             {
+                if (method.IsStatic)
+                {
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                }
+
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
                 {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
@@ -229,11 +236,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else
             {
                 // If we're generating into an interface, then we don't use any modifiers.
-                if (destination != CodeGenerationDestination.CompilationUnit &&
-                    destination != CodeGenerationDestination.Namespace &&
-                    destination != CodeGenerationDestination.InterfaceType)
+                if (destination is not CodeGenerationDestination.CompilationUnit and
+                    not CodeGenerationDestination.Namespace and
+                    not CodeGenerationDestination.InterfaceType)
                 {
                     AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, options, Accessibility.Private);
+
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
 
                     if (method.IsAbstract)
                     {
@@ -243,11 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (method.IsSealed)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-                    }
-
-                    if (method.IsStatic)
-                    {
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
                     // Don't show the readonly modifier if the containing type is already readonly

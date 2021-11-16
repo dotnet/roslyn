@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -52,10 +54,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
-            new RelativePathResolver(searchPaths, BaseDirectory);
+            new(searchPaths, BaseDirectory);
 
         public RelativePathResolver WithBaseDirectory(string baseDirectory) =>
-            new RelativePathResolver(SearchPaths, baseDirectory);
+            new(SearchPaths, baseDirectory);
 
         public bool Equals(RelativePathResolver other) =>
             BaseDirectory == other.BaseDirectory && SearchPaths.SequenceEqual(other.SearchPaths);

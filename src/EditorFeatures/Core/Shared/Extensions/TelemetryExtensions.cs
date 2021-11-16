@@ -6,38 +6,47 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class TelemetryExtensions
     {
         public static Guid GetTelemetryId(this Type type, short scope = 0)
-            => new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-        public static int GetTelemetryPrefix(this Type type)
         {
             type = GetTypeForTelemetry(type);
+            Contract.ThrowIfNull(type.FullName);
 
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            return type.FullName.GetHashCode();
+
+            // Use a stable hashing algorithm (FNV) that doesn't depend on platform
+            // or .NET implementation.
+            var suffix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName);
+
+            // Suffix is the remaining 8 bytes, and the hash code only makes up 4. Pad
+            // the remainder with an empty byte array
+            var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
+
+            return new Guid(0, scope, 0, suffixBytes);
         }
 
         public static Type GetTypeForTelemetry(this Type type)
             => type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-            => (short)(scope switch
+            => scope switch
             {
                 FixAllScope.Document => 1,
                 FixAllScope.Project => 2,
                 FixAllScope.Solution => 3,
                 _ => 4,
-            });
+            };
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
+            if (diagnostic.Descriptor.ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry))
             {
                 return diagnostic.Id;
             }

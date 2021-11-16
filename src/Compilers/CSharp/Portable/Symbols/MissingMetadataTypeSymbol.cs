@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Since we do not know what task was being performed, for now we just report a generic
                 // "you must add a reference" error.
 
-                if (containingAssembly.IsMissing)
+                if (containingAssembly?.IsMissing == true)
                 {
                     // error CS0012: The type 'Blah' is defined in an assembly that is not referenced. You must add a reference to assembly 'Goo'.
                     return new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, this, containingAssembly.Identity);
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ModuleSymbol containingModule = this.ContainingModule;
 
-                    if (containingModule.IsMissing)
+                    if (containingModule?.IsMissing == true)
                     {
                         // It looks like required module wasn't added to the compilation.
                         return new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDefFromModule, this, containingModule.Name);
@@ -96,25 +94,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // NOTE: this is another case where we would like to base our decision on which compilation
                     // is the "current" compilation, but we don't want to force consumers of the API to specify.
-                    if (containingAssembly.Dangerous_IsFromSomeCompilation)
+                    if (containingAssembly is object)
                     {
-                        // This scenario is quite tricky and involves a circular reference. Suppose we have
-                        // assembly Alpha that has a type C. Assembly Beta refers to Alpha and uses type C.
-                        // Now we create a new source assembly that replaces Alpha, and refers to Beta.
-                        // The usage of C in Beta will be redirected to refer to the source assembly.
-                        // If C is not in that source assembly then we give the following warning:
+                        if (containingAssembly.Dangerous_IsFromSomeCompilation)
+                        {
+                            // This scenario is quite tricky and involves a circular reference. Suppose we have
+                            // assembly Alpha that has a type C. Assembly Beta refers to Alpha and uses type C.
+                            // Now we create a new source assembly that replaces Alpha, and refers to Beta.
+                            // The usage of C in Beta will be redirected to refer to the source assembly.
+                            // If C is not in that source assembly then we give the following warning:
 
-                        // CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules 
-                        return new CSDiagnosticInfo(ErrorCode.ERR_MissingTypeInSource, this);
+                            // CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules 
+                            return new CSDiagnosticInfo(ErrorCode.ERR_MissingTypeInSource, this);
+                        }
+                        else
+                        {
+                            // The more straightforward scenario is that we compiled Beta against a version of Alpha
+                            // that had C, and then added a reference to a different version of Alpha that
+                            // lacks the type C:
+
+                            // error CS7069: Reference to type 'C' claims it is defined in 'Alpha', but it could not be found
+                            return new CSDiagnosticInfo(ErrorCode.ERR_MissingTypeInAssembly, this, containingAssembly.Name);
+                        }
+                    }
+                    else if (ContainingType is ErrorTypeSymbol { ErrorInfo: { } info })
+                    {
+                        return info;
                     }
                     else
                     {
-                        // The more straightforward scenario is that we compiled Beta against a version of Alpha
-                        // that had C, and then added a reference to a different version of Alpha that
-                        // lacks the type C:
-
-                        // error CS7069: Reference to type 'C' claims it is defined in 'Alpha', but it could not be found
-                        return new CSDiagnosticInfo(ErrorCode.ERR_MissingTypeInAssembly, this, containingAssembly.Name);
+                        // This is the best we can do at this point
+                        return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
                     }
                 }
             }
@@ -332,11 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                var other = asNativeInt == _isNativeInt ?
-                    this :
-                    new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, TupleData);
+                if (asNativeInt == _isNativeInt)
+                {
+                    return this;
+                }
 
-                Debug.Assert(other.Equals(this));
+                var other = new TopLevel(_containingModule, _namespaceName, name, arity, mangleName, isNativeInt: asNativeInt, _lazyErrorInfo, _lazyContainingNamespace, _lazyTypeId, TupleData);
+
+                NativeIntegerTypeSymbol.VerifyEquality(this, other);
                 Debug.Assert(other.SpecialType == this.SpecialType);
 
                 return other;
@@ -346,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol? NativeIntegerUnderlyingType => _isNativeInt ? AsNativeInteger(asNativeInt: false) : null;
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -363,9 +376,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var other = t2 as TopLevel;
+                if (other is null)
+                {
+                    return false;
+                }
 
-                return (object?)other != null &&
-                    string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
+                if ((comparison & TypeCompareKind.IgnoreNativeIntegers) == 0 &&
+                    _isNativeInt != other._isNativeInt)
+                {
+                    return false;
+                }
+
+                return string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
                     string.Equals(_namespaceName, other.NamespaceName, StringComparison.Ordinal) &&
                     _containingModule.Equals(other._containingModule);
@@ -427,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(_containingType, Hash.Combine(MetadataName, arity));
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -437,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = t2 as Nested;
                 return (object?)other != null && string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
-                    _containingType.Equals(other._containingType, comparison, isValueTypeOverrideOpt);
+                    _containingType.Equals(other._containingType, comparison);
             }
         }
     }

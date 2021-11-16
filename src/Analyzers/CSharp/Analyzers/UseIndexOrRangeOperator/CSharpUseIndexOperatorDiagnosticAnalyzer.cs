@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -16,30 +19,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     using static Helpers;
 
     /// <summary>
-    /// Analyzer that looks for code like: 
-    /// 
-    /// 1) `s[s.Length - n]` and offers to change that to `s[^n]`. and.
-    /// 2) `s.Get(s.Length - n)` and offers to change that to `s.Get(^n)`
+    /// <para>Analyzer that looks for code like:</para>
     ///
-    /// In order to do convert between indexers, the type must look 'indexable'.  Meaning, it must
-    /// have an int-returning property called 'Length' or 'Count', and it must have both an
-    /// int-indexer, and a System.Index-indexer.  In order to convert between methods, the type
-    /// must have identical overloads except that one takes an int, and the other a System.Index.
+    /// <list type="number">
+    /// <item><description><c>s[s.Length - n]</c> and offers to change that to <c>s[^n]</c></description></item>
+    /// <item><description></description><c>s.Get(s.Length - n)</c> and offers to change that to <c>s.Get(^n)</c></item>
+    /// </list>
     ///
-    /// It is assumed that if the type follows this shape that it is well behaved and that this
+    /// <para>In order to do convert between indexers, the type must look 'indexable'.  Meaning, it must
+    /// have an <see cref="int"/>-returning property called <c>Length</c> or <c>Count</c>, and it must have both an
+    /// <see cref="int"/>-indexer, and a <see cref="T:System.Index"/>-indexer.  In order to convert between methods, the type
+    /// must have identical overloads except that one takes an <see cref="int"/>, and the other a <see cref="T:System.Index"/>.</para>
+    ///
+    /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.
-    /// 
-    /// Note that this feature only works if the code literally has `expr1.Length - expr2`.  If
-    /// code has this, and is calling into a method that takes either an int or a System.Index,
-    /// it feels very safe to assume this is well behaved and switching to `^expr2` is going to
-    /// preserve semantics.
+    /// could always limit the feature to only work on an allow list of known safe types.</para>
+    ///
+    /// <para>Note that this feature only works if the code literally has <c>expr1.Length - expr2</c>. If
+    /// code has this, and is calling into a method that takes either an <see cref="int"/> or a <see cref="T:System.Index"/>,
+    /// it feels very safe to assume this is well behaved and switching to <c>^expr2</c> is going to
+    /// preserve semantics.</para>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseIndexOperator,
                    CSharpCodeStyleOptions.PreferIndexOperator,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -57,13 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // compilation. Cache information we compute in this object so we don't have to
                 // continually recompute it.
                 var compilation = startContext.Compilation;
-                var infoCache = new InfoCache(compilation);
-
-                // The System.Index type is always required to offer this fix.
-                if (infoCache.IndexType == null)
-                {
+                if (!InfoCache.TryCreate(compilation, out var infoCache))
                     return;
-                }
 
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (!(subtraction.Syntax is BinaryExpressionSyntax binaryExpression))
+            if (subtraction.Syntax is not BinaryExpressionSyntax binaryExpression)
             {
                 return;
             }
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     ImmutableDictionary<string, string>.Empty));
         }
 
-        private IPropertySymbol TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol targetMethodOpt)
+        private static IPropertySymbol TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol targetMethodOpt)
             => targetMethodOpt != null && infoCache.TryGetMemberInfo(targetMethodOpt, out var memberInfo)
                 ? memberInfo.LengthLikeProperty
                 : null;

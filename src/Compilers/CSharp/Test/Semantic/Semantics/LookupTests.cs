@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1067,6 +1069,36 @@ class Program
         }
 
         [Fact]
+        public void LookupInsideLambdaAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        Action<int> a =
+            [ObsoleteAttribute(/*pos*/
+            (int z) => { };
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
+        [Fact]
         public void LookupInsideIncompleteStatementAttribute()
         {
             var testSrc = @"
@@ -2074,6 +2106,41 @@ class Program
             var symbolInfo = model.GetSymbolInfo(node);
             Assert.NotEqual(default, symbolInfo);
             Assert.NotNull(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_01()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1<string>(""a"")]
+class C { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var symbol = model.GetSymbolInfo(node);
+            Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1</*<bind>*/string/*</bind>*/>]
+class C { }";
+
+            var names = GetLookupNames(source);
+            Assert.Contains("C", names);
+            Assert.Contains("Attr1", names);
         }
 
         #endregion

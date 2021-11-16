@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _diagnostic = diagnostic;
             }
 
-            protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var newTargetNode = _fixer.AddLocalSuppressMessageAttribute(
                     _targetNode, _targetSymbol, _suppressMessageAttribute, _diagnostic);

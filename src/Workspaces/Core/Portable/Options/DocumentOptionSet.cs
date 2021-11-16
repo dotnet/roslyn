@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,9 +26,6 @@ namespace Microsoft.CodeAnalysis.Options
 
         private protected override object? GetOptionCore(OptionKey optionKey)
             => _backingOptionSet.GetOption(optionKey);
-
-        public new object? GetOption(OptionKey optionKey)
-            => base.GetOption(optionKey);
 
         public T GetOption<T>(PerLanguageOption<T> option)
             => _backingOptionSet.GetOption(option, _language);

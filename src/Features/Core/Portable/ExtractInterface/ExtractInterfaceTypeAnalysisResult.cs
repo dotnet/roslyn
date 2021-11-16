@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
@@ -16,7 +18,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public readonly string ErrorMessage;
 
         public ExtractInterfaceTypeAnalysisResult(
-            AbstractExtractInterfaceService extractInterfaceService,
             Document documentToExtractFrom,
             SyntaxNode typeNode,
             INamedTypeSymbol typeToExtractFrom,

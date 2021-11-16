@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return !(left == right);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Suppression suppression
                 && Equals(suppression);

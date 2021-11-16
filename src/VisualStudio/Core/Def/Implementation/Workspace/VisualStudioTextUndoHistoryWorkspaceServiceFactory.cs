@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         break;
 
-                    case MiscellaneousFilesWorkspace miscellaneousFilesWorkspace:
+                    case MiscellaneousFilesWorkspace _:
 
                         // Nothing to do in this case: textBuffer is correct!
 
@@ -75,8 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 }
 
-                undoHistory = _undoHistoryRegistry.GetHistory(textBuffer);
-                return true;
+                return _undoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
             }
         }
     }
