@@ -260,7 +260,7 @@ namespace Goo.Bar
         }
     }  
 }     
-");
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -295,7 +295,7 @@ namespace Goo.Bar
         }
     }  
 }     
-");
+", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;

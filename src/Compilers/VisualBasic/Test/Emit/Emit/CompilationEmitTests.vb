@@ -311,7 +311,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>)
+</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -345,7 +345,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>)
+</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
