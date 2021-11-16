@@ -535,6 +535,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Le modifiche apportate nel progetto '{0}' richiedono il riavvio dell'applicazione: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
@@ -1053,6 +1058,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">La selezione non è valida per eseguire l'estrazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2305,6 +2315,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">La selezione non è contenuta all'interno di un tipo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordina i modificatori di accessibilità</target>
@@ -2323,6 +2338,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Il flusso deve supportare operazioni di lettura e ricerca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="new">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -2573,6 +2593,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Valore:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

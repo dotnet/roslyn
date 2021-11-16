@@ -535,6 +535,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">' {0}' 프로젝트에서 변경한 내용을 적용하려면 응용 프로그램 ‘{1}’을(를) 다시 시작 해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
@@ -1053,6 +1058,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">추출을 수행할 선택 항목이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2305,6 +2315,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선택 항목이 형식 내에 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">접근성 한정자 정렬</target>
@@ -2323,6 +2338,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="new">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -2573,6 +2593,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">값:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

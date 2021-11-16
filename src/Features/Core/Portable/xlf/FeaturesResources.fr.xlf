@@ -535,6 +535,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Les modifications apportées au projet « {0} » nécessitent le redémarrage de l’application : {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Erreur durant la lecture du fichier '{0}' : {1}</target>
@@ -1053,6 +1058,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Pas de sélection valide pour procéder à l'extraction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2305,6 +2315,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Sélection non contenue dans un type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Trier les modificateurs d'accessibilité</target>
@@ -2323,6 +2338,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Le flux doit prendre en charge les opérations de lecture et de recherche.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="new">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -2573,6 +2593,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Valeur :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

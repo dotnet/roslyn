@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
             ImmutableArray.Create(
-                (nameof(EditorConfigSeverityStrings.None), EditorConfigSeverityStrings.None),
-                (nameof(EditorConfigSeverityStrings.Silent), EditorConfigSeverityStrings.Silent),
-                (nameof(EditorConfigSeverityStrings.Suggestion), EditorConfigSeverityStrings.Suggestion),
-                (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
-                (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
+                (nameof(EditorConfigSeverityStrings.None), FeaturesResources.None),
+                (nameof(EditorConfigSeverityStrings.Silent), FeaturesResources.Silent),
+                (nameof(EditorConfigSeverityStrings.Suggestion), FeaturesResources.Suggestion),
+                (nameof(EditorConfigSeverityStrings.Warning), FeaturesResources.Warning),
+                (nameof(EditorConfigSeverityStrings.Error), FeaturesResources.Error));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
-                            name,
+                            value,
                             solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
                             name));
                 }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
-                            name,
+                            value,
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
                                 : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
