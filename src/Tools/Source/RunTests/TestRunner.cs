@@ -159,9 +159,9 @@ namespace RunTests
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
                 var command = new StringBuilder();
-                command.AppendLine(isUnix ? "ls" : "dir");
+                command.AppendLine(isUnix ? "ls -l" : "dir");
                 command.AppendLine(isUnix ? $"./rehydrate.sh" : $@"call .\rehydrate.cmd");
-                command.AppendLine(isUnix ? "ls" : "dir");
+                command.AppendLine(isUnix ? "ls -l" : "dir");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
                 command.AppendLine("dotnet --info");
