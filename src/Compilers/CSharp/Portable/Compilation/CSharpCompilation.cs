@@ -3310,7 +3310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override bool GenerateDocumentationComments(
-            CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             string? outputNameOverride,
             DiagnosticBag diagnostics,

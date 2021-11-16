@@ -2528,7 +2528,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GenerateDocumentationComments(
-            moduleBuilder As CommonPEModuleBuilder,
             xmlDocStream As Stream,
             outputNameOverride As String,
             diagnostics As DiagnosticBag,

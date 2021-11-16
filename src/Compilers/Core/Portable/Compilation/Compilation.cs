@@ -2252,7 +2252,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>True if successful.</returns>
         internal abstract bool GenerateDocumentationComments(
-            CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
@@ -2655,7 +2654,7 @@ namespace Microsoft.CodeAnalysis
                         // NOTE: We generate documentation even in presence of compile errors.
                         // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
                         if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
-                            !GenerateDocumentationComments(moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
+                            !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
                         {
                             success = false;
                         }
@@ -2669,7 +2668,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
                         success = GenerateDocumentationComments(
-                            moduleBeingBuilt, xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
+                            xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                     }
                 }
                 finally
