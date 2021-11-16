@@ -39,7 +39,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         Left: 
           IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
         Right: 
-          IOperation:  (OperationKind.None, Type: null) (Syntax: 'this[^0]')
+          IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[^0]')
             Children(2):
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
                 IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
@@ -51,7 +51,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         Left: 
           IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
         Right: 
-          IOperation:  (OperationKind.None, Type: null) (Syntax: 'this[0..]')
+          IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[0..]')
             Children(2):
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
                 IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
@@ -79,7 +79,7 @@ Block[B1] - Block
               Left: 
                 IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
               Right: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'this[^0]')
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[^0]')
                   Children(2):
                       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
                       IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
@@ -91,7 +91,7 @@ Block[B1] - Block
               Left: 
                 IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
               Right: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'this[0..]')
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[0..]')
                   Children(2):
                       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
                       IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
