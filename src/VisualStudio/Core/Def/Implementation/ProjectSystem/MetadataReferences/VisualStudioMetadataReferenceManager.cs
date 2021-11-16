@@ -130,11 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out var newMetadata))
             {
-                ValueSource<Optional<AssemblyMetadata>> metadataValueSource = _workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableReferenceManagerWeakRuntimeReferences)
-                    ? new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata)
-                    : new WeakValueSource<AssemblyMetadata>(newMetadata);
-
-                if (!_metadataCache.GetOrAddMetadata(key, metadataValueSource, out metadata))
+                if (!_metadataCache.GetOrAddMetadata(key, new ConstantValueSource<Optional<AssemblyMetadata>>(newMetadata), out metadata))
                 {
                     newMetadata.Dispose();
                 }
