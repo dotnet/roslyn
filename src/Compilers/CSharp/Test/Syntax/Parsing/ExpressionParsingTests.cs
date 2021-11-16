@@ -279,7 +279,7 @@ class C
             EOF();
 
             Assert.Equal("Text with ", expr.Contents[0].ToString());
-            Assert.Equal("parts and new line expressions!", expr.Contents[2].ToString());
+            Assert.Equal(" parts and new line expressions!", expr.Contents[2].ToString());
         }
 
         [Fact]
