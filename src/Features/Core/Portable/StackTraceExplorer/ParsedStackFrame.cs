@@ -91,15 +91,15 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         /// <summary>
         /// If the <see cref="Root"/> has file information, attempts to map it to existing documents
-        /// in a solution. Does fulle filepath match if possible, otherwise does an approximate match
-        /// since the file path may be very different on different machines
+        /// in a solution. Looks for an exact filepath match first, then defaults to 
+        /// a best guess.
         /// </summary>
-        internal (Document? document, int line) GetDocumentAndLine(Solution solution)
+        public (Document? document, int line) GetDocumentAndLine(Solution solution)
         {
             var fileMatches = GetFileMatches(solution, out var lineNumber);
             if (fileMatches.IsEmpty)
             {
-                return (null, 0);
+                return default;
             }
 
             return (fileMatches.First(), lineNumber);
@@ -170,10 +170,10 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         {
             if (stackFrameTypeArgumentList is null)
             {
-                return typeArguments.IsDefaultOrEmpty;
+                return typeArguments.IsEmpty;
             }
 
-            if (typeArguments.IsDefaultOrEmpty)
+            if (typeArguments.IsEmpty)
             {
                 return false;
             }
@@ -225,34 +225,13 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
             // Special types can have different casing representations
             // Ex: string and String are the same (System.String)
-            var specialTypeName = TryGetSpecialTypeName(type.SpecialType);
-            if (specialTypeName is not null)
+            if (type.IsSpecialType())
             {
-                return specialTypeName == stackFrameType.ToString(skipTrivia: true);
+                return type.Name == stackFrameType.ToString(skipTrivia: true);
             }
 
             // Default to just comparing the display name
             return type.ToDisplayString() == stackFrameType.ToString(skipTrivia: true);
         }
-
-        private static string? TryGetSpecialTypeName(SpecialType type)
-            => type switch
-            {
-                SpecialType.System_Object => nameof(Object),
-                SpecialType.System_Boolean => nameof(Boolean),
-                SpecialType.System_SByte => nameof(SByte),
-                SpecialType.System_Byte => nameof(Byte),
-                SpecialType.System_Decimal => nameof(Decimal),
-                SpecialType.System_Single => nameof(Single),
-                SpecialType.System_Double => nameof(Double),
-                SpecialType.System_Int16 => nameof(Int16),
-                SpecialType.System_Int32 => nameof(Int32),
-                SpecialType.System_Int64 => nameof(Int64),
-                SpecialType.System_String => nameof(String),
-                SpecialType.System_UInt16 => nameof(UInt16),
-                SpecialType.System_UInt32 => nameof(UInt32),
-                SpecialType.System_UInt64 => nameof(UInt64),
-                _ => null
-            };
     }
 }

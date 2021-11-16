@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 {
@@ -40,6 +41,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 
             Assert.Equal(expectedSymbol, symbol);
         }
+
+        private static void AssertContents(ImmutableArray<ParsedFrame> frames, params string[] contents)
+        {
+            Assert.Equal(contents.Length, frames.Length);
+            for (var i = 0; i < contents.Length; i++)
+            {
+                Assert.Equal(contents[i], frames[i].ToString());
+            }
+        }
+
 
         [Fact]
         public Task TestSymbolFound_DebuggerLine()
@@ -619,31 +630,13 @@ class C
             var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw&lt;string&gt;()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(activityLogException, CancellationToken.None);
-            Assert.Equal(6, result.ParsedFrames.Length);
-
-            var ignoredFrame1 = result.ParsedFrames[0] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame1);
-            Assert.Equal(@"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))", ignoredFrame1.ToString());
-
-            var parsedFrame2 = result.ParsedFrames[1] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame2);
-            Assert.Equal(@"at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)", parsedFrame2.ToString());
-
-            var parsedFrame3 = result.ParsedFrames[2] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame3);
-            Assert.Equal(@"at Microsoft.VisualStudio.Shell.Package.Initialize()", parsedFrame3.ToString());
-
-            var ignoredFrame4 = result.ParsedFrames[3] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame4);
-            Assert.Equal(@"--- End of stack trace from previous location where exception was thrown ---", ignoredFrame4.ToString());
-
-            var parsedFrame5 = result.ParsedFrames[4] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame5);
-            Assert.Equal(@"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()", parsedFrame5.ToString());
-
-            var parsedFrame6 = result.ParsedFrames[5] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame6);
-            Assert.Equal(@"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)", parsedFrame6.ToString());
+            AssertContents(result.ParsedFrames,
+                @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))",
+                @"at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)",
+                @"at Microsoft.VisualStudio.Shell.Package.Initialize()",
+                @"--- End of stack trace from previous location where exception was thrown ---",
+                @"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()",
+                @"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)");
         }
     }
 }
