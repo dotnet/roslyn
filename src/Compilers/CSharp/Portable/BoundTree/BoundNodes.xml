@@ -130,6 +130,14 @@
     <Field Name="IsNewInstance" Type="bool" Null="NotApplicable"/>
   </Node>
 
+  <!--
+  This node is used to represent an expression of a certain type, when attempting to bind its Index or Range pattern indexer
+  It does survive past initial binding but will be replaced with a synthesized argument in DAG lowering.
+  -->
+  <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -1428,7 +1436,7 @@
   </Node>
 
   <AbstractNode Name="BoundDagTest" Base="BoundNode">
-    Input is the input to the decision point.
+    <!-- Input is the input to the decision point. -->
     <Field Name="Input" Type="BoundDagTemp"/>
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
@@ -1471,10 +1479,30 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
     <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
+    <Field Name="IndexerType" Type="TypeSymbol"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
+    <!-- Negative Index values indicate positions after a slice pattern -->
+    <Field Name="Index" Type="int"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
+  </Node>
+  <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
+    <Field Name="SliceType" Type="TypeSymbol"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
+    <Field Name="StartIndex" Type="int"/>
+    <Field Name="EndIndex" Type="int"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+  </Node>
+  <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2116,27 +2144,7 @@
   <Node Name="BoundDiscardPattern" Base="BoundPattern">
   </Node>
 
-  <Node Name="BoundDeclarationPattern" Base="BoundPattern">
-    <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. Variable is null if `_` is used. -->
-    <Field Name="Variable" Type="Symbol?"/>
-    <!-- VariableAccess is an access to the declared variable, suitable for use
-         in the lowered form in either an lvalue or rvalue position. We maintain it separately
-         from the Symbol to facilitate lowerings in which the variable is no longer a simple
-         variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
-         free. The necessity of this member is a consequence of a design issue documented in
-         https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
-         removed. -->
-    <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
-    <Field Name="IsVar" Type="bool"/>
-  </Node>
-
-  <Node Name="BoundRecursivePattern" Base="BoundPattern">
-    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
-    <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
-    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
+  <AbstractNode Name="BoundObjectPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
@@ -2148,7 +2156,33 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
+  </AbstractNode>
+
+  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern">
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
+    <Field Name="IsVar" Type="bool"/>
+  </Node>
+
+  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern">
+    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
+    <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+  </Node>
+
+  <Node Name="BoundListPattern" Base="BoundObjectPattern">
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <Field Name="HasSlice" Type="bool"/>
+    <Field Name="LengthProperty" Type="PropertySymbol?"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
+  </Node>
+
+  <Node Name="BoundSlicePattern" Base="BoundPattern">
+    <Field Name="Pattern" Type="BoundPattern?"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">
@@ -2167,6 +2201,7 @@
   <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
     <!-- The property or field access in a property pattern. -->
     <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
     <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>

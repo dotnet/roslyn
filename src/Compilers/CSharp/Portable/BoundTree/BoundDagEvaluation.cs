@@ -10,27 +10,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public virtual bool Equals(BoundDagEvaluation other)
+        public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
+        public bool Equals(BoundDagEvaluation other)
         {
             return this == other ||
-                this.Kind == other.Kind &&
-                this.Input.Equals(other.Input) &&
-                this.Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
+                this.IsEquivalentTo(other) &&
+                this.Input.Equals(other.Input);
         }
-        private Symbol Symbol
+
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the input.
+        /// </summary>
+        public virtual bool IsEquivalentTo(BoundDagEvaluation other)
+        {
+            return this == other ||
+               this.Kind == other.Kind &&
+               Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
+        }
+
+        private Symbol? Symbol
         {
             get
             {
-                switch (this)
+                return this switch
                 {
-                    case BoundDagFieldEvaluation e: return e.Field.CorrespondingTupleField ?? e.Field;
-                    case BoundDagPropertyEvaluation e: return e.Property;
-                    case BoundDagTypeEvaluation e: return e.Type;
-                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
-                    case BoundDagIndexEvaluation e: return e.Property;
-                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
+                    BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
+                    BoundDagPropertyEvaluation e => e.Property,
+                    BoundDagTypeEvaluation e => e.Type,
+                    BoundDagDeconstructEvaluation e => e.DeconstructMethod,
+                    BoundDagIndexEvaluation e => e.Property,
+                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
+                    BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagAssignmentEvaluation => null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                };
             }
         }
 
@@ -38,12 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
-
-        /// <summary>
-        /// Are we evaluating the same value?
-        /// See <see cref="BoundDagTemp.IsSameValue"/>.
-        /// </summary>
-        public abstract bool IsSameValueEvaluation(BoundDagEvaluation other);
 
 #if DEBUG
         private int _id = -1;
@@ -82,64 +89,42 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundDagIndexEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
+                // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
         }
+    }
 
-        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+    partial class BoundDagIndexerEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == other ||
-                other is BoundDagIndexEvaluation e &&
-                this.Index == e.Index &&
-                this.Property.Equals(e.Property, TypeCompareKind.AllIgnoreOptions) &&
-                this.Input.IsSameValue(e.Input);
+            return base.IsEquivalentTo(obj) &&
+                this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
     }
 
-    partial class BoundDagFieldEvaluation
+    partial class BoundDagSliceEvaluation
     {
-        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == other ||
-                other is BoundDagFieldEvaluation e &&
-                (this.Field.CorrespondingTupleField ?? this.Field).Equals(e.Field.CorrespondingTupleField ?? e.Field, TypeCompareKind.AllIgnoreOptions) &&
-                this.Input.IsSameValue(e.Input);
+            return base.IsEquivalentTo(obj) &&
+                (BoundDagSliceEvaluation)obj is var e &&
+                this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
         }
     }
 
-    partial class BoundDagPropertyEvaluation
+    partial class BoundDagAssignmentEvaluation
     {
-        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
+        public override int GetHashCode() => Hash.Combine(base.GetHashCode(), this.Target.GetHashCode());
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == other ||
-                other is BoundDagPropertyEvaluation e &&
-                this.Property.Equals(e.Property, TypeCompareKind.AllIgnoreOptions) &&
-                this.Input.IsSameValue(e.Input);
-        }
-    }
-
-    partial class BoundDagDeconstructEvaluation
-    {
-        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
-        {
-            return this == other ||
-                other is BoundDagDeconstructEvaluation e &&
-                this.DeconstructMethod.Equals(e.DeconstructMethod, TypeCompareKind.AllIgnoreOptions) &&
-                this.Input.IsSameValue(e.Input);
-        }
-    }
-
-    partial class BoundDagTypeEvaluation
-    {
-        public override bool IsSameValueEvaluation(BoundDagEvaluation other)
-        {
-            return this == other ||
-                other is BoundDagTypeEvaluation e &&
-                this.Input.IsSameValue(e.Input);
+            return base.IsEquivalentTo(obj) &&
+                this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
         }
     }
 }

@@ -1352,6 +1352,29 @@ class C
                 expectedIndentation: 12);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task IndentListPattern()
+        {
+            var code = @"
+class C
+{
+    void Main(object o)
+    {
+        var y = o is
+        [
+
+        ]
+    }
+}";
+            // Expected indentation probably should be 12 instead
+            // Tracked by https://github.com/dotnet/roslyn/issues/57244
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 8);
+        }
+
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         [WpfTheory]
         [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 12)]

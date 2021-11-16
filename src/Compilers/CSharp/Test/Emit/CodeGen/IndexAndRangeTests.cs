@@ -249,7 +249,6 @@ struct S
             _array[index] = value;
         }
     }
-
 }
 class C
 {
@@ -260,7 +259,6 @@ class C
         var s = new S(array);
         s[^1] += 5;
         Console.WriteLine(array[1]);
-
     }
 }
 ";
@@ -352,7 +350,6 @@ class C
         var s = new S(array);
         s[1..] += 5;
         Console.WriteLine(array[1]);
-
     }
 }
 ";
@@ -435,7 +432,6 @@ struct S
             _array[index] = value;
         }
     }
-
 }
 class C
 {
@@ -2978,7 +2974,6 @@ partial class Program
     }
 }", options: TestOptions.ReleaseExe), expectedOutput: "YES");
         }
-
 
         private const string PrintIndexesAndRangesCode = @"
 partial class Program

@@ -245,8 +245,127 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
                         }
 
+                    case BoundDagIndexerEvaluation { IndexerAccess: null, IndexerSymbol: null } e:
+                        {
+                            // array[int]
+                            Debug.Assert(input.Type?.IsSZArray() == true);
+                            BoundExpression access = _factory.ArrayAccess(input, makeImplicitIndexArgument(e.Index, e.LengthTemp));
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagIndexerEvaluation { IndexerSymbol: PropertySymbol indexer } e:
+                        {
+                            // this[int]
+                            BoundExpression access = _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp));
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagIndexerEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
+                        {
+                            // this[Index]
+                            BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitIndexArgument(e.Index, e.Index < 0));
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation { IndexerAccess: null, SliceMethod: null } e:
+                        {
+                            // RuntimeHelpers.GetSubArray(T[], Range)
+                            TypeSymbol inputType = input.Type;
+                            Debug.Assert(inputType is { });
+                            Debug.Assert(inputType.IsSZArray());
+                            Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
+
+                            BoundExpression callExpr = _factory.Call(
+                                receiver: null,
+                                _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                                    .Construct(ImmutableArray.Create(((ArrayTypeSymbol)inputType).ElementType)),
+                                ImmutableArray.Create(input, makeExplicitRangeArgument(e)));
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagSliceEvaluation { SliceMethod: MethodSymbol sliceMethod } e:
+                        {
+                            // Slice(int, int)
+                            Debug.Assert(sliceMethod.ParameterCount == 2);
+                            Debug.Assert(sliceMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
+                            Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);
+                            Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
+
+                            BoundExpression lengthArg = _factory.IntSubtract(_tempAllocator.GetTemp(e.LengthTemp), _factory.Literal(e.StartIndex - e.EndIndex));
+                            BoundExpression callExpr = _factory.Call(input, sliceMethod, _factory.Literal(e.StartIndex), lengthArg);
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagSliceEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
+                        {
+                            // this[Range]
+                            BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitRangeArgument(e));
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
+                }
+
+                BoundExpression makeImplicitIndexArgument(int index, BoundDagTemp lengthTemp)
+                {
+                    return index < 0
+                        ? _factory.IntSubtract(_tempAllocator.GetTemp(lengthTemp), _factory.Literal(-index))
+                        : _factory.Literal(index);
+                }
+
+                BoundExpression makeExplicitIndexArgument(int index, bool fromEnd)
+                {
+                    return _factory.New(
+                        WellKnownMember.System_Index__ctor,
+                        ImmutableArray.Create<BoundExpression>(
+                            _factory.Literal(Math.Abs(index)),
+                            _factory.Literal(fromEnd)));
+                }
+
+                BoundExpression makeExplicitRangeArgument(BoundDagSliceEvaluation e)
+                {
+                    return _factory.New(
+                        WellKnownMember.System_Range__ctor,
+                        ImmutableArray.Create(
+                            makeExplicitIndexArgument(e.StartIndex, fromEnd: false),
+                            makeExplicitIndexArgument(e.EndIndex, fromEnd: true)));
+                }
+
+                BoundExpression makeIndexerAccess(SyntaxNode syntax, BoundIndexerAccess indexerAccess, BoundExpression indexerArg)
+                {
+                    ImmutableArray<BoundExpression> arguments = indexerAccess.Arguments;
+                    Debug.Assert(!arguments.IsDefaultOrEmpty);
+
+                    if (arguments[0] is BoundConversion conv)
+                        indexerArg = conv.UpdateOperand(indexerArg);
+
+                    return _localRewriter.MakeIndexerAccess(
+                        syntax,
+                        input,
+                        indexerAccess.Indexer,
+                        arguments.SetItem(0, indexerArg),
+                        indexerAccess.ArgumentNamesOpt,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.Expanded,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.DefaultArguments,
+                        indexerAccess.Type,
+                        oldNodeOpt: null,
+                        isLeftOfAssignment: false);
                 }
             }
 

@@ -78,6 +78,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitSlicePattern(BoundSlicePattern node)
+        {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitListPattern(BoundListPattern node)
+        {
+            VisitAndUnsplitAll(node.Subpatterns);
+            Visit(node.VariableAccess);
+            return null;
+        }
+
         public override BoundNode VisitTypePattern(BoundTypePattern node)
         {
             Visit(node.DeclaredType);
@@ -141,12 +154,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
                 case BoundRelationalPattern _:
+                case BoundSlicePattern _:
                     break; // nothing to learn
                 case BoundTypePattern tp:
                     if (tp.IsExplicitNotNullTest)
                     {
                         LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
+                    break;
+                case BoundListPattern lp:
+                    // PROTOTYPE(list-patterns)
                     break;
                 case BoundRecursivePattern rp:
                     {
@@ -335,6 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
             originalInputMap.Add(originalInputSlot, expression);
 
+            // Note we customize equality in BoundDagTemp
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
             Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
@@ -478,14 +496,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                     }
                                 case BoundDagIndexEvaluation e:
+                                    addTemp(e, e.Property.Type);
+                                    break;
+                                case BoundDagIndexerEvaluation e:
                                     {
-                                        var type = TypeWithAnnotations.Create(e.Property.Type, NullableAnnotation.Annotated);
+                                        Debug.Assert(inputSlot > 0);
+                                        TypeWithAnnotations type;
+                                        if (e.IndexerType.IsErrorType())
+                                        {
+                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.IndexerType, isAnnotated: false);
+                                        }
+                                        else if (e.IndexerAccess is not null)
+                                        {
+                                            // this[Index]
+                                            Debug.Assert(e.IndexerSymbol is null && e.Input.Type is not ArrayTypeSymbol);
+                                            var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
+                                            type = indexer.GetTypeOrReturnType();
+                                        }
+                                        else if (e.IndexerSymbol is not null)
+                                        {
+                                            // this[int]
+                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
+                                            var indexer = AsMemberOfType(inputType, e.IndexerSymbol);
+                                            type = indexer.GetTypeOrReturnType();
+                                        }
+                                        else
+                                        {
+                                            // array[int]
+                                            var arrayType = (ArrayTypeSymbol)e.Input.Type;
+                                            type = arrayType.ElementTypeWithAnnotations;
+                                        }
+
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
+                                        var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
+                                case BoundDagSliceEvaluation e:
+                                    {
+                                        Debug.Assert(inputSlot > 0);
+                                        TypeWithAnnotations type;
+
+                                        if (e.SliceType.IsErrorType())
+                                        {
+                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.SliceType, isAnnotated: false);
+                                        }
+                                        else if (e.IndexerAccess is not null)
+                                        {
+                                            // this[Range]
+                                            Debug.Assert(e.SliceMethod is null && e.Input.Type is not ArrayTypeSymbol);
+                                            var symbol = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
+                                            type = symbol.GetTypeOrReturnType();
+                                        }
+                                        else if (e.SliceMethod is not null)
+                                        {
+                                            // Slice(int, int)
+                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
+                                            var symbol = AsMemberOfType(inputType, e.SliceMethod);
+                                            type = symbol.GetTypeOrReturnType();
+                                        }
+                                        else
+                                        {
+                                            // RuntimeHelpers.GetSubArray(T[], Range)
+                                            var arrayType = e.Input.Type;
+                                            Debug.Assert(arrayType is ArrayTypeSymbol);
+                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, arrayType, isAnnotated: false);
+                                        }
+
+                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
+                                        var outputSlot = makeDagTempSlot(type, output);
+                                        Debug.Assert(outputSlot > 0);
+                                        addToTempMap(output, outputSlot, type.Type);
+                                        break;
+                                    }
+                                case BoundDagAssignmentEvaluation e:
+                                    break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }
@@ -739,6 +825,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 object slotKey = (node, temp);
                 return GetOrCreatePlaceholderSlot(slotKey, type);
+            }
+
+            void addTemp(BoundDagEvaluation e, TypeSymbol t, int index = 0)
+            {
+                var type = TypeWithAnnotations.Create(t, NullableAnnotation.Annotated);
+                var output = new BoundDagTemp(e.Syntax, type.Type, e, index: index);
+                int outputSlot = makeDagTempSlot(type, output);
+                Debug.Assert(outputSlot > 0);
+                addToTempMap(output, outputSlot, type.Type);
             }
         }
 

@@ -316,6 +316,8 @@ namespace System
         public override int GetHashCode() => _value;
 
         public static implicit operator Index(int value) => FromStart(value);
+
+        public override string ToString() => IsFromEnd ? ""^"" + Value.ToString() : Value.ToString();
     }
 }";
 
@@ -384,6 +386,8 @@ namespace System
                 length = Length;
             }
         }
+
+        public override string ToString() => $""{Start}..{End}"";
     }
 }";
 

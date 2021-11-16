@@ -224,6 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
 
+        // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved/indexed eventually.
+        IDS_FeatureListPattern = MessageBase + 12850,
+
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
         IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
         IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
@@ -533,6 +536,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
+
+                // PROTOTYPE(list-patterns)
+                case MessageID.IDS_FeatureListPattern:
+                    return LanguageVersion.Preview;
             }
         }
     }

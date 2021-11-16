@@ -327,8 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
                 ref argTempsBuilder,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.True);
+                invokedAsExtensionMethod: false);
 
             var argTemps = argTempsBuilder.ToImmutableAndFree();
 

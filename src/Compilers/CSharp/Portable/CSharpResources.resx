@@ -6727,6 +6727,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
     <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
+  <data name="IDS_FeatureListPattern" xml:space="preserve">
+    <value>list pattern</value>
+  </data>
+  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
+    <value>length pattern</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
+    <value>List patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
+    <value>Slice patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_MisplacedSlicePattern" xml:space="preserve">
+    <value>Slice patterns may only be used once and directly inside a list pattern.</value>
+  </data>
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>

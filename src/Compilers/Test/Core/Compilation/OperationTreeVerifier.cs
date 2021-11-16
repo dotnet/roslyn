@@ -1906,6 +1906,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
+        public override void VisitSlicePattern(ISlicePatternOperation operation)
+        {
+            LogString(nameof(ISlicePatternOperation));
+            LogPatternProperties(operation);
+            LogSymbol(operation.SliceSymbol, $", {nameof(operation.SliceSymbol)}");
+            LogNewLine();
+
+            Visit(operation.Pattern, $"{nameof(operation.Pattern)}");
+        }
+
+        public override void VisitListPattern(IListPatternOperation operation)
+        {
+            LogString(nameof(IListPatternOperation));
+            LogPatternProperties(operation);
+            LogSymbol(operation.DeclaredSymbol, $", {nameof(operation.DeclaredSymbol)}");
+            LogSymbol(operation.LengthSymbol, $", {nameof(operation.LengthSymbol)}");
+            LogSymbol(operation.IndexerSymbol, $", {nameof(operation.IndexerSymbol)}");
+            LogString(")");
+            LogNewLine();
+
+            VisitArray(operation.Patterns, $"{nameof(operation.Patterns)} ", true, true);
+        }
+
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
