@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -24,11 +25,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
             ServicesVSResources.Current_document
 
-        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files As String =
             ServicesVSResources.Open_documents
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
             ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_None_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.None
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.ActiveFile
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.OpenFiles
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.FullSolution
 
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart

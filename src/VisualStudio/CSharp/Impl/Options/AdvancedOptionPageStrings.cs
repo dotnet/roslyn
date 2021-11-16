@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -22,11 +23,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Background_Analysis_Scope_Active_File
             => ServicesVSResources.Current_document;
 
-        public static string Option_Background_Analysis_Scope_Open_Files_And_Projects
+        public static string Option_Background_Analysis_Scope_Open_Files
             => ServicesVSResources.Open_documents;
 
         public static string Option_Background_Analysis_Scope_Full_Solution
             => ServicesVSResources.Entire_solution;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_None_Tag
+            => BackgroundAnalysisScope.None;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
+            => BackgroundAnalysisScope.ActiveFile;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
+            => BackgroundAnalysisScope.OpenFiles;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Full_Solution_Tag
+            => BackgroundAnalysisScope.FullSolution;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;

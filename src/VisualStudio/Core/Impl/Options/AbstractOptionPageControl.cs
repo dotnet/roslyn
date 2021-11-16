@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 Source = new OptionBinding<T>(OptionStore, optionKey),
                 Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
+                Converter = new ComboBoxItemTagToIndexConverter<T>(),
                 ConverterParameter = comboBox
             };
 
@@ -158,13 +158,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName, Func<T> onNullValue = null)
         {
             var binding = new Binding()
             {
                 Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
-                Converter = new ComboBoxItemTagToIndexConverter(),
+                Converter = new ComboBoxItemTagToIndexConverter<T>(onNullValue),
                 ConverterParameter = comboBox
             };
 
@@ -172,14 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName, Func<T> onNullValue = null)
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {
                 Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new RadioButtonCheckedConverter<T>(onNullValue),
+                Converter = new RadioButtonCheckedConverter(),
                 ConverterParameter = optionValue
             };
 
@@ -204,19 +204,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class RadioButtonCheckedConverter<T> : IValueConverter
+    public class RadioButtonCheckedConverter : IValueConverter
     {
-        private readonly Func<T> _onNullValue;
-
-        public RadioButtonCheckedConverter(Func<T> onNullValue)
-        {
-            _onNullValue = onNullValue;
-        }
-
         public object Convert(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
-            value ??= _onNullValue();
             return value.Equals(parameter);
         }
 
@@ -227,10 +219,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class ComboBoxItemTagToIndexConverter : IValueConverter
+    public class ComboBoxItemTagToIndexConverter<T> : IValueConverter
     {
+        private readonly Func<T> _onNullValue;
+
+        public ComboBoxItemTagToIndexConverter(Func<T> onNullValue = null)
+        {
+            _onNullValue = onNullValue;
+        }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (value == null && _onNullValue != null)
+            {
+                value = _onNullValue();
+            }
+
             var comboBox = (ComboBox)parameter;
 
             for (var index = 0; index < comboBox.Items.Count; index++)
