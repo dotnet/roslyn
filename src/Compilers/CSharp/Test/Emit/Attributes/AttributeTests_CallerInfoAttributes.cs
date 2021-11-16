@@ -5752,5 +5752,28 @@ class Program
 ABC
 ");
         }
+
+        [Theory]
+        [InlineData("out")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public void CallerArgumentExpression_OnRefParameter(string refType)
+        {
+            var comp = CreateCompilation(@$"
+using System.Runtime.CompilerServices;
+#pragma warning disable CS8321
+
+void M(int i, [CallerArgumentExpression(""i"")] {refType} string s)
+{{
+    {(refType == "out" ? "s = null;" : "")}
+}}
+", targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // void M(int i, [CallerArgumentExpression("i")] ref string s)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16)
+            );
+        }
     }
 }
