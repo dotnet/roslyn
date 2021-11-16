@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
     [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
-        private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
+        private static readonly ImmutableArray<(string name, string value, string title)> s_editorConfigSeverityStrings =
             ImmutableArray.Create(
-                (nameof(EditorConfigSeverityStrings.None), FeaturesResources.None),
-                (nameof(EditorConfigSeverityStrings.Silent), FeaturesResources.Silent),
-                (nameof(EditorConfigSeverityStrings.Suggestion), FeaturesResources.Suggestion),
-                (nameof(EditorConfigSeverityStrings.Warning), FeaturesResources.Warning),
-                (nameof(EditorConfigSeverityStrings.Error), FeaturesResources.Error));
+                (nameof(EditorConfigSeverityStrings.None), EditorConfigSeverityStrings.None, FeaturesResources.None),
+                (nameof(EditorConfigSeverityStrings.Silent), EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
+                (nameof(EditorConfigSeverityStrings.Suggestion), EditorConfigSeverityStrings.Suggestion, FeaturesResources.Suggestion),
+                (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning, FeaturesResources.Warning),
+                (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error, FeaturesResources.Error));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             foreach (var diagnostic in diagnostics)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value) in s_editorConfigSeverityStrings)
+                foreach (var (name, value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
-                            value,
+                            title,
                             solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
                             name));
                 }
@@ -99,11 +99,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             void AddBulkConfigurationCodeFixes(ImmutableArray<Diagnostic> diagnostics, string? category)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value) in s_editorConfigSeverityStrings)
+                foreach (var (name, value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
-                            value,
+                            title,
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
                                 : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
