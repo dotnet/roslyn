@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     context,
                     collectionTypeSymbol,
                     argumentTypeSymbols,
-                    0);
+                    targetIndex: 0);
             }
             else if (objectCreation.Parent.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
