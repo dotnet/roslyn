@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -28,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim selectedItem = testState.GetSelectedItem()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem, CompletionOptions.Default)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem, CompletionOptions.Default, SymbolDescriptionOptions.Default)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
@@ -45,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 testState.SendTabToCompletion()
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
-                testState.SendBackspace()
+                testState.SendBackSpace()
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 testState.SendTabToCompletion()

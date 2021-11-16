@@ -371,11 +371,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private bool ShouldSkipTagProduction()
             {
-                var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-                var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+                if (_dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                    return true;
 
-                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
-                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
+                var languageName = _subjectBuffer.GetLanguageName();
+                return _dataSource.PerLanguageOptions.Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
             }
 
             private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
