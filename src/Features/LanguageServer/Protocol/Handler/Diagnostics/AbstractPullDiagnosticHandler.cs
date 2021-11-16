@@ -25,9 +25,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
-        where TReport : VSInternalDiagnosticReport
+    /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
+    /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
+    /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
         /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResult"/>, <see cref="_nextDocumentResultId"/> and <see cref="_projectToProjectDependentChecksum"/>.
+        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
         /// Since this is a non-mutating request handler it is possible for
         /// calls to <see cref="HandleRequestAsync(TDiagnosticsParams, RequestContext, CancellationToken)"/>
         /// to run concurrently.
@@ -55,18 +59,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         ///   <item>The <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> of the project snapshot that was used to calculate diagnostics.
         ///       <para>Note that this version can change even when nothing has actually changed (for example, forking the LSP text, reloading the same project).
         ///       So we additionally store:</para></item>
-        ///   <item>A checksum representing the project and its dependencies from <see cref="CalculateDependentProjectChecksumAsync(Project, CancellationToken)"/>.</item>
+        ///   <item>A checksum representing the project and its dependencies from <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.</item>
         /// </list>
         /// This is used to determine if we need to re-calculate diagnostics.
         /// </summary>
         private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, VersionStamp projectDependentVersion, Checksum projectDependentChecksum)> _documentIdToLastResult = new();
-
-        /// <summary>
-        /// A weak table holding the checksums computed by <see cref="CalculateDependentProjectChecksumAsync(Project, CancellationToken)"/>.
-        /// Individual project checksums are cached separately, but this lets us generally calculate the aggregate checksum for a particular
-        /// project only once.  This is helpful when the client continues to poll us when nothing has changed and we have the same project instance.
-        /// </summary>
-        private readonly ConditionalWeakTable<Project, AsyncLazy<Checksum>> _projectToProjectDependentChecksum = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -90,15 +87,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
-        /// Gets the progress object to stream results to.
-        /// </summary>
-        protected abstract IProgress<TReport[]>? GetProgress(TDiagnosticsParams diagnosticsParams);
-
-        /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract VSInternalDiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -109,7 +101,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
+
+        protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
         /// <summary>
         /// Produce the diagnostics for the specified document.
@@ -121,17 +115,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
-        public async Task<TReport[]?> HandleRequestAsync(
+        public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             // The progress object we will stream reports to.
-            using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
+            using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<VSInternalDiagnosticParams>();
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -162,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -179,7 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting diagnostics");
-            return progress.GetValues();
+            return CreateReturn(progress);
         }
 
         private static bool IncludeDocument(Document document, string? clientName)
@@ -193,12 +187,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, VSInternalDiagnosticParams> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, VSInternalDiagnosticParams[] previousResults)
+        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, VSInternalDiagnosticParams>();
+            var result = new Dictionary<Document, PreviousResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -216,6 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             RequestContext context,
             Document document,
             string resultId,
+            ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             var diagnosticMode = _serverKind switch
@@ -229,7 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
-            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
+            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
 
             if (isPull)
             {
@@ -238,13 +233,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)
-                    result.Add(ConvertDiagnostic(document, text, diagnostic));
+                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
             }
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, VSInternalDiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -276,7 +271,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <param name="document">the document we are currently calculating results for.</param>
         /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
         private async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams,
+            Dictionary<Document, PreviousResult> documentToPreviousDiagnosticParams,
             Document document,
             CancellationToken cancellationToken)
         {
@@ -300,7 +295,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                     // The current project dependent version does not match the last reported.  This may be because we've forked
                     // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
-                    var aggregateChecksum = await GetDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                    var aggregateChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
                     if (lastResult.projectDependentChecksum == aggregateChecksum)
                     {
                         // Checksums match which means content has not changed and we do not need to re-calculate.
@@ -321,68 +316,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                 var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                var currentProjectDependentChecksum = await GetDependentChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var currentProjectDependentChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
                 _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectDependentVersion, currentProjectDependentChecksum);
                 return newResultId;
-
-                async Task<Checksum> GetDependentChecksumAsync(Project project, CancellationToken cancellationToken)
-                {
-                    var aggregateChecksum = _projectToProjectDependentChecksum.GetValue(project, static p => new AsyncLazy<Checksum>(c => CalculateDependentProjectChecksumAsync(p, c), cacheResult: true));
-                    return await aggregateChecksum.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                }
             }
         }
 
-        /// <summary>
-        /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's transitive dependencies.
-        /// </summary>
-        /// <remarks>
-        /// This checksum calculation is used to determine if a diagnostics need to be recalculated based on the last reported checksum.
-        /// The goal is to ensure that changes to
-        /// <list type="bullet">
-        ///    <item>Files inside the current project</item>
-        ///    <item>Project properties of the current project</item>
-        ///    <item>Visible files in referenced projects</item>
-        ///    <item>Project properties in referenced projects</item>
-        /// </list>
-        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute diagnostics.   
-        /// 
-        /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
-        /// <list type="bullet">
-        ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
-        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
-        ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
-        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
-        /// </list>   
-        /// Since diagnostic calculations happen OOP, these checksums already have been (or will be) created to do the diagnostics calculation anyway.
-        /// </para>
-        /// </remarks>
-        private static async Task<Checksum> CalculateDependentProjectChecksumAsync(Project project, CancellationToken cancellationToken)
-        {
-            using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
-
-            // Get the checksum for the project itself.
-            var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-            tempChecksumArray.Add(projectChecksum);
-
-            // Calculate a checksum this project and for each dependent project that could affect diagnostics for this project.
-            // Ensure that the checksum calculation orders the projects consistently so that order changes (like unload / reload) don't change checksums.
-            var transitiveDependencies = project.Solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
-            var orderedProjectIds = transitiveDependencies.Add(project.Id).OrderBy(p => p.Id);
-            foreach (var projectId in orderedProjectIds)
-            {
-                var referencedProject = project.Solution.GetRequiredProject(projectId);
-
-                // Note that these checksums should only actually be calculated once, if the project is unchanged
-                // the same checksum will be returned.
-                var referencedProjectChecksum = await referencedProject.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                tempChecksumArray.Add(referencedProjectChecksum);
-            }
-
-            return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
-        }
-
-        private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private LSP.Diagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
@@ -395,25 +335,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
             //   4.  This matches classic behavior where we only squiggle the original location anyway.
             var useMappedSpan = false;
-            return new VSDiagnostic
+            if (!capabilities.HasVisualStudioLspCapability())
             {
-                Source = GetType().Name,
-                Code = diagnosticData.Id,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
-                Message = diagnosticData.Message,
-                Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
-                Tags = ConvertTags(diagnosticData),
-                DiagnosticType = diagnosticData.Category,
-                Projects = new[]
+                var diagnostic = CreateBaseLspDiagnostic();
+                return diagnostic;
+            }
+            else
+            {
+                var vsDiagnostic = CreateBaseLspDiagnostic();
+                vsDiagnostic.DiagnosticType = diagnosticData.Category;
+                vsDiagnostic.Projects = new[]
                 {
                     new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
-            };
+                };
+
+                return vsDiagnostic;
+            }
+
+            // We can just use VSDiagnostic as it doesn't have any default properties set that
+            // would get automatically serialized.
+            LSP.VSDiagnostic CreateBaseLspDiagnostic()
+            {
+                return new LSP.VSDiagnostic
+                {
+                    Source = "Roslyn",
+                    Code = diagnosticData.Id,
+                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
+                    Message = diagnosticData.Message,
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+                    Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
+                    Tags = ConvertTags(diagnosticData),
+                };
+            }
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)

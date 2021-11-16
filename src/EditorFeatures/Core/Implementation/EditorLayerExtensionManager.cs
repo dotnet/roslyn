@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Internal.Log.FunctionId;
@@ -74,7 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowGlobalErrorInfo(string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                        var providerType = provider.GetType();
+
+                        _errorReportingService?.ShowGlobalErrorInfo(
+                            message: string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, providerType.Name),
+                            TelemetryFeatureName.GetExtensionName(providerType),
                             exception,
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
                             new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor
                                 IgnoreProvider(provider);
                                 LogEnableAndIgnoreProvider(provider);
                             }),
-                            new InfoBarUI(String.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
+                            new InfoBarUI(string.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
                     }
                     else
                     {

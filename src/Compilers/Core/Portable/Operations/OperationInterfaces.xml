@@ -2562,6 +2562,11 @@
         <summary>An id used to match references to the same intermediate result.</summary>
       </Comments>
     </Property>
+    <Property Name="IsInitialization" Type="bool">
+      <Comments>
+        <summary>True if this reference to the capture initializes the capture. Used when the capture is being initialized by being passed as an <code>out</code> parameter.</summary>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="IIsNullOperation" Base="IOperation" Namespace="FlowAnalysis" SkipInCloner="true" HasType="true" HasConstantValue="true">
     <Comments>
@@ -3159,6 +3164,23 @@
         <summary>
           The component this placeholder represents.
         </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IFunctionPointerInvocationOperation" Base="IOperation" ChildrenOrder="Target,Arguments" HasType="true">
+    <Comments>
+      <summary>
+        Represents an invocation of a function pointer.
+      </summary>
+    </Comments>
+	<Property Name="Target" Type="IOperation">
+      <Comments>
+        <summary>Invoked pointer.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+      <Comments>
+        <summary>Arguments of the invocation. Arguments are in evaluation order.</summary>
       </Comments>
     </Property>
   </Node>

@@ -8768,5 +8768,114 @@ public struct CustomHandler
         }
 
         #endregion
+
+        [Fact]
+        public void TestDataFlowsArrayInit_01()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[] b = /*<bind>*/{ a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsArrayInit_02()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = /*<bind>*/{ { a + x + 3 } }/*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsArrayInit_03()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = {/*<bind>*/{ a + x + 3 } /*</bind>*/};
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_04()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[] b = new int[] /*<bind>*/{ a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_05()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = new int[,] /*<bind>*/{ {a + x + 3} } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_06()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = new int[,] {/*<bind>*/{ a + x + 3 } /*</bind>*/};
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsObjectInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public int Data;
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        var b = new object() /*<bind>*/{ Data = a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
     }
 }

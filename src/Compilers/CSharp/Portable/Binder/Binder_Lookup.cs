@@ -1436,13 +1436,20 @@ symIsHidden:;
                     {
                         return false;
                     }
-                    foreach (ImmutableArray<byte> key in keys)
+
+                    ImmutableArray<byte> publicKey = this.Compilation.Assembly.PublicKey;
+
+                    if (!publicKey.IsDefault)
                     {
-                        if (key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey))
+                        foreach (ImmutableArray<byte> key in keys)
                         {
-                            return false;
+                            if (key.SequenceEqual(publicKey))
+                            {
+                                return false;
+                            }
                         }
                     }
+
                     return true;
                 }
                 return false;

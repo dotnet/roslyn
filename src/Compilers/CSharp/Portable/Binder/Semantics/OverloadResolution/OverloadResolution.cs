@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TMember member = result.Member;
                 if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
                 {
-                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                    results[f] = result.WithResult(MemberAnalysisResult.StaticInstanceMismatch());
                 }
             }
         }
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TMember member = result.Member;
                 if (result.Result.IsValid && !member.IsStatic)
                 {
-                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                    results[f] = result.WithResult(MemberAnalysisResult.StaticInstanceMismatch());
                 }
             }
         }
@@ -426,8 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ConstructedParameterFailedConstraintCheck) &&
                     FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, template))
                 {
-                    results[f] = new MemberResolutionResult<TMember>(
-                        result.Member, result.LeastOverriddenMember,
+                    results[f] = result.WithResult(
                         MemberAnalysisResult.ConstraintFailure(constraintFailureDiagnosticsOpt.ToImmutableAndFree()));
                 }
             }
@@ -559,7 +558,7 @@ outerDefault:
             }
 
             static MemberResolutionResult<TMember> makeWrongCallingConvention(MemberResolutionResult<TMember> result)
-                => new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongCallingConvention());
+                => result.WithResult(MemberAnalysisResult.WrongCallingConvention());
         }
 #nullable disable
 
@@ -649,13 +648,11 @@ outerDefault:
 
                 if (!returnsMatch)
                 {
-                    results[f] = new MemberResolutionResult<TMember>(
-                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongReturnType());
+                    results[f] = result.WithResult(MemberAnalysisResult.WrongReturnType());
                 }
                 else if (method.RefKind != returnRefKind)
                 {
-                    results[f] = new MemberResolutionResult<TMember>(
-                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongRefKind());
+                    results[f] = result.WithResult(MemberAnalysisResult.WrongRefKind());
                 }
             }
         }
@@ -699,7 +696,7 @@ outerDefault:
                 Debug.Assert(!MemberAnalysisResult.UnsupportedMetadata().HasUseSiteDiagnosticToReportFor(constructor));
                 if (completeResults)
                 {
-                    results.Add(new MemberResolutionResult<MethodSymbol>(constructor, constructor, MemberAnalysisResult.UnsupportedMetadata()));
+                    results.Add(new MemberResolutionResult<MethodSymbol>(constructor, constructor, MemberAnalysisResult.UnsupportedMetadata(), hasTypeArgumentInferredFromFunctionType: false));
                 }
                 return;
             }
@@ -721,7 +718,7 @@ outerDefault:
             // If the constructor has a use site diagnostic, we don't want to discard it because we'll have to report the diagnostic later.
             if (result.IsValid || completeResults || result.HasUseSiteDiagnosticToReportFor(constructor))
             {
-                results.Add(new MemberResolutionResult<MethodSymbol>(constructor, constructor, result));
+                results.Add(new MemberResolutionResult<MethodSymbol>(constructor, constructor, result, hasTypeArgumentInferredFromFunctionType: false));
             }
         }
 
@@ -905,7 +902,7 @@ outerDefault:
                 Debug.Assert(!MemberAnalysisResult.UnsupportedMetadata().HasUseSiteDiagnosticToReportFor(member));
                 if (completeResults)
                 {
-                    results.Add(new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UnsupportedMetadata()));
+                    results.Add(new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UnsupportedMetadata(), hasTypeArgumentInferredFromFunctionType: false));
                 }
                 return;
             }
@@ -1141,7 +1138,7 @@ outerDefault:
                 var result = results[f];
                 if (result.Result.IsValid && !TypeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo))
                 {
-                    results[f] = new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.InaccessibleTypeArgument());
+                    results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
                 }
             }
         }
@@ -1272,7 +1269,7 @@ outerDefault:
 
                 if (IsLessDerivedThanAny(result.LeastOverriddenMember.ContainingType, results, ref useSiteInfo))
                 {
-                    results[f] = new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.LessDerived());
+                    results[f] = result.WithResult(MemberAnalysisResult.LessDerived());
                 }
             }
         }
@@ -1383,7 +1380,7 @@ outerDefault:
                 var member = result.Member;
                 if (member.ContainingType.IsInterfaceType())
                 {
-                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.LessDerived());
+                    results[f] = result.WithResult(MemberAnalysisResult.LessDerived());
                 }
             }
         }
@@ -3284,7 +3281,7 @@ outerDefault:
                         // thus improving the API and intellisense experience.
                         break;
                     default:
-                        return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                        return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
                 }
             }
 
@@ -3292,7 +3289,7 @@ outerDefault:
             // NOTE: The diagnostic may not be reported (e.g. if the member is later removed as less-derived).
             if (member.HasUseSiteError)
             {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError());
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
 
             bool hasAnyRefOmittedArgument;
@@ -3334,7 +3331,7 @@ outerDefault:
             // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
             if (completeResults && !argumentAnalysis.IsValid)
             {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
             }
 
             return applicableResult;
@@ -3355,14 +3352,14 @@ outerDefault:
             var argumentAnalysis = AnalyzeArguments(member, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
             {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
             }
 
             // Check after argument analysis, but before more complicated type inference and argument type validation.
             // NOTE: The diagnostic may not be reported (e.g. if the member is later removed as less-derived).
             if (member.HasUseSiteError)
             {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError());
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
 
             bool hasAnyRefOmittedArgument;
@@ -3401,9 +3398,7 @@ outerDefault:
                 useSiteInfo: ref useSiteInfo);
 
             return result.Result.IsValid ?
-                new MemberResolutionResult<TMember>(
-                    result.Member,
-                    result.LeastOverriddenMember,
+                result.WithResult(
                     MemberAnalysisResult.ExpandedForm(result.Result.ArgsToParamsOpt, result.Result.ConversionsOpt, hasAnyRefOmittedArgument)) :
                 result;
         }
@@ -3465,7 +3460,7 @@ outerDefault:
                                             ref useSiteInfo);
                         if (typeArguments.IsDefault)
                         {
-                            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
+                            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError, hasTypeArgumentInferredFromFunctionType: false);
                         }
                     }
 
@@ -3505,7 +3500,7 @@ outerDefault:
                     {
                         if (!parameterTypes[i].Type.CheckAllConstraints(Compilation, Conversions))
                         {
-                            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
+                            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i), hasTypeArgumentsInferredFromFunctionType);
                         }
                     }
 
