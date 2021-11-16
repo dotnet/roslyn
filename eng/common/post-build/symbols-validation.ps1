@@ -4,11 +4,9 @@ param(
   [Parameter(Mandatory = $true)][string] $DotnetSymbolVersion, # Version of dotnet symbol to use
   [Parameter(Mandatory = $false)][switch] $CheckForWindowsPdbs, # If we should check for the existence of windows pdbs in addition to portable PDBs
   [Parameter(Mandatory = $false)][switch] $ContinueOnError, # If we should keep checking symbols after an error
-  [Parameter(Mandatory = $false)][switch] $Clean,           # Clean extracted symbols directory after checking symbols
-  [Parameter(Mandatory = $false)][string] $SymbolExclusionFile  # Exclude the symbols in the file from publishing to symbol server
+  [Parameter(Mandatory = $false)][switch] $Clean                  # Clean extracted symbols directory after checking symbols
 )
 
-. $PSScriptRoot\..\tools.ps1
 # Maximum number of jobs to run in parallel
 $MaxParallelJobs = 16
 
@@ -27,27 +25,13 @@ if ($CheckForWindowsPdbs) {
   $WindowsPdbVerificationParam = "--windows-pdbs"
 }
 
-$ExclusionSet = New-Object System.Collections.Generic.HashSet[string];
-
-if (!$InputPath -or !(Test-Path $InputPath)){
-  Write-Host "No symbols to validate."
-  ExitWithExitCode 0
-}
-
-#Check if the path exists
-if ($SymbolExclusionFile -and (Test-Path $SymbolExclusionFile)){
-  [string[]]$Exclusions = Get-Content "$SymbolExclusionFile"
-  $Exclusions | foreach { if($_ -and $_.Trim()){$ExclusionSet.Add($_)} }
-}
-else{
-  Write-Host "Symbol Exclusion file does not exists. No symbols to exclude."
-}
-
 $CountMissingSymbols = {
   param( 
     [string] $PackagePath, # Path to a NuGet package
     [string] $WindowsPdbVerificationParam # If we should check for the existence of windows pdbs in addition to portable PDBs
   )
+
+  . $using:PSScriptRoot\..\tools.ps1
 
   Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -134,17 +118,17 @@ $CountMissingSymbols = {
         # Save the output and get diagnostic output
         $output = & $dotnetSymbolExe --symbols --modules $WindowsPdbVerificationParam $TargetServerParam $FullPath -o $SymbolsPath --diagnostics | Out-String
 
-        if ((Test-Path $PdbPath) -and (Test-path $SymbolPath)) {
-          return 'Module and PDB for Module'
+        if (Test-Path $PdbPath) {
+          return 'PDB'
         }
-        elseif ((Test-Path $NGenPdb) -and (Test-Path $PdbPath) -and (Test-Path $SymbolPath)) {
-          return 'Dll, PDB and NGen PDB'
+        elseif (Test-Path $NGenPdb) {
+          return 'NGen PDB'
         }
-        elseif ((Test-Path $SODbg) -and (Test-Path $SymbolPath)) {
-          return 'So and DBG for SO'
+        elseif (Test-Path $SODbg) {
+          return 'DBG for SO'
         }  
-        elseif ((Test-Path $DylibDwarf) -and (Test-Path $SymbolPath)) {
-          return 'Dylib and Dwarf for Dylib'
+        elseif (Test-Path $DylibDwarf) {
+          return 'Dwarf for Dylib'
         }  
         elseif (Test-Path $SymbolPath) {
           return 'Module'
@@ -158,44 +142,37 @@ $CountMissingSymbols = {
       return $null
     }
 
-    $FileRelativePath = $FileName.Replace("$ExtractPath\", "")
-    if (($($using:ExclusionSet) -ne $null) -and ($($using:ExclusionSet).Contains($FileRelativePath) -or ($($using:ExclusionSet).Contains($FileRelativePath.Replace("\", "/"))))){
-      Write-Host "Skipping $FileName from symbol validation"
-    }
+    $FileGuid = New-Guid
+    $ExpandedSymbolsPath = Join-Path -Path $SymbolsPath -ChildPath $FileGuid
 
-    else {
-      $FileGuid = New-Guid
-      $ExpandedSymbolsPath = Join-Path -Path $SymbolsPath -ChildPath $FileGuid
+    $SymbolsOnMSDL = & $FirstMatchingSymbolDescriptionOrDefault `
+        -FullPath $FileName `
+        -TargetServerParam '--microsoft-symbol-server' `
+        -SymbolsPath "$ExpandedSymbolsPath-msdl" `
+        -WindowsPdbVerificationParam $WindowsPdbVerificationParam
+    $SymbolsOnSymWeb = & $FirstMatchingSymbolDescriptionOrDefault `
+        -FullPath $FileName `
+        -TargetServerParam '--internal-server' `
+        -SymbolsPath "$ExpandedSymbolsPath-symweb" `
+        -WindowsPdbVerificationParam $WindowsPdbVerificationParam
 
-      $SymbolsOnMSDL = & $FirstMatchingSymbolDescriptionOrDefault `
-          -FullPath $FileName `
-          -TargetServerParam '--microsoft-symbol-server' `
-          -SymbolsPath "$ExpandedSymbolsPath-msdl" `
-          -WindowsPdbVerificationParam $WindowsPdbVerificationParam
-      $SymbolsOnSymWeb = & $FirstMatchingSymbolDescriptionOrDefault `
-          -FullPath $FileName `
-          -TargetServerParam '--internal-server' `
-          -SymbolsPath "$ExpandedSymbolsPath-symweb" `
-          -WindowsPdbVerificationParam $WindowsPdbVerificationParam
-
-      Write-Host -NoNewLine "`t Checking file " $FileName "... "
+    Write-Host -NoNewLine "`t Checking file " $FileName "... "
   
-      if ($SymbolsOnMSDL -ne $null -and $SymbolsOnSymWeb -ne $null) {
-        Write-Host "Symbols found on MSDL ($SymbolsOnMSDL) and SymWeb ($SymbolsOnSymWeb)"
+    if ($SymbolsOnMSDL -ne $null -and $SymbolsOnSymWeb -ne $null) {
+      Write-Host "Symbols found on MSDL ($SymbolsOnMSDL) and SymWeb ($SymbolsOnSymWeb)"
+    }
+    else {
+      $MissingSymbols++
+
+      if ($SymbolsOnMSDL -eq $null -and $SymbolsOnSymWeb -eq $null) {
+        Write-Host 'No symbols found on MSDL or SymWeb!'
       }
       else {
-        $MissingSymbols++
-
-        if ($SymbolsOnMSDL -eq $null -and $SymbolsOnSymWeb -eq $null) {
-          Write-Host 'No symbols found on MSDL or SymWeb!'
+        if ($SymbolsOnMSDL -eq $null) {
+          Write-Host 'No symbols found on MSDL!'
         }
         else {
-          if ($SymbolsOnMSDL -eq $null) {
-            Write-Host 'No symbols found on MSDL!'
-          }
-          else {
-            Write-Host 'No symbols found on SymWeb!'
-          }
+          Write-Host 'No symbols found on SymWeb!'
         }
       }
     }

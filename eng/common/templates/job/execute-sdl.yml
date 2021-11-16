@@ -60,7 +60,11 @@ jobs:
     - name: GuardianPackagesConfigFile
       value: $(Build.SourcesDirectory)\eng\common\sdl\packages.config
   pool:
-    vmImage: windows-2019
+    # To extract archives (.tar.gz, .zip), we need access to "tar", added in Windows 10/2019.
+    ${{ if eq(parameters.extractArchiveArtifacts, 'false') }}:
+      vmImage: windows-2019
+    ${{ if ne(parameters.extractArchiveArtifacts, 'false') }}:
+      vmImage: windows-2019
   steps:
   - checkout: self
     clean: true

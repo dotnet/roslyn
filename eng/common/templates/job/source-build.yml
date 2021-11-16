@@ -31,6 +31,11 @@ parameters:
   #   container and pool.
   platform: {}
 
+  # The default VM host AzDO pool. This should be capable of running Docker containers: almost all
+  # source-build builds run in Docker, including the default managed platform.
+  defaultContainerHostPool:
+    vmImage: ubuntu-20.04
+
 jobs:
 - job: ${{ parameters.jobNamePrefix }}_${{ parameters.platform.name }}
   displayName: Source-Build (${{ parameters.platform.name }})
@@ -42,15 +47,7 @@ jobs:
     container: ${{ parameters.platform.container }}
 
   ${{ if eq(parameters.platform.pool, '') }}:
-    # The default VM host AzDO pool. This should be capable of running Docker containers: almost all
-    # source-build builds run in Docker, including the default managed platform.
-    pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: NetCore1ESPool-Public
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: NetCore1ESPool-Internal
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+    pool: ${{ parameters.defaultContainerHostPool }}
   ${{ if ne(parameters.platform.pool, '') }}:
     pool: ${{ parameters.platform.pool }}
 
