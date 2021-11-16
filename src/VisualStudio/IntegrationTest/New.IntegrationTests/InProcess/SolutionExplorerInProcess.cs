@@ -117,6 +117,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             Directory.CreateDirectory(solutionPath);
 
+            // Make sure the shell debugger package is loaded so it doesn't try to load during the synchronous portion
+            // of IVsSolution.CreateSolution.
+            //
+            // TODO: Identify the correct tracking bug
+            _ = await GetRequiredGlobalServiceAsync<SVsShellDebugger, IVsDebugger>(cancellationToken);
+
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));

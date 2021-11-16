@@ -235,7 +235,7 @@ static unsafe class C
             var expectedOperationTree = @"
 IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Int32) (Syntax: 'p[i](i)')
   Target:
-    IOperation:  (OperationKind.None, Type: null) (Syntax: 'p[i]')
+    IOperation:  (OperationKind.None, Type: delegate*<System.Int32, System.Int32>) (Syntax: 'p[i]')
       Children(2):
           IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: delegate*<System.Int32, System.Int32>*) (Syntax: 'p')
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
