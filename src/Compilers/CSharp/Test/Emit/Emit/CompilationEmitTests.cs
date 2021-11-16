@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -256,11 +257,11 @@ namespace Goo.Bar
     {
         public static void SayHello()
         {
-            Console.WriteLine(""hello"");
+            ConEmitMetadataOnly_XmlDocs_NoDocMode_Successsole.WriteLine(""hello"");
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -277,7 +278,9 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -295,7 +298,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -313,7 +316,9 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -331,7 +336,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -356,7 +361,9 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <!-- Badly formed XML comment ignored for member \"T:Goo.Bar.Test1\" -->\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -374,7 +381,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -399,7 +406,9 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary><see cref=\"!:T\"/></summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -417,7 +426,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -439,7 +448,9 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary>This should emit</summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -457,7 +468,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -477,7 +488,9 @@ namespace Goo.Bar
 
             // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                "<?xml version=\"1.0\"?>\r\n<doc>\r\n    <assembly>\r\n        <name>test</name>\r\n    </assembly>\r\n    <members>\r\n        <member name=\"T:Goo.Bar.Test1\">\r\n            <summary>This should emit</summary>\r\n        </member>\r\n    </members>\r\n</doc>\r\n",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]

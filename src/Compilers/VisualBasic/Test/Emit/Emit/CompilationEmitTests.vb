@@ -311,7 +311,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -329,7 +329,9 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -345,7 +347,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -363,7 +365,9 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -379,7 +383,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -400,7 +404,9 @@ End Namespace
                 Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected.").WithLocation(4, 40))
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -416,7 +422,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -435,7 +441,9 @@ End Namespace
                 Diagnostic(ERRID.WRN_XMLDocCrefAttributeNotFound1, "cref=""T""").WithArguments("T").WithLocation(4, 23))
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary><see cref=""!:T""/></summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -451,7 +459,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -469,7 +477,9 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary>This should emit</summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -485,7 +495,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -503,7 +513,9 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>" & vbCrLf & "<doc>" & vbCrLf & "<assembly>" & vbCrLf & "<name>" & vbCrLf & "test" & vbCrLf & "</name>" & vbCrLf & "</assembly>" & vbCrLf & "<members>" & vbCrLf & "<member name=""T:Goo.Bar.X"">" & vbCrLf & " <summary>This should emit</summary>" & vbCrLf & "</member>" & vbCrLf & "</members>" & vbCrLf & "</doc>" & vbCrLf,
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
