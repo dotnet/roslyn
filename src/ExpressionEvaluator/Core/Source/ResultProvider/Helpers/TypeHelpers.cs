@@ -607,12 +607,53 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Custom comparer for the GetDebuggerCustomUIVisualizerInfo method so that our custom set can
+        /// eliminate duplicated visualizer attributes from a type due to inheritance.
+        /// </summary>
+        private class DkmClrDebuggerVisualizerAttributeComparer : IEqualityComparer<DkmClrDebuggerVisualizerAttribute>
+        {
+            public bool Equals(DkmClrDebuggerVisualizerAttribute x, DkmClrDebuggerVisualizerAttribute y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                return x.VisualizerDescription == y.VisualizerDescription &&
+                       x.UISideVisualizerTypeName == y.UISideVisualizerTypeName &&
+                       x.UISideVisualizerAssemblyName == y.UISideVisualizerAssemblyName &&
+                       x.UISideVisualizerAssemblyLocation == y.UISideVisualizerAssemblyLocation &&
+                       x.DebuggeeSideVisualizerTypeName == y.DebuggeeSideVisualizerTypeName &&
+                       x.DebuggeeSideVisualizerAssemblyName == y.DebuggeeSideVisualizerAssemblyName;
+            }
+
+            public int GetHashCode(DkmClrDebuggerVisualizerAttribute obj)
+            {
+                const int prime = 31;
+
+                int hash = 1;
+                if (obj != null)
+                {
+                    hash = (hash * prime) + obj.VisualizerDescription.GetHashCode();
+                    hash = (hash * prime) + obj.UISideVisualizerTypeName.GetHashCode();
+                    hash = (hash * prime) + obj.UISideVisualizerAssemblyName.GetHashCode();
+                    hash = (hash * prime) + obj.UISideVisualizerAssemblyLocation.GetHashCode();
+                    hash = (hash * prime) + obj.DebuggeeSideVisualizerTypeName.GetHashCode();
+                    hash = (hash * prime) + obj.DebuggeeSideVisualizerAssemblyName.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
+        /// <summary>
         /// Returns the array of <see cref="DkmCustomUIVisualizerInfo"/> objects of the type from its <see cref="DkmClrDebuggerVisualizerAttribute"/> attributes,
         /// or null if the type has no [DebuggerVisualizer] attributes associated with it.
         /// </summary>
         internal static DkmCustomUIVisualizerInfo[] GetDebuggerCustomUIVisualizerInfo(this DkmClrType type)
         {
-            var builder = ArrayBuilder<DkmCustomUIVisualizerInfo>.GetInstance();
+            var visualizerAttributeBuilder =
+                HashSetBuilder<DkmClrDebuggerVisualizerAttribute, DkmClrDebuggerVisualizerAttributeComparer>.GetInstance();
 
             var appDomain = type.AppDomain;
             var underlyingType = type.GetLmrType();
@@ -626,24 +667,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         continue;
                     }
 
-                    builder.Add(DkmCustomUIVisualizerInfo.Create((uint)builder.Count,
-                        visualizerAttribute.VisualizerDescription,
-                        visualizerAttribute.VisualizerDescription,
-                        // ClrCustomVisualizerVSHost is a registry entry that specifies the CLSID of the
-                        // IDebugCustomViewer class that will be instantiated to display the custom visualizer.
-                        "ClrCustomVisualizerVSHost",
-                        visualizerAttribute.UISideVisualizerTypeName,
-                        visualizerAttribute.UISideVisualizerAssemblyName,
-                        visualizerAttribute.UISideVisualizerAssemblyLocation,
-                        visualizerAttribute.DebuggeeSideVisualizerTypeName,
-                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName));
+                    // We need to watch out for duplicates since derived objects might return the same
+                    // attributes as their parents.
+                    if (!visualizerAttributeBuilder.Contains(visualizerAttribute))
+                    {
+                        visualizerAttributeBuilder.Add(visualizerAttribute);
+                    }
                 }
 
                 underlyingType = underlyingType.GetBaseTypeOrNull(appDomain, out type);
             }
 
-            var result = (builder.Count > 0) ? builder.ToArray() : null;
-            builder.Free();
+            var visualizerInfoBuilder = ArrayBuilder<DkmCustomUIVisualizerInfo>.GetInstance();
+            foreach (var visualizerAttribute in visualizerAttributeBuilder)
+            {
+                visualizerInfoBuilder.Add(DkmCustomUIVisualizerInfo.Create(
+                    (uint)visualizerInfoBuilder.Count,
+                    visualizerAttribute.VisualizerDescription,
+                    visualizerAttribute.VisualizerDescription,
+                    // ClrCustomVisualizerVSHost is a registry entry that specifies the CLSID of the
+                    // IDebugCustomViewer class that will be instantiated to display the custom visualizer.
+                    "ClrCustomVisualizerVSHost",
+                    visualizerAttribute.UISideVisualizerTypeName,
+                    visualizerAttribute.UISideVisualizerAssemblyName,
+                    visualizerAttribute.UISideVisualizerAssemblyLocation,
+                    visualizerAttribute.DebuggeeSideVisualizerTypeName,
+                    visualizerAttribute.DebuggeeSideVisualizerAssemblyName));
+            }
+
+            var result = (visualizerInfoBuilder.Count > 0) ? visualizerInfoBuilder.ToArray() : null;
+
+            visualizerAttributeBuilder.Free();
+            visualizerInfoBuilder.Free();
+
             return result;
         }
 
