@@ -2002,6 +2002,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LambdaExplicitReturnTypeVar = 8975,
         ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
+
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,
         ERR_UnsupportedTypeForSlicePattern,
@@ -2009,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        ERR_CannotBeMadeNullable = 8977,
+        ERR_CannotBeMadeNullable = 8978,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

@@ -18,6 +18,10 @@ pr:
 - features/*
 - demos/*
 
+variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+
 jobs:
 - job: VS_Integration_CoreHost
   pool:

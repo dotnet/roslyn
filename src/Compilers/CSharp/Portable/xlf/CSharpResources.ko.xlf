@@ -262,6 +262,11 @@
         <target state="translated">'&amp;' 연산자의 대상으로 수신기가 있는 확장 메서드는 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
         <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
         <target state="translated">InterpolatedStringHandlerArgumentAttribute 인수는 특성이 사용되는 매개 변수를 참조할 수 없습니다.</target>
