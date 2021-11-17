@@ -51,21 +51,10 @@
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
     <ExpectedDependency Include="System.Buffers" />
-    <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll" UnsignAssemblies="lib/netstandard1.0/System.Collections.Immutable.dll" />
-    <ExpectedDependency Include="System.Reflection.Metadata" OptimizeAssemblies="lib/netstandard2.0/System.Reflection.Metadata.dll" UnsignAssemblies="lib/netstandard1.1/System.Reflection.Metadata.dll" />
     <ExpectedDependency Include="System.Memory"/>
-    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
     <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
-    <!--
-      Do not overwrite optimization data for this binary for now.
-      This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
-      Arcade SignTool doesn't support signing directly at this point either.
-      https://github.com/dotnet/arcade/issues/1204
-      TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
-    -->
-    <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
@@ -136,14 +125,18 @@
       <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="System.Collections.Immutable"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.Reflection.Metadata"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
+      <_Dependency Remove="System.Runtime.CompilerServices.Unsafe"/>
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
       <_Dependency Remove="System.Threading.AccessControl"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
+      <_Dependency Remove="System.Threading.Tasks.Extensions" />
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
