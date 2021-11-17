@@ -8294,7 +8294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundMethodGroup = new BoundMethodGroup(
                     syntax, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
-                    method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable);
+                    method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
+                { WasCompilerGenerated = true };
 
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
                     diagnostics, queryClause: null, allowUnexpandedForm: false, anyApplicableCandidates: out bool _).MakeCompilerGenerated();
