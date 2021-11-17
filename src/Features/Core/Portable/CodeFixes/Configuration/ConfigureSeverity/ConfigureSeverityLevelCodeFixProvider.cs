@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
     [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
-        private static readonly ImmutableArray<(string name, string value, string title)> s_editorConfigSeverityStrings =
+        private static readonly ImmutableArray<(string value, string title)> s_editorConfigSeverityStrings =
             ImmutableArray.Create(
-                (nameof(EditorConfigSeverityStrings.None), EditorConfigSeverityStrings.None, FeaturesResources.None),
-                (nameof(EditorConfigSeverityStrings.Silent), EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
-                (nameof(EditorConfigSeverityStrings.Suggestion), EditorConfigSeverityStrings.Suggestion, FeaturesResources.Suggestion),
-                (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning, FeaturesResources.Warning),
-                (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error, FeaturesResources.Error));
+                (EditorConfigSeverityStrings.None, FeaturesResources.None),
+                (EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
+                (EditorConfigSeverityStrings.Suggestion, FeaturesResources.Suggestion),
+                (EditorConfigSeverityStrings.Warning, FeaturesResources.Warning),
+                (EditorConfigSeverityStrings.Error, FeaturesResources.Error));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -58,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             foreach (var diagnostic in diagnostics)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value, title) in s_editorConfigSeverityStrings)
+                foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
                             title,
                             solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
-                            name));
+                            value));
                 }
 
                 var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             void AddBulkConfigurationCodeFixes(ImmutableArray<Diagnostic> diagnostics, string? category)
             {
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var (name, value, title) in s_editorConfigSeverityStrings)
+                foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
                         new SolutionChangeAction(
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
                                 : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
-                            name));
+                            value));
                 }
 
                 var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);
