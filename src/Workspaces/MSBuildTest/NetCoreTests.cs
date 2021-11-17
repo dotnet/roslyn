@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41917")]
+        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
