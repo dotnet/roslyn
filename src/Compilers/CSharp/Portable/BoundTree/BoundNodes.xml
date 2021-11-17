@@ -2066,7 +2066,7 @@
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
+  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <!-- An expression with type Index or Range -->
