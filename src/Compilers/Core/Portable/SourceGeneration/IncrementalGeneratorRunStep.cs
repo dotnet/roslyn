@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A description of a step of an incremental generator that was executed.
     /// </summary>
-    public class IncrementalGeneratorRunStep
+    public sealed class IncrementalGeneratorRunStep
     {
         internal IncrementalGeneratorRunStep(string? stepName, ImmutableArray<(IncrementalGeneratorRunStep Source, int OutputIndex)> inputs, ImmutableArray<(object Value, IncrementalStepRunReason OutputState)> outputs, TimeSpan elapsedTime)
         {
