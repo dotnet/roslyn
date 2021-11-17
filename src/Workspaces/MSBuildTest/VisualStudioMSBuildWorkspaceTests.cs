@@ -214,8 +214,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
         }
 
-#if !NETCOREAPP
-        // TODO: Project logger is throwing exceptions on .NET Core
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
         public async Task GetCompilationWithCircularProjectReferences()
@@ -241,7 +239,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.True(compilation1.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation2) ||
                         compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
         }
-#endif
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOutputFilePaths()
@@ -715,8 +712,6 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-#if !NETCOREAPP
-        // TODO: windows design-time-build xaml targets do not load on .NET Core
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WithXaml()
         {
@@ -749,7 +744,6 @@ class C1
             Assert.Contains(documents, d => d.Name == "App.g.cs");
             Assert.Contains(documents, d => d.Name == "MainWindow.g.cs");
         }
-#endif
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestMetadataReferenceHasBadHintPath()
@@ -911,11 +905,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
 
-#if NETCOREAPP
-            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-#else
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-#endif
             {
                 await workspace.OpenSolutionAsync(solutionFilePath);
             });
@@ -1023,11 +1013,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 
-#if NETCOREAPP
-            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
-#else
             await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
-#endif
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1190,11 +1176,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace();
 
-#if NETCOREAPP
-            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenProjectAsync(projectFilePath));
-#else
             await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
-#endif
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1236,11 +1218,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
-#if NETCOREAPP
-            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenProjectAsync(projectFilePath));
-#else
             await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
-#endif
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -2816,12 +2794,6 @@ class C1
             Assert.Equal("//\u201C", text.ToString());
         }
 
-#if !NETCOREAPP
-        // throws the following exceptions on .NET Core
-        // System.AggregateException : One or more errors occurred.
-        // ---- System.TypeInitializationException : The type initializer for 'Microsoft.Build.BackEnd.ItemGroupLoggingHelper' threw an exception.
-        // -------- System.MissingFieldException : Field not found: 'Microsoft.Build.Framework.BuildEventArgs.ResourceStringFormatter'.
-
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
@@ -2851,7 +2823,6 @@ class C1
             compilation.AssertReleased();
             sol.AssertReleased();
         }
-#endif
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
