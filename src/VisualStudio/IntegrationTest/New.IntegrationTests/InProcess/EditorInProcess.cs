@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -31,6 +32,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -144,101 +146,41 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         #region Navigation bars
 
-        public async Task ExpandProjectNavigationBarAsync(CancellationToken cancellationToken)
-        {
-            await ExpandNavigationBarAsync(index: 0, cancellationToken);
-        }
-
-        public async Task ExpandTypeNavigationBarAsync(CancellationToken cancellationToken)
-        {
-            await ExpandNavigationBarAsync(index: 1, cancellationToken);
-        }
-
-        public async Task ExpandMemberNavigationBarAsync(CancellationToken cancellationToken)
-        {
-            await ExpandNavigationBarAsync(index: 2, cancellationToken);
-        }
-
-        public async Task ExpandNavigationBarAsync(int index, CancellationToken cancellationToken)
+        public async Task ExpandNavigationBarAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[index];
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
             FocusManager.SetFocusedElement(FocusManager.GetFocusScope(combobox), combobox);
             combobox.IsDropDownOpen = true;
         }
 
-        public async Task<ImmutableArray<string>> GetProjectNavigationBarItemsAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarItemsAsync(index: 0, cancellationToken);
-        }
-
-        public async Task<ImmutableArray<string>> GetTypeNavigationBarItemsAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarItemsAsync(index: 1, cancellationToken);
-        }
-
-        public async Task<ImmutableArray<string>> GetMemberNavigationBarItemsAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarItemsAsync(index: 2, cancellationToken);
-        }
-
-        public async Task<ImmutableArray<string>> GetNavigationBarItemsAsync(int index, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<string>> GetNavigationBarItemsAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[index];
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
             return combobox.Items.OfType<object>().SelectAsArray(i => $"{i}");
         }
 
-        public async Task<string?> GetProjectNavigationBarSelectionAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarSelectionAsync(index: 0, cancellationToken);
-        }
-
-        public async Task<string?> GetTypeNavigationBarSelectionAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarSelectionAsync(index: 1, cancellationToken);
-        }
-
-        public async Task<string?> GetMemberNavigationBarSelectionAsync(CancellationToken cancellationToken)
-        {
-            return await GetNavigationBarSelectionAsync(index: 2, cancellationToken);
-        }
-
-        public async Task<string?> GetNavigationBarSelectionAsync(int index, CancellationToken cancellationToken)
+        public async Task<string?> GetNavigationBarSelectionAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[index];
+            var combobox = (await GetNavigationBarComboBoxesAsync(view, cancellationToken))[(int)index];
             return combobox.SelectedItem?.ToString();
         }
 
-        public async Task SelectProjectNavigationBarItemAsync(string item, CancellationToken cancellationToken)
-        {
-            await SelectNavigationBarItemAsync(index: 0, item, cancellationToken);
-        }
-
-        public async Task SelectTypeNavigationBarItemAsync(string item, CancellationToken cancellationToken)
-        {
-            await SelectNavigationBarItemAsync(index: 1, item, cancellationToken);
-        }
-
-        public async Task SelectMemberNavigationBarItemAsync(string item, CancellationToken cancellationToken)
-        {
-            await SelectNavigationBarItemAsync(index: 2, item, cancellationToken);
-        }
-
-        public async Task SelectNavigationBarItemAsync(int index, string item, CancellationToken cancellationToken)
+        public async Task SelectNavigationBarItemAsync(NavigationBarDropdownKind index, string item, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
 
@@ -247,7 +189,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var itemIndex = await GetNavigationBarItemIndexAsync(index, item, cancellationToken);
             if (itemIndex < 0)
             {
-                throw new ArgumentException($"Could not find '{item}' in combobox");
+                Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
+                throw ExceptionUtilities.Unreachable;
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
@@ -263,7 +206,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
         }
 
-        public async Task<int> GetNavigationBarItemIndexAsync(int index, string item, CancellationToken cancellationToken)
+        public async Task<int> GetNavigationBarItemIndexAsync(NavigationBarDropdownKind index, string item, CancellationToken cancellationToken)
         {
             var items = await GetNavigationBarItemsAsync(index, cancellationToken);
             return items.IndexOf(item);
