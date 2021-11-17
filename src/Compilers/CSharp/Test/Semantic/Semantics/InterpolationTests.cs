@@ -1114,6 +1114,8 @@ class Program {
 }");
         }
 
+
+#if NET6_0_OR_GREATER
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
         [Fact]
         public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest()
@@ -1172,6 +1174,7 @@ class App{
    IL_0043:  ret
 }");
         }
+#endif
 
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
