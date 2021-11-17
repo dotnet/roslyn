@@ -1150,6 +1150,9 @@ namespace Microsoft.CodeAnalysis
                         writer.WriteKey("analyzerConfigDocumentStates");
 
                         // Order editorconfig files so that we're not dependent on the order we were told about.
+                        //
+                        // Note: we store this info in the checksum as a change here could cause different observable
+                        // results (like different diagnostics), despite the compilation otherwise being the same.
                         foreach (var state in projectState.AnalyzerConfigDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)))
                         {
                             writer.WriteObjectStart();
