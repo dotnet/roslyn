@@ -74,14 +74,13 @@ public class X
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test(System.Span<char>)", @"
 {
-  // Code size       74 (0x4a)
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (char V_0, //first
                 System.Span<char> V_1, //others
                 char V_2, //last
                 System.Span<char> V_3,
-                int V_4,
-                System.Span<char> V_5)
+                int V_4)
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloca.s   V_3
@@ -89,41 +88,39 @@ public class X
   IL_0009:  stloc.s    V_4
   IL_000b:  ldloc.s    V_4
   IL_000d:  ldc.i4.1
-  IL_000e:  ble.un.s   IL_003b
+  IL_000e:  ble.un.s   IL_0038
   IL_0010:  ldloca.s   V_3
   IL_0012:  ldc.i4.0
   IL_0013:  call       ""ref char System.Span<char>.this[int].get""
   IL_0018:  ldind.u2
   IL_0019:  stloc.0
-  IL_001a:  ldloc.3
-  IL_001b:  stloc.s    V_5
-  IL_001d:  ldloca.s   V_5
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  ldc.i4.1
+  IL_001d:  ldloc.s    V_4
   IL_001f:  ldc.i4.1
-  IL_0020:  ldloc.s    V_4
-  IL_0022:  ldc.i4.1
-  IL_0023:  sub
-  IL_0024:  ldc.i4.1
-  IL_0025:  sub
-  IL_0026:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_002b:  stloc.1
-  IL_002c:  ldloca.s   V_3
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldc.i4.1
-  IL_0031:  sub
-  IL_0032:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0037:  ldind.u2
-  IL_0038:  stloc.2
-  IL_0039:  br.s       IL_003d
-  IL_003b:  ldc.i4.1
-  IL_003c:  ret
-  IL_003d:  ldloc.0
-  IL_003e:  ldloc.2
-  IL_003f:  bne.un.s   IL_0048
-  IL_0041:  ldloc.1
-  IL_0042:  call       ""bool X.Test(System.Span<char>)""
-  IL_0047:  ret
-  IL_0048:  ldc.i4.0
-  IL_0049:  ret
+  IL_0020:  sub
+  IL_0021:  ldc.i4.1
+  IL_0022:  sub
+  IL_0023:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0034:  ldind.u2
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.1
+  IL_0039:  ret
+  IL_003a:  ldloc.0
+  IL_003b:  ldloc.2
+  IL_003c:  bne.un.s   IL_0045
+  IL_003e:  ldloc.1
+  IL_003f:  call       ""bool X.Test(System.Span<char>)""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"

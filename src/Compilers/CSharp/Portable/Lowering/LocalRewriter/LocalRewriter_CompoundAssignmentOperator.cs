@@ -416,10 +416,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the only thing we need to do is lift the stores and temps out of
             // the sequence, and use the final expression as the new argument
 
-            var sequence = VisitIndexOrRangePatternIndexerAccess(indexerAccess, isLeftOfAssignment: true);
-            stores.AddRange(sequence.SideEffects);
-            temps.AddRange(sequence.Locals);
-            return TransformCompoundAssignmentLHS(sequence.Value, stores, temps, isDynamicAssignment);
+            var access = VisitIndexOrRangePatternIndexerAccess(indexerAccess, isLeftOfAssignment: true);
+
+            if (access is BoundSequence sequence)
+            {
+                stores.AddRange(sequence.SideEffects);
+                temps.AddRange(sequence.Locals);
+                access = sequence.Value;
+            }
+
+            return TransformCompoundAssignmentLHS(access, stores, temps, isDynamicAssignment);
         }
 
         /// <summary>
