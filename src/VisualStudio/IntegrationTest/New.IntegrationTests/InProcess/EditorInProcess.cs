@@ -425,6 +425,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
 
+            if (Version.Parse("17.1.31916.450") > await TestServices.Shell.GetVersionAsync(cancellationToken))
+            {
+                // Workaround for extremely unstable async lightbulb prior to:
+                // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/361759
+                await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Period, ShiftState.Ctrl));
+                await Task.Delay(5000, cancellationToken);
+
+                await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
+                await Task.Delay(5000, cancellationToken);
+            }
+
             await ShowLightBulbAsync(cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
         }

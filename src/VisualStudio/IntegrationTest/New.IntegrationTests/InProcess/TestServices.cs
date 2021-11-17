@@ -17,6 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             EditorVerifier = new EditorVerifierInProcess(this);
             ErrorList = new ErrorListInProcess(this);
             Input = new InputInProcess(this);
+            Shell = new ShellInProcess(this);
             SolutionExplorer = new SolutionExplorerInProcess(this);
             SolutionVerifier = new SolutionVerifierInProcess(this);
             StateReset = new StateResetInProcess(this);
@@ -32,6 +33,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public ErrorListInProcess ErrorList { get; }
 
         public InputInProcess Input { get; }
+
+        public ShellInProcess Shell { get; }
 
         public SolutionExplorerInProcess SolutionExplorer { get; }
 
