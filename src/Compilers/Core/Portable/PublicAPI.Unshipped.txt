@@ -40,10 +40,12 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Enumerator() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Reset() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Enumerator() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Reset() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
