@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         internal static ITypeSymbol? GetTypeSymbolThatSatisfiesCollectionInitializer(
             SyntaxNodeAnalysisContext context,
             ITypeSymbol collectionTypeSymbol,
-            IImmutableList<ITypeSymbol> argumentTypeSymbols,
+            IReadOnlyList<ITypeSymbol> argumentTypeSymbols,
             int targetIndex)
         {
             IParameterSymbol? matchingParameter = null;
