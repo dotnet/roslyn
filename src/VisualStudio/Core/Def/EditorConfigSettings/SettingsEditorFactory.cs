@@ -191,6 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView) => true;
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+            => true;
     }
 }
