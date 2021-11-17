@@ -6764,7 +6764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
                 // Properties are handled in BindPropertyAccess
-                if (symbol.Kind is not (SymbolKind.Event and SymbolKind.Property))
+                if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
                 }
