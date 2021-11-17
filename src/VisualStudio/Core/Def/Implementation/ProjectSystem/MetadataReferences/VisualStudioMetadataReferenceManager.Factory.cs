@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_singleton == null)
             {
                 var temporaryStorage = workspaceServices.GetService<ITemporaryStorageService>();
-                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(workspaceServices.Workspace, _serviceProvider, temporaryStorage), null);
+                Interlocked.CompareExchange(ref _singleton, new VisualStudioMetadataReferenceManager(_serviceProvider, temporaryStorage), null);
             }
 
             return _singleton;
