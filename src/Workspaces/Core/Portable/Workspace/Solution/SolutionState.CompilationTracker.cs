@@ -1127,21 +1127,29 @@ namespace Microsoft.CodeAnalysis
 
                 async Task<Checksum> GetChecksumAsync(ProjectState projectState, CancellationToken cancellationToken)
                 {
+                    // If this is a non C#/VB project, then just compute the normal check for this project.  It won't 
+                    // be persistable, but that's not in scope for those languages currently.
                     if (!projectState.SupportsCompilation)
                         return await projectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
+                    // For C#/VB build up a persistable checksum that should generate something new any time we might
+                    // feasibly get a new compilation, but which should stay the same if we have high (ideally 100%)
+                    // confidence that the same compilation value would be created.
                     using var _1 = PooledStringBuilder.GetInstance(out var projectKeyBuilder);
                     {
                         using var _2 = new StringWriter(projectKeyBuilder);
                         using var writer = new JsonWriter(_2);
 
+                        projectKeyBuilder.AppendLine("[");
                         writer.WriteObjectStart();
 
+                        // not necessary, but helpful for debugging.
                         writer.WriteKey("hasAllInformation");
                         writer.Write(projectState.HasAllInformation);
 
                         writer.WriteKey("analyzerConfigDocumentStates");
 
+                        // Order editorconfig files so that we're not dependent on the order we were told about.
                         foreach (var state in projectState.AnalyzerConfigDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)))
                         {
                             writer.WriteObjectStart();
@@ -1163,6 +1171,8 @@ namespace Microsoft.CodeAnalysis
                         writer.WriteKey("analyzerReferences");
 
                         var serializer = solution.Workspace.Services.GetRequiredService<ISerializerService>();
+
+                        // Order analyzer files so that we're not dependent on the order we were told about.
                         foreach (var reference in projectState.AnalyzerReferences.OrderBy(r => (r.FullPath, r.Display)))
                         {
                             writer.WriteObjectStart();
@@ -1192,6 +1202,7 @@ namespace Microsoft.CodeAnalysis
 
                     projectKeyBuilder.AppendLine(",");
 
+                    // Now, defer to the compiler to build up an appropriate key representing its view of the world.
                     var compilerKey = DeterministicKey.GetDeterministicKey(
                         projectState.CompilationOptions!,
                         projectState.DocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => DocumentStateSyntaxTreeKey.Create(s)),
@@ -1199,7 +1210,9 @@ namespace Microsoft.CodeAnalysis
                         projectState.AdditionalDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => s.AdditionalText),
                         cancellationToken: cancellationToken);
 
-                    projectKeyBuilder.Append(compilerKey);
+                    projectKeyBuilder.AppendLine(compilerKey);
+                    projectKeyBuilder.AppendLine("]");
+
                     var fullKey = projectKeyBuilder.ToString();
                     return Checksum.Create(fullKey);
                 }
