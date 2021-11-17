@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             }
             else
             {
-                // more cases can be added here if we discover more cases we think the type is readily apparent from context.
+                // More cases can be added here if we discover more cases we think the type is readily apparent from context.
                 return;
             }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             if (leftType.IsErrorType() || rightType.IsErrorType())
                 return;
 
-            // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here
+            // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here.
             if (!SymbolEquivalenceComparer.Instance.Equals(leftType, rightType))
             {
                 return;

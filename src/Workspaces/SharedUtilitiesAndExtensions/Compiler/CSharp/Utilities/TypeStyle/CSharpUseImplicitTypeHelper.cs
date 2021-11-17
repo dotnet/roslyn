@@ -375,14 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             IParameterSymbol? matchingParameter = null;
 
-            // First make sure the collection type implements IEnumerable
+            // First make sure the collection type implements IEnumerable.
             var enumableTypeSymbol = context.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             if (!collectionTypeSymbol.Implements(enumableTypeSymbol))
             {
                 return null;
             }
 
-            // Find a matching Add method symbol
+            // Find a matching Add method symbol.
             var matchingMethodSymbol = collectionTypeSymbol
                 .GetMembers("Add")
                 .OfType<IMethodSymbol>()
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         return false;
                     }
 
-                    // Match parameters to the initializer arguments
+                    // Match parameters to the initializer arguments.
                     for (var i = 0; i < argumentTypeSymbols.Count; i++)
                     {
                         if (!argumentTypeSymbols[i].InheritsFromOrImplementsOrEqualsIgnoringConstruction(parameters[i].Type))
