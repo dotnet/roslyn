@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName) is { } throwIfNullAdapter)
                 {
                     Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) != null);
-                    return (MethodSymbol?)throwIfNullAdapter.GetInternalSymbol()!;
+                    return (MethodSymbol)throwIfNullAdapter.GetInternalSymbol()!;
                 }
 
                 Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) == null);
