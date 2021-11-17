@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
     [Export(typeof(SettingsEditorFactory))]
     [Guid(SettingsEditorFactoryGuidString)]
-    internal sealed class SettingsEditorFactory : IVsEditorFactory, IDisposable
+    internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory4, IDisposable
     {
         public static readonly Guid SettingsEditorFactoryGuid = new(SettingsEditorFactoryGuidString);
         public const string SettingsEditorFactoryGuidString = "68b46364-d378-42f2-9e72-37d86c5f4468";
@@ -175,5 +175,22 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 return VSConstants.E_NOTIMPL;   // you must return E_NOTIMPL for any unrecognized rguidLogicalView values
             }
         }
+
+        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView) => true;
     }
 }
