@@ -1114,9 +1114,9 @@ class Program {
 }");
         }
 
-        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
         [Fact]
-        public void InterpolatedStringTest()
+        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest()
         {
             var text =
 @"using System;
