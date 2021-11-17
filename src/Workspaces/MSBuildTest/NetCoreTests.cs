@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public async Task TestOpenProject_NetCoreApp2()
+        public async Task TestOpenProject_NetCoreApp()
         {
-            CreateFiles(GetNetCoreApp2Files());
+            CreateFiles(GetNetCoreAppFiles());
 
             var projectFilePath = GetSolutionFileName("Project.csproj");
 
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public async Task TestOpenProjectTwice_NetCoreApp2AndLibrary()
+        public async Task TestOpenProjectTwice_NetCoreAppAndLibrary()
         {
-            CreateFiles(GetNetCoreApp2AndLibraryFiles());
+            CreateFiles(GetNetCoreAppAndLibraryFiles());
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
             var libraryFilePath = GetSolutionFileName(@"Library\Library.csproj");
@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public async Task TestOpenProjectTwice_NetCoreApp2AndTwoLibraries()
+        public async Task TestOpenProjectTwice_NetCoreAppAndTwoLibraries()
         {
-            CreateFiles(GetNetCoreApp2AndTwoLibrariesFiles());
+            CreateFiles(GetNetCoreAppAndTwoLibrariesFiles());
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
             var library1FilePath = GetSolutionFileName(@"Library1\Library1.csproj");
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_OverrideTFM()
         {
-            CreateFiles(GetNetCoreApp2AndLibraryFiles());
+            CreateFiles(GetNetCoreAppAndLibraryFiles());
 
             var projectFilePath = GetSolutionFileName(@"Library\Library.csproj");
 
