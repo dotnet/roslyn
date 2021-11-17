@@ -3443,5 +3443,49 @@ class C
             Assert.Equal("c", receivers[1].ToString());
             Assert.Equal("C", model.GetTypeInfo(receivers[1]).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void Nullable_OrderOfEvaluation()
+        {
+            var source = @"
+#nullable enable
+C? c = null;
+_ = (c = new C())[M1(c.ToString())];
+
+c = null;
+_ = (c = new C())[M2(c.ToString())];
+
+c = null;
+_ = c[M1((c = new C()).ToString())]; // 1
+
+string? s = null;
+_ = (s = string.Empty)[M1(s.ToString())];
+
+s = null;
+_ = (s = string.Empty)[M2(s.ToString())];
+
+int[]? a = null;
+_ = (a = new[] { 1 })[M1(a.ToString())];
+
+a = null;
+_ = (a = new[] { 1 })[M2(a.ToString())];
+
+static System.Index M1(object? o) => throw null!;
+static System.Range M2(object? o) => throw null!;
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // (10,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M1((c = new C()).ToString())]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 5)
+                );
+        }
     }
 }
