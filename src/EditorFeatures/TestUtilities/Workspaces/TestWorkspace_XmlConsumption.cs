@@ -900,7 +900,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 && ((bool?)onDiskAttribute).GetValueOrDefault();
 
             var image = compilation.EmitToArray();
-            var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            var metadataReference = MetadataReference.CreateFromImage(
+                image, new MetadataReferenceProperties(aliases: aliases),
+                includeXmlDocComments ? new TestDeferredDocumentationProvider(compilation) : null);
             if (referencesOnDisk)
             {
                 AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
