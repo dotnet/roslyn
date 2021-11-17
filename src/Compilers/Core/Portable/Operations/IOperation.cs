@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An enumerable of child operations for this operation.
         /// </summary>
-        ChildCollection ChildOperations { get; }
+        OperationList ChildOperations { get; }
 
         /// <summary>
         /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.

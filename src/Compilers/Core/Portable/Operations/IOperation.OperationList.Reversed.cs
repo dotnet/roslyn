@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     public partial interface IOperation
     {
-        public readonly partial struct ChildCollection
+        public readonly partial struct OperationList
         {
             /// <summary>
             /// Implements a reverse-order struct-based collection of <see cref="Operation"/> nodes.
@@ -46,15 +46,14 @@ namespace Microsoft.CodeAnalysis
                             return children;
                         case InvalidOperation { Children: var children }:
                             return children;
-                        case var _ when !enumerator.MoveNext():
+                        case { ChildOperationsCount: 0 }:
                             return ImmutableArray<IOperation>.Empty;
                         default:
                             var builder = ArrayBuilder<IOperation>.GetInstance(Count);
-                            do
+                            foreach (var child in this)
                             {
-                                builder.Add(enumerator.Current);
-                            } while (enumerator.MoveNext());
-
+                                builder.Add(child);
+                            }
                             return builder.ToImmutableAndFree();
                     }
                 }
@@ -97,7 +96,12 @@ namespace Microsoft.CodeAnalysis
                         return result;
                     }
 
-                    void IEnumerator.Reset() { }
+                    public void Reset()
+                    {
+                        _currentIndex = int.MaxValue;
+                        _currentSlot = int.MaxValue;
+                    }
+
                     object? IEnumerator.Current => Current;
                     void IDisposable.Dispose() { }
                 }

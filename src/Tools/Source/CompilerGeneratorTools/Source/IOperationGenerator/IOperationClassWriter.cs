@@ -769,7 +769,7 @@ namespace IOperationGenerator
                         int slot = 0;
                         for (; slot < orderedProperties.Count; slot++)
                         {
-                            // Operation.ChildCollection.Enumerator starts indexes at -1. For a given property, the general psuedocode is:
+                            // Operation.ChildCollection.Enumerator starts indexes at -1. For a given property, the general pseudocode is:
 
                             // case previousSlot:
                             //     if (element i is valid) return (true, i, 0);

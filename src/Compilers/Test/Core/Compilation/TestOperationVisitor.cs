@@ -76,6 +76,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Assert.Same(builder[0], operation.ChildOperations.First());
                     Assert.Same(builder[^1], operation.ChildOperations.Last());
+
+                    var forwards = operation.ChildOperations.GetEnumerator();
+                    Assert.True(forwards.MoveNext());
+                    var first = forwards.Current;
+                    forwards.Reset();
+                    Assert.True(forwards.MoveNext());
+                    Assert.Same(first, forwards.Current);
+
+                    var reversed = operation.ChildOperations.Reverse().GetEnumerator();
+                    Assert.True(reversed.MoveNext());
+                    var last = reversed.Current;
+                    reversed.Reset();
+                    Assert.True(reversed.MoveNext());
+                    Assert.Same(last, reversed.Current);
                 }
                 else
                 {
@@ -538,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(signature);
             Assert.Same(((IFunctionPointerTypeSymbol)operation.Target.Type).Signature, signature);
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitArgument(IArgumentOperation operation)
@@ -1176,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.InterpolatedStringHandlerCreation, operation.Kind);
             IEnumerable<IOperation> children = new[] { operation.HandlerCreation, operation.Content };
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
             Assert.True(operation.HandlerCreation is IObjectCreationOperation or IDynamicObjectCreationOperation or IInvalidOperation);
             Assert.True(operation.Content is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
             _ = operation.HandlerCreationHasSuccessParameter;
@@ -1186,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
         {
             Assert.Equal(OperationKind.InterpolatedStringAddition, operation.Kind);
-            AssertEx.Equal(new[] { operation.Left, operation.Right }, operation.Children);
+            AssertEx.Equal(new[] { operation.Left, operation.Right }, operation.ChildOperations);
             Assert.True(operation.Left is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
             Assert.True(operation.Right is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
         }

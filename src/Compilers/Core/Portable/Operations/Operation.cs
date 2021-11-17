@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         IEnumerable<IOperation> IOperation.Children => this.ChildOperations;
 
         /// <inheritdoc/>
-        public IOperation.ChildCollection ChildOperations => new IOperation.ChildCollection(this);
+        public IOperation.OperationList ChildOperations => new IOperation.OperationList(this);
 
         internal abstract int ChildOperationsCount { get; }
         internal abstract IOperation GetCurrent(int slot, int index);

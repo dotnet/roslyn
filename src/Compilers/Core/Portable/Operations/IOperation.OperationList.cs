@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis
         /// <code>default(ChildCollection)</code>, and will null reference in these cases.
         /// </summary>
         [NonDefaultable]
-        public readonly partial struct ChildCollection : IReadOnlyCollection<IOperation>
+        public readonly partial struct OperationList : IReadOnlyCollection<IOperation>
         {
             private readonly Operation _operation;
 
-            internal ChildCollection(Operation operation)
+            internal OperationList(Operation operation)
             {
                 _operation = operation;
             }
@@ -36,22 +36,20 @@ namespace Microsoft.CodeAnalysis
 
             public ImmutableArray<IOperation> ToImmutableArray()
             {
-                Enumerator enumerator = GetEnumerator();
                 switch (_operation)
                 {
                     case NoneOperation { Children: var children }:
                         return children;
                     case InvalidOperation { Children: var children }:
                         return children;
-                    case var _ when !enumerator.MoveNext():
+                    case { ChildOperationsCount: 0 }:
                         return ImmutableArray<IOperation>.Empty;
                     default:
                         var builder = ArrayBuilder<IOperation>.GetInstance(Count);
-                        do
+                        foreach (var child in this)
                         {
-                            builder.Add(enumerator.Current);
-                        } while (enumerator.MoveNext());
-
+                            builder.Add(child);
+                        }
                         return builder.ToImmutableAndFree();
                 }
             }
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
-                void IEnumerator.Reset()
+                public void Reset()
                 {
                     _currentSlot = -1;
                     _currentIndex = -1;

@@ -551,7 +551,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // walk down to collect all parent operation map for this tree
             foreach (var child in operation.ChildOperations)
             {
-                if (child is null) continue;
                 map.Add(child, operation);
 
                 CollectParentOperations(child, map);
