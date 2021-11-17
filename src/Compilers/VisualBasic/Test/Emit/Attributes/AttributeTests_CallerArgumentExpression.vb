@@ -920,7 +920,7 @@ End Module
 value").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpression_OnByRefParameter01()
             Dim source As String = "
 Imports System.Runtime.CompilerServices
@@ -935,7 +935,7 @@ End Module
             compilation.AssertTheseDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpression_OnByRefParameter02()
             Dim source As String = "
 Imports System
