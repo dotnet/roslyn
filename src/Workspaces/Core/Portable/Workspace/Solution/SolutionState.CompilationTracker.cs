@@ -1119,9 +1119,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var referencedProject = solution.GetRequiredProjectState(projectId);
 
-                    // Note that these checksums should only actually be calculated once, if the project is unchanged
-                    // the same checksum will be returned.
-                    var referencedProjectChecksum = await GetChecksumAsync(referencedProject, cancellationToken).ConfigureAwait(false);
+                    var referencedProjectChecksum = await solution.GetDependentChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
                     tempChecksumArray.Add(referencedProjectChecksum);
                 }
 
