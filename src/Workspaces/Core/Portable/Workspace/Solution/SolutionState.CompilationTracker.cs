@@ -1132,19 +1132,15 @@ namespace Microsoft.CodeAnalysis
                     if (!projectState.SupportsCompilation)
                         return await projectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    var compilerKey = DeterministicKey.GetDeterministicKey(
-                        projectState.CompilationOptions!,
-                        projectState.DocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => DocumentStateSyntaxTreeKey.Create(s)),
-                        projectState.MetadataReferences.OrderBy(r => r.Display).ToImmutableArray(),
-                        projectState.AdditionalDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => s.AdditionalText),
-                        cancellationToken: cancellationToken);
-
                     using var _1 = PooledStringBuilder.GetInstance(out var projectKeyBuilder);
                     {
                         using var _2 = new StringWriter(projectKeyBuilder);
                         using var writer = new JsonWriter(_2);
 
                         writer.WriteObjectStart();
+
+                        writer.WriteKey("hasAllInformation");
+                        writer.Write(projectState.HasAllInformation);
 
                         writer.WriteKey("analyzerConfigDocumentStates");
 
@@ -1157,9 +1153,11 @@ namespace Microsoft.CodeAnalysis
                             writer.WriteKey("name");
                             Write(state.Name);
 
+                            // Only mix in the text part of the checksum.  The full checksum includes things like IDs
+                            // which are not safe to persist across sessions.
                             writer.Write("checksum");
-                            var checksum = await state.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                            Write(checksum.ToString());
+                            var checksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                            Write(checksums.Text.ToString());
 
                             writer.WriteObjectEnd();
                         }
@@ -1194,7 +1192,15 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    projectKeyBuilder.AppendLine();
+                    projectKeyBuilder.AppendLine(",");
+
+                    var compilerKey = DeterministicKey.GetDeterministicKey(
+                        projectState.CompilationOptions!,
+                        projectState.DocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => DocumentStateSyntaxTreeKey.Create(s)),
+                        projectState.MetadataReferences.OrderBy(r => r.Display).ToImmutableArray(),
+                        projectState.AdditionalDocumentStates.States.Values.OrderBy(s => (s.FilePath, s.Name)).SelectAsArray(s => s.AdditionalText),
+                        cancellationToken: cancellationToken);
+
                     projectKeyBuilder.Append(compilerKey);
                     var fullKey = projectKeyBuilder.ToString();
                     return Checksum.Create(fullKey);

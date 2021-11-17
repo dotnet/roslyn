@@ -4,18 +4,18 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Globalization;
-using Microsoft.CodeAnalysis.Debugging;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteKey("specificDiagnosticOptions");
             writer.WriteArrayStart();
-            foreach (var kvp in options.SpecificDiagnosticOptions)
+            foreach (var kvp in options.SpecificDiagnosticOptions.OrderBy(kvp => kvp.Key))
             {
                 writer.WriteObjectStart();
                 writer.Write(kvp.Key, kvp.Value);

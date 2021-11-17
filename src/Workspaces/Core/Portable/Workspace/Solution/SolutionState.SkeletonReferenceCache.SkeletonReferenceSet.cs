@@ -22,8 +22,11 @@ internal partial class SolutionState
         private sealed class SkeletonReferenceSet
         {
             private const string s_peStreamKey = "PeStream";
+            private const string s_peStreamKeyHasAllInformation = "PeStreamHasAllInformation";
             private const string s_xmlDocumentationStreamKey = "XmlDocumentationStream";
+            private const string s_xmlDocumentationStreamKeyHasAllInformation = "XmlDocumentationStreamHasAllInformation";
             private const string s_assemblyNameKey = "AssemblyName";
+            private const string s_assemblyNameKeyHasAllInformation = "AssemblyNameHasAllInformation";
 
             /// <summary>
             /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
@@ -130,17 +133,19 @@ internal partial class SolutionState
                     var solutionKey = SolutionKey.ToSolutionKey(solution);
                     var projectKey = ProjectKey.ToProjectKey(solutionKey, project);
 
+                    var (peStreamKey, xmlDocumentationStreamKey, assemblyNameKey) = GetKeys(project);
+
                     var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                     await using var _ = storage.ConfigureAwait(false);
 
                     {
                         using var peStream = await _peStreamStorage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-                        await storage.WriteStreamAsync(projectKey, s_peStreamKey, peStream, checksum, cancellationToken).ConfigureAwait(false);
+                        await storage.WriteStreamAsync(projectKey, peStreamKey, peStream, checksum, cancellationToken).ConfigureAwait(false);
                     }
 
                     {
                         using var xmlDocumentationStream = await _xmlDocumentationStreamStorage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-                        await storage.WriteStreamAsync(projectKey, s_xmlDocumentationStreamKey, xmlDocumentationStream, checksum, cancellationToken).ConfigureAwait(false);
+                        await storage.WriteStreamAsync(projectKey, xmlDocumentationStreamKey, xmlDocumentationStream, checksum, cancellationToken).ConfigureAwait(false);
                     }
 
                     {
@@ -150,13 +155,18 @@ internal partial class SolutionState
                         objectWriter.WriteString(_assemblyName);
                         assemblyNameStream.Position = 0;
 
-                        await storage.WriteStreamAsync(projectKey, s_assemblyNameKey, assemblyNameStream, checksum, cancellationToken).ConfigureAwait(false);
+                        await storage.WriteStreamAsync(projectKey, assemblyNameKey, assemblyNameStream, checksum, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {
                 }
             }
+
+            private static (string peStreamKey, string xmlDocumentationStreamKey, string assemblyNameKey) GetKeys(ProjectState project)
+                => project.HasAllInformation
+                    ? (s_peStreamKeyHasAllInformation, s_xmlDocumentationStreamKeyHasAllInformation, s_assemblyNameKeyHasAllInformation)
+                    : (s_peStreamKey, s_xmlDocumentationStreamKey, s_assemblyNameKey);
 
             public static async Task<SkeletonReferenceSet?> TryReadFromPersistentStorageAsync(
                 SolutionState solution,
@@ -172,6 +182,7 @@ internal partial class SolutionState
 
                     var solutionKey = SolutionKey.ToSolutionKey(solution);
                     var projectKey = ProjectKey.ToProjectKey(solutionKey, project);
+                    var (peStreamKey, xmlDocumentationStreamKey, assemblyNameKey) = GetKeys(project);
 
                     var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                     await using var _ = storage.ConfigureAwait(false);
@@ -181,7 +192,7 @@ internal partial class SolutionState
                     string assemblyName;
 
                     {
-                        using var peStream = await storage.ReadStreamAsync(projectKey, s_peStreamKey, checksum, cancellationToken).ConfigureAwait(false);
+                        using var peStream = await storage.ReadStreamAsync(projectKey, peStreamKey, checksum, cancellationToken).ConfigureAwait(false);
                         if (peStream == null)
                             return null;
 
@@ -189,7 +200,7 @@ internal partial class SolutionState
                     }
 
                     {
-                        using var xmlDocumentationStream = await storage.ReadStreamAsync(projectKey, s_xmlDocumentationStreamKey, checksum, cancellationToken).ConfigureAwait(false);
+                        using var xmlDocumentationStream = await storage.ReadStreamAsync(projectKey, xmlDocumentationStreamKey, checksum, cancellationToken).ConfigureAwait(false);
                         if (xmlDocumentationStream == null)
                             return null;
 
@@ -197,7 +208,7 @@ internal partial class SolutionState
                     }
 
                     {
-                        using var assemblyNameStream = await storage.ReadStreamAsync(projectKey, s_assemblyNameKey, checksum, cancellationToken).ConfigureAwait(false);
+                        using var assemblyNameStream = await storage.ReadStreamAsync(projectKey, assemblyNameKey, checksum, cancellationToken).ConfigureAwait(false);
                         if (assemblyNameStream == null)
                             return null;
 
