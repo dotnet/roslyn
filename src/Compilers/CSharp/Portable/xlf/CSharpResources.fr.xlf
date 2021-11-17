@@ -262,6 +262,11 @@
         <target state="translated">Impossible d'utiliser une méthode d'extension avec un récepteur en tant que cible d'un opérateur '&amp;'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
         <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
         <target state="translated">Les arguments de l'attribut InterpolatedStringHandlerArgumentAttribute ne peuvent pas faire référence au paramètre sur lequel l'attribut est utilisé.</target>

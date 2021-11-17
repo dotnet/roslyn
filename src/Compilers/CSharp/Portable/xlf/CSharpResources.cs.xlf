@@ -262,6 +262,11 @@
         <target state="translated">Rozšiřující metoda, kde jako cíl je nastavený příjemce, se nedá použít jako cíl operátoru &amp;.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
         <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
         <target state="translated">Argumenty InterpolatedStringHandlerArgumentAttribute nemůžou odkazovat na parametr, na kterém se atribut používá.</target>
