@@ -7,6 +7,7 @@ Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -28,11 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
         Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _threadingContext As IThreadingContext
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService)
+        Public Sub New(globalOptions As IGlobalOptionService, threadingContext As IThreadingContext)
             _globalOptions = globalOptions
+            _threadingContext = threadingContext
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -54,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
                 ' user indefinitely while getting full semantics for this projects (which can require building all
                 ' projects we depend on).
-                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
+                Dim document = _threadingContext.JoinableTaskFactory.Run(Function() currentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).AsTask())
                 If document Is Nothing Then
                     Return
                 End If

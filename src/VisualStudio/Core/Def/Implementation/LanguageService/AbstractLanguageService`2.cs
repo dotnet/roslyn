@@ -7,10 +7,12 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Forms.VisualStyles;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -57,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
         internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
+        internal IThreadingContext ThreadingContext { get; private set; }
 
         /// <summary>
         /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
@@ -142,6 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
+            this.ThreadingContext = this.Package.ComponentModel.GetService<IThreadingContext>();
         }
 
         protected virtual void RemoveServices()
@@ -260,6 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var languageServices = workspace.Services.GetLanguageServices(RoslynLanguageName);
 
             return new VsLanguageDebugInfo(
+                ThreadingContext,
                 this.DebuggerLanguageId,
                 (TLanguageService)this,
                 languageServices,

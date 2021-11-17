@@ -1624,13 +1624,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private NonReentrantLock? _stateLockBackingField;
-        private NonReentrantLock StateLock
+        private SemaphoreSlim? _stateLockBackingField;
+        private SemaphoreSlim StateLock
         {
             get
             {
                 // TODO: why did I need to do a nullable suppression here?
-                return LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory)!;
+                return LazyInitializer.EnsureInitialized(ref _stateLockBackingField, () => new SemaphoreSlim(1))!;
             }
         }
 
@@ -1646,14 +1646,14 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        public async ValueTask<SolutionState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             try
             {
                 var doc = this.GetRequiredDocumentState(documentId);
                 var tree = doc.GetSyntaxTree(cancellationToken);
 
-                using (this.StateLock.DisposableWait(cancellationToken))
+                using (await StateLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // in progress solutions are disabled for some testing
                     if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)

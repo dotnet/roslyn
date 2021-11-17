@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // as this is just something that happens during solution load and will pass once that is over.  By using
                 // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
                 // compilation data (like skeleton assemblies).
-                var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                var document = await textSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 if (document == null)
                     return null;
 

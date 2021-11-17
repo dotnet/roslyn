@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
                 // First use partial semantic to build mostly correct cache fast
-                var partialDocument = document.WithFrozenPartialSemantics(cancellationToken);
+                var partialDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 await service.WarmUpCacheAsync(partialDocument.Project, CancellationToken.None).ConfigureAwait(false);
 
                 // Then try to update the cache with full semantic
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return;
 
                 // First use partial semantic to build mostly correct cache fast
-                var partialDocument = document.WithFrozenPartialSemantics(cancellationToken);
+                var partialDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(partialDocument, cancellationToken).ConfigureAwait(false);
 
                 // Then try to update the cache with full semantic

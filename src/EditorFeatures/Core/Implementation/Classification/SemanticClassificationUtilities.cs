@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
             // as we do not have to wait on skeletons to be built.
 
-            document = document.WithFrozenPartialSemantics(cancellationToken);
+            document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
             spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(

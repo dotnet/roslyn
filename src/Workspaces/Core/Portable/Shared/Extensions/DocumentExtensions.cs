@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
+                var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 return (frozenDocument, await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
         }

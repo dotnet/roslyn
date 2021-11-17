@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(2, fullCompilation.SyntaxTrees.Count());
 
-            var partialProject = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None).Project;
+            var partialProject = (await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None)).Project;
             Assert.NotSame(partialProject, project);
             var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await project.GetCompilationAsync();
 
             // Produce an in-progress snapshot
-            project = project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemantics(CancellationToken.None).Project;
+            project = (await project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemanticsAsync(CancellationToken.None)).Project;
 
             // The generated tree should still be there; even if the regular compilation fell away we've now cached the 
             // generated trees.
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 documentToFreeze = documentToFreeze.WithText(SourceText.From("// Changed Source File"));
             }
 
-            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await documentToFreeze.WithFrozenPartialSemanticsAsync(CancellationToken.None);
             Assert.NotSame(frozenDocument, documentToFreeze);
             await frozenDocument.GetSemanticModelAsync(CancellationToken.None);
 
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(generatorRan);
             generatorRan = false;
 
-            var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var document = await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
             document = document.WithText(SourceText.From("// Something else"));
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             compilationReference.AssertReleased();
 
-            var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var document = await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
             document = document.WithText(SourceText.From("// Something else"));

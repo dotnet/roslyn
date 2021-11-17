@@ -27,6 +27,10 @@ namespace Roslyn.Utilities
             => task!;
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        public static ValueTask<T?> AsNullable<T>(this ValueTask<T> task) where T : class
+            => task!;
+
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T?> Default<T>()
             => EmptyTasks<T>.Default;
 

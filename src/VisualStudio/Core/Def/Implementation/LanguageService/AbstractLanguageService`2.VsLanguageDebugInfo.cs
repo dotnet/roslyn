@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         internal sealed class VsLanguageDebugInfo : IVsLanguageDebugInfo
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
             private readonly ILanguageDebugInfoService? _languageDebugInfo;
@@ -36,14 +38,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             public VsLanguageDebugInfo(
+                IThreadingContext threadingContext,
                 Guid languageId,
                 TLanguageService languageService,
                 HostLanguageServices languageServiceProvider,
                 IUIThreadOperationExecutor uiThreadOperationExecutor)
             {
+                Contract.ThrowIfNull(threadingContext);
                 Contract.ThrowIfNull(languageService);
                 Contract.ThrowIfNull(languageServiceProvider);
 
+                _threadingContext = threadingContext;
                 _languageId = languageId;
                 _languageService = languageService;
                 _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
@@ -274,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.E_FAIL;
                     }
 
-                    var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                    var document = _threadingContext.JoinableTaskFactory.Run(() => snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).AsTask());
                     if (document != null)
                     {
                         var point = nullablePoint.Value;
