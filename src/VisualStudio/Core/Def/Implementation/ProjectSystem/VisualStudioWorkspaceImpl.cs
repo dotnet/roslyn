@@ -201,20 +201,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
-
-            // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
-            {
-                _openFileTracker = openFileTracker;
-            }
-
             var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
+            // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
+            // semaphore is acquired; if the UI thread is blocked trying to acquire the semaphore, we could deadlock.
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
             {
+                _openFileTracker = openFileTracker;
                 _memoryListener = memoryListener;
             }
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
         }
