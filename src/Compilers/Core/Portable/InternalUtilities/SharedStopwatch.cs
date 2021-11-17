@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
             // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
             // operations can block at their return point on the completion of a background GC operation. When
             // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-            // call to StartNewCore blocked on a GC operation, tye second call will most likely occur when the
+            // call to StartNewCore blocked on a GC operation, the second call will most likely occur when the
             // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
             // timing data was observed.
             //
