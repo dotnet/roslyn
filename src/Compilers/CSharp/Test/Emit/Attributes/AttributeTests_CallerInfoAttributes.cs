@@ -5797,7 +5797,7 @@ void M(int i, [CallerArgumentExpression(""i"")] {refType} string s = null)
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16),
                 // (5,47): error CS1741: A ref or out parameter cannot have a default value
                 // void M(int i, [CallerArgumentExpression("i")] out string s = null)
-                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "out").WithLocation(5, 47)
+                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, refType).WithLocation(5, 47)
             );
         }
 
