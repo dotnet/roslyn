@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)exprType == null ||
                 exprType.IsNullableTypeOrTypeParameter() ||
                 !exprType.IsValueType ||
-                exprType.IsPointerType());
+                exprType.IsPointerOrFunctionPointer());
 
             TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
 

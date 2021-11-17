@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
-            if (parameter.Type.IsValueType)
+            if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
             {
                 if (!parameter.Type.IsNullableTypeOrTypeParameter())
                 {

@@ -37,21 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (param.IsNullChecked)
                 {
-                    Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter());
-
-                    if (statementList is null)
-                    {
-                        statementList = ArrayBuilder<BoundStatement>.GetInstance();
-
-                        Debug.Assert(throwIfNullMethod is null);
-                        var module = factory.ModuleBuilderOpt!;
-                        var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
-                        var diagnostics = factory.Diagnostics.DiagnosticBag;
-                        Debug.Assert(diagnostics is not null);
-                        throwIfNullMethod = module.EnsureThrowIfNullFunctionExists(diagnosticSyntax, factory, diagnostics);
-                    }
-                    Debug.Assert(throwIfNullMethod is not null);
-                    var constructedIf = ConstructNullCheck(param, throwIfNullMethod, factory);
+                    var isNullCheckableValueType = param.Type.IsNullableTypeOrTypeParameter() || param.Type.IsPointerOrFunctionPointer();
+                    Debug.Assert(!param.Type.IsValueType || isNullCheckableValueType);
+                    statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
+                    var constructedIf = isNullCheckableValueType
+                        ? ConstructDirectNullCheck(param, factory)
+                        : ConstructNullCheckHelperCall(param, ref throwIfNullMethod, factory);
                     statementList.Add(constructedIf);
                 }
             }
@@ -64,14 +55,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             return statementList.ToImmutableAndFree();
         }
 
-        private static BoundStatement ConstructNullCheck(ParameterSymbol parameter, MethodSymbol throwIfNullMethod, SyntheticBoundNodeFactory factory)
+        private static BoundStatement ConstructNullCheckHelperCall(ParameterSymbol parameter, ref MethodSymbol? throwIfNullMethod, SyntheticBoundNodeFactory factory)
         {
+            if (throwIfNullMethod is null)
+            {
+                var module = factory.ModuleBuilderOpt!;
+                var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
+                var diagnostics = factory.Diagnostics.DiagnosticBag;
+                Debug.Assert(diagnostics is not null);
+                throwIfNullMethod = module.EnsureThrowIfNullFunctionExists(diagnosticSyntax, factory, diagnostics);
+            }
+
             var call = factory.Call(
                 receiver: null,
                 throwIfNullMethod,
                 arg0: factory.Convert(factory.SpecialType(SpecialType.System_Object), factory.Parameter(parameter)),
                 arg1: factory.StringLiteral(parameter.Name));
             return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+        }
+
+        private static BoundStatement ConstructDirectNullCheck(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
+        {
+            BoundExpression paramIsNullCondition;
+            var loweredLeft = factory.Parameter(parameter);
+
+            if (loweredLeft.Type.IsNullableType())
+            {
+                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
+            }
+            else
+            {
+                Debug.Assert(parameter.Type.IsPointerOrFunctionPointer());
+                paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
+            }
+
+            var argumentName = ImmutableArray.Create<BoundExpression>(factory.StringLiteral(parameter.Name));
+            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
+            BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
+
+            return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
 }

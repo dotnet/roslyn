@@ -546,13 +546,15 @@ class B3<T> : A<T?> where T : struct
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
+  // Code size       20 (0x14)
+  .maxstack  1
   IL_0000:  ldarg.1
   IL_0001:  box        ""U""
-  IL_0006:  ldstr      ""u""
-  IL_000b:  call       ""ThrowIfNull""
-  IL_0010:  ret
+  IL_0006:  brtrue.s   IL_0013
+  IL_0008:  ldstr      ""u""
+  IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0012:  throw
+  IL_0013:  ret
 }");
         }
 
@@ -1578,13 +1580,15 @@ class C
                 Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(4, 25));
             verifier.VerifyIL("C.M<T>", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  box        ""T?""
-  IL_0006:  ldstr      ""t""
-  IL_000b:  call       ""ThrowIfNull""
-  IL_0010:  ret
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  call       ""bool T?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0014
+  IL_0009:  ldstr      ""t""
+  IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0013:  throw
+  IL_0014:  ret
 }");
         }
 
@@ -1605,13 +1609,107 @@ class C
                 Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
             verifier.VerifyIL("C.M(int?)", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  box        ""int?""
-  IL_0006:  ldstr      ""i""
-  IL_000b:  call       ""ThrowIfNull""
-  IL_0010:  ret
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0014
+  IL_0009:  ldstr      ""i""
+  IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0013:  throw
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void NullCheckedPointer()
+        {
+            var source = @"
+using System;
+
+
+class C
+{
+    static unsafe void M1(void* ptr!!) { }
+    static unsafe void M2(int* ptr!!) { }
+    static unsafe void M3(delegate*<int, void> funcPtr!!) { }
+
+    public static void M0(int x) { }
+
+    public static unsafe void Main()
+    {
+        int x = 1;
+        try
+        {
+            M1(&x);
+            Console.Write(1);
+            M1(null);
+        }
+        catch
+        {
+            Console.Write(2);
+        }
+
+        try
+        {
+            M2(&x);
+            Console.Write(3);
+            M2(null);
+        }
+        catch
+        {
+            Console.Write(4);
+        }
+
+        try
+        {
+            M3(&M0);
+            Console.Write(5);
+            M3(null);
+        }
+        catch
+        {
+            Console.Write(6);
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "123456");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldstr      ""ptr""
+  IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_000d:  throw
+  IL_000e:  nop
+  IL_000f:  ret
+}");
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldstr      ""ptr""
+  IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_000d:  throw
+  IL_000e:  nop
+  IL_000f:  ret
+}");
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000e
+  IL_0003:  ldstr      ""funcPtr""
+  IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_000d:  throw
+  IL_000e:  nop
+  IL_000f:  ret
 }");
         }
     }
