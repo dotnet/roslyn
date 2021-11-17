@@ -582,11 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    Debug.Assert(implicitIndexerAccess.IndexerAccess is BoundCall);
-                    // If we got here this should be an implicit indexer taking a Range,
-                    // meaning that the pattern symbol must be a method (either Slice or Substring)
-                    return CheckValueKind(node, implicitIndexerAccess.IndexerAccess, valueKind, checkingReceiver, diagnostics);
+                    throw ExceptionUtilities.Unreachable;
 
                 case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
                     break;

@@ -11,21 +11,21 @@ internal sealed partial class LocalRewriter
 {
     private sealed class PlaceholderReplacer : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholders;
+        private readonly Dictionary<BoundEarlyValuePlaceholderBase, BoundExpression> _placeholders;
 
-        PlaceholderReplacer(Dictionary<BoundValuePlaceholderBase, BoundExpression> placeholders)
+        private PlaceholderReplacer(Dictionary<BoundEarlyValuePlaceholderBase, BoundExpression> placeholders)
         {
             _placeholders = placeholders;
         }
 
-        public static BoundExpression Replace(Dictionary<BoundValuePlaceholderBase, BoundExpression> placeholders, BoundExpression expr)
+        public static BoundExpression Replace(Dictionary<BoundEarlyValuePlaceholderBase, BoundExpression> placeholders, BoundExpression expr)
         {
             var result = new PlaceholderReplacer(placeholders).Visit(expr);
             Debug.Assert(result is not null);
             return (BoundExpression)result;
         }
 
-        private BoundNode ReplacePlaceholder(BoundValuePlaceholderBase placeholder)
+        private BoundNode ReplacePlaceholder(BoundEarlyValuePlaceholderBase placeholder)
         {
             var value = _placeholders[placeholder];
             Debug.Assert(value is not null);
@@ -36,29 +36,27 @@ internal sealed partial class LocalRewriter
         {
             var argument = (BoundExpression)this.Visit(node.Argument);
             var lengthOrCountAccess = (BoundExpression)this.Visit(node.LengthOrCountAccess);
-            var receiverPlaceholder = (BoundIndexOrRangeIndexerPatternReceiverPlaceholder)this.Visit(node.ReceiverPlaceholder);
             var indexerAccess = (BoundExpression)this.Visit(node.IndexerAccess);
-            var argumentPlaceholders = this.VisitList(node.ArgumentPlaceholders);
             var type = this.VisitType(node.Type);
-            return node.Update(argument, lengthOrCountAccess, receiverPlaceholder, indexerAccess, argumentPlaceholders, type);
+            return node.Update(argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, type);
         }
 
-        public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
+        public override BoundNode VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
             return ReplacePlaceholder(node);
         }
 
-        public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
+        public override BoundNode VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
         {
             return ReplacePlaceholder(node);
         }
 
-        public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
+        public override BoundNode VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
         {
             return ReplacePlaceholder(node);
         }
 
-        public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
+        public override BoundNode VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
         {
             return ReplacePlaceholder(node);
         }

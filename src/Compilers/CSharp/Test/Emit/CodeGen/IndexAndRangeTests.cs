@@ -3372,5 +3372,76 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(o2)[..]").WithLocation(16, 5)
                 );
         }
+
+        [Fact]
+        public void NullableIndexerArgument()
+        {
+            var source = @"
+#nullable enable
+var c = new C();
+
+object o1 = null;
+_ = c[M1(o1.ToString())];
+
+object o2 = null;
+_ = c[M2(o2.ToString())];
+
+static System.Index M1(object? o) => throw null!;
+static System.Range M2(object? o) => throw null!;
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics(
+                // (5,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o1 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 13),
+                // (6,10): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M1(o1.ToString())];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(6, 10),
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o2 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13),
+                // (9,10): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M2(o2.ToString())];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2").WithLocation(9, 10)
+                );
+        }
+
+        [Fact]
+        public void SemanticModelOnReceiver()
+        {
+            var source = @"
+var c = new C();
+
+_ = c[^1];
+_ = c[..];
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var receivers = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Select(e => e.Expression).ToArray();
+            Assert.Equal(2, receivers.Length);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            Assert.Equal("c", receivers[0].ToString());
+            Assert.Equal("C", model.GetTypeInfo(receivers[0]).Type.ToTestDisplayString());
+
+            Assert.Equal("c", receivers[1].ToString());
+            Assert.Equal("C", model.GetTypeInfo(receivers[1]).Type.ToTestDisplayString());
+        }
     }
 }

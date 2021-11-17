@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }
 
-                            var placeholderValues = PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
                             placeholderValues.Add(e.ReceiverPlaceholder, input);
                             placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredIndexArgument(e.Index));
                             indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }
 
-                            var placeholderValues = PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
                             placeholderValues.Add(e.ReceiverPlaceholder, input);
                             placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredRangeArgument(e));
                             indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);

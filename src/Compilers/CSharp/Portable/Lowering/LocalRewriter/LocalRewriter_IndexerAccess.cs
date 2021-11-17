@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
-        BoundExpression RewriteLengthAccess(BoundIndexOrRangePatternIndexerAccess node, BoundExpression receiver)
+        private BoundExpression RewriteLengthAccess(BoundIndexOrRangePatternIndexerAccess node, BoundExpression receiver)
         {
             var receiverPlaceholder = node.ReceiverPlaceholder;
             AddPlaceholderReplacement(receiverPlaceholder, receiver);

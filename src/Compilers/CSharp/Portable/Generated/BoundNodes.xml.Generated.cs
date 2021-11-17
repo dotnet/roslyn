@@ -437,6 +437,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     }
 
+    internal abstract partial class BoundEarlyValuePlaceholderBase : BoundValuePlaceholderBase
+    {
+        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
+            : base(kind, syntax, type, hasErrors)
+        {
+        }
+
+        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type)
+            : base(kind, syntax, type)
+        {
+        }
+
+    }
+
     internal sealed partial class BoundValuePlaceholder : BoundValuePlaceholderBase
     {
         public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
@@ -719,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundListPatternReceiverPlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundListPatternReceiverPlaceholder : BoundEarlyValuePlaceholderBase
     {
         public BoundListPatternReceiverPlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
             : base(BoundKind.ListPatternReceiverPlaceholder, syntax, type, hasErrors)
@@ -758,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundListPatternIndexPlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundListPatternIndexPlaceholder : BoundEarlyValuePlaceholderBase
     {
         public BoundListPatternIndexPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
             : base(BoundKind.ListPatternIndexPlaceholder, syntax, type, hasErrors)
@@ -793,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSlicePatternReceiverPlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundSlicePatternReceiverPlaceholder : BoundEarlyValuePlaceholderBase
     {
         public BoundSlicePatternReceiverPlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
             : base(BoundKind.SlicePatternReceiverPlaceholder, syntax, type, hasErrors)
@@ -832,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSlicePatternRangePlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundSlicePatternRangePlaceholder : BoundEarlyValuePlaceholderBase
     {
         public BoundSlicePatternRangePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
             : base(BoundKind.SlicePatternRangePlaceholder, syntax, type, hasErrors)

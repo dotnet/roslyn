@@ -86,6 +86,10 @@
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
   </AbstractNode>
 
+  <!-- Placeholders that are replaced by PlaceholderReplacer, ie before they get visited by LocalRewriter -->
+  <AbstractNode Name="BoundEarlyValuePlaceholderBase" Base="BoundValuePlaceholderBase">
+  </AbstractNode>
+
   <!--
   This node will not survive the local rewriting,
   except in some scenarios in a Linq Expression Tree when the containing node
@@ -146,24 +150,24 @@
   </Node>
 
   <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
-  <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
-  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <!-- This node represents the receiver for a slice pattern. It does not survive lowering -->
-  <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
-  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -2242,7 +2246,7 @@
     <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
@@ -2258,7 +2262,7 @@
     <Field Name="Pattern" Type="BoundPattern?"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>

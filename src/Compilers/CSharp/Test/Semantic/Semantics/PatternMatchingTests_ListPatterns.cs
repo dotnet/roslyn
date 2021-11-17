@@ -335,7 +335,6 @@ True
 ";
         var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
-        // PROTOTYPE the call to StoreToTemp in LocalRewriter.VisitIndexImplicitIndexerAccess causes more temps to be used
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test1", @"
 {
@@ -519,7 +518,6 @@ True
 True
 ";
         var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        // PROTOTYPE the call to StoreToTemp in LocalRewriter.VisitIndexImplicitIndexerAccess causes more temps to be used
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test1", @"
 {
@@ -4482,15 +4480,18 @@ class C
 {
     void M(dynamic d)
     {
-        _ = d is [_];
+        _ = d is [_, .._];
     }
 }
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (7,18): error CS8978: List patterns may not be used for a value of type 'dynamic'.
-            //         _ = d is [_];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_]").WithArguments("dynamic").WithLocation(7, 18)
+            // (7,18): error CS8979: List patterns may not be used for a value of type 'dynamic'.
+            //         _ = d is [_, .._];
+            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_, .._]").WithArguments("dynamic").WithLocation(7, 18),
+            // (7,22): error CS0518: Predefined type 'System.Range' is not defined or imported
+            //         _ = d is [_, .._];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, ".._").WithArguments("System.Range").WithLocation(7, 22)
             );
     }
 
