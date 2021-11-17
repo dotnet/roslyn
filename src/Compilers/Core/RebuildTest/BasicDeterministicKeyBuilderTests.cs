@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Newtonsoft;
@@ -17,17 +18,19 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<VisualBasicCompilation, VisualBasicCompilationOptions>
+    public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<VisualBasicCompilation, VisualBasicCompilationOptions, VisualBasicParseOptions>
     {
         public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
-        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm) =>
+        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, VisualBasicParseOptions? parseOptions) =>
             VisualBasicSyntaxTree.ParseText(
                 SourceText.From(content, checksumAlgorithm: hashAlgorithm, encoding: Encoding.UTF8),
-                path: fileName);
+                path: fileName,
+                options: parseOptions);
 
         protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null) =>
             VisualBasicCompilation.Create(
@@ -37,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 options: options ?? BasicOptions);
 
         protected override VisualBasicCompilationOptions GetCompilationOptions() => BasicOptions;
+
+        protected override VisualBasicParseOptions GetParseOptions() => VisualBasicParseOptions.Default;
 
         private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new VisualBasicDeterministicKeyBuilder();
 
@@ -130,6 +135,49 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ]";
 
             AssertJsonSection(expected, key, "compilation.options.globalImports");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void BasicParseOptionsLanguageVersion(LanguageVersion languageVersion)
+        {
+            var parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(languageVersion);
+            var obj = GetParseOptionsValue(parseOptions);
+            var effective = languageVersion.MapSpecifiedToEffectiveVersion();
+
+            Assert.Equal(effective.ToString(), obj.Value<string>("languageVersion"));
+            Assert.Equal(languageVersion.ToString(), obj.Value<string>("specifiedLanguageVersion"));
+        }
+
+        [Fact]
+        public void BasicPreprocessorSymbols()
+        {
+            assert(null);
+
+            assert(@"
+{
+  ""DEBUG"": null
+}", ("DEBUG", null));
+
+
+            assert(@"
+{
+  ""DEBUG"": null,
+  ""TRACE"": null
+}", ("TRACE", null), ("DEBUG", null));
+
+            assert(@"
+{
+  ""DEBUG"": ""13"",
+  ""TRACE"": ""42""
+}", ("TRACE", 42), ("DEBUG", 13));
+
+            void assert(string? expected, params (string Key, object? Value)[] values)
+            {
+                var parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(values.Select(x => new KeyValuePair<string, object>(x.Key, x.Value!)));
+                var obj = GetParseOptionsValue(parseOptions);
+                AssertJsonCore(expected, obj.Value<JObject>("preprocessorSymbols")?.ToString(Formatting.Indented));
+            }
         }
     }
 }

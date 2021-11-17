@@ -48,16 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             writer.Write("languageVersion", csharpOptions.LanguageVersion);
             writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
-            if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)
+            writer.WriteKey("preprocessorSymbols");
+            writer.WriteArrayStart();
+
+            // Even though tools like the command line parser don't explicitly order the symbols 
+            // here the order doesn't actually impact determinism.
+            foreach (var symbol in csharpOptions.PreprocessorSymbols.OrderBy(StringComparer.Ordinal))
             {
-                writer.WriteKey("preprocessorSymbols");
-                writer.WriteArrayStart();
-                foreach (var symbol in symbols)
-                {
-                    writer.Write(symbol);
-                }
-                writer.WriteArrayEnd();
+                writer.Write(symbol);
             }
+
+            writer.WriteArrayEnd();
         }
     }
 }

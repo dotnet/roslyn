@@ -22,16 +22,17 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public sealed class CSharpDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<CSharpCompilation, CSharpCompilationOptions>
+    public sealed class CSharpDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<CSharpCompilation, CSharpCompilationOptions, CSharpParseOptions>
     {
         public static CSharpCompilationOptions Options { get; } = new CSharpCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
-        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm) =>
+        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, CSharpParseOptions? parseOptions) =>
             CSharpTestBase.Parse(
                 content,
                 filename: fileName,
                 checksumAlgorithm: hashAlgorithm,
-                encoding: Encoding.UTF8);
+                encoding: Encoding.UTF8,
+                options: parseOptions);
 
         protected override CSharpCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, CSharpCompilationOptions? options = null) =>
             CSharpCompilation.Create(
@@ -43,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new CSharpDeterministicKeyBuilder();
 
         protected override CSharpCompilationOptions GetCompilationOptions() => Options;
+
+        protected override CSharpParseOptions GetParseOptions() => CSharpParseOptions.Default;
 
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
@@ -120,9 +123,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""specifiedKind"": ""Regular"",
           ""documentationMode"": ""Parse"",
           ""language"": ""C#"",
-          ""features"": [],
+          ""features"": null,
           ""languageVersion"": ""Preview"",
-          ""specifiedLanguageVersion"": ""Preview""
+          ""specifiedLanguageVersion"": ""Preview"",
+          ""preprocessorSymbols"": []
         }
       }
     ]
@@ -162,9 +166,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedKind"": ""Regular"",
       ""documentationMode"": ""Parse"",
       ""language"": ""C#"",
-      ""features"": [],
+      ""features"": null,
       ""languageVersion"": ""Preview"",
-      ""specifiedLanguageVersion"": ""Preview""
+      ""specifiedLanguageVersion"": ""Preview"",
+      ""preprocessorSymbols"": []
     }}
   }}
 ]";
@@ -307,6 +312,50 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 var value = GetCompilationOptionsValue(options);
                 var actual = value["globalUsings"]?.ToString(Formatting.Indented);
                 AssertJsonCore(expected, actual);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CSharpParseOptionsLanguageVersion(LanguageVersion languageVersion)
+        {
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
+            var obj = GetParseOptionsValue(parseOptions);
+            var effective = languageVersion.MapSpecifiedToEffectiveVersion();
+
+            Assert.Equal(effective.ToString(), obj.Value<string>("languageVersion"));
+            Assert.Equal(languageVersion.ToString(), obj.Value<string>("specifiedLanguageVersion"));
+        }
+
+        [Fact]
+        public void CSharpParseOptionsPreprocessorSymbols()
+        {
+            assert(@"[]");
+
+            assert(@"
+[
+  ""DEBUG""
+]", "DEBUG");
+
+            assert(@"
+[
+  ""DEBUG"",
+  ""TRACE""
+]", "DEBUG", "TRACE");
+
+
+            assert(@"
+[
+  ""DEBUG"",
+  ""TRACE""
+]", "TRACE", "DEBUG");
+
+
+            void assert(string expected, params string[] values)
+            {
+                var parseOptions = CSharpParseOptions.Default.WithPreprocessorSymbols(values);
+                var obj = GetParseOptionsValue(parseOptions);
+                AssertJsonCore(expected, obj.Value<JArray>("preprocessorSymbols")?.ToString(Formatting.Indented));
             }
         }
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,9 +17,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public abstract class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions>
+    public abstract class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions, TParseOptions>
         where TCompilation : Compilation
         where TCompilationOptions : CompilationOptions
+        where TParseOptions : ParseOptions
     {
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
@@ -65,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             AssertJsonCore(expected, property.ToString(Formatting.Indented));
         }
 
-        protected static void AssertJsonCore(string expected, string? actual)
+        protected static void AssertJsonCore(string? expected, string? actual)
         {
-            expected = expected.Trim(s_trimChars);
+            expected = expected?.Trim(s_trimChars);
             actual = actual?.Trim(s_trimChars);
             Assert.Equal(expected, actual);
         }
@@ -135,6 +137,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return (JObject)property.Value;
         }
 
+        protected JObject GetParseOptionsValue(ParseOptions parseOptions)
+        {
+            var syntaxTree = ParseSyntaxTree("", fileName: "test", SourceHashAlgorithm.Sha256, (TParseOptions)parseOptions);
+            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { syntaxTree });
+            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.syntaxTrees");
+            var trees = (JArray)property.Value;
+            var obj = (JObject)trees[0];
+            return (JObject)(obj.Property("parseOptions")?.Value!);
+        }
+
         protected static string GetChecksum(SourceText text)
         {
             var checksum = text.GetChecksum();
@@ -143,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return builder.ToStringAndFree();
         }
 
-        protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm);
+        protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, TParseOptions? parseOptions = null);
 
         protected abstract TCompilation CreateCompilation(
             SyntaxTree[] syntaxTrees,
@@ -151,6 +163,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             TCompilationOptions? options = null);
 
         protected abstract TCompilationOptions GetCompilationOptions();
+
+        protected abstract TParseOptions GetParseOptions();
 
         private protected abstract DeterministicKeyBuilder GetDeterministicKeyBuilder();
 
@@ -224,6 +238,23 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             }
         }
 
+        /// <summary>
+        /// Verify that options which don't impact determinism are excluded from the key
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void CompilationOptionsExcluded(bool concurrentBuild, MetadataImportOptions metaImportOptions)
+        {
+            var options = GetCompilationOptions();
+            var other = options
+                .WithConcurrentBuild(concurrentBuild)
+                .WithMetadataImportOptions(metaImportOptions);
+
+            var expected = GetCompilationOptionsValue(options);
+            var actual = GetCompilationOptionsValue(other);
+            Assert.Equal(expected.ToString(), actual.ToString());
+        }
+
         [Fact]
         public void CompilationOptionsSpecificDiagnosticOptions()
         {
@@ -256,6 +287,70 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 var value = GetCompilationOptionsValue(options);
                 var actual = value["specificDiagnosticOptions"]?.ToString(Formatting.Indented);
                 AssertJsonCore(expected, actual);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParseOptionsCombination(
+            SourceCodeKind sourceCodeKind,
+            DocumentationMode documentationMode)
+        {
+            var parseOptions = GetParseOptions()
+                .WithKind(sourceCodeKind)
+                .WithDocumentationMode(documentationMode);
+
+#pragma warning disable 618
+            if (sourceCodeKind == SourceCodeKind.Interactive)
+            {
+                sourceCodeKind = SourceCodeKind.Script;
+            }
+#pragma warning restore 618
+
+            var obj = GetParseOptionsValue(parseOptions);
+            Assert.Equal(sourceCodeKind.ToString(), obj.Value<string>("kind"));
+            Assert.Equal(documentationMode.ToString(), obj.Value<string>("documentationMode"));
+            Assert.Null(obj.Value<JObject>("features"));
+        }
+
+        [Fact]
+        public void ParseOptionsFeatures()
+        {
+            var parseOptions = GetParseOptions();
+
+            assert(null);
+            assert(@"
+{
+  ""key"": ""value""
+}", ("key", "value"));
+
+            assert(@"
+{
+  ""k1"": ""v1"",
+  ""k2"": ""v2""
+}", ("k1", "v1"), ("k2", "v2"));
+
+            // Same case but reverse the order the keys are added. That should not change the key
+            assert(@"
+{
+  ""k1"": ""v1"",
+  ""k2"": ""v2""
+}", ("k2", "v2"), ("k1", "v1"));
+
+            // Make sure that the keys are escaped properly
+            assert(@"
+{
+  ""\\\""strange"": ""value""
+}", (@"\""strange", "value"));
+
+            void assert(string? expected, params (string Key, string Value)[] features)
+            {
+                var parseOptions = GetParseOptions()
+                    .WithFeatures(features.Select(x => new KeyValuePair<string, string>(x.Key, x.Value)));
+
+                var obj = GetParseOptionsValue(parseOptions);
+                var value = obj.Value<JObject>("features");
+                AssertJsonCore(expected, value?.ToString(Formatting.Indented));
             }
         }
 
@@ -344,6 +439,5 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 }}";
             AssertJsonSection(expected, key, "subsystemVersion");
         }
-
     }
 }

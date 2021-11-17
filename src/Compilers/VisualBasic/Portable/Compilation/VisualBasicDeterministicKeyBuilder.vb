@@ -27,16 +27,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             writer.Write("languageVersion", basicOptions.LanguageVersion)
             writer.Write("specifiedLanguageVersion", basicOptions.SpecifiedLanguageVersion)
 
+            writer.WriteKey("preprocessorSymbols")
             If basicOptions.PreprocessorSymbols.Length > 0 Then
-                writer.WriteKey("preprocessorSymbols")
-                writer.WriteArrayStart()
-                For Each pair In basicOptions.PreprocessorSymbols
-                    writer.WriteObjectStart()
-                    writer.WriteKey(pair.Key)
-                    writer.Write(pair.Value.ToString())
-                    writer.WriteObjectEnd()
+                writer.WriteObjectStart()
+                For Each pair In basicOptions.PreprocessorSymbols.OrderBy(Function(x, y) StringComparer.Ordinal.Compare(x.Key, y.Key))
+                    Dim value = pair.Value
+                    If value Is Nothing Then
+                        writer.WriteNull(pair.Key)
+                        Continue For
+                    End If
+
+                    Dim type = value.GetType()
+                    If type = GetType(String) Then
+                        writer.Write(pair.Key, CType(value, String))
+                    ElseIf type = GetType(Boolean) Then
+                        writer.Write(pair.Key, CType(value, Boolean))
+                    ElseIf type = GetType(DateTime) Then
+                        writer.Write(pair.Key, CType(value, DateTime).ToString("G"))
+                    ElseIf type = GetType(Char) Then
+                        writer.Write(pair.Key, CType(value, Char).ToString())
+                    ElseIf type = GetType(Int16) Then
+                        writer.Write(pair.Key, CType(value, Int16).ToString("G"))
+                    ElseIf type = GetType(Int32) Then
+                        writer.Write(pair.Key, CType(value, Int32).ToString("G"))
+                    ElseIf type = GetType(Int64) Then
+                        writer.Write(pair.Key, CType(value, Int64).ToString("G"))
+                    ElseIf type = GetType(UInt16) Then
+                        writer.Write(pair.Key, CType(value, UInt16).ToString("G"))
+                    ElseIf type = GetType(UInt32) Then
+                        writer.Write(pair.Key, CType(value, UInt32).ToString("G"))
+                    ElseIf type = GetType(UInt64) Then
+                        writer.Write(pair.Key, CType(value, UInt64).ToString("G"))
+                    ElseIf type = GetType(Decimal) Then
+                        writer.Write(pair.Key, CType(value, Decimal).ToString("G"))
+                    ElseIf type = GetType(Single) Then
+                        writer.Write(pair.Key, CType(value, Single).ToString("G"))
+                    ElseIf type = GetType(Double) Then
+                        writer.Write(pair.Key, CType(value, Double).ToString("G"))
+                    ElseIf type = GetType(SByte) Then
+                        writer.Write(pair.Key, CType(value, SByte).ToString("G"))
+                    Else
+                        Throw New InvalidOperationException()
+                    End If
                 Next
-                writer.WriteArrayEnd()
+                writer.WriteObjectEnd()
+            Else
+                writer.WriteNull()
             End If
 
         End Sub

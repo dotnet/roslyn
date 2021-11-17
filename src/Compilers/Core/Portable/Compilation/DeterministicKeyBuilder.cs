@@ -466,16 +466,21 @@ namespace Microsoft.CodeAnalysis
             writer.Write("documentationMode", parseOptions.DocumentationMode);
             writer.Write("language", parseOptions.Language);
 
-            var features = parseOptions.Features;
             writer.WriteKey("features");
-            writer.WriteArrayStart();
-            foreach (var kvp in features)
+            var features = parseOptions.Features;
+            if (features.Count > 0)
             {
                 writer.WriteObjectStart();
-                writer.Write(kvp.Key, kvp.Value);
+                foreach (var key in features.Keys.OrderBy(StringComparer.Ordinal))
+                {
+                    writer.Write(key, features[key]);
+                }
                 writer.WriteObjectEnd();
             }
-            writer.WriteArrayEnd();
+            else
+            {
+                writer.WriteNull();
+            }
 
             // Skipped values
             // - Errors: not sure if we need that in the key file or not
