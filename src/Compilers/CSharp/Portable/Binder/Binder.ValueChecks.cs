@@ -273,6 +273,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
                     break;
+
+                case BoundKind.PointerIndirectionOperator:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var pointerIndirection = (BoundPointerIndirectionOperator)expr;
+                        expr = pointerIndirection.Update(pointerIndirection.Operand, refersToLocation: true, pointerIndirection.Type);
+                    }
+                    break;
+
+                case BoundKind.PointerElementAccess:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var elementAccess = (BoundPointerElementAccess)expr;
+                        expr = elementAccess.Update(elementAccess.Expression, elementAccess.Index, elementAccess.Checked, refersToLocation: true, elementAccess.Type);
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;
@@ -2768,6 +2784,7 @@ moreArguments:
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
+                case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
@@ -3456,7 +3473,7 @@ moreArguments:
             {
                 foreach (var part in interpolatedString.Parts)
                 {
-                    if (part is not BoundCall { Method: { Name: "AppendFormatted" } } call)
+                    if (part is not BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
                     {
                         // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
                         // string arguments and do not require us to be concerned with escape

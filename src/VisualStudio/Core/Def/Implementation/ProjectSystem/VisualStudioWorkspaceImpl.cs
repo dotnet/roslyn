@@ -58,13 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
-        private readonly object _gate = new();
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
@@ -118,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            _globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -201,15 +203,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
             {
                 _openFileTracker = openFileTracker;
             }
 
-            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
+            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
             {
                 _memoryListener = memoryListener;
             }
@@ -225,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
                 _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
@@ -235,26 +237,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddProjectRuleSetFileToInternalMaps(VisualStudioProject project, Func<string?> ruleSetFilePathFunc)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 _projectToRuleSetFilePath.Add(project.Id, ruleSetFilePathFunc);
             }
         }
 
-        internal void AddDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            lock (_gate)
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
         }
 
-        internal void RemoveDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void RemoveDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            lock (_gate)
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -286,18 +285,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioProject? GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+                return GetProjectWithHierarchyAndName_NoLock(hierarchy, projectName);
+            }
+        }
+
+        private VisualStudioProject? GetProjectWithHierarchyAndName_NoLock(IVsHierarchy hierarchy, string projectName)
+        {
+            if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+            {
+                foreach (var project in projects)
                 {
-                    foreach (var project in projects)
+                    if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
                     {
-                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        if (projectHierarchy == hierarchy)
                         {
-                            if (projectHierarchy == hierarchy)
-                            {
-                                return project;
-                            }
+                            return project;
                         }
                     }
                 }
@@ -310,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
         internal override string? TryGetRuleSetPathForProject(ProjectId projectId)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
                 {
@@ -415,7 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal bool IsPrimaryProject(ProjectId projectId)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 foreach (var (_, projects) in _projectSystemNameToProjectsMap)
                 {
@@ -529,9 +533,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var compilationOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var originalProject = CurrentSolution.GetRequiredProject(projectId);
+            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
-            compilationOptionsService.Apply(options, storage);
+            compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
 
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
@@ -1166,7 +1171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            EnsureEditableDocuments(documentId);
             var containedDocument = TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
@@ -1327,7 +1331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
             // IVsHierarchies will raise the appropriate events which we are subscribed to.
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 var hierarchy = GetHierarchy(documentId.ProjectId);
                 if (hierarchy == null)
@@ -1437,9 +1441,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public void EnsureEditableDocuments(params DocumentId[] documents)
-            => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
-
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             _foregroundObject.AssertIsForeground();
@@ -1519,7 +1520,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public void ApplyChangeToWorkspace(Action<Workspace> action)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
+            {
+                action(this);
+            }
+        }
+
+        /// <summary>
+        /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
+        /// </summary>
+        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
+        {
+            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 action(this);
             }
@@ -1531,7 +1543,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
             }
@@ -1542,9 +1554,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        public void ApplyBatchChangeToWorkspace(Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
+        public async ValueTask ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
         {
-            lock (_gate)
+            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var solutionChangeAccumulator = mutation(oldSolution);
@@ -1560,7 +1572,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 SetCurrentSolution(solutionChangeAccumulator.Solution);
-                RaiseWorkspaceChangedEventAsync(
+
+                // This method returns the task that could be used to wait for the workspace changed event; we don't want
+                // to do that.
+                _ = RaiseWorkspaceChangedEventAsync(
                     solutionChangeAccumulator.WorkspaceChangeKind,
                     oldSolution,
                     solutionChangeAccumulator.Solution,
@@ -1573,59 +1588,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
 
         protected internal override void OnProjectRemoved(ProjectId projectId)
         {
-            lock (_gate)
+            string? languageName;
+
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            languageName = CurrentSolution.GetRequiredProject(projectId).Language;
+
+            if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
             {
-                var languageName = CurrentSolution.GetRequiredProject(projectId).Language;
-
-                if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
+                // If we still had any output paths, we'll want to remove them to cause conversion back to metadata references.
+                // The call below implicitly is modifying the collection we've fetched, so we'll make a copy.
+                foreach (var outputPath in projectReferenceInfo.OutputPaths.ToList())
                 {
-                    // If we still had any output paths, we'll want to remove them to cause conversion back to metadata references.
-                    // The call below implicitly is modifying the collection we've fetched, so we'll make a copy.
-                    foreach (var outputPath in projectReferenceInfo.OutputPaths.ToList())
-                    {
-                        RemoveProjectOutputPath(projectId, outputPath);
-                    }
-
-                    _projectReferenceInfoMap.Remove(projectId);
+                    RemoveProjectOutputPath_NoLock(projectId, outputPath);
                 }
 
-                _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
-                _projectToGuidMap = _projectToGuidMap.Remove(projectId);
-                // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
-                ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
-                // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
-                ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
-                _projectToRuleSetFilePath.Remove(projectId);
-
-                foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
-                {
-                    if (projects.RemoveAll(p => p.Id == projectId) > 0)
-                    {
-                        if (projects.Count == 0)
-                        {
-                            _projectSystemNameToProjectsMap.Remove(projectName);
-                        }
-
-                        break;
-                    }
-                }
-
-                base.OnProjectRemoved(projectId);
-
-                // Try to update the UI context info.  But cancel that work if we're shutting down.
-                _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    RefreshProjectExistsUIContextForLanguage(languageName);
-                });
+                _projectReferenceInfoMap.Remove(projectId);
             }
+
+            _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
+            _projectToGuidMap = _projectToGuidMap.Remove(projectId);
+            // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+            ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
+            // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+            ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
+            _projectToRuleSetFilePath.Remove(projectId);
+
+            foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
+            {
+                if (projects.RemoveAll(p => p.Id == projectId) > 0)
+                {
+                    if (projects.Count == 0)
+                    {
+                        _projectSystemNameToProjectsMap.Remove(projectName);
+                    }
+
+                    break;
+                }
+            }
+
+            base.OnProjectRemoved(projectId);
+
+            // Try to update the UI context info.  But cancel that work if we're shutting down.
+            var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguage));
+            _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                RefreshProjectExistsUIContextForLanguage(languageName);
+                asyncToken.Dispose();
+            });
         }
 
         private sealed class ProjectReferenceInformation
@@ -1644,39 +1663,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddProjectOutputPath(ProjectId projectId, string outputPath)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
+                AddProjectOutputPath_NoLock(projectId, outputPath);
+            }
+        }
 
-                projectReferenceInformation.OutputPaths.Add(outputPath);
-                _projectsByOutputPath.MultiAdd(outputPath, projectId);
+        private void AddProjectOutputPath_NoLock(ProjectId projectId, string outputPath)
+        {
+            var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
 
-                var projectsForOutputPath = _projectsByOutputPath[outputPath];
-                var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
+            projectReferenceInformation.OutputPaths.Add(outputPath);
+            _projectsByOutputPath.MultiAdd(outputPath, projectId);
 
-                // If we have exactly one, then we're definitely good to convert
-                if (projectsForOutputPath.Count == 1)
+            var projectsForOutputPath = _projectsByOutputPath[outputPath];
+            var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
+
+            // If we have exactly one, then we're definitely good to convert
+            if (projectsForOutputPath.Count == 1)
+            {
+                ConvertMetadataReferencesToProjectReferences_NoLock(projectId, outputPath);
+            }
+            else if (distinctProjectsForOutputPath.Count == 1)
+            {
+                // The same project has multiple output paths that are the same. Any project would have already been converted
+                // by the prior add, so nothing further to do
+            }
+            else
+            {
+                // We have more than one project outputting to the same path. This shouldn't happen but we'll convert back
+                // because now we don't know which project to reference.
+                foreach (var otherProjectId in projectsForOutputPath)
                 {
-                    ConvertMetadataReferencesToProjectReferences_NoLock(projectId, outputPath);
-                }
-                else if (distinctProjectsForOutputPath.Count == 1)
-                {
-                    // The same project has multiple output paths that are the same. Any project would have already been converted
-                    // by the prior add, so nothing further to do
-                }
-                else
-                {
-                    // We have more than one project outputting to the same path. This shouldn't happen but we'll convert back
-                    // because now we don't know which project to reference.
-                    foreach (var otherProjectId in projectsForOutputPath)
+                    // We know that since we're adding a path to projectId and we're here that we couldn't have already
+                    // had a converted reference to us, instead we need to convert things that are pointing to the project
+                    // we're colliding with
+                    if (otherProjectId != projectId)
                     {
-                        // We know that since we're adding a path to projectId and we're here that we couldn't have already
-                        // had a converted reference to us, instead we need to convert things that are pointing to the project
-                        // we're colliding with
-                        if (otherProjectId != projectId)
-                        {
-                            ConvertProjectReferencesToMetadataReferences_NoLock(otherProjectId, outputPath);
-                        }
+                        ConvertProjectReferencesToMetadataReferences_NoLock(otherProjectId, outputPath);
                     }
                 }
             }
@@ -1691,7 +1715,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1731,7 +1755,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
             // we do want to throw exceptions.
@@ -1782,7 +1806,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1828,7 +1852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
@@ -1860,7 +1884,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(Monitor.IsEntered(_gate));
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
             foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
@@ -1904,49 +1928,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveProjectOutputPath(ProjectId projectId, string outputPath)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
-                if (!projectReferenceInformation.OutputPaths.Contains(outputPath))
+                RemoveProjectOutputPath_NoLock(projectId, outputPath);
+            }
+        }
+
+        private void RemoveProjectOutputPath_NoLock(ProjectId projectId, string outputPath)
+        {
+            var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
+            if (!projectReferenceInformation.OutputPaths.Contains(outputPath))
+            {
+                throw new ArgumentException($"Project does not contain output path '{outputPath}'", nameof(outputPath));
+            }
+
+            projectReferenceInformation.OutputPaths.Remove(outputPath);
+            _projectsByOutputPath.MultiRemove(outputPath, projectId);
+
+            // When a project is closed, we may need to convert project references to metadata references (or vice
+            // versa). Failure to convert the references could leave a project in the workspace with a project
+            // reference to a project which is not open.
+            //
+            // For the specific case where the entire solution is closing, we do not need to update the state for
+            // remaining projects as each project closes, because we know those projects will be closed without
+            // further use. Avoiding reference conversion when the solution is closing improves performance for both
+            // IDE close scenarios and solution reload scenarios that occur after complex branch switches.
+            if (!_solutionClosing)
+            {
+                if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                 {
-                    throw new ArgumentException($"Project does not contain output path '{outputPath}'", nameof(outputPath));
+                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                    if (distinctRemainingProjects.Count() == 1)
+                    {
+                        // We had more than one project outputting to the same path. Now we're back down to one
+                        // so we can reference that one again
+                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                    }
                 }
-
-                projectReferenceInformation.OutputPaths.Remove(outputPath);
-                _projectsByOutputPath.MultiRemove(outputPath, projectId);
-
-                // When a project is closed, we may need to convert project references to metadata references (or vice
-                // versa). Failure to convert the references could leave a project in the workspace with a project
-                // reference to a project which is not open.
-                //
-                // For the specific case where the entire solution is closing, we do not need to update the state for
-                // remaining projects as each project closes, because we know those projects will be closed without
-                // further use. Avoiding reference conversion when the solution is closing improves performance for both
-                // IDE close scenarios and solution reload scenarios that occur after complex branch switches.
-                if (!_solutionClosing)
+                else
                 {
-                    if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
-                    {
-                        var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
-                        if (distinctRemainingProjects.Count() == 1)
-                        {
-                            // We had more than one project outputting to the same path. Now we're back down to one
-                            // so we can reference that one again
-                            ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
-                        }
-                    }
-                    else
-                    {
-                        // No projects left, we need to convert back to metadata references
-                        ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
-                    }
+                    // No projects left, we need to convert back to metadata references
+                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
                 }
             }
         }
 
         private void RefreshMetadataReferencesForFile(object sender, string fullFilePath)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 var newSolution = CurrentSolution;
                 using var _ = PooledHashSet<ProjectId>.GetInstance(out var changedProjectIds);
@@ -2020,7 +2049,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
             _foregroundObject.AssertIsForeground();
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 var uiContext =
                     _languageToProjectExistsUIContext.GetOrAdd(

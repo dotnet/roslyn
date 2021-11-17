@@ -578,17 +578,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the original expression.
 
             // (X)(short)((int)(short)x + 1)
-            if (!node.ResultConversion.IsIdentity)
-            {
-                result = MakeConversionNode(
-                    syntax: node.Syntax,
-                    rewrittenOperand: result,
-                    conversion: node.ResultConversion,
-                    rewrittenType: node.Type,
-                    @checked: node.OperatorKind.IsChecked());
-            }
+            result = ApplyConversionIfNotIdentity(node.ResultConversion, node.ResultPlaceholder, result);
 
             return result;
+        }
+
+        private BoundExpression ApplyConversionIfNotIdentity(BoundExpression? conversion, BoundValuePlaceholder? placeholder, BoundExpression replacement)
+        {
+            if (conversion is BoundConversion { Conversion: { IsIdentity: false } })
+            {
+                Debug.Assert(placeholder is not null);
+
+                return ApplyConversion(conversion, placeholder, replacement);
+            }
+
+            return replacement;
+        }
+
+        private BoundExpression ApplyConversion(BoundExpression conversion, BoundValuePlaceholder placeholder, BoundExpression replacement)
+        {
+            AddPlaceholderReplacement(placeholder, replacement);
+            replacement = VisitExpression(conversion);
+            RemovePlaceholderReplacement(placeholder);
+            return replacement;
         }
 
         private BoundExpression MakeUserDefinedIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
@@ -599,7 +611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isLifted = node.OperatorKind.IsLifted();
             bool @checked = node.OperatorKind.IsChecked();
 
-            BoundExpression rewrittenArgument = rewrittenValueToIncrement;
             SyntaxNode syntax = node.Syntax;
 
             TypeSymbol type = node.MethodOpt.GetParameterType(0);
@@ -609,15 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(node.MethodOpt.GetParameterType(0), node.MethodOpt.ReturnType, TypeCompareKind.ConsiderEverything2));
             }
 
-            if (!node.OperandConversion.IsIdentity)
-            {
-                rewrittenArgument = MakeConversionNode(
-                    syntax: syntax,
-                    rewrittenOperand: rewrittenValueToIncrement,
-                    conversion: node.OperandConversion,
-                    rewrittenType: type,
-                    @checked: @checked);
-            }
+            BoundExpression rewrittenArgument = ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, rewrittenValueToIncrement);
 
             if (!isLifted)
             {
@@ -726,16 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we need to make a conversion from the original operand type to the operand type of the
             // underlying increment operation, do it now.
-            if (!node.OperandConversion.IsIdentity)
-            {
-                // (short)x
-                binaryOperand = MakeConversionNode(
-                    syntax: node.Syntax,
-                    rewrittenOperand: binaryOperand,
-                    conversion: node.OperandConversion,
-                    rewrittenType: unaryOperandType,
-                    @checked: @checked);
-            }
+            binaryOperand = ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, binaryOperand);
 
             // Early-out for pointer increment - we don't need to convert the operands to a common type.
             if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.Pointer)
@@ -750,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do it now.
 
             // (int)(short)x
-            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked);
+            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked, markAsChecked: true);
 
             // Perform the addition.
 
@@ -772,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the unary operator.
 
             // (short)((int)(short)x + 1)
-            result = MakeConversionNode(binOp, unaryOperandType, @checked);
+            result = MakeConversionNode(binOp, unaryOperandType, @checked, markAsChecked: true);
             return result;
         }
 

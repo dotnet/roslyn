@@ -42,6 +42,11 @@
         <target state="translated">Voulez-vous continuer ? Le code sera interrompu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">éléments provenant d'espaces de noms non importés</target>
@@ -112,6 +117,21 @@
         <target state="translated">Taille de la mise en retrait</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="new">Inline Diagnostics - Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="new">Inline Diagnostics - Warning</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Indicateurs inline</target>
@@ -136,6 +156,11 @@
         <source>Keyword - Control</source>
         <target state="translated">Mot clé - contrôle</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>

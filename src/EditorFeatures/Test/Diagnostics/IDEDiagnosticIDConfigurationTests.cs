@@ -423,6 +423,12 @@ dotnet_diagnostic.IDE0160.severity = %value%
 # IDE0161
 dotnet_diagnostic.IDE0161.severity = %value%
 
+# IDE0170
+dotnet_diagnostic.IDE0170.severity = %value%
+
+# IDE0180
+dotnet_diagnostic.IDE0180.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -834,7 +840,7 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
 
 # IDE0039, PreferLocalOverAnonymousFunction
-csharp_style_pattern_local_over_anonymous_function = true
+csharp_style_prefer_local_over_anonymous_function = true
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
@@ -997,6 +1003,12 @@ csharp_style_namespace_declarations = block_scoped
 
 # IDE0161, NamespaceDeclarations
 csharp_style_namespace_declarations = block_scoped
+
+# IDE0170, PreferExtendedPropertyPattern
+csharp_style_prefer_extended_property_pattern = true
+
+# IDE0180, PreferTupleSwap
+csharp_style_prefer_tuple_swap = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

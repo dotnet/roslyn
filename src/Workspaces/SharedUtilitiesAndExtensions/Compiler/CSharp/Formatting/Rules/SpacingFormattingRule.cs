@@ -230,14 +230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // attribute case ] *
-            // Place a space between the attribute and the next member if they're on the same line.
             if (previousKind == SyntaxKind.CloseBracketToken && previousToken.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                var attributeOwner = previousToken.Parent?.Parent;
-                if (attributeOwner is MemberDeclarationSyntax)
+                // [Attribute1]$$[Attribute2]
+                if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                    currentToken.Parent.IsKind(SyntaxKind.AttributeList))
                 {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
+
+                // [Attribute]$$ int Prop { ... }
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // For spacing delimiters - after colon

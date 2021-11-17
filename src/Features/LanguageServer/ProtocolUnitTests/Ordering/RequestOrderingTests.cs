@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started at or after the one before it
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started immediately, without waiting
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // The non mutating tasks should have waited for the first task to finish
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // All tasks should start without waiting for any to finish
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
@@ -117,8 +119,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
 
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
         }
 
         [Fact]
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
 
             // Cancel all requests if the request queue is blocked for 1 minute. This will result in a failed test run.
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
@@ -139,8 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             // Non-long running tasks should run and complete. If there's a test-failure for a "cancellation"
             // at this point it means our long running task blocked the queue and prevented completion.
             var responses = await Task.WhenAll(waitables.Skip(1));
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
 
             // Our long-running waitable should still be running until cancelled.
             var longRunningWaitable = waitables[0];
@@ -161,22 +165,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
-            // remaining tasks should be canceled
-            await Assert.ThrowsAsync<TaskCanceledException>(() => Task.WhenAll(waitables.Skip(1)));
+            // The failed request returns to the client before the shutdown completes.
+            // Wait for the queue to finish handling the failed request and shutdown.
+            var operations = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            var waiter = operations.GetWaiter(FeatureAttribute.LanguageServer);
+            await waiter.ExpeditedWaitAsync();
 
-            Assert.All(waitables.Skip(1), w => Assert.True(w.IsCanceled));
+            // remaining tasks should be canceled
+            var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledUnsafeAsync();
+            Assert.True(areAllItemsCancelled);
         }
 
         [Fact]
         public async Task NonMutatingRequestsOperateOnTheSameSolutionAfterMutation()
         {
-            using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
+            using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
 
             var expectedSolution = testLspServer.GetCurrentSolution();
 
@@ -185,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Equal(expectedSolution, solution);
 
             // Open a document, to get a forked solution
-            await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
+            await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().Uri);
 
             // solution should be different because there has been a mutation
             solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
@@ -216,13 +225,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         [Fact]
         public async Task HandlerThatSkipsBuildingLSPSolutionGetsWorkspaceSolution()
         {
-            using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
+            using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
 
             var solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
             Assert.Null(solution);
 
             // Open a document, to create a change that LSP handlers wouldn normally see
-            await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
+            await ExecuteDidOpen(testLspServer, testLspServer.GetLocations("caret").First().Uri);
 
             // solution shouldn't have changed
             solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
@@ -246,6 +255,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             var request = new TestRequest(methodName);
             var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(response);
             return response.Solution;
         }
 
@@ -256,21 +266,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var responses = await Task.WhenAll(waitables);
 
             // Sanity checks to ensure test handlers aren't doing something wacky, making future checks invalid
-            Assert.Empty(responses.Where(r => r.StartTime == default));
-            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+            Assert.Empty(responses.Where(r => r == null));
+            Assert.Empty(responses.Where(r => r!.StartTime == default));
+            Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
 
-            return responses;
+            return responses!;
         }
 
-        private static List<Task<TestResponse>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
+        private static List<Task<TestResponse?>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
         {
             var clientCapabilities = new LSP.ClientCapabilities();
 
-            var waitables = new List<Task<TestResponse>>();
+            var waitables = new List<Task<TestResponse?>>();
             foreach (var request in requests)
-            {
                 waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken));
-            }
 
             return waitables;
         }

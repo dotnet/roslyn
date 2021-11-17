@@ -60,12 +60,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 get
                 {
-                    var text = FeaturesResources.Generate_enum_member_1_0;
-
                     return string.Format(
-                        text,
-                        _state.IdentifierToken.ValueText,
-                        _state.TypeToGenerateIn.Name);
+                        FeaturesResources.Generate_enum_member_0, _state.IdentifierToken.ValueText);
                 }
             }
         }

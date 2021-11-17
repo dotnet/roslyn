@@ -4823,6 +4823,35 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleCollapseTupleTypes()
+        {
+            var text = @"
+public class C
+{
+    public (int, string) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions: SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var global = comp.GlobalNamespace;
+            var symbol = findSymbol(global);
+            var description = symbol.ToDisplayParts(format);
+
+            var firstPart = description[0];
+            Assert.True(((ITypeSymbol)firstPart.Symbol).IsTupleType);
+            Assert.Equal(SymbolDisplayPartKind.StructName, firstPart.Kind);
+
+            Assert.Equal(SymbolDisplayPartKind.Space, description[1].Kind);
+            Assert.Equal(SymbolDisplayPartKind.FieldName, description[2].Kind);
+        }
+
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWith1Arity()
@@ -7917,15 +7946,22 @@ End Class";
             var name = tree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.VariableDeclaratorSyntax>().Single();
             var type = ((ILocalSymbol)model.GetDeclaredSymbol(name.Names[0])).Type;
 
-            Verify(SymbolDisplay.ToDisplayParts(type), "<empty anonymous type>",
-                SymbolDisplayPartKind.ClassName);
+            Verify(SymbolDisplay.ToDisplayParts(type), "<anonymous delegate>",
+                SymbolDisplayPartKind.DelegateName);
 
-            Verify(SymbolDisplay.ToDisplayParts(type, s_fullDelegateFormat), "AnonymousType string <empty anonymous type>",
-                SymbolDisplayPartKind.AnonymousTypeIndicator,
+            Verify(SymbolDisplay.ToDisplayParts(type, s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int i)",
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName);
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
         }
     }
 }

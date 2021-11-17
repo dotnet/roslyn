@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -807,6 +808,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                 {
                     CaptureId id = reference.Id;
+
+                    if (reference.IsInitialization)
+                    {
+                        AssertTrueWithGraph(state.Add(id), $"Multiple initialization of [{id}]", finalGraph);
+                        AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id), $"Flow capture initialization [{id}] should come from the containing region.", finalGraph);
+                        continue;
+                    }
+
                     referencedIds.Add(id);
 
                     if (isLongLivedCaptureReference(reference, block.EnclosingRegion))
@@ -819,14 +828,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
                     // or they should come from the enclosing region.
-                    AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
-                                ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
-                                     isIncrementedNullableForToLoopControlVariable(reference) ||
-                                     isConditionalAccessReceiver(reference) ||
-                                     isCoalesceAssignmentTarget(reference) ||
-                                     isObjectInitializerInitializedObjectTarget(reference)) &&
-                                 block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    if (block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id))
+                    {
+                        continue;
+                    }
+
+                    if (block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id))
+                    {
+                        AssertTrueWithGraph(
+                            isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference)
+                            || isIncrementedNullableForToLoopControlVariable(reference)
+                            || isConditionalAccessReceiver(reference)
+                            || isCoalesceAssignmentTarget(reference)
+                            || isObjectInitializerInitializedObjectTarget(reference)
+                            || isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else if (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false)
+                    {
+                        AssertTrueWithGraph(
+                            isInterpolatedStringArgumentCapture(reference)
+                            || isInterpolatedStringHandlerCapture(reference),
+                            $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
+                    else
+                    {
+                        AssertTrueWithGraph(false, $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
+                    }
                 }
             }
 
@@ -890,6 +919,59 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Parent: InitializerExpressionSyntax { Parent: CSharp.Syntax.ObjectCreationExpressionSyntax },
                     Left: var left
                 } && left == referenceSyntax;
+            }
+
+            bool isInterpolatedStringArgumentCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                IOperation containingArgument = reference;
+                do
+                {
+                    containingArgument = containingArgument.Parent;
+                }
+                while (containingArgument is not (null or IArgumentOperation));
+
+#pragma warning disable IDE0055 // Fix formatting
+                return containingArgument is
+                       {
+                           Parent: IObjectCreationOperation
+                           {
+                               Parent: IFlowCaptureOperation,
+                               Constructor.ContainingType: INamedTypeSymbol ctorContainingType,
+                               Arguments: { Length: >= 3 } arguments,
+                               Syntax: CSharpSyntaxNode syntax
+                           }
+                       }
+                       && applyParenthesizedOrNullSuppressionIfAnyCS(syntax) is CSharp.Syntax.InterpolatedStringExpressionSyntax or CSharp.Syntax.BinaryExpressionSyntax
+                       && ctorContainingType.GetSymbol().IsInterpolatedStringHandlerType
+                       && arguments[0].Value.Type.SpecialType == SpecialType.System_Int32
+                       && arguments[1].Value.Type.SpecialType == SpecialType.System_Int32;
+#pragma warning restore IDE0055
+            }
+
+            bool isInterpolatedStringHandlerCapture(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+#pragma warning disable IDE0055 // Fix formatting
+                return reference is
+                       {
+                           Parent: IInvocationOperation
+                           {
+                               Instance: { } instance,
+                               TargetMethod: { Name: BoundInterpolatedString.AppendFormattedMethod or BoundInterpolatedString.AppendLiteralMethod, ContainingType: INamedTypeSymbol containingType }
+                           }
+                       }
+                       && ReferenceEquals(instance, reference)
+                       && containingType.GetSymbol().IsInterpolatedStringHandlerType;
+#pragma warning restore IDE0055
             }
 
             bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
@@ -1825,6 +1907,9 @@ endRegion:
                     var instanceReference = (IInstanceReferenceOperation)n;
                     return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
                         instanceReference.ReferenceKind == InstanceReferenceKind.PatternInput ||
+                        // Will be removed when CFG support for interpolated string handlers is implemented, tracked by
+                        // https://github.com/dotnet/roslyn/issues/54718
+                        instanceReference.ReferenceKind == InstanceReferenceKind.InterpolatedStringHandler ||
                         (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                          n.Type.IsAnonymousType &&
                          n.Parent is IPropertyReferenceOperation propertyReference &&
@@ -1836,6 +1921,7 @@ endRegion:
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
 
+                case OperationKind.FunctionPointerInvocation:
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
@@ -1904,6 +1990,9 @@ endRegion:
                 case OperationKind.NegatedPattern:
                 case OperationKind.BinaryPattern:
                 case OperationKind.TypePattern:
+                case OperationKind.InterpolatedStringAppendFormatted:
+                case OperationKind.InterpolatedStringAppendLiteral:
+                case OperationKind.InterpolatedStringAppendInvalid:
                     return true;
             }
 

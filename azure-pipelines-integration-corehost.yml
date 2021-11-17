@@ -1,0 +1,44 @@
+# Separate pipeline from normal integration CI to allow branches to change legs
+
+# Branches that trigger a build on commit
+trigger:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that are allowed to trigger a build via /azp run.
+# Automatic building of all PRs is disabled in the pipeline's trigger page.
+# See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
+pr:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+
+jobs:
+- job: VS_Integration_CoreHost
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals $(queueName)
+  strategy:
+    maxParallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+  timeoutInMinutes: 135
+
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: $(_configuration)
+        oop64bit: true
+        oopCoreClr: true

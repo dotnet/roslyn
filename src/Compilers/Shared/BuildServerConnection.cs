@@ -510,9 +510,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool isAdmin = false;
             if (PlatformInformation.IsWindows)
             {
+#pragma warning disable CA1416 // Validate platform compatibility
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var principal = new WindowsPrincipal(currentIdentity);
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+#pragma warning restore CA1416
             }
 
             var userName = Environment.UserName;
@@ -543,19 +545,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
-                if (PlatformInformation.IsRunningOnMono)
+                if (PlatformInformation.IsUsingMonoRuntime)
                 {
-                    IServerMutex? mutex = null;
-                    bool createdNew = false;
-                    try
-                    {
-                        mutex = new ServerFileMutexPair(mutexName, false, out createdNew);
-                        return !createdNew;
-                    }
-                    finally
-                    {
-                        mutex?.Dispose();
-                    }
+                    using var mutex = new ServerFileMutex(mutexName);
+                    return !mutex.CouldLock();
                 }
                 else
                 {
@@ -572,9 +565,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static IServerMutex OpenOrCreateMutex(string name, out bool createdNew)
         {
-            if (PlatformInformation.IsRunningOnMono)
+            if (PlatformInformation.IsUsingMonoRuntime)
             {
-                return new ServerFileMutexPair(name, initiallyOwned: true, out createdNew);
+                var mutex = new ServerFileMutex(name);
+                createdNew = mutex.TryLock(0);
+                return mutex;
             }
             else
             {
@@ -648,19 +643,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
     }
 
     /// <summary>
-    /// An interprocess mutex abstraction based on OS advisory locking (FileStream.Lock/Unlock).
+    /// An interprocess mutex abstraction based on file sharing permission (FileShare.None).
     /// If multiple processes running as the same user create FileMutex instances with the same name,
     ///  those instances will all point to the same file somewhere in a selected temporary directory.
-    /// The TryLock method can be used to attempt to acquire the mutex, with Unlock or Dispose used to release.
+    /// The TryLock method can be used to attempt to acquire the mutex, with Dispose used to release.
+    /// The CouldLock method can be used to check whether an attempt to acquire the mutex would have
+    ///  succeeded at the current time, without actually acquiring it.
     /// Unlike Win32 named mutexes, there is no mechanism for detecting an abandoned mutex. The file
     ///  will simply revert to being unlocked but remain where it is.
     /// </summary>
-    internal sealed class FileMutex : IDisposable
+    internal sealed class ServerFileMutex : IServerMutex
     {
-        public readonly FileStream Stream;
+        public FileStream? Stream;
         public readonly string FilePath;
+        public readonly string GuardPath;
 
-        public bool IsLocked { get; private set; }
+        public bool IsDisposed { get; private set; }
 
         internal static string GetMutexDirectory()
         {
@@ -670,15 +668,109 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return result;
         }
 
-        public FileMutex(string name)
+        public ServerFileMutex(string name)
         {
-            FilePath = Path.Combine(GetMutexDirectory(), name);
-            Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            var mutexDirectory = GetMutexDirectory();
+            FilePath = Path.Combine(mutexDirectory, name);
+            GuardPath = Path.Combine(mutexDirectory, ".guard");
+        }
+
+        /// <summary>
+        /// Acquire the guard by opening the guard file with FileShare.None.  The guard must only ever
+        /// be held for very brief amounts of time, so we can simply spin until it is acquired.  The
+        /// guard must be released by disposing the FileStream returned from this routine.  Note the
+        /// guard file is never deleted; this is a leak, but only of a single file.
+        /// </summary>
+        internal FileStream LockGuard()
+        {
+            // We should be able to acquire the guard quickly.  Limit the number of retries anyway
+            // by some arbitrary bound to avoid getting hung up in a possibly infinite loop.
+            for (var i = 0; i < 100; i++)
+            {
+                try
+                {
+                    return new FileStream(GuardPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                }
+                catch (IOException)
+                {
+                    // Guard currently held by someone else.
+                    // We want to sleep for a short period of time to ensure that other processes
+                    //  have an opportunity to finish their work and relinquish the lock.
+                    // Spinning here (via Yield) would work but risks creating a priority
+                    //  inversion if the lock is held by a lower-priority process.
+                    Thread.Sleep(1);
+                }
+            }
+            // Handle unexpected failure to acquire guard as error.
+            throw new InvalidOperationException("Unable to acquire guard");
+        }
+
+        /// <summary>
+        /// Attempt to acquire the lock by opening the lock file with FileShare.None.  Sets "Stream"
+        /// and returns true if successful, returns false if the lock is already held by another
+        /// thread or process.  Guard must be held when calling this routine.
+        /// </summary>
+        internal bool TryLockFile()
+        {
+            Debug.Assert(Stream is null);
+            FileStream? stream = null;
+            try
+            {
+                stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                // On some targets, the file locking used to implement FileShare.None may not be
+                // atomic with opening/creating the file.   This creates a race window when another
+                // thread holds the lock and is just about to unlock: we may be able to open the
+                // file here, then the other thread unlocks and deletes the file, and then we
+                // acquire the lock on our file handle - but the actual file is already deleted.
+                // To close this race, we verify that the file does in fact still exist now that
+                // we have successfull acquired the locked FileStream.   (Note that this check is
+                // safe because we cannot race with an other attempt to create the file since we
+                // hold the guard, and after the FileStream constructor returned we can no race
+                // with file deletion because we hold the lock.)
+                if (!File.Exists(FilePath))
+                {
+                    // To simplify the logic, we treat this case as "unable to acquire the lock"
+                    // because it we caught another process while it owned the lock and was just
+                    // giving it up.  If the caller retries, we'll likely acquire the lock then.
+                    stream.Dispose();
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                stream?.Dispose();
+                return false;
+            }
+            Stream = stream;
+            return true;
+        }
+
+        /// <summary>
+        /// Release the lock by deleting the lock file and disposing "Stream".
+        /// </summary>
+        internal void UnlockFile()
+        {
+            Debug.Assert(Stream is not null);
+            try
+            {
+                // Delete the lock file while the stream is not yet disposed
+                // and we therefore still hold the FileShare.None exclusion.
+                // There may still be a race with another thread attempting a
+                // TryLockFile in parallel, but that is safely handled there.
+                File.Delete(FilePath);
+            }
+            finally
+            {
+                Stream.Dispose();
+                Stream = null;
+            }
         }
 
         public bool TryLock(int timeoutMs)
         {
-            if (IsLocked)
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            if (Stream is not null)
                 throw new InvalidOperationException("Lock already held");
 
             var sw = Stopwatch.StartNew();
@@ -686,45 +778,66 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    Stream.Lock(0, 0);
-                    IsLocked = true;
-                    return true;
-                }
-                catch (IOException)
-                {
-                    // Lock currently held by someone else.
-                    // We want to sleep for a short period of time to ensure that other processes
-                    //  have an opportunity to finish their work and relinquish the lock.
-                    // Spinning here (via Yield) would work but risks creating a priority
-                    //  inversion if the lock is held by a lower-priority process.
-                    Thread.Sleep(1);
+                    // Attempt to acquire lock while holding guard.
+                    using var guard = LockGuard();
+                    if (TryLockFile())
+                        return true;
                 }
                 catch (Exception)
                 {
-                    // Something else went wrong.
                     return false;
                 }
+
+                // See comment in LockGuard.
+                Thread.Sleep(1);
             } while (sw.ElapsedMilliseconds < timeoutMs);
 
             return false;
         }
 
-        public void Unlock()
+        public bool CouldLock()
         {
-            if (!IsLocked)
-                return;
-            Stream.Unlock(0, 0);
-            IsLocked = false;
+            if (IsDisposed)
+                return false;
+            if (Stream is not null)
+                return false;
+
+            try
+            {
+                // Attempt to acquire lock while holding guard, and if successful
+                // immediately unlock again while still holding guard.  This ensures
+                // no other thread will spuriously observe the lock as held due to
+                // the lock attempt here.
+                using var guard = LockGuard();
+                if (TryLockFile())
+                {
+                    UnlockFile();
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return false;
         }
 
         public void Dispose()
         {
-            var wasLocked = IsLocked;
-            if (wasLocked)
-                Unlock();
-            Stream.Dispose();
-            // We do not delete the lock file here because there is no reliable way to perform a
-            //  'delete if no one has the file open' operation atomically on *nix. This is a leak.
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+            if (Stream is not null)
+            {
+                try
+                {
+                    UnlockFile();
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
     }
 
@@ -792,56 +905,4 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
     }
-
-    /// <summary>
-    /// Approximates a named mutex with 'locked', 'unlocked' and 'abandoned' states.
-    /// There is no reliable way to detect whether a mutex has been abandoned on some target platforms,
-    ///  so we use the AliveMutex to manually track whether the creator of a mutex is still running,
-    ///  while the HeldMutex represents the actual lock state of the mutex.
-    /// </summary>
-    internal sealed class ServerFileMutexPair : IServerMutex
-    {
-        public readonly FileMutex AliveMutex;
-        public readonly FileMutex HeldMutex;
-
-        public bool IsDisposed { get; private set; }
-
-        public ServerFileMutexPair(string mutexName, bool initiallyOwned, out bool createdNew)
-        {
-            AliveMutex = new FileMutex(mutexName + "-alive");
-            HeldMutex = new FileMutex(mutexName + "-held");
-            createdNew = AliveMutex.TryLock(0);
-            if (initiallyOwned && createdNew)
-            {
-                if (!TryLock(0))
-                    throw new Exception("Failed to lock mutex after creating it");
-            }
-        }
-
-        public bool TryLock(int timeoutMs)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Mutex");
-            return HeldMutex.TryLock(timeoutMs);
-        }
-
-        public void Dispose()
-        {
-            if (IsDisposed)
-                return;
-            IsDisposed = true;
-
-            try
-            {
-                HeldMutex.Unlock();
-                AliveMutex.Unlock();
-            }
-            finally
-            {
-                AliveMutex.Dispose();
-                HeldMutex.Dispose();
-            }
-        }
-    }
-
 }
