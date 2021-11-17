@@ -176,20 +176,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             }
         }
 
-        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
-        {
-            throw new NotImplementedException();
-        }
+        public object? GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+            => null;
 
-        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
-        {
-            throw new NotImplementedException();
-        }
+        public object? GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+            => null;
 
-        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
-        {
-            throw new NotImplementedException();
-        }
+        public string? GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+            => throw new NotImplementedException();
 
         public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
             => true;
