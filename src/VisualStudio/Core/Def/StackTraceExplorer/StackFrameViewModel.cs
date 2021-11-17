@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -36,8 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly IStackTraceExplorerService _stackExplorerService;
+        private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = new();
 
-        private ISymbol? _cachedSymbol;
         private Document? _cachedDocument;
         private int _cachedLineNumber;
 
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _threadingContext = threadingContext;
             _workspace = workspace;
             _streamingPresenter = streamingPresenter;
+            _stackExplorerService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         }
 
         public override bool ShowMouseOver => true;
@@ -68,22 +70,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await GetSymbolAsync(cancellationToken).ConfigureAwait(false);
-
-                if (symbol is not { ContainingSymbol: not null })
+                var definition = await GetDefinitionAsync(StackFrameSymbolPart.Class, cancellationToken).ConfigureAwait(false);
+                if (definition is null)
                 {
-                    // Show some dialog?
                     return;
                 }
 
-                // Use the parent class instead of the method to navigate to
-                symbol = symbol.ContainingSymbol;
-
-                var success = NavigateToSymbol(symbol, cancellationToken);
-                if (!success)
+                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (canNavigate)
                 {
-                    // show some dialog?
-                    return;
+                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -101,35 +97,22 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await GetSymbolAsync(cancellationToken).ConfigureAwait(false);
-
-                if (symbol is null)
+                var definition = await GetDefinitionAsync(StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
+                if (definition is null)
                 {
-                    // Show some dialog?
                     return;
                 }
 
-                var success = NavigateToSymbol(symbol, cancellationToken);
-
-                if (!success)
+                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (canNavigate)
                 {
-                    // Show some dialog?
-                    return;
+                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
             }
         }
-
-        private bool NavigateToSymbol(ISymbol symbol, CancellationToken cancellationToken)
-            => GoToDefinitionHelpers.TryGoToDefinition(
-                    symbol,
-                    _workspace.CurrentSolution,
-                    _threadingContext,
-                    _streamingPresenter,
-                    thirdPartyNavigationAllowed: true,
-                    cancellationToken: cancellationToken);
 
         public void NavigateToFile()
         {
@@ -274,19 +257,19 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return (_cachedDocument, _cachedLineNumber);
             }
 
-            (_cachedDocument, _cachedLineNumber) = _frame.GetDocumentAndLine(_workspace.CurrentSolution);
+            (_cachedDocument, _cachedLineNumber) = _stackExplorerService.GetDocumentAndLine(_workspace.CurrentSolution, _frame);
             return (_cachedDocument, _cachedLineNumber);
         }
 
-        private async Task<ISymbol?> GetSymbolAsync(CancellationToken cancellationToken)
+        private async Task<DefinitionItem?> GetDefinitionAsync(StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
-            if (_cachedSymbol is not null)
+            if (_definitionCache.TryGetValue(symbolPart, out var definition) && definition is not null)
             {
-                return _cachedSymbol;
+                return definition;
             }
 
-            _cachedSymbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-            return _cachedSymbol;
+            _definitionCache[symbolPart] = await _stackExplorerService.TryFindDefinitionAsync(_workspace.CurrentSolution, _frame, symbolPart, cancellationToken).ConfigureAwait(false);
+            return _definitionCache[symbolPart];
         }
 
         private static ImmutableArray<StackFrameToken> GetLeafTokens(StackFrameNode node)

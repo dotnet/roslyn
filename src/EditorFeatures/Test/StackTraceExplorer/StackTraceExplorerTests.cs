@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 {
@@ -27,8 +29,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             var stackFrame = result.ParsedFrames[0] as ParsedStackFrame;
             AssertEx.NotNull(stackFrame);
 
-            var symbol = await stackFrame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            // Test that ToString() and reparsing keeps the same outcome
+            var reparsedResult = await StackTraceAnalyzer.AnalyzeAsync(stackFrame.ToString(), CancellationToken.None);
+            Assert.Single(reparsedResult.ParsedFrames);
 
+            var reparsedFrame = reparsedResult.ParsedFrames[0] as ParsedStackFrame;
+            AssertEx.NotNull(reparsedFrame);
+            StackFrameUtils.AssertEqual(stackFrame.Root, reparsedFrame.Root);
+
+            // Get the definition for the parsed frame
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, stackFrame, StackFrameSymbolPart.Method, CancellationToken.None);
+            AssertEx.NotNull(definition);
+
+            // Get the symbol that was indicated in the source code by cursor position
             var cursorDoc = workspace.Documents.Single();
             var selectedSpan = cursorDoc.SelectedSpans.Single();
             var doc = workspace.CurrentSolution.GetRequiredDocument(cursorDoc.Id);
@@ -39,7 +53,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             var expectedSymbol = semanticModel.GetDeclaredSymbol(node);
             AssertEx.NotNull(expectedSymbol);
 
-            Assert.Equal(expectedSymbol, symbol);
+            // Compare the definition found to the definition for the test symbol
+            var expectedDefinition = expectedSymbol.ToNonClassifiedDefinitionItem(workspace.CurrentSolution, includeHiddenLocations: true);
+
+            Assert.Equal(expectedDefinition.IsExternal, definition.IsExternal);
+            AssertEx.SetEqual(expectedDefinition.NameDisplayParts, definition.NameDisplayParts);
+            AssertEx.SetEqual(expectedDefinition.OriginationParts, definition.OriginationParts);
+            AssertEx.SetEqual(expectedDefinition.Properties, definition.Properties);
+            AssertEx.SetEqual(expectedDefinition.SourceSpans, definition.SourceSpans);
+            AssertEx.SetEqual(expectedDefinition.Tags, definition.Tags);
         }
 
         private static void AssertContents(ImmutableArray<ParsedFrame> frames, params string[] contents)
@@ -620,8 +642,9 @@ class C
             Assert.Equal(1, result.ParsedFrames.Length);
 
             var parsedFame = result.ParsedFrames.OfType<ParsedStackFrame>().Single();
-            var symbol = await parsedFame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
-            Assert.Null(symbol);
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFame, StackFrameSymbolPart.Method, CancellationToken.None);
+            Assert.Null(definition);
         }
 
         [Fact]

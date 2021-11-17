@@ -2,23 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    internal interface IStackTraceExplorerService : ILanguageService
+    internal interface IStackTraceExplorerService : IWorkspaceService
     {
         /// <summary>
-        /// Given the type name from <see cref="StackFrameCompilationUnit.MethodDeclaration"/>, get the equivalent name
-        /// in metadata that can be used to look up the type
+        /// If the <paramref name="frame"/> has file information, attempts to map it to existing documents
+        /// in a solution. Looks for an exact filepath match first, then defaults to 
+        /// a best guess.
         /// </summary>
-        string GetTypeMetadataName(string className);
+        (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame);
+        Task<DefinitionItem?> TryFindDefinitionAsync(Solution solution, ParsedFrame frame, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken);
+    }
 
-        /// <summary>
-        /// Given the method name from <see cref="StackFrameCompilationUnit.MethodDeclaration"/>, get the symbol name
-        /// for to match <see cref="IMethodSymbol"/> of a given type
-        /// </summary>
-        string GetMethodSymbolName(string methodName);
+    internal interface IRemoteStackTraceExplorerService
+    {
+        ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(PinnedSolutionInfo solutionInfo, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken);
     }
 }

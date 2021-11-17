@@ -1,0 +1,180 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+{
+    internal static class StackTraceExplorerUtilities
+    {
+        public static async Task<DefinitionItem?> GetDefinitionAsync(Solution solution, StackFrameCompilationUnit compilationUnit, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+        {
+            // MemberAccessExpression is [Expression].[Identifier], and Identifier is the 
+            // method name.
+            var typeExpression = compilationUnit.MethodDeclaration.MemberAccessExpression.Left;
+            var fullyQualifiedTypeName = typeExpression.ToString(skipTrivia: true);
+            var typeName = typeExpression is StackFrameQualifiedNameNode qualifiedName
+                ? qualifiedName.Right.ToString()
+                : typeExpression.ToString();
+
+            RoslynDebug.AssertNotNull(fullyQualifiedTypeName);
+
+            var methodIdentifier = compilationUnit.MethodDeclaration.MemberAccessExpression.Right;
+            var methodTypeArguments = compilationUnit.MethodDeclaration.TypeArguments;
+            var methodArguments = compilationUnit.MethodDeclaration.ArgumentList;
+
+            var methodName = methodIdentifier.ToString(skipTrivia: true);
+
+            foreach (var project in solution.Projects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!project.SupportsCompilation)
+                {
+                    continue;
+                }
+
+                var containsSymbol = await project.ContainsSymbolsWithNameAsync(
+                    (name) => name == typeName,
+                    SymbolFilter.Type,
+                    cancellationToken).ConfigureAwait(false);
+                if (!containsSymbol)
+                {
+                    continue;
+                }
+
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var type = compilation.GetTypeByMetadataName(fullyQualifiedTypeName);
+                if (type is null)
+                {
+                    continue;
+                }
+
+                var members = type.GetMembers();
+                var matchingMembers = members
+                    .OfType<IMethodSymbol>()
+                    .Where(m => m.Name == methodName)
+                    .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
+                    .Where(m => MatchParameters(m.Parameters, methodArguments))
+                    .ToImmutableArrayOrEmpty();
+
+                if (matchingMembers.Length == 1)
+                {
+                    ISymbol symbol = matchingMembers[0];
+                    if (symbolPart == StackFrameSymbolPart.Class)
+                    {
+                        symbol = symbol.ContainingSymbol;
+                    }
+
+                    return symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+                }
+            }
+
+            return null;
+        }
+
+        private static bool MatchParameters(ImmutableArray<IParameterSymbol> parameters, StackFrameParameterList stackFrameParameters)
+        {
+            if (parameters.Length != stackFrameParameters.Parameters.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < stackFrameParameters.Parameters.Length; i++)
+            {
+                var stackFrameParameter = stackFrameParameters.Parameters[i];
+                var paramSymbol = parameters[i];
+
+                if (paramSymbol.Name != stackFrameParameter.Identifier.ToString(skipTrivia: true))
+                {
+                    return false;
+                }
+
+                if (!MatchType(paramSymbol.Type, stackFrameParameter.Type))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool MatchTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, StackFrameTypeArgumentList? stackFrameTypeArgumentList)
+        {
+            if (stackFrameTypeArgumentList is null)
+            {
+                return typeArguments.IsEmpty;
+            }
+
+            if (typeArguments.IsEmpty)
+            {
+                return false;
+            }
+
+            var stackFrameTypeArguments = stackFrameTypeArgumentList.TypeArguments;
+            return typeArguments.Length == stackFrameTypeArguments.Length;
+        }
+
+        private static bool MatchType(ITypeSymbol type, StackFrameTypeNode stackFrameType)
+        {
+            if (type is IArrayTypeSymbol arrayType)
+            {
+                if (stackFrameType is not StackFrameArrayTypeNode arrayTypeNode)
+                {
+                    return false;
+                }
+
+                ITypeSymbol currentType = arrayType;
+
+                // Iterate through each array expression and make sure the dimensions
+                // match the element types in an array.
+                // Ex: string[,][] 
+                // [,] is a 2 dimension array with element type string[]
+                // [] is a 1 dimension array with element type string
+                foreach (var arrayExpression in arrayTypeNode.ArrayExpressions)
+                {
+                    if (currentType is not IArrayTypeSymbol currentArrayType)
+                    {
+                        return false;
+                    }
+
+                    if (currentArrayType.Rank != arrayExpression.CommaTokens.Length + 1)
+                    {
+                        return false;
+                    }
+
+                    currentType = currentArrayType.ElementType;
+                }
+
+                // All array types have been exchausted from the
+                // stackframe identifier and the type is still an array
+                if (currentType is IArrayTypeSymbol)
+                {
+                    return false;
+                }
+
+                return MatchType(currentType, arrayTypeNode.TypeIdentifier);
+            }
+
+            // Special types can have different casing representations
+            // Ex: string and String are the same (System.String)
+            if (type.IsSpecialType())
+            {
+                return type.Name == stackFrameType.ToString(skipTrivia: true);
+            }
+
+            // Default to just comparing the display name
+            return type.ToDisplayString() == stackFrameType.ToString(skipTrivia: true);
+        }
+    }
+}
