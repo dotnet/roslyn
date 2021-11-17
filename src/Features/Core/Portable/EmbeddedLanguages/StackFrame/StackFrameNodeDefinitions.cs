@@ -212,20 +212,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         /// Each unique array identifier for the type
         /// <code>
         /// string[,][]
-        ///        ^--- First array expression = "[,]"
-        ///           ^- Second array expression = "[]" 
+        ///        ^---  First array rank specifier  = "[,]"
+        ///           ^- Second array rank specifier = "[]" 
         /// </code>
         /// </summary>
-        public ImmutableArray<StackFrameArrayRankSpecifier> ArrayExpressions;
+        public ImmutableArray<StackFrameArrayRankSpecifier> ArrayRankSpecifiers;
 
-        public StackFrameArrayTypeNode(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
+        public StackFrameArrayTypeNode(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayRankSpecifiers) : base(StackFrameKind.ArrayTypeExpression)
         {
-            Debug.Assert(!arrayExpressions.IsDefaultOrEmpty);
+            Debug.Assert(!arrayRankSpecifiers.IsDefaultOrEmpty);
             TypeIdentifier = typeIdentifier;
-            ArrayExpressions = arrayExpressions;
+            ArrayRankSpecifiers = arrayRankSpecifiers;
         }
 
-        internal override int ChildCount => 1 + ArrayExpressions.Length;
+        internal override int ChildCount => 1 + ArrayRankSpecifiers.Length;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => TypeIdentifier,
-                _ => ArrayExpressions[index - 1]
+                _ => ArrayRankSpecifiers[index - 1]
             };
     }
 

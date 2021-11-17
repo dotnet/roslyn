@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 // Ex: string[,][] 
                 // [,] is a 2 dimension array with element type string[]
                 // [] is a 1 dimension array with element type string
-                foreach (var arrayExpression in arrayTypeNode.ArrayExpressions)
+                foreach (var arrayExpression in arrayTypeNode.ArrayRankSpecifiers)
                 {
                     if (currentType is not IArrayTypeSymbol currentArrayType)
                     {
