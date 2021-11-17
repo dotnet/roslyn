@@ -2973,6 +2973,63 @@ class X
     }
 
     [Fact]
+    public void ListPattern_Symbols_WithoutIndexOrRangeOrGetSubArray()
+    {
+        var source = @"
+#nullable enable
+class X
+{
+    public void Test(int[] integers)
+    {
+        _ = integers is [var item, ..var slice];
+    }
+}";
+        var compilation = CreateCompilation(source);
+        compilation.VerifyDiagnostics(
+            // (7,25): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //         _ = integers is [var item, ..var slice];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[var item, ..var slice]").WithArguments("System.Index").WithLocation(7, 25),
+            // (7,36): error CS0518: Predefined type 'System.Range' is not defined or imported
+            //         _ = integers is [var item, ..var slice];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "..var slice").WithArguments("System.Range").WithLocation(7, 36)
+            );
+
+        var tree = compilation.SyntaxTrees.First();
+        var model = compilation.GetSemanticModel(tree);
+        var designations = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+        var itemDesignation = designations[0];
+        Assert.Equal("item", itemDesignation.ToString());
+
+        var symbol = model.GetDeclaredSymbol(itemDesignation);
+        Assert.Equal(SymbolKind.Local, symbol.Kind);
+        Assert.Equal("System.Int32", ((ILocalSymbol)symbol).Type.ToTestDisplayString());
+
+        var typeInfo = model.GetTypeInfo(itemDesignation);
+        Assert.Null(typeInfo.Type);
+        Assert.Null(typeInfo.ConvertedType);
+
+        typeInfo = model.GetTypeInfo(itemDesignation.Parent);
+        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+        var sliceDesignation = designations[1];
+        Assert.Equal("slice", sliceDesignation.ToString());
+
+        symbol = model.GetDeclaredSymbol(sliceDesignation);
+        Assert.Equal(SymbolKind.Local, symbol.Kind);
+        Assert.Equal("System.Int32", ((ILocalSymbol)symbol).Type.ToTestDisplayString());
+
+        typeInfo = model.GetTypeInfo(sliceDesignation);
+        Assert.Null(typeInfo.Type);
+        Assert.Null(typeInfo.ConvertedType);
+
+        typeInfo = model.GetTypeInfo(sliceDesignation.Parent);
+        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+    }
+
+    [Fact]
     public void PatternIndexRangeReadOnly_01()
     {
         // Relates to https://github.com/dotnet/roslyn/pull/37194

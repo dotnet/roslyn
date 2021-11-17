@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics, LookupResultKind resultKind, bool indexed, bool isError)
         {
             // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
-            if (symbol.Kind is not SymbolKind.Event and not SymbolKind.Property)
+            if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
             }
@@ -6764,7 +6764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
                 // Properties are handled in BindPropertyAccess
-                if (symbol.Kind is not SymbolKind.Event and not SymbolKind.Property)
+                if (symbol.Kind is not (SymbolKind.Event and SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
                 }
@@ -8314,6 +8314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is not null);
             if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
             {
+                diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                 lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
                 lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
 

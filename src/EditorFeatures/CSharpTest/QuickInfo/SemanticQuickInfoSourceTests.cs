@@ -7617,7 +7617,7 @@ class Program
       {
       }
     }
-}",
+}" + TestSources.Index + TestSources.Range,
                 MainDescription("char[]"));
         }
 
@@ -7633,7 +7633,7 @@ class Program
       {
       }
     }
-}",
+}" + TestSources.Index + TestSources.Range,
                 MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
         }
 

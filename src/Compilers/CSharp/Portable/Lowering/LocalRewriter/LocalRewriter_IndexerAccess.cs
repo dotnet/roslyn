@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
             // If length access is a local, then we are evaluating a pattern
-            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not BoundKind.Local or BoundKind.Parameter)
+            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
             {
                 Debug.Assert(receiver.Type is { });
 
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
             // If length access is a local, then we are evaluating a pattern
-            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not BoundKind.Local or BoundKind.Parameter)
+            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
             {
                 var receiverLocal = F.StoreToTemp(receiver, out var receiverStore);
 
