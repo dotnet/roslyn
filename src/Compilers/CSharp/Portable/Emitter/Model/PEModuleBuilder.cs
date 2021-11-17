@@ -1789,46 +1789,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </remarks>
         internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
         {
-            // If we have already generated the helper, possibly for another switch
-            // or on another thread, we don't need to regenerate it.
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            if (getExistingThrowIfNullMethod() is { } existingMethod)
-            {
-                return existingMethod;
-            }
-
-            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
-            TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
-            TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
-
-            var sourceModule = SourceModule;
-            var throwMethod = new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType);
-            privateImplClass.TryAddSynthesizedMethod(throwMethod.GetCciAdapter());
-
-            // If this call lost a race with another call, we want to obtain and return the symbol that was actually added successfully.
-            // note: strictly it is possible for another thread to add the 'throwMethod', then suspend, then this thread adds the 'throwIfNullMethod'.
-            // If this situation occurs it is not really a concern. We will emit all the methods we need and even if we use a different object instance
-            // to refer to the method when emitting the call site, we will still end up referencing the same method in metadata.
-            var throwIfNullMethod = new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, throwMethod, returnType, argumentType, paramNameType);
-            if (privateImplClass.TryAddSynthesizedMethod(throwIfNullMethod.GetCciAdapter()))
-            {
-                return throwIfNullMethod;
-            }
-            else
-            {
-                existingMethod = getExistingThrowIfNullMethod();
-                Debug.Assert(existingMethod is not null);
-                return existingMethod;
-            }
-
-            MethodSymbol? getExistingThrowIfNullMethod()
+            lock (privateImplClass)
             {
                 if (privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName) is { } throwIfNullAdapter)
                 {
                     Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) != null);
-                    return (MethodSymbol?)throwIfNullAdapter.GetInternalSymbol();
+                    return (MethodSymbol?)throwIfNullAdapter.GetInternalSymbol()!;
                 }
-                return null;
+
+                Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) == null);
+
+                TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+                TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
+                TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
+
+                var sourceModule = SourceModule;
+                var throwMethod = new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType);
+                var added = privateImplClass.TryAddSynthesizedMethod(throwMethod.GetCciAdapter());
+                Debug.Assert(added);
+
+                var throwIfNullMethod = new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, throwMethod, returnType, argumentType, paramNameType);
+                added = privateImplClass.TryAddSynthesizedMethod(throwIfNullMethod.GetCciAdapter());
+                Debug.Assert(added);
+                return throwIfNullMethod;
             }
         }
 #nullable disable
