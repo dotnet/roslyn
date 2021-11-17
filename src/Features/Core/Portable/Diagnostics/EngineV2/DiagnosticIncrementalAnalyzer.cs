@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(analyzerInfoCache);
+            _stateManager = new StateManager(workspace, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
