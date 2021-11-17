@@ -92,17 +92,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             writer.Write("optionCompareText", basicOptions.OptionCompareText)
             writer.Write("embedVbCoreRuntime", basicOptions.EmbedVbCoreRuntime)
 
-            If basicOptions.GlobalImports.Length > 0 Then
-                writer.WriteKey("globalImports")
-                writer.WriteArrayStart()
-                For Each import In basicOptions.GlobalImports
-                    writer.WriteObjectStart()
-                    writer.Write("name", import.Name)
-                    writer.Write("isXml", import.IsXmlClause)
-                    writer.WriteObjectEnd()
-                Next
-                writer.WriteArrayEnd()
-            End If
+            writer.WriteKey("globalImports")
+            writer.WriteArrayStart()
+            For Each import In basicOptions.GlobalImports
+                writer.WriteObjectStart()
+                writer.Write("name", import.Name)
+                writer.Write("isXml", import.IsXmlClause)
+                writer.WriteObjectEnd()
+            Next
+            writer.WriteArrayEnd()
 
             writer.WriteKey("parseOptions")
             WriteParseOptions(writer, basicOptions.ParseOptions)

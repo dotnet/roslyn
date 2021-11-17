@@ -323,16 +323,13 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteObjectStart();
                 writer.Write("kind", properties.Kind);
                 writer.Write("embedInteropTypes", properties.EmbedInteropTypes);
-                if (properties.Aliases is { Length: > 0 } aliases)
+                writer.WriteKey("aliases");
+                writer.WriteArrayStart();
+                foreach (var alias in properties.Aliases)
                 {
-                    writer.WriteKey("aliases");
-                    writer.WriteArrayStart();
-                    foreach (var alias in aliases)
-                    {
-                        writer.Write(alias);
-                    }
-                    writer.WriteArrayEnd();
+                    writer.Write(alias);
                 }
+                writer.WriteArrayEnd();
                 writer.WriteObjectEnd();
             }
         }
