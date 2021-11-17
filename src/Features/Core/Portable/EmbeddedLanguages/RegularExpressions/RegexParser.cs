@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
-            var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
-            using var _ = ArrayBuilder<EmbeddedDiagnostic>.GetInstance(out var diagnostics);
+            using var _1 = PooledHashSet<EmbeddedDiagnostic>.GetInstance(out var seenDiagnostics);
+            using var _2 = ArrayBuilder<EmbeddedDiagnostic>.GetInstance(out var diagnostics);
             CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
@@ -181,8 +181,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(
+        private void CollectDiagnostics(
             RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
+        {
+            try
+            {
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                CollectDiagnosticsWorker(node, seenDiagnostics, diagnostics);
+            }
+            finally
+            {
+                _recursionDepth--;
+            }
+        }
+
+        private void CollectDiagnosticsWorker(RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
@@ -469,7 +483,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 return secondNumberToken != null
                     ? new RegexClosedNumericRangeQuantifierNode(expression, openBraceToken, firstNumberToken, commaToken.Value, secondNumberToken.Value, closeBraceToken)
-                    : (RegexQuantifierNode)new RegexOpenNumericRangeQuantifierNode(expression, openBraceToken, firstNumberToken, commaToken.Value, closeBraceToken);
+                    : new RegexOpenNumericRangeQuantifierNode(expression, openBraceToken, firstNumberToken, commaToken.Value, closeBraceToken);
             }
 
             return new RegexExactNumericQuantifierNode(expression, openBraceToken, firstNumberToken, closeBraceToken);
@@ -1270,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             var components = new RegexSequenceNode(contents.ToImmutable());
             return caretToken.IsMissing
-                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
+                ? new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
                 : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);
         }
 

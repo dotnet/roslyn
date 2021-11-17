@@ -17,19 +17,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
 
-        public override string Method => LSP.MSLSPMethods.OnAutoInsertName;
+        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -44,18 +45,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(
-            LSP.DocumentOnAutoInsertParams request,
+        public override async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
-            {
                 return null;
-            }
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
@@ -63,11 +62,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
                 request.Options, document, cancellationToken).ConfigureAwait(false);
 
+            var options = DocumentationCommentOptions.From(documentOptions);
+
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    request, document, service, documentOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, service, options, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -90,11 +91,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return null;
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> GetDocumentationCommentResponseAsync(
-            LSP.DocumentOnAutoInsertParams autoInsertParams,
+        private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetDocumentationCommentResponseAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
             IDocumentationCommentSnippetService service,
-            DocumentOptionSet documentOptions,
+            DocumentationCommentOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -104,15 +105,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
 
             if (result == null)
             {
                 return null;
             }
 
-            return new LSP.DocumentOnAutoInsertResponseItem
+            return new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = LSP.InsertTextFormat.Snippet,
                 TextEdit = new LSP.TextEdit
@@ -123,8 +124,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
         }
 
-        private async Task<LSP.DocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
-            LSP.DocumentOnAutoInsertParams autoInsertParams,
+        private async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
+            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
             var newText = GetTextChangeTextWithCaretAtLocation(newSourceText, textChange, desiredCaretLinePosition);
-            var autoInsertChange = new LSP.DocumentOnAutoInsertResponseItem
+            var autoInsertChange = new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = LSP.InsertTextFormat.Snippet,
                 TextEdit = new LSP.TextEdit

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
-            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
+            if (oldNode is not BaseMethodDeclarationSyntax oldMethod || newNode is not BaseMethodDeclarationSyntax newMethod || oldMethod.Body == null)
             {
                 speculativeModel = null;
                 return false;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
 
             AppendAliasNames(root.Usings, builder);
-            AppendAliasNames(root.Members.OfType<NamespaceDeclarationSyntax>(), builder, cancellationToken);
+            AppendAliasNames(root.Members.OfType<BaseNamespaceDeclarationSyntax>(), builder, cancellationToken);
 
             return builder.ToImmutable();
         }
@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AppendAliasNames(IEnumerable<NamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
+        private void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
         {
             foreach (var @namespace in namespaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 AppendAliasNames(@namespace.Usings, builder);
-                AppendAliasNames(@namespace.Members.OfType<NamespaceDeclarationSyntax>(), builder, cancellationToken);
+                AppendAliasNames(@namespace.Members.OfType<BaseNamespaceDeclarationSyntax>(), builder, cancellationToken);
             }
         }
 

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
             bool forceIndexCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -55,10 +56,20 @@ namespace Microsoft.CodeAnalysis.Remote
                             .WhereNotNull().ToImmutableArray();
 
                     return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
                 }
 
                 return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
+            }, cancellationToken);
+        }
+
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

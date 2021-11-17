@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -214,6 +215,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (null, DocumentState.None);
             }
 
+            // TODO: Handle case when the old project does not exist and needs to be added. https://github.com/dotnet/roslyn/issues/1204
+            if (committedDocument == null && !solution.ContainsProject(document.Project.Id))
+            {
+                // Document in a new project that does not exist in the committed solution.
+                // Pretend this document is design-time-only and ignore it.
+                return (null, DocumentState.DesignTimeOnly);
+            }
+
             if (!document.DocumentState.SupportsEditAndContinue())
             {
                 return (null, DocumentState.DesignTimeOnly);
@@ -271,6 +280,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Add the document to the committed solution with its current (possibly out-of-sync) text.
                     if (committedDocument == null)
                     {
+                        // TODO: Handle case when the old project does not exist and needs to be added. https://github.com/dotnet/roslyn/issues/1204
+                        Debug.Assert(_solution.ContainsProject(documentId.ProjectId));
+
+                        // TODO: Use API proposed in https://github.com/dotnet/roslyn/issues/56253.
                         _solution = _solution.AddDocument(DocumentInfo.Create(
                             documentId,
                             name: document.Name,
@@ -309,15 +322,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async Task<IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>> GetMatchingDocumentsAsync(Solution solution, Func<Project, CompilationOutputs> compilationOutputsProvider, CancellationToken cancellationToken)
+        internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
+            IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            CancellationToken cancellationToken)
         {
-            var projectTasks = solution.Projects.Select(async project =>
+            var projectTasks = documentsByProject.Select(async projectDocumentStates =>
             {
-                using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
-                if (debugInfoReaderProvider == null)
-                {
-                    return Array.Empty<DocumentId?>();
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var (project, documentStates) = projectDocumentStates;
 
                 // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
                 // Source files of these do not even need to be captured in the solution snapshot.
@@ -326,9 +340,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return Array.Empty<DocumentId?>();
                 }
 
+                using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
+                if (debugInfoReaderProvider == null)
+                {
+                    return Array.Empty<DocumentId?>();
+                }
+
                 var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
 
-                var documentTasks = project.State.DocumentStates.States.Values.Select(async documentState =>
+                var documentTasks = documentStates.Select(async documentState =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

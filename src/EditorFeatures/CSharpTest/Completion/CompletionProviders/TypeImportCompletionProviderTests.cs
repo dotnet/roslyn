@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -25,32 +24,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(TypeImportCompletionProvider);
 
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        private bool UsePartialSemantic { get; set; } = false;
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public TypeImportCompletionProviderTests()
         {
-            return options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
+            ShowImportCompletionItemsOptionValue = true;
+            IsExpandedCompletion = true;
         }
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         #region "Option tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToNull_ExpEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
+            TypeImportCompletionFeatureFlag = true;
 
             ShowImportCompletionItemsOptionValue = null;
 
@@ -82,8 +67,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = false;
             IsExpandedCompletion = false;
 
@@ -101,8 +85,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = true;
 
             var markup = @"
@@ -1746,6 +1729,51 @@ namespace BB
     }}
 }}";
             await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
+        {
+            var markup = @"
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+using Foo;
+
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static MyClass
+        }
+    }
+}";
+
+            await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)

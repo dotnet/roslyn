@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
+                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
                     }
 
                     var textContainer = textBuffer.AsTextContainer();
@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies_NoLock(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (contextProjectNameObject is string contextProjectName)
                     {
-                        var project = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName);
+                        var project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
 
                         if (project != null && projectIds.Contains(project.Id))
                         {
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
+                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
                     w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
                 });
             }
@@ -453,8 +453,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 int IVsHierarchyEvents.OnPropertyChanged(uint itemid, int propid, uint flags)
                 {
-                    if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy ||
-                        propid == (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext)
+                    if (propid is ((int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy) or
+                        ((int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext))
                     {
                         _openFileTracker.RefreshContextsForHierarchyPropertyChange(_hierarchy);
                     }

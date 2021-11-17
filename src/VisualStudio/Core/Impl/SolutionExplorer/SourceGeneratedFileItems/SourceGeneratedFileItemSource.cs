@@ -112,11 +112,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
 
-                // Whatever is left in sourceGeneratedDocumentsForGeneratorById we should add
-                if (sourceGeneratedDocumentsForGeneratorById.Count == 0)
+                // Whatever is left in sourceGeneratedDocumentsForGeneratorById we should add; if we have nothing to add and nothing
+                // in the list after removing anything, then we should add the placeholder.
+                if (sourceGeneratedDocumentsForGeneratorById.Count == 0 && _items.Count == 0)
                 {
-                    // We don't have any items at all, so add the placeholder
-                    Contract.ThrowIfFalse(_items.Count == 0);
                     _items.Add(new NoSourceGeneratedFilesPlaceholderItem());
                     return;
                 }
@@ -156,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             lock (_gate)
             {
                 // We should not have an existing computation active
-                Contract.ThrowIfNull(_cancellationTokenSource == null);
+                Contract.ThrowIfTrue(_cancellationTokenSource is not null);
 
                 _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
@@ -249,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         cancellationToken.ThrowIfCancellationRequested();
 
                         return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
-                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().CompletesAsyncOperation(asyncToken);
                 }
             }
         }

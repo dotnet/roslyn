@@ -12,9 +12,10 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     Public Class MetadataToProjectReferenceConversionTests
-        <WpfFact>
+        <WpfTheory>
+        <CombinatorialData>
         <WorkItem(32554, "https://github.com/dotnet/roslyn/issues/32554")>
-        Public Async Function ProjectReferenceConvertedToMetadataReferenceCanBeRemoved() As Task
+        Public Async Function ProjectReferenceConvertedToMetadataReferenceCanBeRemoved(convertReferenceBackFirst As Boolean, removeInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project1", LanguageNames.CSharp, CancellationToken.None)
@@ -31,12 +32,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Single(getProject2().ProjectReferences)
                 Assert.Empty(getProject2().MetadataReferences)
 
-                project1.OutputFilePath = Nothing
+                If convertReferenceBackFirst Then
+                    project1.OutputFilePath = Nothing
 
-                Assert.Single(getProject2().MetadataReferences)
+                    Assert.Single(getProject2().MetadataReferences)
+                    Assert.Empty(getProject2().ProjectReferences)
+                End If
+
+                Using If(removeInBatch, project2.CreateBatchScope(), Nothing)
+                    project2.RemoveMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+                End Using
+
+                Assert.Empty(getProject2().MetadataReferences)
                 Assert.Empty(getProject2().ProjectReferences)
+            End Using
+        End Function
 
-                project2.RemoveMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function ProjectReferenceConvertedToMetadataReferenceCaseInsensitiveCanBeRemoved(convertReferenceBackFirst As Boolean, removeInBatch As Boolean) As Task
+            Using environment = New TestEnvironment()
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
+
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
+
+                Const ReferencePath = "C:\project1.dll"
+                Const ReferencePathUppercase = "C:\PROJECT1.dll"
+
+                project1.OutputFilePath = ReferencePathUppercase
+                project2.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Dim getProject2 = Function() environment.Workspace.CurrentSolution.GetProject(project2.Id)
+
+                Assert.Single(getProject2().ProjectReferences)
+                Assert.Empty(getProject2().MetadataReferences)
+
+                If convertReferenceBackFirst Then
+                    project1.OutputFilePath = Nothing
+
+                    Assert.Single(getProject2().MetadataReferences)
+                    Assert.Empty(getProject2().ProjectReferences)
+                End If
+
+                Using If(removeInBatch, project2.CreateBatchScope(), Nothing)
+                    project2.RemoveMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+                End Using
+
+                Assert.Empty(getProject2().MetadataReferences)
+                Assert.Empty(getProject2().ProjectReferences)
             End Using
         End Function
 

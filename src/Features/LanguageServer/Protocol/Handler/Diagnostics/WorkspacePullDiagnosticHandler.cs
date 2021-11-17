@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,20 +16,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
+        public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
         public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
             : base(diagnosticService)
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
-        protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport
+        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new VSInternalWorkspaceDiagnosticReport
             {
                 TextDocument = identifier,
                 Diagnostics = diagnostics,
@@ -38,11 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
-
-        protected override DiagnosticParams[]? GetPreviousResults(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults;
+        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -52,6 +50,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        {
+            return GetWorkspacePullDocuments(context);
+        }
+
+        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
+            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
+            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
+            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
+        }
+
+        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
+        {
+            return progress.GetValues();
+        }
+
+        internal static ImmutableArray<Document> GetWorkspacePullDocuments(RequestContext context)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -75,28 +92,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
+            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, isOpen: true);
+                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, isOpen: false);
+                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            void AddDocumentsFromProject(Project? project, bool isOpen)
+            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
             {
                 if (project == null)
                     return;
+
+                if (!supportedLanguages.Contains(project.Language))
+                {
+                    // This project is for a language not supported by the LSP server making the request.
+                    // Do not report diagnostics for these projects.
+                    return;
+                }
 
                 // if the project doesn't necessarily have an open file in it, then only include it if the user has full
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
+                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
                     {
                         context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
@@ -119,15 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     result.Add(document);
                 }
             }
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-        {
-            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
-            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
-            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
         }
     }
 }

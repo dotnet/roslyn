@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
 
-            private Project OriginatingProject => _originatingDocument.Project;
-            private Solution Solution => OriginatingProject.Solution;
-
             public ExtensionMethodSymbolComputer(
                 Document document,
                 SemanticModel semanticModel,
@@ -71,31 +68,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// <summary>
             /// Force create all relevant indices
             /// </summary>
-            public Task PopulateIndicesAsync(CancellationToken cancellationToken)
+            public static Task PopulateIndicesAsync(Project? project, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-                foreach (var project in GetAllRelevantProjects())
+                if (project is null)
                 {
-                    tasks.Add(Task.Run(()
-                        => GetCacheEntryAsync(project, loadOnly: false, _cacheService, cancellationToken), cancellationToken));
+                    return Task.CompletedTask;
                 }
 
-                foreach (var peReference in GetAllRelevantPeReferences())
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+                foreach (var relevantProject in GetAllRelevantProjects(project))
                 {
                     tasks.Add(Task.Run(()
-                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
+                        => GetCacheEntryAsync(relevantProject, loadOnly: false, cacheService, cancellationToken), cancellationToken));
+                }
+
+                foreach (var peReference in GetAllRelevantPeReferences(project))
+                {
+                    tasks.Add(Task.Run(()
+                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
                 }
 
                 return Task.WhenAll(tasks.ToImmutable());
             }
 
-            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, CancellationToken cancellationToken)
+            public Task PopulateIndicesAsync(Project? project, CancellationToken cancellationToken)
+                => PopulateIndicesAsync(project, _cacheService, cancellationToken);
+
+            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
             {
                 // Find applicable symbols in parallel
                 using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
 
-                foreach (var peReference in GetAllRelevantPeReferences())
+                foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument.Project))
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
                         peReference,
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         cancellationToken).AsTask(), cancellationToken));
                 }
 
-                foreach (var project in GetAllRelevantProjects())
+                foreach (var project in GetAllRelevantProjects(_originatingDocument.Project))
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
                         project,
@@ -130,22 +135,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var browsableSymbols = symbols.ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(_originatingDocument.ShouldHideAdvancedMembers(), _originatingSemanticModel.Compilation);
+                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
 
                 return (browsableSymbols, isPartialResult);
             }
 
             // Returns all referenced projects and originating project itself.
-            private ImmutableArray<Project> GetAllRelevantProjects()
+            private static ImmutableArray<Project> GetAllRelevantProjects(Project project)
             {
-                var graph = Solution.GetProjectDependencyGraph();
-                var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(OriginatingProject.Id).Concat(OriginatingProject.Id);
-                return relevantProjectIds.Select(id => Solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation).ToImmutableArray();
+                var graph = project.Solution.GetProjectDependencyGraph();
+                var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id).Concat(project.Id);
+                return relevantProjectIds.Select(id => project.Solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation).ToImmutableArray();
             }
 
             // Returns all PEs referenced by originating project.
-            private ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences()
-                => OriginatingProject.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
+            private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Project project)
+                => project.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
 
             private async Task<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromProjectAsync(
                 Project project,
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 // By default, don't trigger index creation except for documents in originating project.
-                var isOriginatingProject = project == OriginatingProject;
+                var isOriginatingProject = project == _originatingDocument.Project;
                 forceIndexCreation = forceIndexCreation || isOriginatingProject;
 
                 var cacheEntry = await GetCacheEntryAsync(
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 var index = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                    Solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                    _originatingDocument.Project.Solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
                 if (index == null)
                 {

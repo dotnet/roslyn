@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 ///<param name='_
 }",
                 testHost,
-                Identifier("_"),
+                ParseOptions(Options.Regular),
+                Method("_"),
                 Method("_"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
@@ -917,7 +918,7 @@ class Program : IReadOnlyCollection<int,string>
                 Keyword("class"),
                 Class("Program"),
                 Punctuation.Colon,
-                Identifier("IReadOnlyCollection"),
+                Interface("IReadOnlyCollection"),
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -2149,6 +2150,24 @@ class Person
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Keyword("namespace"),
+                Namespace("NS"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
     }

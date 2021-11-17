@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
                 () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-            DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
+            DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
@@ -98,13 +98,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadImpl(string fullPath)
+#nullable enable
+        protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-
-            return base.LoadImpl(shadowCopyPath);
+            return shadowCopyPath;
         }
+#nullable disable
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {

@@ -239,12 +239,12 @@ public class mine {
                 // (2,7): error CS1041: Identifier expected; 'namespace' is a keyword
                 // using namespace System;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(2, 7),
-                // (2,23): error CS1514: { expected
-                // using namespace System;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(2, 23),
                 // (4,42): error CS0150: A constant value is expected
                 //     public enum e1 {one=1, two=2, three= };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42),
+                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
         }
 
         [WorkItem(862028, "DevDiv/Personal")]

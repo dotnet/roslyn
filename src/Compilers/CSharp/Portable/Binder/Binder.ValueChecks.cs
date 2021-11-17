@@ -273,6 +273,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
                     break;
+
+                case BoundKind.PointerIndirectionOperator:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var pointerIndirection = (BoundPointerIndirectionOperator)expr;
+                        expr = pointerIndirection.Update(pointerIndirection.Operand, refersToLocation: true, pointerIndirection.Type);
+                    }
+                    break;
+
+                case BoundKind.PointerElementAccess:
+                    if ((valueKind & BindValueKind.RefersToLocation) == BindValueKind.RefersToLocation)
+                    {
+                        var elementAccess = (BoundPointerElementAccess)expr;
+                        expr = elementAccess.Update(elementAccess.Expression, elementAccess.Index, elementAccess.Checked, refersToLocation: true, elementAccess.Type);
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;
@@ -1261,10 +1277,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal static uint GetInterpolatedStringHandlerConversionEscapeScope(
+            InterpolatedStringHandlerData data,
+            uint scopeOfTheContainingExpression)
+            => GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
         /// <summary>
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
-        ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
+        ///       where escape is known otherwise. Therefore we do not have two ref/val variants of this.
         ///       
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
@@ -2491,6 +2512,11 @@ moreArguments:
                     // always returnable
                     return Binder.ExternalScope;
 
+                case BoundKind.FromEndIndexExpression:
+                    // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
+                    // always returnable
+                    return Binder.ExternalScope;
+
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     var tupleLiteral = (BoundTupleExpression)expr;
@@ -2504,8 +2530,7 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.DiscardExpression:
-                    // same as uninitialized local
-                    return Binder.ExternalScope;
+                    return ((BoundDiscardExpression)expr).ValEscape;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
@@ -2661,6 +2686,17 @@ moreArguments:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
 
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        var data = conversion.Operand switch
+                        {
+                            BoundInterpolatedString { InterpolationData: { } d } => d,
+                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                            _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
+                        };
+                        return GetInterpolatedStringHandlerConversionEscapeScope(data, scopeOfTheContainingExpression);
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -2680,6 +2716,12 @@ moreArguments:
 
                     return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression),
                                     GetValEscape(binary.Right, scopeOfTheContainingExpression));
+
+                case BoundKind.RangeExpression:
+                    var range = (BoundRangeExpression)expr;
+
+                    return Math.Max((range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : Binder.ExternalScope),
+                                    (range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : Binder.ExternalScope));
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -2717,6 +2759,15 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
+                    // location.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // We saved off the safe-to-escape of the argument when we did binding
+                    return ((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape;
+
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
                     // then immediately discarded. The actual expression will be generated during lowering 
@@ -2733,6 +2784,7 @@ moreArguments:
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
+                case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
@@ -2861,6 +2913,14 @@ moreArguments:
 
                 case BoundKind.AwaitableValuePlaceholder:
                     if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
@@ -3073,9 +3133,19 @@ moreArguments:
                     var unary = (BoundUnaryOperator)expr;
                     return CheckValEscape(node, unary.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
+                case BoundKind.FromEndIndexExpression:
+                    // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
+                    return true;
+
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
+
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        return CheckInterpolatedStringHandlerConversionEscape(conversion.Operand, escapeFrom, escapeTo, diagnostics);
+                    }
+
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.AssignmentOperator:
@@ -3097,6 +3167,16 @@ moreArguments:
 
                     return CheckValEscape(binary.Left.Syntax, binary.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(binary.Right.Syntax, binary.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.RangeExpression:
+                    var range = (BoundRangeExpression)expr;
+
+                    if (range.LeftOperandOpt is { } left && !CheckValEscape(left.Syntax, left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                    {
+                        return false;
+                    }
+
+                    return !(range.RightOperandOpt is { } right && !CheckValEscape(right.Syntax, right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics));
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -3344,6 +3424,75 @@ moreArguments:
             }
 
             return true;
+        }
+
+        private static bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
+        {
+
+            var data = expression switch
+            {
+                BoundInterpolatedString { InterpolationData: { } d } => d,
+                BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind)
+            };
+
+            // We need to check to see if any values could potentially escape outside the max depth via the handler type.
+            // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
+            // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
+            // escape, or does the opposite. In either case, we need to check.
+
+            CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+            while (true)
+            {
+                switch (expression)
+                {
+                    case BoundBinaryOperator binary:
+                        if (!checkParts((BoundInterpolatedString)binary.Right))
+                        {
+                            return false;
+                        }
+
+                        expression = binary.Left;
+                        continue;
+
+                    case BoundInterpolatedString interpolatedString:
+                        if (!checkParts(interpolatedString))
+                        {
+                            return false;
+                        }
+
+                        return true;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expression.Kind);
+                }
+            }
+
+            bool checkParts(BoundInterpolatedString interpolatedString)
+            {
+                foreach (var part in interpolatedString.Parts)
+                {
+                    if (part is not BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
+                    {
+                        // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
+                        // string arguments and do not require us to be concerned with escape
+                        continue;
+                    }
+
+                    // The interpolation component is always the first argument to the method, and it was not passed by name
+                    // so there can be no reordering.
+                    var argument = call.Arguments[0];
+                    var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                    if (!success)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         internal enum AddressKind

@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.ValueTracking"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
              mc:Ignorable="d" 
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              d:DesignHeight="450" d:DesignWidth="800"
@@ -37,37 +38,45 @@
             Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
             Foreground="{DynamicResource {x:Static vs:ProgressBarColors.IndicatorFillBrushKey}}"
             Background="{DynamicResource {x:Static vs:ProgressBarColors.BackgroundBrushKey}}" />
-        
-        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-            <TreeView  x:Name="ValueTrackingTreeView" ItemsSource="{Binding Roots}" BorderThickness="0" PreviewKeyDown="ValueTrackingTreeView_PreviewKeyDown" MouseDown="ValueTrackingTreeView_MouseClickPreview" PreviewMouseDoubleClick="ValueTrackingTreeView_MouseClickPreview">
-                <TreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />
-                        <Setter Property="IsSelected" Value="{Binding IsNodeSelected, Mode=TwoWay}" />
-                    </Style>
-                </TreeView.ItemContainerStyle>
-                <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding GlyphImage}" />
-                            <local:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                    <DataTemplate DataType="{x:Type local:EmptyTreeViewItem}">
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type local:ComputingTreeViewItem}">
-                        <StackPanel Orientation="Horizontal">
-                            <vs:ProgressControl Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <vs:ProgressControl.RenderTransform>
-                                    <ScaleTransform ScaleX="0.50" ScaleY="0.50" />
-                                </vs:ProgressControl.RenderTransform>
-                            </vs:ProgressControl>
-                            <TextBlock Text="{Binding Text}" Margin="0 0 5 0" />
-                        </StackPanel>
-                    </DataTemplate>
-                </TreeView.Resources>
-            </TreeView>
-        </ScrollViewer>
+
+        <TreeView 
+            Grid.Row="1" 
+            Grid.Column="0" 
+            x:Name="ValueTrackingTreeView" 
+            ItemsSource="{Binding Roots}" 
+            SelectedItemChanged="ValueTrackingTree_SelectedItemChanged" 
+            BorderThickness="0" 
+            PreviewKeyDown="ValueTrackingTree_PreviewKeyDown" 
+            PreviewMouseDoubleClick="ValueTrackingTree_MouseDoubleClickPreview"
+            AutomationProperties.Name="{Binding AutomationName, Mode=OneWay}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsNodeSelected, Mode=TwoWay}" />
+                    <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName, Mode=OneWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding GlyphImage}" />
+                        <utils:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type local:EmptyTreeViewItem}">
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ComputingTreeViewItem}">
+                    <StackPanel Orientation="Horizontal">
+                        <vs:ProgressControl Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <vs:ProgressControl.RenderTransform>
+                                <ScaleTransform ScaleX="0.50" ScaleY="0.50" />
+                            </vs:ProgressControl.RenderTransform>
+                        </vs:ProgressControl>
+                        <TextBlock Text="{Binding Text}" Margin="0 0 5 0" />
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
 
         <GridSplitter 
             Grid.Column="1" 
@@ -89,10 +98,10 @@
                 </Grid.RowDefinitions>
 
                 <Label Content="File" Grid.Row="0" Grid.Column="0" x:Name="FileNameLabel" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedItemFile}" x:Name="FileName" AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}" VerticalAlignment="Center" />
+                <Label Grid.Row="0" Grid.Column="1" Content="{Binding SelectedItemFile}" x:Name="FileName" AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}" VerticalAlignment="Center" />
 
                 <Label Content="Line" Grid.Row="1" Grid.Column="0" x:Name="LineNumberLabel" />
-                <TextBlock  Grid.Row="1" Grid.Column="1" Text="{Binding SelectedItemLine}" x:Name="LineNumber" AutomationProperties.LabeledBy="{Binding ElementName=LineNumberLabel}" VerticalAlignment="Center" />
+                <Label Grid.Row="1" Grid.Column="1" Content="{Binding SelectedItemLine}" x:Name="LineNumber" AutomationProperties.LabeledBy="{Binding ElementName=LineNumberLabel}" VerticalAlignment="Center" />
             </Grid>
         </ScrollViewer>
     </Grid>

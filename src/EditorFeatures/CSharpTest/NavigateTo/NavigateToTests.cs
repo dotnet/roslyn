@@ -109,6 +109,27 @@ record struct Goo
 
         [Theory]
         [CombinatorialData]
+        public async Task FindClassInFileScopedNamespace(TestHost testHost, Composition composition)
+        {
+            var content = XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+namespace FileScopedNS;
+class Goo { }
+        </Document>
+    </Project>
+</Workspace>
+");
+            await TestAsync(testHost, composition, content, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task FindVerbatimClass(TestHost testHost, Composition composition)
         {
             await TestAsync(

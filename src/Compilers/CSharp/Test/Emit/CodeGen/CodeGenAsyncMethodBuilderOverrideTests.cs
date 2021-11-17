@@ -619,12 +619,12 @@ class C
                 // (9,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithLocation(9, 29),
-                // (12,38): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                // (12,38): error CS8940: A generic task-like return type was expected, but the type 'MyTaskMethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithLocation(12, 38),
-                // (15,41): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithArguments("MyTaskMethodBuilder").WithLocation(12, 38),
+                // (15,41): error CS8940: A generic task-like return type was expected, but the type 'MyTaskMethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     public static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""M ""); await F(); return await G(3); }").WithLocation(15, 41)
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, @"{ System.Console.Write(""M ""); await F(); return await G(3); }").WithArguments("MyTaskMethodBuilder").WithLocation(15, 41)
                 );
         }
 
@@ -1501,11 +1501,11 @@ class C<U>
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
-                // (9,34): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                // (9,34): error CS8940: A generic task-like return type was expected, but the type 'MyTaskMethodBuilder<int>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     static async MyTask<int> M() { await Task.Delay(0); throw null; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(0); throw null; }").WithLocation(9, 34)
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "{ await Task.Delay(0); throw null; }").WithArguments("MyTaskMethodBuilder<int>").WithLocation(9, 34)
                 );
         }
 

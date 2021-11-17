@@ -219,7 +219,7 @@ namespace RunTests
 
                 // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
                 // to bug investigations.
-                if (name == "procdump" || name == "conhost")
+                if (name is "procdump" or "conhost")
                 {
                     return;
                 }

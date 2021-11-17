@@ -512,6 +512,12 @@ breaks
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            TestNormalizeDeclaration("namespace NS;class C{}", "namespace NS;\r\nclass C\r\n{\r\n}");
+        }
+
+        [Fact]
         public void TestSpacingOnRecord()
         {
             TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");

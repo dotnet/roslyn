@@ -6,9 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -28,25 +28,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of SourceLineUpdate),
-                                   expectedNodeUpdates As IEnumerable(Of String),
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            Assert.NotEmpty(expectedLineEdits)
+                                   lineEdits As SourceLineUpdate(),
+                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
+                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
+            Assert.NotEmpty(lineEdits)
 
             VerifyLineEdits(
                 editScript,
-                {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, expectedLineEdits.ToImmutableArray())},
-                expectedNodeUpdates,
-                expectedDiagnostics)
+                {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, lineEdits.ToImmutableArray())},
+                semanticEdits,
+                diagnostics)
         End Sub
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of SequencePointUpdates),
-                                   expectedNodeUpdates As IEnumerable(Of String),
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
+                                   lineEdits As SequencePointUpdates(),
+                                   Optional semanticEdits As SemanticEditDescription() = Nothing,
+                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
             Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            validator.VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
+            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics)
         End Sub
 
         <Extension>
@@ -72,20 +72,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    Optional activeStatements As ActiveStatementsDescription = Nothing,
                                    Optional semanticEdits As SemanticEditDescription() = Nothing,
                                    Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
-                                   Optional targetFrameworks As TargetFramework() = Nothing)
+                                   Optional targetFrameworks As TargetFramework() = Nothing,
+                                   Optional capabilities As EditAndContinueCapabilities? = Nothing)
             VerifySemantics(
                 {editScript},
-                {New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)},
-                targetFrameworks)
+                {New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)},
+                targetFrameworks,
+                capabilities)
         End Sub
 
         <Extension>
         Friend Sub VerifySemantics(editScripts As EditScript(Of SyntaxNode)(),
                                    expected As DocumentAnalysisResultsDescription(),
-                                   Optional targetFrameworks As TargetFramework() = Nothing)
+                                   Optional targetFrameworks As TargetFramework() = Nothing,
+                                   Optional capabilities As EditAndContinueCapabilities? = Nothing)
             For Each framework In If(targetFrameworks, {TargetFramework.NetStandard20, TargetFramework.NetCoreApp})
                 Dim validator = New VisualBasicEditAndContinueTestHelpers()
-                validator.VerifySemantics(editScripts, framework, expected)
+                validator.VerifySemantics(editScripts, framework, expected, capabilities)
             Next
         End Sub
     End Module

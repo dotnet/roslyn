@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
             using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
+            HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
             {
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (current.IsNode)
                         {
                             var node = current.AsNode();
+                            Contract.ThrowIfNull(node);
 
                             containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
@@ -113,6 +115,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
                         else
                         {
@@ -207,7 +211,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     new ExtensionMethodInfo(
                         extensionMethodInfo.ToImmutableDictionary(
                             static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())));
+                            static kvp => kvp.Value.ToImmutable())),
+                    globalAliasInfo);
             }
             finally
             {
@@ -217,6 +222,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var (_, builder) in extensionMethodInfo)
                     builder.Free();
+            }
+        }
+
+        private static void TryAddGlobalAliasInfo(
+            ISyntaxFactsService syntaxFacts,
+            ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+            SyntaxNode node)
+        {
+            if (!syntaxFacts.IsUsingAliasDirective(node))
+                return;
+
+            syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
+            if (globalToken.IsMissing)
+                return;
+
+            // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.
+            if (syntaxFacts.IsQualifiedName(usingTarget))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(usingTarget, out _, out _, out var right);
+                usingTarget = right;
+            }
+
+            // We'll have either `= ...X` or `= ...X<A, B, C>` now.  Pull out the name and arity to put in the index.
+            if (syntaxFacts.IsSimpleName(usingTarget))
+            {
+                syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
+                globalAliasInfo ??= new();
+                globalAliasInfo.Add((alias.ValueText, name, arity));
             }
         }
 

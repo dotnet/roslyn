@@ -2,20 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -24,13 +12,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     /// </summary>
     internal partial class ValueTrackingTree : UserControl
     {
+        private readonly ValueTrackingTreeViewModel _viewModel;
+
         public ValueTrackingTree(ValueTrackingTreeViewModel viewModel)
         {
-            DataContext = viewModel;
+            DataContext = _viewModel = viewModel;
             InitializeComponent();
         }
 
-        private void ValueTrackingTreeView_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void ValueTrackingTree_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = e.Handled || e.Key switch
             {
@@ -46,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             // Local Functions
 
-            static bool TrySelectItem(TreeViewItemBase? node, bool navigate)
+            bool TrySelectItem(TreeViewItemBase? node, bool navigate)
             {
                 if (node is null)
                 {
@@ -57,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return true;
             }
 
-            static bool TrySetExpanded(TreeViewItemBase? node, bool expanded)
+            bool TrySetExpanded(TreeViewItemBase? node, bool expanded)
             {
                 if (node is null)
                 {
@@ -68,29 +58,35 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return true;
             }
 
-            static bool TryToggleExpanded(TreeViewItemBase? node)
+            bool TryToggleExpanded(TreeViewItemBase? node)
             {
                 return TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
             }
         }
 
-        private void ValueTrackingTreeView_MouseClickPreview(object sender, MouseButtonEventArgs e)
+        private void ValueTrackingTree_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TreeViewItemBase viewModel && e.ChangedButton == MouseButton.Left)
-            {
-                SelectItem(viewModel, true);
-                e.Handled = true;
-            }
-        }
-
-        private static void SelectItem(TreeViewItemBase? item, bool navigate = false)
-        {
-            if (item is null)
+            if (e.ChangedButton != MouseButton.Left)
             {
                 return;
             }
 
-            item.IsNodeSelected = true;
+            if (sender is TreeViewItemBase viewModel)
+            {
+                SelectItem(viewModel, true);
+                e.Handled = true;
+            }
+            else if (sender is TreeView)
+            {
+                SelectItem(_viewModel.SelectedItem, true);
+                e.Handled = true;
+            }
+        }
+
+        private void SelectItem(TreeViewItemBase? item, bool navigate = false)
+        {
+            _viewModel.SelectedItem = item;
+
             if (navigate && item is TreeItemViewModel navigatableItem)
             {
                 navigatableItem.NavigateTo();
@@ -123,6 +119,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;
             return item.GetPreviousInTree();
+        }
+
+        private void ValueTrackingTree_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
+        {
+            _viewModel.SelectedItem = ValueTrackingTreeView.SelectedItem as TreeViewItemBase;
         }
     }
 }

@@ -693,10 +693,10 @@ await new VerifyCS.Test
     TestState = 
     {
         Sources = { code },
-    },
-    GeneratedSources =
-    {
-        (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        GeneratedSources =
+        {
+            (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        },
     },
 }.RunAsync();
 ```

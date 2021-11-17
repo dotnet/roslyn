@@ -5,10 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -38,7 +38,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), Array.Empty(Of String))
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))})
         End Sub
 
         <Fact>
@@ -190,7 +192,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))})
         End Sub
 
         <Fact>
@@ -212,7 +216,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar()"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))})
         End Sub
 
         <Fact>
@@ -286,13 +292,16 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar()"})
-
             Dim active = GetActiveStatements(src1, src2)
             Dim syntaxMap = GetSyntaxMap(src1, src2)
 
-            edits.VerifySemantics(active,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"), syntaxMap(0))})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))})
+
+            edits.VerifySemantics(
+                active,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"), syntaxMap:=syntaxMap(0))})
         End Sub
 
         <Fact>
@@ -310,7 +319,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar() : End Sub"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"))})
         End Sub
 
         <Fact>
@@ -333,8 +344,8 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(4, 3)},
-                                  Array.Empty(Of String))
+            edits.VerifyLineEdits(
+                {New SourceLineUpdate(4, 3)})
         End Sub
 
         <Fact>
@@ -355,9 +366,9 @@ Class C(Of T)
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
-                                  {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method))
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method)})
         End Sub
 
         <Fact>
@@ -379,9 +390,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
-                                  {"Shared Sub Bar(Of T)()"},
-                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method)})
         End Sub
 
         <Fact>
@@ -404,8 +415,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
-                                  {"Shared Async Function Bar() As Task(Of Integer)"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Bar"), preserveLocalVariables:=True)})
         End Sub
 
 #End Region
@@ -430,7 +442,9 @@ End Class"
 End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -451,7 +465,9 @@ End Class"
 End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
         End Sub
 
 #End Region
@@ -473,7 +489,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared Bar As Integer = 2", FeaturesResources.field)})
         End Sub
 
         <Fact>
@@ -491,7 +509,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared c As New C()", FeaturesResources.field)})
         End Sub
 
         <Fact>
@@ -511,8 +531,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 3),
-                                   New SourceLineUpdate(3, 2)}, {})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared c, d As New C()", FeaturesResources.field)})
         End Sub
 
         <Fact>
@@ -606,7 +627,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {"Goo"})
+            edits.VerifyLineEdits(
+                {New SourceLineUpdate(2, 3)},
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -662,7 +685,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo = _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -681,7 +706,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _ "})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -700,7 +727,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -718,7 +747,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo =  1"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -736,7 +767,31 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo As Integer = 1 +  1"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+        End Sub
+
+        <Fact>
+        Public Sub Field_Init_Recompile_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 
         <Fact>
@@ -755,7 +810,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo As _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -774,7 +831,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -795,7 +854,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             ' to make it simpler, we recompile the constructor (by reporting a field as a node update)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {"Goo"})
+            edits.VerifyLineEdits(
+                {New SourceLineUpdate(2, 3)},
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -815,7 +876,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             ' we treat "Goo + New D()" as a whole for simplicity
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -833,7 +896,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -852,7 +917,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -869,7 +936,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo(1)"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -887,9 +956,31 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
-                                  {"Goo As Integer = 1 +  1"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field))
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                diagnostics:={Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)")})
+        End Sub
+
+        <Fact>
+        Public Sub Field_Generic_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 #End Region
 
@@ -1043,7 +1134,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -1062,7 +1155,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -1081,7 +1176,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As Integer _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -1100,7 +1197,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As Integer = _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -1119,7 +1218,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -1138,7 +1239,9 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo$ = _"})
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 #End Region
 
@@ -1195,9 +1298,10 @@ End Class
                         AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),' lines between F2 And D ctor
                         New SourceLineUpdate(7, 17)))' D ctor
                 },
+                semanticEdits:=
                 {
-                    "Sub F3() : End Sub", ' overlaps with "Sub F1"
-                    "Sub F4() : End Sub"  ' overlaps with "Sub F2"
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.F3")),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.F4"))
                 })
         End Sub
 
@@ -1257,8 +1361,7 @@ End Class"
                 {
                     New SequencePointUpdates("a", ImmutableArray.Create(New SourceLineUpdate(0, 1))),
                     New SequencePointUpdates("b", ImmutableArray.Create(New SourceLineUpdate(0, 1)))
-                },
-                Array.Empty(Of String))
+                })
         End Sub
 
         <Fact>
@@ -1298,7 +1401,7 @@ End Class"
                 {
                     New SequencePointUpdates("a", ImmutableArray.Create(New SourceLineUpdate(6, 4)))
                 },
-                {"Sub F()"})
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
             {
@@ -1328,8 +1431,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
                  Array.Empty(Of SequencePointUpdates)(),
-                 {"Sub Bar(Of T)()"},
-                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub Bar(Of T)()", FeaturesResources.method))
+                 diagnostics:={Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub Bar(Of T)()", FeaturesResources.method)})
         End Sub
 
 #End Region

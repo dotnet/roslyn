@@ -94,7 +94,7 @@ namespace AnalyzerRunner
                         var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                         foreach (var operation in operations)
                         {
-                            if (!(operation is ApplyChangesOperation applyChangesOperation))
+                            if (operation is not ApplyChangesOperation applyChangesOperation)
                             {
                                 continue;
                             }

@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string>? properties)
+                        out ImmutableDictionary<string, string?>? properties)
                     {
                         Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
 

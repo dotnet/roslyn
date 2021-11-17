@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,8 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
     {
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName,
-                CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
+                CreateSemanticTokensParams(caret), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         private static LSP.SemanticTokensParams CreateSemanticTokensParams(LSP.Location caret)
@@ -32,8 +35,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+                CreateSemanticTokensRangeParams(caret, range), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
@@ -43,23 +48,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 Range = range
             };
 
-        private protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
+        private protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
-                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>(LSP.Methods.TextDocumentSemanticTokensFullDeltaName,
+                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
         }
 
-        private static LSP.SemanticTokensEditsParams CreateSemanticTokensParams(LSP.Location caret, string previousResultId)
-            => new LSP.SemanticTokensEditsParams
+        private static LSP.SemanticTokensDeltaParams CreateSemanticTokensParams(LSP.Location caret, string previousResultId)
+            => new LSP.SemanticTokensDeltaParams
             {
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 PreviousResultId = previousResultId
             };
 
-        protected static void UpdateDocumentText(string updatedText, Workspace workspace)
+        protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
         {
             var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, SourceText.From(updatedText));
+            await ((TestWorkspace)workspace).ChangeDocumentAsync(docId, SourceText.From(updatedText));
         }
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't

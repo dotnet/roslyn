@@ -57,10 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
-            actual = actual.Replace("\"", "\"\"").Replace(" \n", "\n").Replace(" \r", "\r");
+            actual = actual.Replace(" \n", "\n").Replace(" \r", "\r");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine);
-            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
@@ -217,22 +216,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static string ConstantToString(object constant, bool quoteString = true)
+        private static string ConstantToString(object constant)
         {
             switch (constant)
             {
                 case null:
                     return "null";
                 case string s:
-                    if (quoteString)
-                    {
-                        return @"""" + s + @"""";
-                    }
-                    return s;
+                    s = s.Replace("\"", "\"\"");
+                    return @"""" + s + @"""";
                 case IFormattable formattable:
-                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                    return formattable.ToString(null, CultureInfo.InvariantCulture).Replace("\"", "\"\"");
                 default:
-                    return constant.ToString();
+                    return constant.ToString().Replace("\"", "\"\"");
             }
         }
 
@@ -828,6 +824,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation.Arguments);
         }
 
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            LogString(nameof(IFunctionPointerInvocationOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Target");
+            VisitArguments(operation.Arguments);
+        }
+
         private void VisitArguments(ImmutableArray<IArgumentOperation> arguments)
         {
             VisitArray(arguments, "Arguments", logElementCount: true);
@@ -957,6 +962,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFlowCaptureReferenceOperation));
             LogString($": {operation.Id.Value}");
+            if (operation.IsInitialization)
+            {
+                LogString(" (IsInitialization)");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -1769,12 +1778,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Parts, "Parts", logElementCount: true);
         }
 
+        public override void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerCreationOperation));
+            LogString($" (HandlerAppendCallsReturnBool: {operation.HandlerAppendCallsReturnBool}, HandlerCreationHasSuccessParameter: {operation.HandlerCreationHasSuccessParameter})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.HandlerCreation, "Creation");
+            Visit(operation.Content, "Content");
+        }
+
+        public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAdditionOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Left, "Left");
+            Visit(operation.Right, "Right");
+        }
+
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             LogString(nameof(IInterpolatedStringTextOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
+            if (operation.Text.Kind != OperationKind.Literal)
+            {
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
+            }
             Visit(operation.Text, "Text");
         }
 
@@ -1787,10 +1817,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Alignment, "Alignment");
             Visit(operation.FormatString, "FormatString");
 
-            if (operation.FormatString != null)
+            if (operation.FormatString != null && operation.FormatString.Kind != OperationKind.Literal)
             {
-                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
             }
+        }
+
+        public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringAppendOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.AppendCall, "AppendCall");
+        }
+
+        public override void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation)
+        {
+            LogString(nameof(IInterpolatedStringHandlerArgumentPlaceholderOperation));
+            if (operation.PlaceholderKind is InterpolatedStringArgumentPlaceholderKind.CallsiteArgument)
+            {
+                LogString($" (ArgumentIndex: {operation.ArgumentIndex})");
+            }
+            else
+            {
+                LogString($" ({operation.PlaceholderKind})");
+            }
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitConstantPattern(IConstantPatternOperation operation)

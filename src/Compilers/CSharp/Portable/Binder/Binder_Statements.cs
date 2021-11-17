@@ -843,11 +843,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind;
             ExpressionSyntax value;
             IsInitializerRefKindValid(initializer, initializer, refKind, diagnostics, out valueKind, out value); // The return value isn't important here; we just want the diagnostics and the BindValueKind
-            return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
+            return BindInferredVariableInitializer(diagnostics, value, valueKind, errorSyntax);
         }
 
         // The location where the error is reported might not be the initializer.
-        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, RefKind refKind, CSharpSyntaxNode errorSyntax)
+        protected BoundExpression BindInferredVariableInitializer(BindingDiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, CSharpSyntaxNode errorSyntax)
         {
             if (initializer == null)
             {
@@ -867,7 +867,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckValue(result, valueKind, diagnostics);
             }
 
-            BoundExpression expression = BindToNaturalType(BindValue(initializer, diagnostics, valueKind), diagnostics);
+            BoundExpression value = BindValue(initializer, diagnostics, valueKind);
+            BoundExpression expression = value.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup ?
+                BindToInferredDelegateType(value, diagnostics) :
+                BindToNaturalType(value, diagnostics);
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -990,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 aliasOpt = null;
 
-                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
+                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var"
                 TypeSymbol initializerType = initializerOpt?.Type;
@@ -1037,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             declTypeOpt.Type,
                             initializerOpt,
                             localDiagnostics,
-                            isRefAssignment: localSymbol.RefKind != RefKind.None);
+                            localSymbol.RefKind != RefKind.None ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
                     }
                 }
             }
@@ -1355,18 +1358,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
+            Conversion elementConversionClassification = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteInfo);
             diagnostics.Add(initializerSyntax, useSiteInfo);
 
-            if (!elementConversion.IsValid || !elementConversion.IsImplicit)
+            BoundValuePlaceholder elementPlaceholder;
+            BoundExpression elementConversion;
+
+            if (!elementConversionClassification.IsValid || !elementConversionClassification.IsImplicit)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, initializerSyntax, elementConversion, pointerType, declType);
+                GenerateImplicitConversionError(diagnostics, this.Compilation, initializerSyntax, elementConversionClassification, pointerType, declType);
                 hasErrors = true;
+            }
+
+            if (elementConversionClassification.IsValid)
+            {
+                elementPlaceholder = new BoundValuePlaceholder(initializerSyntax, pointerType).MakeCompilerGenerated();
+                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, declType,
+                    elementConversionClassification.IsImplicit ? diagnostics : BindingDiagnosticBag.Discarded);
+            }
+            else
+            {
+                elementPlaceholder = null;
+                elementConversion = null;
             }
 
             return new BoundFixedLocalCollectionInitializer(
                 initializerSyntax,
                 pointerType,
+                elementPlaceholder,
                 elementConversion,
                 initializer,
                 patternMethodOpt,
@@ -1465,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRefAssignment: isRef);
+                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -1758,7 +1777,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements);
         }
 
-        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
+        [Flags]
+        internal enum ConversionForAssignmentFlags
+        {
+            None = 0,
+            DefaultParameter = 1 << 0,
+            RefAssignment = 1 << 1,
+            IncrementAssignment = 1 << 2,
+            CompoundAssignment = 1 << 3,
+            PredefinedOperator = 1 << 4,
+        }
+
+        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
         {
             Debug.Assert((object)targetType != null);
             Debug.Assert(expression != null);
@@ -1777,10 +1807,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo);
+
+            var conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
+                                 this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo) :
+                                 this.Conversions.ClassifyConversionFromType(expression.Type, targetType, ref useSiteInfo);
+
             diagnostics.Add(expression.Syntax, useSiteInfo);
 
-            if (isRefAssignment)
+            if ((flags & ConversionForAssignmentFlags.RefAssignment) != 0)
             {
                 if (conversion.Kind != ConversionKind.Identity)
                 {
@@ -1791,13 +1825,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expression;
                 }
             }
-            else if (!conversion.IsImplicit || !conversion.IsValid)
+            else if (!conversion.IsValid ||
+                ((flags & ConversionForAssignmentFlags.CompoundAssignment) == 0 ?
+                    !conversion.IsImplicit :
+                    (conversion.IsExplicit && (flags & ConversionForAssignmentFlags.PredefinedOperator) == 0)))
             {
                 // We suppress conversion errors on default parameters; eg,
                 // if someone says "void M(string s = 123) {}". We will report
                 // a special error in the default parameter binder.
 
-                if (!isDefaultParameter)
+                if ((flags & ConversionForAssignmentFlags.DefaultParameter) == 0)
                 {
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
@@ -1848,6 +1885,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, node: syntax))
                 {
                     return;
+                }
+
+                if (anonymousFunction.FunctionType is { } functionType &&
+                    functionType.GetValue() is null)
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
+                        var lambda = anonymousFunction.BindForErrorRecovery();
+                        diagnostics.AddRange(lambda.Diagnostics);
+                        return;
+                    }
                 }
 
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
@@ -2010,7 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.BindingFailed)
             {
-                var bindingResult = anonymousFunction.Bind(delegateType);
+                var bindingResult = anonymousFunction.Bind(delegateType, isExpressionTree: false);
                 Debug.Assert(ErrorFacts.PreventsSuccessfulDelegateConversion(bindingResult.Diagnostics.Diagnostics));
                 diagnostics.AddRange(bindingResult.Diagnostics);
                 return;
@@ -2269,11 +2319,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             if (fromAddressOf)
                             {
                                 errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
                             }
-                            else if (targetType.SpecialType == SpecialType.System_Delegate)
+                            else if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo) &&
+                                !targetType.IsNonGenericExpressionType() &&
+                                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
                             {
                                 Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
                                 return;
@@ -3306,7 +3359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
         {
             switch (syntax)
             {
@@ -3316,7 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3388,9 +3441,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
         {
-            if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
+            ConstructorInitializerSyntax initializer = constructor.Initializer;
+            if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
             {
                 return null;
             }
@@ -3398,7 +3452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
 
-            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+            bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
+            if (!thisInitializer &&
                 ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
@@ -3406,14 +3461,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
+
+            // The `: this()` initializer is ignored when it is a default value type constructor
+            // and we need to include field initializers into the constructor.
+            bool skipInitializer = includesFieldInitializers
+                && thisInitializer
+                && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
+                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
+                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :

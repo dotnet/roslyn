@@ -1775,5 +1775,84 @@ class TestClass
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestHighlightReturnType()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    [|int|] M(int x)
+    {
+        return x;
+    }
+
+    void M1()
+    {
+        M(5);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestTypeOfOnString()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M()
+    {
+        var x = [|typeof(string);|]
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(Type x)
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestClassObject()
+        {
+            var code =
+@"
+class F
+{
+    public int x;
+    public int y;
+
+    public F(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class TestClass
+{
+    int N(F f)
+    {
+        return f.[|x|];
+    }
+
+    void M()
+    {
+        N(new F(1, 2));
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }

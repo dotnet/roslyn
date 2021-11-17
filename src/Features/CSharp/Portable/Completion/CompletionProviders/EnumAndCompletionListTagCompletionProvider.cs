@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.
             //
@@ -51,13 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // That's because we don't like the experience where the enum appears directly after the
             // operator.  Instead, the user normally types <space> and we will bring up the list
             // then.
-            var ch = text[characterPosition];
             return
-                ch == ' ' ||
-                ch == '[' ||
-                ch == '(' ||
-                ch == '~' ||
-                (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
+                text[characterPosition] is ' ' or '[' or '(' or '~' ||
+                options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
         }
 
         public override ImmutableHashSet<char> TriggerCharacters => s_triggerCharacters;
@@ -151,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = enumType;
             }
 
-            var options = context.Options;
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
+            var hideAdvancedMembers = context.CompletionOptions.HideAdvancedMembers;
             if (!type.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                 return;
 
@@ -259,9 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // as an 'int' type, not the enum type.
 
             // See if we're after a common enum-combining operator.
-            if (token.Kind() == SyntaxKind.BarToken ||
-                token.Kind() == SyntaxKind.AmpersandToken ||
-                token.Kind() == SyntaxKind.CaretToken)
+            if (token.Kind() is SyntaxKind.BarToken or
+                SyntaxKind.AmpersandToken or
+                SyntaxKind.CaretToken)
             {
                 // See if the type we're looking at is the underlying type for the enum we're contained in.
                 var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
@@ -289,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static INamedTypeSymbol? TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol? within, Compilation compilation)
         {
@@ -320,8 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
-            if (type.TypeKind == TypeKind.Struct || type.TypeKind == TypeKind.Class)
-                return type as INamedTypeSymbol;
+            // The reference type might be nullable, so we need to remove the annotation.
+            // Otherwise, we will end up with items like "string?.Empty".
+            if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) as INamedTypeSymbol;
 
             return null;
         }

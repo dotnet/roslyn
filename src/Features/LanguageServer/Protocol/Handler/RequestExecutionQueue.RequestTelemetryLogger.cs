@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -42,10 +44,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             private readonly ConcurrentDictionary<string, Counter> _requestCounters;
 
+            private readonly LogAggregator _findDocumentResults;
+
             public RequestTelemetryLogger(string serverTypeName)
             {
                 _serverTypeName = serverTypeName;
-                _requestCounters = new ConcurrentDictionary<string, Counter>();
+                _requestCounters = new();
+                _findDocumentResults = new();
 
                 // Buckets queued duration into 10ms buckets with the last bucket starting at 1000ms.
                 // Queue times are relatively short and fall under 50ms, so tracking past 1000ms is not useful.
@@ -56,7 +61,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _requestDurationLogAggregator = new HistogramLogAggregator(bucketSize: 1, maxBucketValue: 40);
             }
 
-            public void UpdateTelemetryData(string methodName, TimeSpan queuedDuration, TimeSpan requestDuration, Result result)
+            public void UpdateFindDocumentTelemetryData(bool success, string? workspaceKind)
+            {
+                var workspaceKindTelemetryProperty = success ? workspaceKind : "Failed";
+
+                if (workspaceKindTelemetryProperty != null)
+                {
+                    _findDocumentResults.IncreaseCount(workspaceKindTelemetryProperty);
+                }
+            }
+
+            public void UpdateTelemetryData(
+                string methodName,
+                TimeSpan queuedDuration,
+                TimeSpan requestDuration,
+                Result result)
             {
                 // Find the bucket corresponding to the queued duration and update the count of durations in that bucket.
                 // This is not broken down per method as time in queue is not specific to an LSP method.
@@ -120,6 +139,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         m["bucketdata_logms"] = requestExecutionDuration?.GetBucketsAsString();
                     }));
                 }
+
+                Logger.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m["server"] = _serverTypeName;
+                    foreach (var kvp in _findDocumentResults)
+                    {
+                        var info = kvp.Key.ToString()!;
+                        m[info] = kvp.Value.GetCount();
+                    }
+                }));
 
                 // Clear telemetry we've published in case dispose is called multiple times.
                 _requestCounters.Clear();

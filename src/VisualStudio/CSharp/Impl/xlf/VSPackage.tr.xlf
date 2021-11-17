@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../VSPackage.resx">
     <body>
@@ -83,7 +83,8 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Satır içi ipuçlarını göster;
+        <target state="translated">Yeniden atanan değişkenleri altını çiz;
+Satır içi ipuçlarını göster;
 Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
 İmlecin altındaki ilgili bileşenleri vurgula; 
@@ -130,7 +131,8 @@ otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
 Gelişmiş renkleri kullan;
-Düzenleyici Renk Düzeni;</target>
+Düzenleyici Renk Düzeni;
+İçe Aktarma Kenar Boşluğu;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

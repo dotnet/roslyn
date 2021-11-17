@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -65,20 +65,20 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
-            public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
+            public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (_walker is object && state != EntryState.Removed)
                 {
                     Debug.Assert(model is object);
                     try
                     {
-                        _walker.VisitWithModel(model, root);
+                        _walker.VisitWithModel(model, root.Value);
                     }
                     catch (Exception e)
                     {

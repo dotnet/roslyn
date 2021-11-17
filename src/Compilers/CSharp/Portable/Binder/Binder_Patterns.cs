@@ -200,13 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
-
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
@@ -218,47 +212,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
-                if (hasSuppression(expression))
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
-                    hasErrors = true;
-                }
-
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
-
-            static bool hasSuppression(ExpressionSyntax e)
-            {
-                while (true)
-                {
-                    switch (e)
-                    {
-                        case ParenthesizedExpressionSyntax p:
-                            e = p.Expression;
-                            break;
-                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression }:
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-            }
         }
 
-        private ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
+        private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
             while (true)
             {
-                switch (e)
+                switch (e.Kind())
                 {
-                    case ParenthesizedExpressionSyntax p:
-                        e = p.Expression;
-                        break;
-                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } p:
-                        e = p.Operand;
-                        break;
+                    case SyntaxKind.DefaultLiteralExpression:
+                        diagnostics.Add(ErrorCode.ERR_DefaultPattern, e.Location);
+                        hasErrors = true;
+                        return e;
+                    case SyntaxKind.ParenthesizedExpression:
+                        e = ((ParenthesizedExpressionSyntax)e).Expression;
+                        continue;
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        diagnostics.Add(ErrorCode.ERR_IllegalSuppression, e.Location);
+                        hasErrors = true;
+                        e = ((PostfixUnaryExpressionSyntax)e).Operand;
+                        continue;
                     default:
                         return e;
                 }
@@ -339,10 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
             {
                 Debug.Assert(hasErrors);
-                convertedExpression = new BoundConversion(
-                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: null, type: CreateErrorType(), hasErrors: true)
-                { WasCompilerGenerated = true };
+                convertedExpression = BindToTypeForErrorRecovery(convertedExpression);
             }
 
             return convertedExpression;
@@ -1218,11 +1192,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref inputValEscape, ref hasErrors);
                     memberType = member.Type;
                 }
 
-                BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
+                BoundPattern boundPattern = BindPattern(pattern, memberType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 builder.Add(new BoundPropertySubpattern(p, member, boundPattern));
             }
 
@@ -1230,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref uint inputValEscape, ref bool hasErrors)
         {
             BoundPropertySubpatternMember? receiver = null;
             Symbol? symbol = null;
@@ -1240,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref inputValEscape, ref hasErrors);
                     symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
@@ -1256,6 +1230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => CreateErrorType()
             };
 
+            // Note: since we're recursing on the receiver, the val escape correctly flows from inside out.
+            inputValEscape = GetValEscape(memberType, inputValEscape);
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
 
@@ -1348,12 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)

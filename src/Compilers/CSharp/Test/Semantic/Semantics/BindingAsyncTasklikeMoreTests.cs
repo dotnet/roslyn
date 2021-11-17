@@ -785,7 +785,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
-        static void AsyncMethodBuilderAttributeMultipleParameters()
+        public static void AsyncMethodBuilderAttributeMultipleParameters()
         {
             var source = @"
 using System.Runtime.CompilerServices;
@@ -820,7 +820,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
-        static void AsyncMethodBuilderAttributeSingleParameterWrong()
+        public static void AsyncMethodBuilderAttributeSingleParameterWrong()
         {
             var source = @"
 using System.Runtime.CompilerServices;

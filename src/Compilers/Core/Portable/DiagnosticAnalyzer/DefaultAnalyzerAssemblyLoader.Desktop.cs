@@ -34,10 +34,9 @@ namespace Microsoft.CodeAnalysis
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             }
 
-            return LoadImpl(fullPath);
+            var pathToLoad = GetPathToLoad(fullPath);
+            return Assembly.LoadFrom(pathToLoad);
         }
-
-        protected virtual Assembly LoadImpl(string fullPath) => Assembly.LoadFrom(fullPath);
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../VSPackage.resx">
     <body>
@@ -83,10 +83,11 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Exibir as dicas embutidas;
+        <target state="translated">Variáveis reatribuídas de sublinhado;
+Exibir as dicas embutidas;
 Mostrar os diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
-Realçar os componentes relacionados sob o cursor; 
+Realçar os componentes relacionados sob o cursor;
 Relatar as expressões regulares inválidas;
 Habilitar a análise completa da solução;
 Executar a análise de recurso do editor em processo externo;
@@ -97,8 +98,8 @@ Separar grupos de diretivas using;
 Sugerir usings para tipos em assemblies de referência;
 Sugerir usings para tipos em pacotes NuGet;
 Realce;
-Realçar as referências ao símbolo sob o cursor;
-Realçar as palavras-chave relacionadas sob o cursor;
+Realçar as referências ao símbolo sob o cursor
+;Realçar as palavras-chave relacionadas sob o cursor;
 Estrutura de tópicos;
 Entrar no modo de estrutura de tópicos quando os arquivos são abertos;
 Mostrar separadores de linha de procedimento;
@@ -130,7 +131,8 @@ preferir propriedades automáticas;
 regex;
 expressão regular;
 Usar cores avançadas;
-Esquema de Cores do Editor;</target>
+Esquema de Cores do Editor;
+Margem de herança;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

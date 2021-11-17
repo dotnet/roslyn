@@ -12,9 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal sealed class InterpolatedStringExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InterpolatedStringExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             InterpolatedStringExpressionSyntax node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             if (node.StringStartToken.IsMissing ||

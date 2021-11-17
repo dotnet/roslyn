@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IParameterReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
@@ -480,7 +480,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '*x')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*x')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'x')
 ";
@@ -515,7 +515,7 @@ internal class Class
 IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = array')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= array')
-      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'array')
+      IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: 'array')
         Children(1):
             IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
 ";
@@ -542,7 +542,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__reftype(x)')
+IOperation:  (OperationKind.None, Type: System.Type) (Syntax: '__reftype(x)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
@@ -565,7 +565,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__makeref(x)')
+IOperation:  (OperationKind.None, Type: System.TypedReference) (Syntax: '__makeref(x)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Type) (Syntax: 'x')
 ";
@@ -588,7 +588,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__refvalue(x, int)')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '__refvalue(x, int)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
@@ -730,7 +730,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'stackalloc int[x]')
+IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: 'stackalloc int[x]')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";

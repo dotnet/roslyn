@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyEntryPoint == null)
             {
                 EntryPoint? entryPoint;
-                var simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+                var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
 
                 if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
@@ -1782,7 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var main in entryPointCandidates)
                         {
-                            diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            if (main is not SynthesizedSimpleProgramEntryPointSymbol)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            }
                         }
 
                         if (scriptClass is object)
@@ -2275,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
-            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            if (ignoreAccessibility && SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this) is object)
             {
                 return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
             }
@@ -3809,7 +3812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation)));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -3847,6 +3850,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
+        internal override int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2)
         {
             var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
             if (comparison != 0)
@@ -4044,30 +4058,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
-            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+            writeValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
 
             if (Options.CheckOverflow)
             {
-                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+                writeValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
             }
 
             if (Options.NullableContextOptions != NullableContextOptions.Disable)
             {
-                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+                writeValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
             }
 
             if (Options.AllowUnsafe)
             {
-                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+                writeValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
             }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {
-                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+                writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
-            void WriteValue(string key, string value)
+            void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);
                 builder.WriteByte(0);

@@ -24,6 +24,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new();
         private static Task s_indexingTask = Task.CompletedTask;
 
+        public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
+        {
+            var project = document.Project;
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService>(
+                    project,
+                    (service, solutionInfo, cancellationToken) => service.WarmUpCacheAsync(
+                        solutionInfo, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public static Task WarmUpCacheInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
+        {
+            var cacheService = GetCacheService(document.Project.Solution.Workspace);
+            return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document.Project, cacheService, cancellationToken);
+        }
+
         public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
             Document document,
             int position,
@@ -31,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypesSymbols,
             bool forceIndexCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
             SerializableUnimportedExtensionMethods items;
@@ -44,11 +69,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var receiverTypeSymbolKeyData = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
                 var targetTypesSymbolKeyData = targetTypesSymbols.SelectAsArray(s => SymbolKey.CreateString(s, cancellationToken));
 
+                // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
+                // project cone.
                 var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
-                    project.Solution,
+                    project,
                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
-                        targetTypesSymbolKeyData, forceIndexCreation, cancellationToken),
+                        targetTypesSymbolKeyData, forceIndexCreation, hideAdvancedMembers, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -61,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else
             {
                 items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, cancellationToken)
+                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, hideAdvancedMembers, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -88,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypes,
             bool forceIndexCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
             var ticks = Environment.TickCount;
@@ -96,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
             var symbolComputer = await ExtensionMethodSymbolComputer.CreateAsync(
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
-            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
             var getSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;
@@ -115,7 +143,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // index is being constrcuted, which might take some time.
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = symbolComputer.PopulateIndicesAsync(CancellationToken.None);
+                        // When building cache in the background, make sure we always use latest snapshot with full semantic
+                        var id = document.Id;
+                        var workspace = document.Project.Solution.Workspace;
+                        s_indexingTask = Task.Run(() => symbolComputer.PopulateIndicesAsync(workspace.CurrentSolution.GetDocument(id)?.Project, CancellationToken.None), CancellationToken.None);
                     }
                 }
             }
@@ -123,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var createItemsTicks = Environment.TickCount - ticks;
 
             return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTicks, createItemsTicks);
-
         }
 
         private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(

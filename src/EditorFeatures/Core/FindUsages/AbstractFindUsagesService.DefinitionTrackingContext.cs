@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Forwards <see cref="IFindUsagesContext"/> notifications to an underlying <see cref="IFindUsagesContext"/>
         /// while also keeping track of the <see cref="DefinitionItem"/> definitions reported.
         /// 
-        /// These can then be used by <see cref="GetThirdPartyDefinitions"/> to report the
+        /// These can then be used by <see cref="GetThirdPartyDefinitionsAsync"/> to report the
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>

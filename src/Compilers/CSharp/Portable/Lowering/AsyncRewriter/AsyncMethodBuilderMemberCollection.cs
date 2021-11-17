@@ -345,10 +345,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                  !builderType.IsVoidType() &&
                  (forMethodLevelBuilder || builderType.DeclaredAccessibility == desiredAccessibility))
             {
-                bool isArityOk = isGeneric
-                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
-                                 : !builderType.IsGenericType;
-                if (isArityOk)
+                if (isGeneric)
+                {
+                    if (builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1)
+                    {
+                        return builderType;
+                    }
+                    else
+                    {
+                        F.Diagnostics.Add(ErrorCode.ERR_WrongArityAsyncReturn, F.Syntax.Location, builderType);
+                        return null;
+                    }
+                }
+
+                if (!builderType.IsGenericType)
                 {
                     return builderType;
                 }
