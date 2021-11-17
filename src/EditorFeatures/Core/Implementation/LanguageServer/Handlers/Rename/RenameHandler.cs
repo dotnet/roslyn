@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
+    [ProvidesMethod(LSP.Methods.TextDocumentRenameName, typeof(RenameHandler))]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]

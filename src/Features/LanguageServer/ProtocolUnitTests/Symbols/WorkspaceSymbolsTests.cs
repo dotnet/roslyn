@@ -210,7 +210,7 @@ End Class";
             };
 
             return testLspServer.ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName,
-                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                request, CancellationToken.None);
         }
 
         private static string GetContainerName(Solution solution, string? containingSymbolName = null)

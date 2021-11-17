@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(MutatingRequestHandler.MethodName)]
+    [ProvidesMethod(MutatingRequestHandler.MethodName, typeof(MutatingRequestHandler))]
     internal class MutatingRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             var response = new TestResponse
             {
-                Solution = context.Solution,
                 StartTime = DateTime.UtcNow
             };
 

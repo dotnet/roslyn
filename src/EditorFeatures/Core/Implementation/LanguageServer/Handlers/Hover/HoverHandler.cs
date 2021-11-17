@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentHoverName)]
+    [ProvidesMethod(Methods.TextDocumentHoverName, typeof(HoverHandler))]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]

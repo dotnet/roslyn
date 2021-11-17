@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
@@ -179,7 +179,7 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, clientCapabilities: CapabilitiesWithVSExtensions);
             var location = testLspServer.GetLocations("caret").Single();
 
             foreach (var project in testLspServer.GetCurrentSolution().Projects)
@@ -229,7 +229,11 @@ $@"<Workspace>
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var expectedMarkdown = @$"```csharp
@@ -257,11 +261,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities
-                {
-                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
-                }).ConfigureAwait(false);
+                expectedLocation).ConfigureAwait(false);
             Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
         }
 
@@ -328,8 +328,7 @@ Remarks are cool too.
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
+                expectedLocation).ConfigureAwait(false);
             Assert.Equal(expectedText, results.Contents.Third.Value);
         }
 
@@ -360,7 +359,11 @@ Remarks are cool too.
     {
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var expectedMarkdown = @"```csharp
@@ -379,23 +382,17 @@ _italic\_&nbsp;\*\*text\*\*_
 
             var results = await RunGetHoverAsync(
                 testLspServer,
-                expectedLocation,
-                clientCapabilities: new LSP.ClientCapabilities
-                {
-                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
-                }).ConfigureAwait(false);
+                expectedLocation).ConfigureAwait(false);
             Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
-            ProjectId projectContext = null,
-            LSP.ClientCapabilities clientCapabilities = null)
+            ProjectId projectContext = null)
         {
-            clientCapabilities ??= new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                CreateTextDocumentPositionParams(caret, projectContext), clientCapabilities, null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret, projectContext), CancellationToken.None);
         }
 
         private void VerifyVSContent(LSP.Hover hover, string expectedContent)

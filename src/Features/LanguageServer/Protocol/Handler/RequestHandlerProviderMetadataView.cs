@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -13,17 +15,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class RequestHandlerProviderMetadataView
     {
-        public string[] LanguageNames { get; set; }
+        public ImmutableArray<string> LanguageNames { get; set; }
 
-        public string[] Methods { get; set; }
+        public ImmutableArray<(string method, Type handlerType)> HandlerMetadata { get; set; }
 
         public RequestHandlerProviderMetadataView(IDictionary<string, object> metadata)
         {
-            var methodMetadata = metadata["Method"];
-            Methods = ConvertMetadataToArray(methodMetadata);
+            var requestMetadata = metadata[nameof(ProvidesMethodAttribute.RequestMetadata)];
+            HandlerMetadata = ConvertMetadataToArray<(string method, Type requestHandlerType)>(requestMetadata);
 
-            var languageMetadata = metadata["LanguageNames"];
-            LanguageNames = ConvertMetadataToArray(languageMetadata);
+            var languageMetadata = metadata[nameof(ExportLspRequestHandlerProviderAttribute.LanguageNames)];
+            LanguageNames = ConvertMetadataToArray<string>(languageMetadata);
         }
 
         /// <summary>
@@ -33,15 +35,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// MEF cannot construct the metadata object when it sees just the string type with AllowMultiple = true,
         /// so we override and construct it ourselves here.
         /// </summary>
-        private static string[] ConvertMetadataToArray(object metadata)
+        private static ImmutableArray<T> ConvertMetadataToArray<T>(object metadata)
         {
-            if (metadata is string[] arrayData)
+            if (metadata is T[] arrayData)
             {
-                return arrayData;
+                return arrayData.ToImmutableArray();
             }
             else
             {
-                return new string[] { (string)metadata };
+                return ImmutableArray.Create<T>((T)metadata);
             }
         }
     }

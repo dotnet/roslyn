@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Commands
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesCommand(StringConstants.CreateEventHandlerCommand)]
+    [ProvidesCommand(StringConstants.CreateEventHandlerCommand, typeof(CreateEventCommandHandler))]
     internal class CreateEventCommandHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]

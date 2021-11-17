@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(), Shared]
-    [ProvidesMethod(VSInternalMethods.WorkspacePullDiagnosticName)]
+    [ProvidesMethod(VSInternalMethods.WorkspacePullDiagnosticName, typeof(WorkspacePullDiagnosticHandler))]
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;

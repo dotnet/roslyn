@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
+    [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName, typeof(FormatDocumentOnTypeHandler))]
     internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         public override string Method => Methods.TextDocumentOnTypeFormattingName;

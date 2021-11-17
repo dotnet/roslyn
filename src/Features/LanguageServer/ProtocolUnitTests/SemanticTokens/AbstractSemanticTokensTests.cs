@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -21,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
     {
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
-                CreateSemanticTokensParams(caret), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, RoslynSemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
+                CreateSemanticTokensParams(caret), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;
         }
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, RoslynSemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+                CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;
         }
@@ -48,10 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 Range = range
             };
 
-        private protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
+        private protected static async Task<SumType<LSP.SemanticTokens, RoslynSemanticTokensDelta>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>(LSP.Methods.TextDocumentSemanticTokensFullDeltaName,
-                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, RoslynSemanticTokensDelta>>(LSP.Methods.TextDocumentSemanticTokensFullDeltaName,
+                CreateSemanticTokensParams(caret, previousResultId), CancellationToken.None);
         }
 
         private static LSP.SemanticTokensDeltaParams CreateSemanticTokensParams(LSP.Location caret, string previousResultId)

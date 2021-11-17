@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentDocumentHighlightName)]
+    [ProvidesMethod(Methods.TextDocumentDocumentHighlightName, typeof(DocumentHighlightsHandler))]
     internal class DocumentHighlightsHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {
         [ImportingConstructor]

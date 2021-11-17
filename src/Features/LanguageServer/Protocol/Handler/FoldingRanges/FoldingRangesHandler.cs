@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
+    [ProvidesMethod(Methods.TextDocumentFoldingRangeName, typeof(FoldingRangesHandler))]
     internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
         public override string Method => Methods.TextDocumentFoldingRangeName;

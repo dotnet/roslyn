@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference VS icon types.
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.WorkspaceSymbolName)]
+    [ProvidesMethod(Methods.WorkspaceSymbolName, typeof(WorkspaceSymbolsHandler))]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =

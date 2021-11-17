@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        public Solution Solution { get; set; }
+        public bool ContextHasSolution { get; set; }
     }
 }

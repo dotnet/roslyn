@@ -25,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Same as C# and VB but for XAML. See also <seealso cref="Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActionsHandlerProvider"/>.
     /// </remarks>
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
-    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
+    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName, typeof(CodeActionsHandler))]
+    [ProvidesMethod(LSP.Methods.CodeActionResolveName, typeof(CodeActionResolveHandler))]
+    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName, typeof(RunCodeActionHandler))]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;

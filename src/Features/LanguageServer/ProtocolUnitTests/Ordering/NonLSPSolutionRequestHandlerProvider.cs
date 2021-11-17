@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName)]
+    [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName, typeof(NonLSPSolutionRequestHandler))]
     internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]

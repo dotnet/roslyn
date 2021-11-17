@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// share the same code actions cache state.
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
-    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
+    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName, typeof(CodeActionsHandler))]
+    [ProvidesMethod(LSP.Methods.CodeActionResolveName, typeof(CodeActionResolveHandler))]
+    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName, typeof(RunCodeActionHandler))]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;

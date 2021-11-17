@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(
                 LSP.Methods.TextDocumentRangeFormattingName,
                 CreateDocumentRangeFormattingParams(location, insertSpaces, tabSize),
-                new LSP.ClientCapabilities(),
-                clientName: null,
                 CancellationToken.None);
         }
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     internal class ProvidesCommandAttribute : ProvidesMethodAttribute
     {
-        public ProvidesCommandAttribute(string command) : base(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command))
+        public ProvidesCommandAttribute(string command, Type requestHandlerType) : base(AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(command), requestHandlerType)
         {
         }
     }

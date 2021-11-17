@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -51,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ImmutableArray<string> supportedLanguages,
             string? clientName,
             string userVisibleServerName,
-            string telemetryServerTypeName)
-            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, lspMiscellaneousFilesWorkspace: null, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
+            string telemetryServerTypeName,
+            LspMiscellaneousFilesWorkspace? miscellaneousFilesWorkspace = null)
+            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, miscellaneousFilesWorkspace, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
         {
             _supportedLanguages = supportedLanguages;
             _diagnosticService = diagnosticService;
@@ -95,53 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                         DiagnosticService_DiagnosticsUpdated(solution, documentId);
                 }
             }
-        }
-
-        [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalDiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
-                Queue, VSInternalMethods.DocumentPullDiagnosticName,
-                diagnosticsParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(VSInternalMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalWorkspaceDiagnosticReport[]?> GetWorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]?>(
-                Queue, VSInternalMethods.WorkspacePullDiagnosticName,
-                diagnosticsParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(VSMethods.GetProjectContextsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSProjectContextList?> GetProjectContextsAsync(VSGetProjectContextsParams textDocumentWithContextParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList?>(Queue, VSMethods.GetProjectContextsName,
-                textDocumentWithContextParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalDocumentOnAutoInsertResponseItem?> GetDocumentOnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(Queue, VSInternalMethods.OnAutoInsertName,
-                autoInsertParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LinkedEditingRanges?> GetLinkedEditingRangesAsync(LinkedEditingRangeParams renameParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges?>(Queue, Methods.TextDocumentLinkedEditingRangeName,
-                renameParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
         protected override void ShutdownImpl()
@@ -383,9 +338,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
-        internal new TestAccessor GetTestAccessor() => new(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
-        internal new readonly struct TestAccessor
+        internal readonly struct TestAccessor
         {
             private readonly VisualStudioInProcLanguageServer _server;
 
@@ -410,6 +365,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
                 return ImmutableArray<LSP.Diagnostic>.Empty;
             }
+
+            internal RequestExecutionQueue.TestAccessor GetQueueAccessor()
+                => _server.Queue.GetTestAccessor();
+
+            internal LspWorkspaceManager.TestAccessor GetManagerAccessor()
+                => _server.Queue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
+
+            internal RequestDispatcher.TestAccessor GetDispatcherAccessor()
+                => _server.RequestDispatcher.GetTestAccessor();
+
+            internal JsonRpc GetServerRpc() => _server.JsonRpc;
+
+            internal bool HasShutdownStarted() => _server.HasShutdownStarted;
+
+            internal void ShutdownServer() => _server.ShutdownImpl();
+
+            internal void ExitServer() => _server.ExitImpl();
         }
     }
 }
