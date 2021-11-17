@@ -107,35 +107,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             else if (objectCreation.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
                 objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation)
             {
-                var collectionTypeSymbol = semanticModel.GetTypeInfo(collectionObjectCreation, cancellationToken).Type!;
-                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).ConvertedType!;
-                var argumentTypeSymbols = new List<ITypeSymbol> { targetTypeSymbol };
+                var collectionTypeSymbol = semanticModel.GetTypeInfo(collectionObjectCreation, cancellationToken).Type;
+                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).ConvertedType;
 
-                typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
-                    context,
-                    collectionTypeSymbol,
-                    argumentTypeSymbols,
-                    targetIndex: 0);
+                if (collectionTypeSymbol != null && targetTypeSymbol != null)
+                {
+                    var targetIndex = 0;
+                    var argumentTypeSymbols = new List<ITypeSymbol>(capacity: 1) { targetTypeSymbol };
+
+                    typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                        context,
+                        collectionTypeSymbol,
+                        argumentTypeSymbols,
+                        targetIndex);
+                }
             }
             else if (objectCreation.Parent.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
                 objectCreation.Parent.Parent.Parent is ObjectCreationExpressionSyntax complexCollectionObjectCreation)
             {
                 var complexInitializerExpression = (InitializerExpressionSyntax)objectCreation.Parent;
-                var expressions = complexInitializerExpression.Expressions;
-                var argumentTypeSymbols = expressions
-                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).ConvertedType!)
-                    .ToList()!;
 
-                var targetIndex = expressions.IndexOf(objectCreation);
+                var collectionTypeSymbol = semanticModel.GetTypeInfo(complexCollectionObjectCreation, cancellationToken).Type;
+                var argumentTypeSymbols = complexInitializerExpression.Expressions
+                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).ConvertedType)
+                    .ToList();
 
-                var collectionTypeSymbol = semanticModel.GetTypeInfo(complexCollectionObjectCreation, cancellationToken).Type!;
+                if (collectionTypeSymbol != null && argumentTypeSymbols.All(symbol => symbol != null))
+                {
+                    var targetIndex = complexInitializerExpression.Expressions.IndexOf(objectCreation);
 
-                typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
-                    context,
-                    collectionTypeSymbol,
-                    argumentTypeSymbols,
-                    targetIndex);
+                    typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
+                        context,
+                        collectionTypeSymbol,
+                        argumentTypeSymbols!,
+                        targetIndex);
+                }
             }
             else
             {
