@@ -2945,19 +2945,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Explicitly_inherit_documentation" xml:space="preserve">
     <value>Explicitly inherit documentation</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="None" xml:space="preserve">
-    <value>None</value>
-  </data>
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
-  </data>
-  <data name="Suggestion" xml:space="preserve">
-    <value>Suggestion</value>
-  </data>
-  <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
   </data>
 </root>

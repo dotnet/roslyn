@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
     {
         private static readonly ImmutableArray<(string value, string title)> s_editorConfigSeverityStrings =
             ImmutableArray.Create(
-                (EditorConfigSeverityStrings.None, FeaturesResources.None),
+                (EditorConfigSeverityStrings.None, WorkspacesResources.None),
                 (EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
-                (EditorConfigSeverityStrings.Suggestion, FeaturesResources.Suggestion),
-                (EditorConfigSeverityStrings.Warning, FeaturesResources.Warning),
-                (EditorConfigSeverityStrings.Error, FeaturesResources.Error));
+                (EditorConfigSeverityStrings.Suggestion, WorkspacesResources.Suggestion),
+                (EditorConfigSeverityStrings.Warning, WorkspacesResources.Warning),
+                (EditorConfigSeverityStrings.Error, WorkspacesResources.Error));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

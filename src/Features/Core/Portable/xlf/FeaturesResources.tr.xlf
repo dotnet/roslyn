@@ -535,11 +535,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' projesinde yapılan değişiklikler uygulamanın yeniden başlatılmasını gerektiriyor: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="new">Error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">'{0}' dosyası okunurken hata: {1}</target>
@@ -1058,11 +1053,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Ayıklamayı gerçekleştirme için geçerli seçim yok.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2340,11 +2330,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Akış okuma ve arama işlemlerini desteklemelidir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="new">Suggestion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} eylemini bastır</target>
@@ -2593,11 +2578,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Değer:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

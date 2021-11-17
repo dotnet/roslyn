@@ -535,11 +535,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Änderungen, die im Projekt "{0}" vorgenommen wurden, erfordern einen Neustart der Anwendung: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="new">Error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Fehler beim Lesen der Datei "{0}": {1}</target>
@@ -1058,11 +1053,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Keine gültige Auswahl zum Durchführen der Extraktion.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2340,11 +2330,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Stream muss Lese- und Suchvorgänge unterstützen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="new">Suggestion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} unterdrücken</target>
@@ -2593,11 +2578,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Wert:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">

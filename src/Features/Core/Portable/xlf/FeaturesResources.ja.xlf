@@ -535,11 +535,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">プロジェクト '{0}' で加えられた変更にはアプリケーションの再起動が必要です: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="new">Error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
@@ -1058,11 +1053,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">抽出を行うための有効な選択がありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2340,11 +2330,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="new">Suggestion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} の非表示</target>
@@ -2593,11 +2578,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">値:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
