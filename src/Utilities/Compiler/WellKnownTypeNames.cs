@@ -224,6 +224,7 @@ namespace Analyzer.Utilities
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
+        public const string SystemIOMemoryStream = "System.IO.MemoryStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemIOStream = "System.IO.Stream";
         public const string SystemIOStringReader = "System.IO.StringReader";

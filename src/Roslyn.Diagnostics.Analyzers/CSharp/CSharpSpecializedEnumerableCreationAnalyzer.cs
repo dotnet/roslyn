@@ -81,7 +81,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                     // Check for explicit specification of empty or singleton array
 
                     if (arrayType.RankSpecifiers[0].ChildNodes()
-                        .FirstOrDefault(n => n.Kind() == SyntaxKind.NumericLiteralExpression) is LiteralExpressionSyntax literalRankSpecifier)
+                        .FirstOrDefault(n => n.IsKind(SyntaxKind.NumericLiteralExpression)) is LiteralExpressionSyntax literalRankSpecifier)
                     {
                         AnalyzeArrayLength((int)literalRankSpecifier.Token.Value, arrayCreationExpression, addDiagnostic);
                         return;

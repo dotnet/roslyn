@@ -709,14 +709,12 @@ namespace Analyzer.Utilities.Extensions
         /// Check if the given <paramref name="methodSymbol"/> is an implicitly generated method for top level statements.
         /// </summary>
         public static bool IsTopLevelStatementsEntryPointMethod([NotNullWhen(true)] this IMethodSymbol? methodSymbol)
-            => methodSymbol?.ContainingType.IsTopLevelStatementsEntryPointType() == true &&
-               methodSymbol.IsStatic &&
-               methodSymbol.Name switch
-               {
-                   "$Main" => true,
-                   "<Main>$" => true,
-                   _ => false
-               };
+            => methodSymbol?.IsStatic == true && methodSymbol.Name switch
+            {
+                "$Main" => true,
+                "<Main>$" => true,
+                _ => false
+            };
 
         public static bool IsGetAwaiterFromAwaitablePattern([NotNullWhen(true)] this IMethodSymbol? method,
             [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,

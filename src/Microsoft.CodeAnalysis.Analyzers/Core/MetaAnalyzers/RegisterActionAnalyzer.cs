@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
-    public abstract class RegisterActionAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
-        where TClassDeclarationSyntax : SyntaxNode
+    public abstract class RegisterActionAnalyzer<TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TInvocationExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
         where TLanguageKindEnum : struct

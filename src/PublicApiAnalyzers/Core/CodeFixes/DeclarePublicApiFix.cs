@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
-            var publicSurfaceAreaDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
@@ -41,14 +40,39 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     .Split(DeclarePublicApiAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray())
                     .ToImmutableHashSet();
 
-                context.RegisterCodeFix(
-                        new AdditionalDocumentChangeAction(
-                            $"Add {minimalSymbolName} to public API",
-                            c => GetFixAsync(publicSurfaceAreaDocument, project, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
-                        diagnostic);
+                foreach (var file in GetUnshippedPublicApiFiles(context.Document.Project))
+                {
+                    context.RegisterCodeFix(
+                            new AdditionalDocumentChangeAction(
+                                $"Add {minimalSymbolName} to public API file {file?.Name}",
+                                file?.Id,
+                                c => GetFixAsync(file, project, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
+                            diagnostic);
+                }
             }
 
             return Task.CompletedTask;
+        }
+
+        private static IEnumerable<TextDocument?> GetUnshippedPublicApiFiles(Project project)
+        {
+            var count = 0;
+
+            foreach (var additional in project.AdditionalDocuments)
+            {
+                var file = new PublicApiFile(additional.FilePath);
+
+                if (file.IsApiFile && !file.IsShipping)
+                {
+                    yield return additional;
+                    count++;
+                }
+            }
+
+            if (count == 0)
+            {
+                yield return null;
+            }
         }
 
         private static async Task<Solution> GetFixAsync(TextDocument? publicSurfaceAreaDocument, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
@@ -97,9 +121,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 insertInList(lines, name);
             }
 
-            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            var endOfLine = sourceText.GetEndOfLine();
 
-            var newText = string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine);
+            var newText = string.Join(endOfLine, lines) + sourceText.GetEndOfFileText(endOfLine);
             return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
 
             // Insert name at the first suitable position
@@ -128,8 +152,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
+            var endOfLine = sourceText.GetEndOfLine();
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + sourceText.GetEndOfFileText(endOfLine));
             return newSourceText;
         }
 
@@ -158,15 +182,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
-            public AdditionalDocumentChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
+            public AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
             {
                 this.Title = title;
+                EquivalenceKey = apiDocId.CreateEquivalenceKey();
                 _createChangedAdditionalDocument = createChangedAdditionalDocument;
             }
 
             public override string Title { get; }
 
-            public override string EquivalenceKey => Title;
+            public override string EquivalenceKey { get; }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
@@ -177,11 +202,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private class FixAllAdditionalDocumentChangeAction : CodeAction
         {
             private readonly List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> _diagnosticsToFix;
+            private readonly DocumentId? _apiDocId;
             private readonly Solution _solution;
 
-            public FixAllAdditionalDocumentChangeAction(string title, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
+            public FixAllAdditionalDocumentChangeAction(string title, DocumentId? apiDocId, Solution solution, List<KeyValuePair<Project, ImmutableArray<Diagnostic>>> diagnosticsToFix)
             {
                 this.Title = title;
+                _apiDocId = apiDocId;
                 _solution = solution;
                 _diagnosticsToFix = diagnosticsToFix;
             }
@@ -198,8 +225,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    var publicSurfaceAreaAdditionalDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
-
+                    var publicSurfaceAreaAdditionalDocument = _apiDocId is not null ? project.GetAdditionalDocument(_apiDocId) : null;
                     var sourceText = publicSurfaceAreaAdditionalDocument != null ?
                         await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) :
                         null;
@@ -333,7 +359,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         return null;
                 }
 
-                return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);
+                return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.CreateDocIdFromEquivalenceKey(), fixAllContext.Solution, diagnosticsToFix);
             }
         }
 
