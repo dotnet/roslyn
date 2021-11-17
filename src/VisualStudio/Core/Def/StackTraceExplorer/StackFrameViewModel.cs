@@ -35,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly ParsedStackFrame _frame;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IStackTraceExplorerService _stackExplorerService;
         private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = new();
 
@@ -47,14 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             IThreadingContext threadingContext,
             Workspace workspace,
             IClassificationFormatMap formatMap,
-            ClassificationTypeMap typeMap,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            ClassificationTypeMap typeMap)
             : base(formatMap, typeMap)
         {
             _frame = frame;
             _threadingContext = threadingContext;
             _workspace = workspace;
-            _streamingPresenter = streamingPresenter;
             _stackExplorerService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         }
 
@@ -161,16 +158,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var methodDeclaration = _frame.Root.MethodDeclaration;
             var tree = _frame.Tree;
             var className = methodDeclaration.MemberAccessExpression.Left;
-            var classNameLeafTokens = GetLeafTokens(className);
-            Debug.Assert(classNameLeafTokens.Length > 1);
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(classNameLeafTokens[0].LeadingTrivia));
+            var classLeadingTrivia = GetLeadingTrivia(className);
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(classLeadingTrivia));
 
             //
             // Build the link to the class
             //
 
             var classLink = new Hyperlink();
-            var classLinkText = GetStringWithoutFirstLeadingTriviaAndLastTrailingTrivia(classNameLeafTokens);
+            var classLinkText = className.ToString();
             classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classLinkText));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
@@ -178,22 +174,22 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             // Since we're only using the left side of a qualified name, we expect 
             // there to be no trivia on the right (trailing).
-            Debug.Assert(classNameLeafTokens[^1].TrailingTrivia.IsEmpty);
+            Debug.Assert(GetTrailingTrivia(className).IsEmpty);
 
             //
             // Build the link to the method
             //
             var methodLink = new Hyperlink();
             var methodTextBuilder = new StringBuilder();
-            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.DotToken.ToString());
-            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.Right.ToString());
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.DotToken.ToFullString());
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.Right.ToFullString());
 
             if (methodDeclaration.TypeArguments is not null)
             {
-                methodTextBuilder.Append(methodDeclaration.TypeArguments.ToString());
+                methodTextBuilder.Append(methodDeclaration.TypeArguments.ToFullString());
             }
 
-            methodTextBuilder.Append(methodDeclaration.ArgumentList.ToString());
+            methodTextBuilder.Append(methodDeclaration.ArgumentList.ToFullString());
             methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodTextBuilder.ToString()));
             methodLink.Click += (s, a) => NavigateToSymbol();
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
@@ -204,50 +200,25 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             //
             if (_frame.Root.FileInformationExpression is not null)
             {
-                var leafTokens = GetLeafTokens(_frame.Root.FileInformationExpression);
-                yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(leafTokens[0].LeadingTrivia));
+                var fileInformation = _frame.Root.FileInformationExpression;
+                var leadingTrivia = GetLeadingTrivia(fileInformation);
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(leadingTrivia));
 
                 var fileLink = new Hyperlink();
-                var fileLinkText = GetStringWithoutFirstLeadingTriviaAndLastTrailingTrivia(leafTokens);
-                fileLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileLinkText));
+                var fileLinkText = _frame.Root.FileInformationExpression.ToString();
+                fileLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileInformation.ToString()));
                 fileLink.Click += (s, a) => NavigateToFile();
                 fileLink.RequestNavigate += (s, a) => NavigateToFile();
                 yield return fileLink;
 
-                if (leafTokens.Length > 1)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(leafTokens[^1].TrailingTrivia));
-                }
+                var trailingTrivia = GetTrailingTrivia(fileInformation);
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(trailingTrivia));
             }
 
             //
             // Don't lose the trailing trivia text
             //
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.Root.EndOfLineToken.ToString());
-        }
-
-        private string GetStringWithoutFirstLeadingTriviaAndLastTrailingTrivia(ImmutableArray<StackFrameToken> leafTokens)
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-
-            sb.Append(leafTokens[0].VirtualChars.CreateString());
-            sb.Append(CreateString(leafTokens[0].TrailingTrivia));
-
-            if (leafTokens.Length == 1)
-            {
-                return sb.ToString();
-            }
-
-            for (var i = 1; i < leafTokens.Length - 1; i++)
-            {
-                var token = leafTokens[i];
-                sb.Append(token.ToString());
-            }
-
-            sb.Append(CreateString(leafTokens[^1].LeadingTrivia));
-            sb.Append(leafTokens[^1].VirtualChars.CreateString());
-
-            return sb.ToString();
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.Root.EndOfLineToken.ToFullString());
         }
 
         private (Document? document, int lineNumber) GetDocumentAndLine()
@@ -272,11 +243,36 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             return _definitionCache[symbolPart];
         }
 
-        private static ImmutableArray<StackFrameToken> GetLeafTokens(StackFrameNode node)
+        private static ImmutableArray<StackFrameTrivia> GetLeadingTrivia(StackFrameNode node)
         {
-            using var _ = ArrayBuilder<StackFrameToken>.GetInstance(out var builder);
-            GetLeafTokens(node, builder);
-            return builder.ToImmutable();
+            if (node.ChildCount == 0)
+            {
+                return ImmutableArray<StackFrameTrivia>.Empty;
+            }
+
+            var child = node[0];
+            if (child.IsNode)
+            {
+                return GetLeadingTrivia(child.Node);
+            }
+
+            return child.Token.LeadingTrivia;
+        }
+
+        private static ImmutableArray<StackFrameTrivia> GetTrailingTrivia(StackFrameNode node)
+        {
+            if (node.ChildCount == 0)
+            {
+                return ImmutableArray<StackFrameTrivia>.Empty;
+            }
+
+            var child = node[^1];
+            if (child.IsNode)
+            {
+                return GetTrailingTrivia(child.Node);
+            }
+
+            return child.Token.TrailingTrivia;
         }
 
         /// <summary>

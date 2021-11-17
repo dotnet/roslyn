@@ -73,18 +73,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
 
         public override string ToString()
-            => ToString(skipTrivia: false);
-
-        public string ToString(bool skipTrivia)
         {
             using var _ = PooledStringBuilder.GetInstance(out var sb);
-            ToString(skipTrivia, sb);
+            WriteTo(sb, leading: false, trailing: false);
             return sb.ToString();
         }
 
-        public void ToString(bool skipTrivia, StringBuilder sb)
+        public string ToFullString()
         {
-            if (!skipTrivia)
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: true, trailing: true);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the token to a stringbuilder.
+        /// </summary>
+        /// <param name="leading">If false, leading trivia will not be added</param>
+        /// <param name="trailing">If false, trailing trivia will not be added</param>
+        public void WriteTo(StringBuilder sb, bool leading, bool trailing)
+        {
+            if (leading)
             {
                 foreach (var trivia in LeadingTrivia)
                 {
@@ -94,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
             sb.Append(VirtualChars.CreateString());
 
-            if (!skipTrivia)
+            if (trailing)
             {
                 foreach (var trivia in TrailingTrivia)
                 {

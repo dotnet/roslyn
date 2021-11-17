@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             // MemberAccessExpression is [Expression].[Identifier], and Identifier is the 
             // method name.
             var typeExpression = compilationUnit.MethodDeclaration.MemberAccessExpression.Left;
-            var fullyQualifiedTypeName = typeExpression.ToString(skipTrivia: true);
+            var fullyQualifiedTypeName = typeExpression.ToString();
             var typeName = typeExpression is StackFrameQualifiedNameNode qualifiedName
                 ? qualifiedName.Right.ToString()
                 : typeExpression.ToString();
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             var methodTypeArguments = compilationUnit.MethodDeclaration.TypeArguments;
             var methodArguments = compilationUnit.MethodDeclaration.ArgumentList;
 
-            var methodName = methodIdentifier.ToString(skipTrivia: true);
+            var methodName = methodIdentifier.ToString();
 
             foreach (var project in solution.Projects)
             {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 var stackFrameParameter = stackFrameParameters.Parameters[i];
                 var paramSymbol = parameters[i];
 
-                if (paramSymbol.Name != stackFrameParameter.Identifier.ToString(skipTrivia: true))
+                if (paramSymbol.Name != stackFrameParameter.Identifier.ToString())
                 {
                     return false;
                 }
@@ -170,11 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             // Ex: string and String are the same (System.String)
             if (type.IsSpecialType())
             {
-                return type.Name == stackFrameType.ToString(skipTrivia: true);
+                return type.Name == stackFrameType.ToString();
             }
 
             // Default to just comparing the display name
-            return type.ToDisplayString() == stackFrameType.ToString(skipTrivia: true);
+            return type.ToDisplayString() == stackFrameType.ToString();
         }
     }
 }
