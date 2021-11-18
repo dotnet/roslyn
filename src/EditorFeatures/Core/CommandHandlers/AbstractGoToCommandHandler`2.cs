@@ -161,7 +161,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // TLanguageService.  Once we get the results back we'll then decide what to do with them.  If we get only a
         // single result back, then we'll just go directly to it.  Otherwise, we'll present the results in the
         // IStreamingFindUsagesPresenter.
-        var findContext = new SwappableFindUsagesContext();
+        var findContext = new BufferedFindUsagesContext();
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
@@ -200,7 +200,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     }
 
     private async Task PresentResultsInStreamingPresenterAsync(
-        SwappableFindUsagesContext findContext,
+        BufferedFindUsagesContext findContext,
         Task findTask,
         CancellationTokenSource cancellationTokenSource)
     {
@@ -215,7 +215,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // Now, tell our find-context (which has been collecting intermediary results) to swap over to using the
             // actual presenter context.  It will push all results it's been collecting into that, and from that
             // point onwards will just forward any new results directly to the presenter.
-            await findContext.SwapAsync(presenterContext, cancellationToken).ConfigureAwait(false);
+            await findContext.AttachToStreamingPresenterAsync(presenterContext, cancellationToken).ConfigureAwait(false);
 
             // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other
             // words, if something else decides to present in the presenter (like a find-refs call) we'll hear about

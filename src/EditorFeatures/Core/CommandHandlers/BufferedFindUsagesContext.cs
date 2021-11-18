@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers;
 /// user immediately if the find command completes quickly, or which will be pushed into the streaming presenter 
 /// if the search is taking too long.
 /// </summary>
-internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
+internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreamingProgressTracker
 {
     /// <summary>
     /// Lock which controls access to all members below.
@@ -41,7 +41,7 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
 
     private ImmutableArray<DefinitionItem>.Builder? _definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
 
-    public SwappableFindUsagesContext()
+    public BufferedFindUsagesContext()
     {
     }
 
@@ -81,7 +81,7 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
         }
     }
 
-    public async Task SwapAsync(IFindUsagesContext presenterContext, CancellationToken cancellationToken)
+    public async Task AttachToStreamingPresenterAsync(IFindUsagesContext presenterContext, CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
