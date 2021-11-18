@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToImplementationCommandHandler(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter) : base(threadingContext, streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, streamingPresenter, listenerProvider.GetListener(FeatureAttribute.GoToImplementation))
         {
         }
 

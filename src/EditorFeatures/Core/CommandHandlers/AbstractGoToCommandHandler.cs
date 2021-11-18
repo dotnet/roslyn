@@ -12,9 +12,12 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -22,15 +25,18 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         where TLanguageService : class, ILanguageService
         where TCommandArgs : EditorCommandArgs
     {
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly IAsynchronousOperationListener _listener;
 
         public AbstractGoToCommandHandler(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            IAsynchronousOperationListener listener)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
+            _listener = listener;
         }
 
         public abstract string DisplayName { get; }
@@ -42,92 +48,88 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var findUsagesService = GetService(document);
-            return findUsagesService != null
-                ? CommandState.Available
-                : CommandState.Unspecified;
+            if (document != null)
+            {
+                var findUsagesService = GetService(document);
+                if (findUsagesService != null)
+                    return CommandState.Available;
+            }
+
+            return CommandState.Unspecified;
         }
 
-        protected abstract TLanguageService? GetService(Document? document);
+        protected abstract TLanguageService? GetService(Document document);
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
-            {
-                var subjectBuffer = args.SubjectBuffer;
-                var caret = args.TextView.GetCaretPoint(subjectBuffer);
-                if (!caret.HasValue)
-                    return false;
+            var subjectBuffer = args.SubjectBuffer;
+            var caret = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caret.HasValue)
+                return false;
 
-                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                    return false;
+            var snapshot = subjectBuffer.CurrentSnapshot;
 
-                var service = GetService(document);
-                if (service == null)
-                    return false;
+            var scope = context.OperationContext.AddScope(allowCancellation: true, ScopeDescription);
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+            ExecuteCommandAsync(snapshot, caret.Value, context)
+                .CompletesTrackingOperation(scope)
+                .CompletesAsyncOperation(token);
 
-                document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(context.OperationContext, _threadingContext);
-                if (document == null)
-                    return false;
-
-                ExecuteCommand(document, caret.Value, service, context);
-                return true;
-            }
+            return true;
         }
 
-        private void ExecuteCommand(
-           Document document,
-           int caretPosition,
-           TLanguageService service,
-           CommandExecutionContext context)
+        private async Task ExecuteCommandAsync(
+            ITextSnapshot textSnapshot, int position, CommandExecutionContext context)
         {
-            if (service != null)
+            // Switch to the BG immediately so we can keep as much work off the UI thread.
+            await TaskScheduler.Default;
+
+            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return;
+
+            var service = GetService(document);
+            if (service == null)
+                return;
+
+            document = await textSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context.OperationContext).ConfigureAwait(false);
+            if (document == null)
+                return;
+
+            // We have all the cheap stuff, so let's do expensive stuff now
+            string? messageToShow = null;
+
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
-                // We have all the cheap stuff, so let's do expensive stuff now
-                string? messageToShow = null;
+                // We create our own context object, simply to capture all the definitions reported by 
+                // the individual TLanguageService.  Once we get the results back we'll then decide 
+                // what to do with them.  If we get only a single result back, then we'll just go 
+                // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
+                var findContext = new SimpleFindUsagesContext();
 
-                var userCancellationToken = context.OperationContext.UserCancellationToken;
-                using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
+                await FindActionAsync(service, document, position, findContext, cancellationToken).ConfigureAwait(false);
+                if (findContext.Message != null)
                 {
-                    messageToShow = _threadingContext.JoinableTaskFactory.Run(() =>
-                        NavigateToOrPresentResultsAsync(document, caretPosition, service, userCancellationToken));
+                    // Find succeeded.  Show the results to the user and immediately return.
+                    await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, document.Project.Solution.Workspace,
+                    findContext.SearchTitle, findContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
+                    return;
                 }
 
-                if (messageToShow != null)
-                {
-                    // We are about to show a modal UI dialog so we should take over the command execution
-                    // wait context. That means the command system won't attempt to show its own wait dialog 
-                    // and also will take it into consideration when measuring command handling duration.
-                    context.OperationContext.TakeOwnership();
-                    var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
-                    notificationService.SendNotification(
-                        message: messageToShow,
-                        title: DisplayName,
-                        severity: NotificationSeverity.Information);
-                }
+                // Find failed.  Pop up dialog telling the user why.
+                messageToShow = findContext.Message;
             }
-        }
 
-        private async Task<string?> NavigateToOrPresentResultsAsync(
-            Document document,
-            int caretPosition,
-            TLanguageService service,
-            CancellationToken cancellationToken)
-        {
-            // We create our own context object, simply to capture all the definitions reported by 
-            // the individual TLanguageService.  Once we get the results back we'll then decide 
-            // what to do with them.  If we get only a single result back, then we'll just go 
-            // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
-            var context = new SimpleFindUsagesContext();
-
-            await FindActionAsync(service, document, caretPosition, context, cancellationToken).ConfigureAwait(false);
-            if (context.Message != null)
-                return context.Message;
-
-            await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions(), cancellationToken).ConfigureAwait(false);
-            return null;
+            if (messageToShow != null)
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                context.OperationContext.TakeOwnership();
+                var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+                notificationService.SendNotification(
+                    messageToShow, title: DisplayName, NotificationSeverity.Information);
+            }
         }
     }
 }
