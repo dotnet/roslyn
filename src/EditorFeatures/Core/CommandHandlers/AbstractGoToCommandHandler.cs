@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers;
 
-internal abstract partial class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
+internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
     where TCommandArgs : EditorCommandArgs
 {
