@@ -65,10 +65,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         private readonly ILspLogger _logger;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
+
+        /// <summary>
+        /// For test purposes only.
+        /// A task that completes when the queue processing stops.
+        /// </summary>
+        private readonly Task _queueProcessingTask;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -87,7 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
             ImmutableArray<string> supportedLanguages,
             string serverName,
             string serverTypeName)
@@ -106,9 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
-            _asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            var token = _asynchronousOperationListener.BeginAsyncOperation($"{nameof(ProcessQueueAsync)}_{serverTypeName}");
-            _ = ProcessQueueAsync().CompletesAsyncOperation(token);
+            _queueProcessingTask = ProcessQueueAsync();
         }
 
         /// <summary>
