@@ -116,17 +116,24 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         int position,
         CancellationTokenSource cancellationTokenSource)
     {
-        // Should only be called on the UI thread.
-        Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+        // This is a fire-and-forget method (nothing guarantees observing it).  As such, we have to handle cancellation
+        // and failure ourselves.
         try
         {
+            // Should only be called on the UI thread.
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+
             // Make an tracking token so that integration tests can wait until we're complete.
             using var token = _listener.BeginAsyncOperation($"{this.GetType().Name}.{nameof(ExecuteCommandAsync)}");
 
             // Only start running once the previous command has finished.  That way we don't have results from both
-            // potentially interleaving with each other.  Note: this should ideally always be fast as long as the
-            // prior task respects cancellation.
-            await _inProgressCommand.ConfigureAwait(false);
+            // potentially interleaving with each other.  Note: this should ideally always be fast as long as the prior
+            // task respects cancellation.
+            //
+            // Note: we just need to make sure we run after that prior command finishes.  We do not want to propagate
+            // any failures from it.  Technically this should not be possible as it should be inside this same
+            // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
+            await _inProgressCommand.NoThrowAwaitable(captureContext: false);
             await this.ExecuteCommandWorkerAsync(document, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
