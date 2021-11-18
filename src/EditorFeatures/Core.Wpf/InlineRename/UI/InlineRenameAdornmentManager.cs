@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _dashboardColorUpdater?.UpdateColors();
 
                 var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
-
                 if (useInlineAdornment)
                 {
                     var adornment = new InlineRenameAdornment(
@@ -94,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
                         (tag, adornment) => ((Dashboard)adornment).Dispose());
                 }
-#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
