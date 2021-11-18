@@ -2,20 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
 {
-    internal sealed class CompletionProvidersLogger
+    internal static class CompletionProvidersLogger
     {
-        private const string Max = "Maximum";
-        private const string Min = "Minimum";
-        private const string Mean = nameof(Mean);
-        private const string Range = nameof(Range);
-        private const string Count = nameof(Count);
-
         private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
         private static readonly LogAggregator s_logAggregator = new();
 
@@ -24,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal enum ActionInfo
         {
             TypeImportCompletionTicks,
+            TypeImportCompletionExpanderTicks,      // time to complete the request when expander is used (i.e. no timeout or partial results)
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
@@ -32,20 +25,29 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TargetTypeCompletionTicks,
 
             ExtensionMethodCompletionTicks,
+            ExtensionMethodCompletionExpanderTicks,         // time to complete the request when expander is used (i.e. no timeout or partial results)
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
             ExtensionMethodCompletionCreateItemsTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
             ExtensionMethodCompletionTimeoutCount,
+
             CommitUsingSemicolonToAddParenthesis,
             CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count)
+        internal static void LogTypeImportCompletionTicksDataPoint(int count, bool isExpanded)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            if (isExpanded)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionExpanderTicks, count);
+            }
+            else
+            {
+                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            }
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
@@ -60,13 +62,23 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
-
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int count)
+        internal static void LogTargetTypeCompletionTicksDataPoint(int count)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
+        }
+
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int count, bool isExpanded)
+        {
+            if (isExpanded)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionExpanderTicks, count);
+            }
+            else
+            {
+                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+            }
         }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
@@ -115,11 +127,11 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                     var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
 
-                    m[CreateProperty(info, Max)] = statistics.Maximum;
-                    m[CreateProperty(info, Min)] = statistics.Minimum;
-                    m[CreateProperty(info, Mean)] = statistics.Mean;
-                    m[CreateProperty(info, Range)] = statistics.Range;
-                    m[CreateProperty(info, Count)] = statistics.Count;
+                    m[CreateProperty(info, nameof(statistics.Maximum))] = statistics.Maximum;
+                    m[CreateProperty(info, nameof(statistics.Minimum))] = statistics.Minimum;
+                    m[CreateProperty(info, nameof(statistics.Mean))] = statistics.Mean;
+                    m[CreateProperty(info, nameof(statistics.Range))] = statistics.Range;
+                    m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
                 }
 
                 foreach (var kv in s_logAggregator)

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document.Project, cacheService, cancellationToken);
         }
 
-        public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
+        public static async Task<Optional<SerializableUnimportedExtensionMethods>> GetUnimportedExtensionMethodsAsync(
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
@@ -58,10 +57,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
-            SerializableUnimportedExtensionMethods items;
-
-            var ticks = Environment.TickCount;
-
             var project = document.Project;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -71,41 +66,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
                 // project cone.
-                var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
-                    project,
-                    (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
-                        solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
-                        targetTypesSymbolKeyData, forceIndexCreation, hideAdvancedMembers, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<SerializableImportCompletionItem>.Empty;
-                }
-
-                items = result.Value;
+                return await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
+                     project,
+                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
+                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
+                         targetTypesSymbolKeyData, forceIndexCreation, hideAdvancedMembers, cancellationToken),
+                     cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
                     document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, hideAdvancedMembers, cancellationToken)
                     .ConfigureAwait(false);
             }
-
-            // report telemetry:
-            var totalTicks = Environment.TickCount - ticks;
-
-            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(totalTicks);
-            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(items.CompletionItems.Length);
-            CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(items.GetSymbolsTicks);
-            CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(items.CreateItemsTicks);
-
-            if (items.IsPartialResult)
-            {
-                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
-            }
-
-            return items.CompletionItems;
         }
 
         public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
@@ -167,6 +140,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Aggregate overloads
             foreach (var symbol in extentsionMethodSymbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 IMethodSymbol bestSymbol;
                 int overloadCount;
                 var includeInTargetTypedCompletion = ShouldIncludeInTargetTypedCompletion(compilation, symbol, targetTypeSymbols, typeConvertibilityCache);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
 
-        protected override void LogCommit()
+        public override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
         protected override async Task AddCompletionItemsAsync(
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
+                var ticks = Environment.TickCount;
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         inferredTypes,
                         forceIndexCreation: isExpandedCompletion,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
-                        linkedTokenSource.Token));
+                        linkedTokenSource.Token), linkedTokenSource.Token);
 
                     var timeoutInMilliseconds = completionContext.CompletionOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion;
 
@@ -71,10 +72,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     // Either the timebox is not enabled, so we need to wait until the operation for complete,
                     // or there's no timeout, and we now have all completion items ready.
-                    var items = await getItemsTask.ConfigureAwait(false);
+                    var result = await getItemsTask.ConfigureAwait(false);
+                    if (!result.HasValue)
+                        return;
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
+                    completionContext.AddItems(result.Value.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+
+                    // report telemetry:
+                    var totalTicks = Environment.TickCount - ticks;
+                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(totalTicks, isExpandedCompletion);
+                    CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(result.Value.CompletionItems.Length);
+                    CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(result.Value.GetSymbolsTicks);
+                    CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(result.Value.CreateItemsTicks);
+                    if (result.Value.IsPartialResult)
+                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
                 }
                 else
                 {
