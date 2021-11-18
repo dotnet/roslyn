@@ -428,6 +428,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return ValueTaskFactory.CompletedTask;
             }
 
+            public sealed override async ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            {
+                await this.Presenter.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
+
             protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
             {
                 _progressQueue.AddWork((current, maximum));

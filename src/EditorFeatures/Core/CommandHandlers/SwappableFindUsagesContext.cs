@@ -36,6 +36,7 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
     private int _itemsCompleted;
 
     private string? _message;
+    private string? _informationalMessage;
     private string? _searchTitle;
 
     private ImmutableArray<DefinitionItem>.Builder? _definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
@@ -94,6 +95,9 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
             if (_message != null)
                 await presenterContext.ReportMessageAsync(_message, cancellationToken).ConfigureAwait(false);
 
+            if (_informationalMessage != null)
+                await presenterContext.ReportInformationalMessageAsync(_informationalMessage, cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfNull(_definitions);
             foreach (var definition in _definitions.ToImmutableArray())
                 await presenterContext.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
@@ -105,6 +109,7 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
             _itemsCompleted = -1;
             _searchTitle = null;
             _message = null;
+            _informationalMessage = null;
             _definitions = null;
         }
     }
@@ -158,6 +163,21 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
             else
             {
                 _message = message;
+            }
+        }
+    }
+
+    async ValueTask IFindUsagesContext.ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (_streamingPresenterContext != null)
+            {
+                await _streamingPresenterContext.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                _informationalMessage = message;
             }
         }
     }

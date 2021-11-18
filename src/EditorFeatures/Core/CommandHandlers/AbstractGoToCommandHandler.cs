@@ -256,9 +256,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 // Let the user know in the FAR window if this is taking a long time because we're waiting for the
                 // solution to be ready.
-                await findContext.SetSearchTitleAsync(
-                    string.Format(EditorFeaturesResources._0_Waiting_for_the_solution_to_fully_load, this.DisplayName), cancellationToken).ConfigureAwait(false);
-                await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                var isFullyLoaded = await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (!isFullyLoaded)
+                {
+                    await findContext.ReportInformationalMessageAsync(
+                        EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
+                }
+
                 await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
 
                 var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();

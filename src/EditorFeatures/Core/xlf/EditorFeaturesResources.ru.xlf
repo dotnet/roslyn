@@ -267,6 +267,11 @@
         <target state="translated">Размер интервала табуляции</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="new">The results may be incomplete due to the solution still loading projects.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
         <target state="translated">У этого символа нет основания.</target>
