@@ -331,21 +331,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             if (_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
                 return;
 
+            var infoBarHost = GetInfoBarHost();
+            if (infoBarHost == null)
+                return;
+
             _infoBar = factory.CreateInfoBar(new InfoBarModel(
                 message,
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: false));
 
-            var infoBarHost = GetInfoBarHost();
             infoBarHost?.AddInfoBar(_infoBar);
-        }
-
-        /// <summary>
-        /// Fake class we use just so we have a type with a guid to pass into the shell to find the tool window for find references.
-        /// </summary>
-        [Guid("a80febb4-e7e0-4147-b476-21aaf2453969")]
-        private class DummyFindReferencesWindowPane
-        {
         }
     }
 }
