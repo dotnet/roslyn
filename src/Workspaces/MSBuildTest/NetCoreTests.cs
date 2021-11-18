@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Solution.sln");
 
-            using (var workspace = CreateMSBuildWorkspace())
+            using (var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true))
             {
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"InspectedLibrary\InspectedLibrary.csproj");
 
-            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("Configuration", "Release"));
+            using var workspace = CreateMSBuildWorkspace(("Configuration", "Release"));
             workspace.LoadMetadataForReferencedProjects = true;
 
             var project = await workspace.OpenProjectAsync(projectFilePath);
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Library\Library.csproj");
 
             // Override the TFM properties defined in the file
-            using (var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, (PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
+            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
             {
                 await workspace.OpenProjectAsync(projectFilePath);
 

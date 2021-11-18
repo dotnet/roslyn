@@ -88,29 +88,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.Equal(5, compReferences.Count);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
-        public async Task Test_OpenProjectReferencingPortableProject()
-        {
-            var files = new FileSet(
-                (@"CSharpProject\ReferencesPortableProject.csproj", Resources.ProjectFiles.CSharp.ReferencesPortableProject),
-                (@"CSharpProject\Program.cs", Resources.SourceFiles.CSharp.CSharpClass),
-                (@"CSharpProject\PortableProject.csproj", Resources.ProjectFiles.CSharp.PortableProject),
-                (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass));
-
-            CreateFiles(files);
-
-            var projectFilePath = GetSolutionFileName(@"CSharpProject\ReferencesPortableProject.csproj");
-
-            using var workspace = CreateMSBuildWorkspace();
-            var project = await workspace.OpenProjectAsync(projectFilePath);
-            AssertFailures(workspace);
-
-            var hasFacades = project.MetadataReferences.OfType<PortableExecutableReference>().Any(r => r.FilePath.Contains("Facade"));
-            Assert.True(hasFacades, userMessage: "Expected to find facades in the project references:" + Environment.NewLine +
-                string.Join(Environment.NewLine, project.MetadataReferences.OfType<PortableExecutableReference>().Select(r => r.FilePath)));
-        }
-
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_SharedMetadataReferences()
         {
@@ -439,7 +416,7 @@ class C1
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString));
+            using var workspace = CreateMSBuildWorkspace(("ShouldUnsetParentConfigurationAndPlatform", bool.TrueString));
             var project = await workspace.OpenProjectAsync(projectFilePath);
             var document = project.Documents.First();
             var tree = await document.GetSyntaxTreeAsync();
@@ -725,7 +702,6 @@ class C1
 
             // Ensure the Xaml compiler does not run in a separate appdomain. It appears that this won't work within xUnit.
             using var workspace = CreateMSBuildWorkspace(
-                throwOnWorkspaceFailed: false, // TODO: Xaml design-time targets are not running?
                 ("AlwaysCompileMarkupFilesInSeparateDomain", "false"));
             var project = await workspace.OpenProjectAsync(projectFilePath);
             var documents = project.Documents.ToList();
@@ -1605,11 +1581,11 @@ class C1
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp3, options => options.LanguageVersion);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
-            await AssertCSParseOptionsAsync(CS.LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options => options.LanguageVersion);
+            await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion(), options => options.LanguageVersion);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1632,7 +1608,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
-            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, ("Configuration", "Release"));
+            using var workspace = CreateMSBuildWorkspace(("Configuration", "Release"));
             var sol = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = sol.Projects.First();
             var options = project.ParseOptions;
@@ -2482,7 +2458,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/23685"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public async Task TestOpenProject_MetadataReferenceHasDocComments()
         {

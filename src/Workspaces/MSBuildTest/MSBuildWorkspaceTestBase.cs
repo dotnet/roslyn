@@ -151,12 +151,24 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        protected static MSBuildWorkspace CreateMSBuildWorkspace(bool throwOnWorkspaceFailed = true, params (string key, string value)[] additionalProperties)
+        protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
+            => CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, skipUnrecognizedProjects: false, additionalProperties: additionalProperties);
+
+        protected static MSBuildWorkspace CreateMSBuildWorkspace(
+            bool throwOnWorkspaceFailed = true,
+            bool skipUnrecognizedProjects = false,
+            (string key, string value)[] additionalProperties = null)
         {
+            additionalProperties ??= Array.Empty<(string key, string value)>();
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
             if (throwOnWorkspaceFailed)
             {
                 workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            }
+
+            if (skipUnrecognizedProjects)
+            {
+                workspace.SkipUnrecognizedProjects = true;
             }
 
             return workspace;
