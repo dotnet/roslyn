@@ -79,8 +79,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
         return document?.GetLanguageService<TLanguageService>() is null
-            ? CommandState.Available
-            : CommandState.Unspecified;
+            ? CommandState.Unspecified
+            : CommandState.Available;
     }
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
