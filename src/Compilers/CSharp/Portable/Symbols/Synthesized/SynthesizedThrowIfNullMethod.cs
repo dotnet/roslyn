@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedThrowIfNullMethod : SynthesizedGlobalMethodSymbol
     {
-        private readonly MethodSymbol _throwMethod;
+        internal MethodSymbol ThrowMethod { get; }
         internal SynthesizedThrowIfNullMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, MethodSymbol throwMethod, TypeSymbol returnType, TypeSymbol argumentParamType, TypeSymbol paramNameParamType)
             : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName)
         {
-            _throwMethod = throwMethod;
+            ThrowMethod = throwMethod;
 
             this.SetParameters(ImmutableArray.Create<ParameterSymbol>(
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(argumentParamType), ordinal: 0, RefKind.None, "argument"),
@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterSymbol argument = this.Parameters[0];
                 ParameterSymbol paramName = this.Parameters[1];
 
-                MethodSymbol throwMethod = _throwMethod;
-
                 //if (argument is null)
                 //{
                 //    Throw(paramName);
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             F.Binary(BinaryOperatorKind.ObjectEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(argument),
                                 F.Null(argument.Type)),
-                            F.ExpressionStatement(F.Call(receiver: null, throwMethod, F.Parameter(paramName)))),
+                            F.ExpressionStatement(F.Call(receiver: null, ThrowMethod, F.Parameter(paramName)))),
                         F.Return());
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary

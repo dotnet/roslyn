@@ -1790,30 +1790,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
-            lock (privateImplClass)
+            var throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName);
+            if (throwIfNullAdapter is null)
             {
-                if (privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName) is { } throwIfNullAdapter)
-                {
-                    Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) != null);
-                    return (MethodSymbol)throwIfNullAdapter.GetInternalSymbol()!;
-                }
-
-                Debug.Assert(privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName) == null);
-
                 TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
                 TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
                 TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
-
                 var sourceModule = SourceModule;
-                var throwMethod = new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType);
-                var added = privateImplClass.TryAddSynthesizedMethod(throwMethod.GetCciAdapter());
-                Debug.Assert(added);
 
-                var throwIfNullMethod = new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, throwMethod, returnType, argumentType, paramNameType);
-                added = privateImplClass.TryAddSynthesizedMethod(throwIfNullMethod.GetCciAdapter());
-                Debug.Assert(added);
-                return throwIfNullMethod;
+                // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType).GetCciAdapter());
+                var actuallyAddedThrowMethod = (SynthesizedThrowMethod)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol()!;
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, actuallyAddedThrowMethod, returnType, argumentType, paramNameType).GetCciAdapter());
+                throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName)!;
             }
+
+            var internalSymbol = (SynthesizedThrowIfNullMethod)throwIfNullAdapter.GetInternalSymbol()!;
+            // the ThrowMethod referenced by the ThrowIfNullMethod must be the same instance as the ThrowMethod contained in the PrivateImplementationDetails
+            Debug.Assert((object?)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol() == internalSymbol.ThrowMethod);
+            return internalSymbol;
         }
 #nullable disable
 
