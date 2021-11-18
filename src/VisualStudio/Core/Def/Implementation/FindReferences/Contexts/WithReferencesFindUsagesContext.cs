@@ -262,6 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 string message;
                 lock (Gate)
                 {
+                    // If we got definitions, then no need to show the 'no results found' message.
                     if (this.Definitions.Count > 0)
                         return;
 
