@@ -14,11 +14,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -307,7 +307,7 @@ class C
                     KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                         new ActiveStatement(
                             ordinal: 0,
-                            ActiveStatementFlags.IsLeafFrame,
+                            ActiveStatementFlags.LeafFrame,
                             new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                             instructionId: default)))
                 }),

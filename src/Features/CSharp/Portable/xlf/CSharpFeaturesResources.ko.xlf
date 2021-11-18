@@ -202,6 +202,11 @@
         <target state="translated">재귀 패턴 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">경고: 임시 작업을 조건부 메서드 호출로 인라인 처리합니다.</target>

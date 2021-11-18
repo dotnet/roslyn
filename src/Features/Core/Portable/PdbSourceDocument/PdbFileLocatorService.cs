@@ -5,13 +5,12 @@
 using System;
 using System.Composition;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -35,32 +34,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var peReader = new PEReader(dllStream);
             try
             {
-
-                // The simplest possible thing is that the PDB happens to be right next to the DLL. You never know, we might get lucky.
-                var pdbPath = Path.ChangeExtension(dllPath, ".pdb");
-                if (File.Exists(pdbPath))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out _))
                 {
-                    pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbPath));
+                    Contract.ThrowIfNull(pdbReaderProvider);
 
-                    if (pdbStream is not null &&
-                        IsPortable(pdbStream))
-                    {
-                        var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-
-                        result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
-                    }
-                }
-
-                // Otherwise lets see if its an embedded PDB
-                if (result is null)
-                {
-                    var entry = peReader.ReadDebugDirectory().FirstOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                    if (entry.Type != DebugDirectoryEntryType.Unknown)
-                    {
-                        var pdbReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-
-                        result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
-                    }
+                    result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
                 }
 
                 // TODO: Otherwise call the debugger to find the PDB from a symbol server etc.
@@ -94,14 +72,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return Task.FromResult<DocumentDebugInfoReader?>(result);
-        }
-
-        private static bool IsPortable(Stream pdbStream)
-        {
-            var isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
-            pdbStream.Position = 0;
-
-            return isPortable;
         }
     }
 }

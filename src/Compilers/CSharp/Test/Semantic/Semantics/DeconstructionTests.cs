@@ -908,8 +908,8 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
       NaturalType: (System.Int32, System.String)
       Elements(2):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
+          IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
