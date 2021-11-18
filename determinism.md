@@ -171,4 +171,12 @@ Determinism is hard
 
 ## Work Remaining
 
+### TODO:
+
+- path map
+- pdbfilepath in emit options needs to respect the options
+- think about the role of environment variables
+- CryptoKeyFile ... no way to really encode that. May want to highlight that as a 
+  corner case that isn't supported
+
 

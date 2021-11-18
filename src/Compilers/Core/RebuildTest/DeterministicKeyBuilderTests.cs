@@ -9,10 +9,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
@@ -145,6 +147,25 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var trees = (JArray)property.Value;
             var obj = (JObject)trees[0];
             return (JObject)(obj.Property("parseOptions")?.Value!);
+        }
+
+        protected JObject GetReferenceValue(MetadataReference reference)
+        {
+            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, references: new[] { reference });
+            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.references");
+            var expectedMvid = DeterministicKeyBuilder.GetGuidValue(reference.GetModuleVersionId());
+
+            var array = (JArray)property.Value;
+            foreach (var item in array!.Values<JObject>())
+            {
+                if (item?.Value<string>("mvid") == expectedMvid)
+                {
+                    return item;
+                }
+            }
+
+            Assert.True(false, $"Could not find reference with MVID {expectedMvid}");
+            throw null!;
         }
 
         protected static string GetChecksum(SourceText text)
@@ -438,6 +459,30 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""minor"": {minor}
 }}";
             AssertJsonSection(expected, key, "subsystemVersion");
+        }
+
+        [Fact]
+        public void MetadataReferenceMscorlib()
+        {
+            var mscorlib = NetCoreApp.mscorlib;
+            var obj = GetReferenceValue(mscorlib);
+
+            var mvid = DeterministicKeyBuilder.GetGuidValue(mscorlib.GetModuleVersionId());
+            var expected = $@"
+{{
+  ""name"": ""mscorlib"",
+  ""version"": ""4.0.0.0"",
+  ""publicKey"": ""0000000040000000"",
+  ""mvid"": ""{mvid}"",
+  ""properties"": {{
+    ""kind"": ""Assembly"",
+    ""embedInteropTypes"": false,
+    ""aliases"": []
+  }}
+}}
+";
+
+            AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }
     }
 }

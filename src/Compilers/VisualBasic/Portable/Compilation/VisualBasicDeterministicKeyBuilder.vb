@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf type = GetType(SByte) Then
                         writer.Write(pair.Key, CType(value, SByte).ToString("G"))
                     Else
-                        Throw New InvalidOperationException()
+                        Throw New NotSupportedException()
                     End If
                 Next
                 writer.WriteObjectEnd()

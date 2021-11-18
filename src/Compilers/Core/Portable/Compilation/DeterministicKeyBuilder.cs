@@ -180,6 +180,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static string GetGuidValue(in Guid guid) => guid.ToString("D");
+
         internal string GetKey(EmitOptions? emitOptions)
         {
             var (writer, builder) = CreateWriter();
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var reference in references)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                WriteMetadataReference(writer, reference);
+                WriteMetadataReference(writer, reference, options, cancellationToken);
             }
             writer.WriteArrayEnd();
             writer.WriteObjectEnd();
@@ -268,7 +270,11 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        internal void WriteMetadataReference(JsonWriter writer, MetadataReference reference)
+        internal void WriteMetadataReference(
+            JsonWriter writer,
+            MetadataReference reference,
+            DeterministicKeyOptions deterministicKeyOptions,
+            CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
@@ -293,7 +299,7 @@ namespace Microsoft.CodeAnalysis
                         moduleMetadata = m;
                         break;
                     default:
-                        throw new InvalidOperationException();
+                        throw new NotSupportedException();
                 }
 
                 // The path of a reference, unlike the path of a file, does not contribute to the output
@@ -307,14 +313,25 @@ namespace Microsoft.CodeAnalysis
                     WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
                 }
 
-                writer.Write("mvid", moduleMetadata.GetModuleVersionId().ToString("D"));
+                writer.Write("mvid", GetGuidValue(moduleMetadata.GetModuleVersionId()));
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
             }
+            else if (reference is CompilationReference compilationReference)
+            {
+                var compilation = compilationReference.Compilation;
+                var builder = compilation.Options.CreateDeterministicKeyBuilder();
+                builder.WriteCompilation(
+                    writer,
+                    compilation.Options,
+                    compilation.SyntaxTrees.SelectAsArray(x => SyntaxTreeKey.Create(x)),
+                    compilation.References.AsImmutable(),
+                    deterministicKeyOptions,
+                    cancellationToken);
+            }
             else
             {
-                // TODO: handle the other reference kinds
-                throw new InvalidOperationException();
+                throw new NotSupportedException();
             }
             writer.WriteObjectEnd();
 
