@@ -111,6 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
                         EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                        CurrentVersionNumber++;
                     }
 
                     NotifyChange();
