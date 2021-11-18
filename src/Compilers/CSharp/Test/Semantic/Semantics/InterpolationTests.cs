@@ -1115,10 +1115,12 @@ class Program {
         }
 
 
-#if NET6_0_OR_GREATER
+
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NET6_0_OR_GREATER
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
+#endif
         [InlineData(TargetFramework.NetFramework)]
         [InlineData(TargetFramework.NetStandard20)]
         [InlineData(TargetFramework.Mscorlib461)]
@@ -1142,10 +1144,19 @@ class App{
             );
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
+            var expectedOutput =
+#if NET6_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
             var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "Before {C} After");
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             switch (framework)
             {
@@ -1211,7 +1222,6 @@ class App{
 }");
             }
         }
-#endif
 
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
