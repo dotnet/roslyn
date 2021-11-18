@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         /// CancellationToken governing the current <see cref="_inProgressCommand"/>.  Only valid to read or write to
         /// this on the UI thread.
         /// </summary>
+        /// <remarks>
+        /// Cancellation is complicated with this feature.  There are two things that can cause us to cancel.  The
+        /// first is if the user kicks off another actual go-to-impl command.  In that case, we just attempt to cancel
+        /// the prior command (if it is still running), then wait for it to complete, then run our command.  The second
+        /// is if we have switched over to the streaming presenter and then the user starts some other command (like FAR)
+        /// that takes over the presenter.  In that case, the presenter will notify us that it has be repurposed and we
+        /// will also cancel this source.
+        /// </remarks>
         private CancellationTokenSource _cancellationTokenSource = new();
 
         public AbstractGoToCommandHandler(
