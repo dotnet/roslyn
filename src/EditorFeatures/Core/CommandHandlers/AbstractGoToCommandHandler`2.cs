@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -38,22 +36,22 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
-    /// they properly run after each other.  This is necessary so none of them accidentally stomp on one that is
-    /// still in progress and is interacting with the UI.  Only valid to read or write to this on the UI thread.
+    /// they properly run after each other.  This is necessary so none of them accidentally stomp on one that is still
+    /// in progress and is interacting with the UI.  Only valid to read or write to this on the UI thread.
     /// </summary>
     private Task _inProgressCommand = Task.CompletedTask;
 
     /// <summary>
-    /// CancellationToken governing the current <see cref="_inProgressCommand"/>.  Only valid to read or write to
-    /// this on the UI thread.
+    /// CancellationToken governing the current <see cref="_inProgressCommand"/>.  Only valid to read or write to this
+    /// on the UI thread.
     /// </summary>
     /// <remarks>
-    /// Cancellation is complicated with this feature.  There are two things that can cause us to cancel.  The first
-    /// is if the user kicks off another actual go-to-impl command.  In that case, we just attempt to cancel the
-    /// prior command (if it is still running), then wait for it to complete, then run our command.  The second is
-    /// if we have switched over to the streaming presenter and then the user starts some other command (like FAR)
-    /// that takes over the presenter.  In that case, the presenter will notify us that it has be repurposed and we
-    /// will also cancel this source.
+    /// Cancellation is complicated with this feature.  There are two things that can cause us to cancel.  The first is
+    /// if the user kicks off another actual go-to-impl command.  In that case, we just attempt to cancel the prior
+    /// command (if it is still running), then wait for it to complete, then run our command.  The second is if we have
+    /// switched over to the streaming presenter and then the user starts some other command (like FAR) that takes over
+    /// the presenter.  In that case, the presenter will notify us that it has be re-purposed and we will also cancel
+    /// this source.
     /// </remarks>
     private CancellationTokenSource _cancellationTokenSource = new();
 
@@ -152,9 +150,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // Switch to the BG immediately so we can keep as much work off the UI thread.
         await TaskScheduler.Default;
 
-        // We kick off the work to find the impl/base in the bg.  If we get the results for it within 1.5 seconds,
-        // we then either navigate directly to it (in the case of one result), or we show all the results in the
-        // presenter (in the case of multiple).
+        // We kick off the work to find the impl/base in the background.  If we get the results for it within 1.5
+        // seconds, we then either navigate directly to it (in the case of one result), or we show all the results in
+        // the presenter (in the case of multiple).
         //
         // However, if the results don't come back in 1.5 seconds, we just pop open the presenter and continue the
         // search there.  That way the user is not blocked and can go do other work if they want.
@@ -224,7 +222,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // that and can cancel all our work.
             presenterCancellationToken.Register(() => cancellationTokenSource.Cancel());
 
-            // now actuall wait for the find work to be done.
+            // now actually wait for the find work to be done.
             await findTask.ConfigureAwait(false);
         }
         finally
@@ -243,7 +241,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         {
             await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
 
-            // Let the user know in the FAR window if results may be innacurate because this is running prior to the 
+            // Let the user know in the FAR window if results may be inaccurate because this is running prior to the 
             // solution being fully loaded.
             var service = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
             var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
