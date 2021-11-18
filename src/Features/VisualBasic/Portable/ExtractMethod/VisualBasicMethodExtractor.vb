@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -70,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule()).AddRange(Formatter.GetDefaultFormattingRules(document))
         End Function
 
         Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken

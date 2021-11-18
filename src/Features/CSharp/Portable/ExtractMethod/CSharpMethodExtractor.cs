@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-            => SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
+        protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+            => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule()).AddRange(Formatter.GetDefaultFormattingRules(document));
 
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
             => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
@@ -159,7 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine))));
+
+                if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+                {
+                    // Add a second new line since there were no line endings in the original form
+                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(options.GetOption(FormattingOptions2.NewLine))));
+                }
 
                 // Generating the new document and associated variables.
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
