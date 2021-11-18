@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state.Target.Workspace == null)
                     return null;
 
-                using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
+                using (operationContext?.AddScope(
+                    allowCancellation: true,
+                    string.Format(EditorFeaturesResources._0_Waiting_for_the_solution_to_fully_load, EditorFeaturesResources.Gathering_Suggestions)))
                 {
                     // This needs to run under threading context otherwise, we can deadlock on VS
                     var statusService = state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();

@@ -249,7 +249,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
+                await findContext.SetSearchTitleAsync(
+                    string.Format(EditorFeaturesResources._0_Waiting_for_the_solution_to_fully_load, this.DisplayName), cancellationToken).ConfigureAwait(false);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
+
                 var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 // We were able to find the doc prior to loading the workspace (or else we would not have the service).
