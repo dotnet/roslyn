@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
-        protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
+        protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
 
         protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
 
@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 generatedCode.MethodDefinitionAnnotation,
                 cancellationToken).ConfigureAwait(false);
         }
+
+        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+            => GetCustomFormattingRules(document).AddRange(Formatter.GetDefaultFormattingRules(document));
 
         private async Task<ExtractMethodResult> CreateExtractMethodResultAsync(
             OperationStatus status, SemanticDocument semanticDocumentWithoutFinalFormatting,

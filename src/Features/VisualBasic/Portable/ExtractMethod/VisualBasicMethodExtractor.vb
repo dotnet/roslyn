@@ -71,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
-            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule()).AddRange(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
         End Function
 
         Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
