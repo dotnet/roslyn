@@ -185,8 +185,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         if (firstFinishedTask == findTask)
         {
-            // We completed the search within 1.5 seconds.  If we had at least one results then Navigate to it
-            // directly (if there is just one) or present them all if there are many.
+            // We completed the search within 1.5 seconds.  If we had at least one result then Navigate to it directly
+            // (if there is just one) or present them all if there are many.
             var definitions = await findContext.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
             if (definitions.Length > 0)
             {
