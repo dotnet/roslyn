@@ -75,16 +75,10 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     protected abstract Task FindActionAsync(Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
 
-    private static TLanguageService? GetService(ITextBuffer buffer)
-    {
-        var document = buffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        return document?.GetLanguageService<TLanguageService>();
-    }
-
     public CommandState GetCommandState(TCommandArgs args)
     {
-        var service = GetService(args.SubjectBuffer);
-        return service != null
+        var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+        return document?.GetLanguageService<TLanguageService>() is null
             ? CommandState.Available
             : CommandState.Unspecified;
     }
@@ -103,12 +97,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         if (document == null)
             return false;
 
-        var service = GetService(subjectBuffer);
+        var service = document.GetLanguageService<TLanguageService>();
         if (service == null)
             return false;
-
-        var position = caret.Value.Position;
-        var snapshot = subjectBuffer.CurrentSnapshot;
 
         // cancel any prior find-refs that might be in progress.
         _cancellationTokenSource.Cancel();
@@ -116,13 +107,12 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document.Project.Solution.Workspace, snapshot, position, _cancellationTokenSource);
+        _inProgressCommand = ExecuteCommandAsync(document, caret.Value.Position, _cancellationTokenSource);
         return true;
     }
 
     private async Task ExecuteCommandAsync(
-        Workspace workspace,
-        ITextSnapshot snapshot,
+        Document document,
         int position,
         CancellationTokenSource cancellationTokenSource)
     {
@@ -137,7 +127,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // potentially interleaving with each other.  Note: this should ideally always be fast as long as the
             // prior task respects cancellation.
             await _inProgressCommand.ConfigureAwait(false);
-            await this.ExecuteCommandWorkerAsync(workspace, snapshot, position, cancellationTokenSource).ConfigureAwait(false);
+            await this.ExecuteCommandWorkerAsync(document, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -148,8 +138,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     }
 
     private async Task ExecuteCommandWorkerAsync(
-        Workspace workspace,
-        ITextSnapshot textSnapshot,
+        Document document,
         int position,
         CancellationTokenSource cancellationTokenSource)
     {
@@ -171,7 +160,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
-        var findTask = Task.Run(() => FindResultsAsync(workspace, textSnapshot, position, findContext, cancellationToken), cancellationToken);
+        var findTask = Task.Run(() => FindResultsAsync(document, position, findContext, cancellationToken), cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -191,7 +180,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
                 await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     _threadingContext,
-                    workspace,
+                    document.Project.Solution.Workspace,
                     title ?? this.DisplayName,
                     definitions,
                     cancellationToken).ConfigureAwait(false);
@@ -241,12 +230,13 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     }
 
     private async Task FindResultsAsync(
-        Workspace workspace, ITextSnapshot textSnapshot, int position, IFindUsagesContext findContext, CancellationToken cancellationToken)
+        Document document, int position, IFindUsagesContext findContext, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
             // Let the user know in the FAR window if this is taking a long time because we're waiting for the
             // solution to be ready.
+            var workspace = document.Project.Solution.Workspace;
             var isFullyLoaded = await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {
@@ -255,8 +245,6 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             }
 
             await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
-
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).
             // So we better be able to find it afterwards.
