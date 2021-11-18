@@ -1117,7 +1117,7 @@ class Program {
 
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NET6_0_OR_GREATER
+#if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1144,8 +1144,9 @@ class App{
             );
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
+            //string.Format was fixed in dotnet core 3
             var expectedOutput =
-#if NET6_0_OR_GREATER
+#if NETCOREAPP3_0_OR_GREATER
                 "Before {C} After"
 #else
                 "Before {X} After"
