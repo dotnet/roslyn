@@ -372,6 +372,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void GoToImplementation(string expectedWindowName)
         {
             _editorInProc.GoToImplementation();
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
             _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
