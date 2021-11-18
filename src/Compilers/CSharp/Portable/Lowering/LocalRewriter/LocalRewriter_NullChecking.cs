@@ -79,13 +79,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
 
-            if (loweredLeft.Type.IsNullableTypeOrTypeParameter(out var underlyingNullableType))
+            if (loweredLeft.Type.IsNullableType())
             {
-                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft, underlyingNullableType));
+                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
             }
             else
             {
-                Debug.Assert(parameter.Type.IsPointerOrFunctionPointer());
+                // Examples of how we might get here:
+                // int*
+                // delegate*<...>
+                // T where T : int? (via some indirection)
+                Debug.Assert(parameter.Type.IsPointerOrFunctionPointer()
+                    || (parameter.Type.IsNullableTypeOrTypeParameter() && !parameter.Type.IsNullableType()));
+
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
 

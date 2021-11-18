@@ -99,13 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type)
-            => IsNullableTypeOrTypeParameter(type, out _);
-
-        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type, [NotNullWhen(true)] out NamedTypeSymbol? underlyingNullableType)
         {
             if (type is null)
             {
-                underlyingNullableType = null;
                 return false;
             }
 
@@ -114,30 +110,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
                 foreach (var constraintType in constraintTypes)
                 {
-                    if (constraintType.Type.IsNullableTypeOrTypeParameter(out underlyingNullableType))
+                    if (constraintType.Type.IsNullableTypeOrTypeParameter())
                     {
                         return true;
                     }
                 }
-
-                underlyingNullableType = null;
                 return false;
             }
 
-            if (type.IsNullableType())
-            {
-                underlyingNullableType = (NamedTypeSymbol)type;
-                return true;
-            }
-            underlyingNullableType = null;
-            return false;
+            return type.IsNullableType();
         }
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
         ///
         /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
-        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter(TypeSymbol?)" /> instead.
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
         /// </summary>
         public static bool IsNullableType(this TypeSymbol type)
         {

@@ -566,15 +566,15 @@ class Program
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "12");
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
 {
-  // Code size       21 (0x15)
+  // Code size       20 (0x14)
   .maxstack  1
-  IL_0000:  ldarga.s   V_1
-  IL_0002:  call       ""bool T?.HasValue.get""
-  IL_0007:  brtrue.s   IL_0014
-  IL_0009:  ldstr      ""u""
-  IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
-  IL_0013:  throw
-  IL_0014:  ret
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""U""
+  IL_0006:  brtrue.s   IL_0013
+  IL_0008:  ldstr      ""u""
+  IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0012:  throw
+  IL_0013:  ret
 }");
         }
 
@@ -1693,7 +1693,7 @@ class C
         }
     }
 }";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "123456");
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "123456");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", @"
 {
