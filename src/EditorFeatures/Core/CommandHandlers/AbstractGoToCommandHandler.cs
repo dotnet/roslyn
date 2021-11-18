@@ -39,12 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         /// <summary>
         /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands
         /// that they properly run after each other.  This is necessary so none of them accidentally stomp on one 
-        /// that is still in progress and is interacting with the UI.
+        /// that is still in progress and is interacting with the UI.  Only valid to read or write to this on the UI
+        /// thread.
         /// </summary>
         private Task _inProgressCommand = Task.CompletedTask;
 
         /// <summary>
-        /// CancellationToken governing the current <see cref="_inProgressCommand"/>.
+        /// CancellationToken governing the current <see cref="_inProgressCommand"/>.  Only valid to read or write to
+        /// this on the UI thread.
         /// </summary>
         private CancellationTokenSource _cancellationTokenSource = new();
 
