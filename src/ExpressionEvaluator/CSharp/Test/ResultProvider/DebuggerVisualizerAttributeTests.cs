@@ -69,7 +69,7 @@ class Q
             };
 
             Verify(evalResult,
-                EvalResult("new C()", "{C}", "C", "new C()", flags: DkmEvaluationResultFlags.None, customUIVisualizerInfo: customUIVisualizerInfo));
+                EvalResult("new C()", "{C}", "C", "new C()", flags: DkmEvaluationResultFlags.Expandable, customUIVisualizerInfo: customUIVisualizerInfo));
         }
 
         /// <summary>
@@ -80,12 +80,10 @@ class Q
         {
             var source =
 @"using System.Diagnostics;
-
 [DebuggerVisualizer(typeof(A), Description = ""A Visualizer"")]
 class A
 {
 }
-
 [DebuggerVisualizer(typeof(A), Description = ""A Visualizer"")]
 class B : A
 {

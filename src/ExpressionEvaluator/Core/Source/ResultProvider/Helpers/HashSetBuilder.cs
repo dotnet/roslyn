@@ -7,7 +7,6 @@
 #pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -20,7 +19,9 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<HashSetBuilder<T, TComparer>> s_poolInstance =
             new ObjectPool<HashSetBuilder<T, TComparer>>(() => new HashSetBuilder<T, TComparer>(new TComparer()), 16);
 
-        private readonly HashSet<T> _items;
+        // Note: the value of this dictionary is unused. This is just being used as a HashSet
+        // (CLR 2.0 doesn't have an actual HashSet).
+        private readonly Dictionary<T, object> _items;
 
         public static HashSetBuilder<T, TComparer> GetInstance()
         {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
         internal HashSetBuilder(IEqualityComparer<T> comparer)
         {
-            _items = new HashSet<T>(comparer);
+            _items = new Dictionary<T, object>(comparer);
         }
 
         public int Count
@@ -42,12 +43,12 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(T item)
         {
-            _items.Add(item);
+            _items.Add(item, null);
         }
 
         public bool Contains(T item)
         {
-            return _items.Contains(item);
+            return _items.ContainsKey(item);
         }
 
         public void Clear()
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             var result = new T[Count];
 
             int i = 0;
-            foreach (var item in _items)
+            foreach (var item in _items.Keys)
             {
                 result[i++] = item;
             }
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerator<T> GetEnumerator()
         {
-            return _items.GetEnumerator();
+            return _items.Keys.GetEnumerator();
         }
     }
 }
