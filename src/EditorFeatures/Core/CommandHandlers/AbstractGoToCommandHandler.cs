@@ -67,18 +67,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             if (!caret.HasValue)
                 return false;
 
+            var position = caret.Value.Position;
             var snapshot = subjectBuffer.CurrentSnapshot;
 
-            var scope = context.OperationContext.AddScope(allowCancellation: true, ScopeDescription);
-            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(snapshot, caret.Value, context)
-                .CompletesTrackingOperation(scope)
-                .CompletesAsyncOperation(token);
-
-            return true;
+            using var scope = context.OperationContext.AddScope(allowCancellation: true, ScopeDescription);
+            return _threadingContext.JoinableTaskFactory.Run(
+                () => ExecuteCommandAsync(snapshot, position, context));
         }
 
-        private async Task ExecuteCommandAsync(
+        private async Task<bool> ExecuteCommandAsync(
             ITextSnapshot textSnapshot, int position, CommandExecutionContext context)
         {
             // Switch to the BG immediately so we can keep as much work off the UI thread.
@@ -86,15 +83,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-                return;
+                return false;
 
             var service = GetService(document);
             if (service == null)
-                return;
+                return false;
 
             document = await textSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context.OperationContext).ConfigureAwait(false);
             if (document == null)
-                return;
+                return false;
 
             // We have all the cheap stuff, so let's do expensive stuff now
             string? messageToShow = null;
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     // Find succeeded.  Show the results to the user and immediately return.
                     await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
                         _threadingContext, document.Project.Solution.Workspace, findContext.SearchTitle, findContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
-                    return;
+                    return true;
                 }
 
                 // Find failed.  Pop up dialog telling the user why.
@@ -128,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(messageToShow, title: DisplayName, NotificationSeverity.Information);
             }
+
+            return true;
         }
     }
 }
