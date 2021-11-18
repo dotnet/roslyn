@@ -23,7 +23,7 @@ variables:
     value: false
     
 stages:
-- template: \stages\visual-studio\base.yml@DartLab
+- template: \stages\visual-studio\base.yml@DartLabTemplates
   parameters:
     displayName: VS Integration
     testLabPoolName: VS-Platform2
