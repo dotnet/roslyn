@@ -1117,8 +1117,14 @@ class Program {
 
 #if NET6_0_OR_GREATER
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-        [Fact]
-        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest()
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
         {
             var text =
 @"using System;
@@ -1128,9 +1134,7 @@ class App{
     var str = $""Before {{{12:X}}} After"";
     Console.WriteLine(str);
   }
-}
-
-";
+}";
             var parseOptions = new CSharpParseOptions(
                 languageVersion: LanguageVersion.CSharp10,
                 documentationMode: DocumentationMode.Parse,
@@ -1138,11 +1142,43 @@ class App{
             );
             var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.Net60,
+            var comp = CreateCompilation(text, targetFramework: framework,
                     parseOptions: parseOptions, options: compOptions);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "Before {C} After");
-            verifier.VerifyIL("App.Main", @"{
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
    // Code size       68 (0x44)
    .maxstack  3
    .locals init (string V_0, //str
@@ -1173,6 +1209,7 @@ class App{
    IL_0042:  nop
    IL_0043:  ret
 }");
+            }
         }
 #endif
 
