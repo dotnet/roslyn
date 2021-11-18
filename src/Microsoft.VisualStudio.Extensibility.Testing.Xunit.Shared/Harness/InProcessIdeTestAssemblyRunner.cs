@@ -23,6 +23,10 @@ namespace Xunit.Harness
                 {
                     return new IdeTestCase(diagnosticMessageSink, ideTestCase.DefaultMethodDisplay, ideTestCase.DefaultMethodDisplayOptions, ideTestCase.TestMethod, ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix, ideTestCase.TestMethodArguments);
                 }
+                else if (testCase is IdeTheoryTestCase ideTheoryTestCase)
+                {
+                    return new IdeTheoryTestCase(diagnosticMessageSink, ideTheoryTestCase.DefaultMethodDisplay, ideTheoryTestCase.DefaultMethodDisplayOptions, ideTheoryTestCase.TestMethod, ideTheoryTestCase.VisualStudioVersion, ideTheoryTestCase.RootSuffix, ideTheoryTestCase.TestMethodArguments);
+                }
 
                 return testCase;
             });

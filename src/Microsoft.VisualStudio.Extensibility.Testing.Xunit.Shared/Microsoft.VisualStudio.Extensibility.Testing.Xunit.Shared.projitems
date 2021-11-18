@@ -49,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeSkippedDataRowTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTheoryTestCase.cs" />

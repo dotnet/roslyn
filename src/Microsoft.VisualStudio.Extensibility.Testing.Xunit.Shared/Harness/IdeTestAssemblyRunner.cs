@@ -282,7 +282,7 @@ namespace Xunit.Harness
 
         private Tuple<VisualStudioVersion, string?> GetVisualStudioVersionForTestCase(IXunitTestCase testCase)
         {
-            if (testCase is IdeTestCase ideTestCase)
+            if (testCase is IdeTestCaseBase ideTestCase)
             {
                 return Tuple.Create<VisualStudioVersion, string?>(ideTestCase.VisualStudioVersion, ideTestCase.RootSuffix);
             }

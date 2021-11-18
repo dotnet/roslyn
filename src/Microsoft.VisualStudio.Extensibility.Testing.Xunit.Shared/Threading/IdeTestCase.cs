@@ -7,64 +7,20 @@ namespace Xunit.Threading
     using System.ComponentModel;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Win32;
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public sealed class IdeTestCase : XunitTestCase
+    public sealed class IdeTestCase : IdeTestCaseBase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public IdeTestCase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
         public IdeTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
+            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioVersion, rootSuffix, testMethodArguments)
         {
-            SharedData = WpfTestSharedData.Instance;
-            VisualStudioVersion = visualStudioVersion;
-            RootSuffix = rootSuffix;
-
-            if (!IsInstalled(visualStudioVersion))
-            {
-                SkipReason = $"{visualStudioVersion} is not installed";
-            }
-        }
-
-        public VisualStudioVersion VisualStudioVersion
-        {
-            get;
-            private set;
-        }
-
-        public string RootSuffix
-        {
-            get;
-            private set;
-        }
-
-        public new TestMethodDisplay DefaultMethodDisplay => base.DefaultMethodDisplay;
-
-        public new TestMethodDisplayOptions DefaultMethodDisplayOptions => base.DefaultMethodDisplayOptions;
-
-        public WpfTestSharedData SharedData
-        {
-            get;
-            private set;
-        }
-
-        protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
-        {
-            var baseName = base.GetDisplayName(factAttribute, displayName);
-            return $"{baseName} ({VisualStudioVersion})";
-        }
-
-        protected override string GetUniqueID()
-        {
-            return $"{base.GetUniqueID()}_{VisualStudioVersion}";
         }
 
         public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
@@ -81,63 +37,6 @@ namespace Xunit.Threading
             }
 
             return runner.RunAsync();
-        }
-
-        public override void Serialize(IXunitSerializationInfo data)
-        {
-            base.Serialize(data);
-            data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
-            data.AddValue(nameof(RootSuffix), RootSuffix);
-            data.AddValue(nameof(SkipReason), SkipReason);
-        }
-
-        public override void Deserialize(IXunitSerializationInfo data)
-        {
-            VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
-            RootSuffix = data.GetValue<string>(nameof(RootSuffix));
-            base.Deserialize(data);
-            SkipReason = data.GetValue<string>(nameof(SkipReason));
-            SharedData = WpfTestSharedData.Instance;
-        }
-
-        internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)
-        {
-            string dteKey;
-
-            switch (visualStudioVersion)
-            {
-            case VisualStudioVersion.VS2012:
-                dteKey = "VisualStudio.DTE.11.0";
-                break;
-
-            case VisualStudioVersion.VS2013:
-                dteKey = "VisualStudio.DTE.12.0";
-                break;
-
-            case VisualStudioVersion.VS2015:
-                dteKey = "VisualStudio.DTE.14.0";
-                break;
-
-            case VisualStudioVersion.VS2017:
-                dteKey = "VisualStudio.DTE.15.0";
-                break;
-
-            case VisualStudioVersion.VS2019:
-                dteKey = "VisualStudio.DTE.16.0";
-                break;
-
-            case VisualStudioVersion.VS2022:
-                dteKey = "VisualStudio.DTE.17.0";
-                break;
-
-            default:
-                throw new ArgumentException();
-            }
-
-            using (var key = Registry.ClassesRoot.OpenSubKey(dteKey))
-            {
-                return key != null;
-            }
         }
     }
 }

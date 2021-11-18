@@ -42,9 +42,10 @@ namespace Xunit.Threading
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
         {
+            var rootSuffix = IdeFactDiscoverer.GetRootSuffix(testMethod, theoryAttribute);
             foreach (var supportedVersion in IdeFactDiscoverer.GetSupportedVersions(testMethod, theoryAttribute))
             {
-                yield return new IdeTheoryTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion);
+                yield return new IdeTheoryTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, rootSuffix);
             }
         }
     }
