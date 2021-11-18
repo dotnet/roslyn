@@ -26,30 +26,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task CurrentLineTextAsync(
             string expectedText,
             bool assertCaretPosition = false,
-            bool trimWhitespace = true,
             CancellationToken cancellationToken = default)
         {
             if (assertCaretPosition)
             {
-                await CurrentLineTextAndAssertCaretPositionAsync(expectedText, trimWhitespace, cancellationToken);
+                await CurrentLineTextAndAssertCaretPositionAsync(expectedText, cancellationToken);
             }
             else
             {
                 var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
                 var lineText = view.Caret.Position.BufferPosition.GetContainingLine().GetText();
-
-                if (trimWhitespace)
-                {
-                    lineText = lineText.Trim();
-                }
-
                 Assert.Equal(expectedText, lineText);
             }
         }
 
         private async Task CurrentLineTextAndAssertCaretPositionAsync(
             string expectedText,
-            bool trimWhitespace,
             CancellationToken cancellationToken)
         {
             var expectedCaretIndex = expectedText.IndexOf("$$");
@@ -69,28 +61,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var lineText = line.GetText();
             var lineTextBeforeCaret = lineText[..(bufferPosition.Position - line.Start)];
             var lineTextAfterCaret = lineText[(bufferPosition.Position - line.Start)..];
-
-            // Asserts below perform separate verifications of text before and after the caret.
-            // Depending on the position of the caret, if trimWhitespace, we trim beginning, end or both sides.
-            if (trimWhitespace)
-            {
-                if (expectedCaretIndex == 0)
-                {
-                    lineText = lineText.TrimEnd();
-                    lineTextAfterCaret = lineTextAfterCaret.TrimEnd();
-                }
-                else if (expectedCaretMarkupEndIndex == expectedText.Length)
-                {
-                    lineText = lineText.TrimStart();
-                    lineTextBeforeCaret = lineTextBeforeCaret.TrimStart();
-                }
-                else
-                {
-                    lineText = lineText.Trim();
-                    lineTextBeforeCaret = lineTextBeforeCaret.TrimStart();
-                    lineTextAfterCaret = lineTextAfterCaret.TrimEnd();
-                }
-            }
 
             Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
             Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);

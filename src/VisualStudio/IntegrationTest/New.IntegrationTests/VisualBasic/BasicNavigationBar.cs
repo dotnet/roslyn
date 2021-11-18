@@ -48,7 +48,7 @@ End Structure";
 
     End Sub", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CaretPositionAsync(78, HangMitigatingCancellationToken); // Caret is between New() and End Sub() in virtual whitespace
-            await TestServices.EditorVerifier.CurrentLineTextAsync("$$", assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
     }
 }
