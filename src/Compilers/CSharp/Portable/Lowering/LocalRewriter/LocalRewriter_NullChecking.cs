@@ -32,13 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                          SyntheticBoundNodeFactory factory)
         {
             ArrayBuilder<BoundStatement>? statementList = null;
+            MethodSymbol? throwIfNullMethod = null;
             foreach (ParameterSymbol param in parameters)
             {
                 if (param.IsNullChecked)
                 {
-                    Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter());
+                    var isNullCheckableValueType = param.Type.IsNullableTypeOrTypeParameter() || param.Type.IsPointerOrFunctionPointer();
+                    Debug.Assert(!param.Type.IsValueType || isNullCheckableValueType);
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
-                    var constructedIf = ConstructIfStatementForParameter(param, factory);
+                    var constructedIf = isNullCheckableValueType
+                        ? ConstructDirectNullCheck(param, factory)
+                        : ConstructNullCheckHelperCall(param, ref throwIfNullMethod, factory);
                     statementList.Add(constructedIf);
                 }
             }
@@ -49,10 +53,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statementList.AddRange(existingStatements);
             return statementList.ToImmutableAndFree();
-
         }
 
-        private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
+        private static BoundStatement ConstructNullCheckHelperCall(ParameterSymbol parameter, ref MethodSymbol? throwIfNullMethod, SyntheticBoundNodeFactory factory)
+        {
+            if (throwIfNullMethod is null)
+            {
+                var module = factory.ModuleBuilderOpt!;
+                var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
+                var diagnostics = factory.Diagnostics.DiagnosticBag;
+                Debug.Assert(diagnostics is not null);
+                throwIfNullMethod = module.EnsureThrowIfNullFunctionExists(diagnosticSyntax, factory, diagnostics);
+            }
+
+            var call = factory.Call(
+                receiver: null,
+                throwIfNullMethod,
+                arg0: factory.Convert(factory.SpecialType(SpecialType.System_Object), factory.Parameter(parameter)),
+                arg1: factory.StringLiteral(parameter.Name));
+            return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+        }
+
+        private static BoundStatement ConstructDirectNullCheck(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
@@ -63,6 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Examples of how we might get here:
+                // int*
+                // delegate*<...>
+                // T where T : int? (via some indirection)
+                Debug.Assert(parameter.Type.IsPointerOrFunctionPointer()
+                    || (parameter.Type.IsNullableTypeOrTypeParameter() && !parameter.Type.IsNullableType()));
+
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
 
