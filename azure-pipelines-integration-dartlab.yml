@@ -36,4 +36,4 @@ stages:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
         lspEditor: false
-        shallowCheckout: false
+        skipPipelinesCheckout: false
