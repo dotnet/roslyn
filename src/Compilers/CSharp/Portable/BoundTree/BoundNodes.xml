@@ -2075,16 +2075,18 @@
     <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
 
     <!-- The receiver placeholder for length access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" />
+    <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" SkipInVisitor="true" />
 
     <!--
     May be BoundIndexerAccess or BoundCall,
     which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
+    We don't mark this property as SkipInVisitor="true" because it contains real receiver, but we
+    make sure SemanticModel doesn't dig too deep into the node.
     -->
-    <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" />
+    <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" />
 
     <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
-    <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundIndexOrRangeIndexerPatternValuePlaceholder&gt;" Null="disallow" />
+    <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundIndexOrRangeIndexerPatternValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
@@ -2252,10 +2254,10 @@
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!-- The receiver placeholder for length and indexer access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder?"/>
+    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder?" SkipInVisitor="true"/>
 
     <!-- The argument placeholder of type Index for indexer indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?"/>
+    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
@@ -2268,10 +2270,10 @@
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!-- The receiver placeholder for indexer access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder?"/>
+    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder?" SkipInVisitor="true"/>
 
     <!-- The argument placeholder of type Range for indexer access -->
-    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?"/>
+    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">

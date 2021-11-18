@@ -32,15 +32,6 @@ internal sealed partial class LocalRewriter
             return value;
         }
 
-        public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
-        {
-            var argument = (BoundExpression)this.Visit(node.Argument);
-            var lengthOrCountAccess = (BoundExpression)this.Visit(node.LengthOrCountAccess);
-            var indexerAccess = (BoundExpression)this.Visit(node.IndexerAccess);
-            var type = this.VisitType(node.Type);
-            return node.Update(argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, type);
-        }
-
         public override BoundNode VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
             return ReplacePlaceholder(node);
