@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
+                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, receiver: null, out lengthAccess, diagnostics);
             }
 
             var analyzedArguments = AnalyzedArguments.GetInstance();

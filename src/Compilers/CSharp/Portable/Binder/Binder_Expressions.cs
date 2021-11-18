@@ -8157,7 +8157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
+            if (TryBindLengthOrCount(syntax, receiverPlaceholder, receiver, out lengthOrCountAccess, diagnostics) &&
                 tryBindUnderlyingIndexerOrSliceAccess(syntax, receiver, argIsIndex, out indexerOrSliceAccess, out argumentPlaceholders, diagnostics))
             {
                 return true;
@@ -8306,18 +8306,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindLengthOrCount(
             SyntaxNode syntax,
-            BoundExpression receiver,
+            BoundExpression receiverPlaceholder,
+            BoundExpression? receiver,
             out BoundExpression lengthOrCountAccess,
             BindingDiagnosticBag diagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
 
-            Debug.Assert(receiver.Type is not null);
-            if (TryLookupLengthOrCount(syntax, receiver.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
+            Debug.Assert(receiverPlaceholder.Type is not null);
+            if (TryLookupLengthOrCount(syntax, receiverPlaceholder.Type, lookupResult, out var lengthOrCountProperty, diagnostics))
             {
                 diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
-                lengthOrCountAccess = BindPropertyAccess(syntax, receiver, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
+                lengthOrCountAccess = BindPropertyAccess(syntax, receiverPlaceholder, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
                 lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
+
+                // CheckValue does not handle placeholders well yet, so we're doing some extra check for `this` receiver
+                CheckImplicitThisCopyInReadOnlyMember(receiver, lengthOrCountProperty.GetOwnOrInheritedGetMethod(), diagnostics);
 
                 lookupResult.Free();
                 return true;

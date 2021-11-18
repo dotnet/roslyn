@@ -3043,22 +3043,26 @@ struct S
 
     readonly void M(Index i, Range r)
     {
-        _ = this[i]; // 1
-        _ = this[r]; // 2 
+        _ = this[i]; // 1, 2
+        _ = this[r]; // 3, 4 
 
         _ = this is [1];
         _ = this is [2, ..var rest];
     }
 }";
-        // Note: we're unable to report this warning on binding Length properties (as part of implicit indexers)
-        // because of our use of placeholders.
         var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyDiagnostics(
+            // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[i]; // 1, 2
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
             // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[i]; // 1
+            //         _ = this[i]; // 1, 2
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
+            // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+            //         _ = this[r]; // 3, 4 
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
             // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[r]; // 2 
+            //         _ = this[r]; // 3, 4 
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13)
             );
     }
