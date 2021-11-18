@@ -661,5 +661,24 @@ class C
                 @"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()",
                 @"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)");
         }
+
+        [Fact]
+        public async Task TestMetadataSymbol()
+        {
+            var code = @"class C{}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+
+            var result = await StackTraceAnalyzer.AnalyzeAsync("at System.String.ToLower()", CancellationToken.None);
+            Assert.Single(result.ParsedFrames);
+
+            var frame = result.ParsedFrames[0] as ParsedStackFrame;
+            AssertEx.NotNull(frame);
+
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, frame, StackFrameSymbolPart.Method, CancellationToken.None);
+
+            AssertEx.NotNull(definition);
+            Assert.Equal("String.ToLower", definition.NameDisplayParts.ToVisibleDisplayString(includeLeftToRightMarker: false));
+        }
     }
 }

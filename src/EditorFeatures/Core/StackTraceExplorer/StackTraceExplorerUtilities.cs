@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
             var methodName = methodIdentifier.ToString();
 
+            //
+            // Do a first pass to find projects with the type name to check first 
+            //
+            using var _ = PooledObjects.ArrayBuilder<Project>.GetInstance(out var candidateProjects);
             foreach (var project in solution.Projects)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 if (!project.SupportsCompilation)
                 {
                     continue;
@@ -48,39 +50,53 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                     (name) => name == typeName,
                     SymbolFilter.Type,
                     cancellationToken).ConfigureAwait(false);
-                if (!containsSymbol)
-                {
-                    continue;
-                }
 
+                if (containsSymbol)
+                {
+                    var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
+                    if (matchingMethods.Any())
+                    {
+                        return await matchingMethods[0].ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    candidateProjects.Add(project);
+                }
+            }
+
+            //
+            // Do a second pass to check the remaining compilations
+            // for the symbol, which may be a metadata symbol in the compilation
+            //
+            foreach (var project in candidateProjects)
+            {
+                var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
+                if (matchingMethods.Any())
+                {
+                    return await matchingMethods[0].ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return null;
+
+            async Task<ImmutableArray<IMethodSymbol>> GetMatchingMembersFromCompilationAsync(Project project)
+            {
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var type = compilation.GetTypeByMetadataName(fullyQualifiedTypeName);
                 if (type is null)
                 {
-                    continue;
+                    return ImmutableArray<IMethodSymbol>.Empty;
                 }
 
                 var members = type.GetMembers();
-                var matchingMembers = members
+                return members
                     .OfType<IMethodSymbol>()
                     .Where(m => m.Name == methodName)
                     .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
                     .Where(m => MatchParameters(m.Parameters, methodArguments))
                     .ToImmutableArrayOrEmpty();
-
-                if (matchingMembers.Length == 1)
-                {
-                    ISymbol symbol = matchingMembers[0];
-                    if (symbolPart == StackFrameSymbolPart.Class)
-                    {
-                        symbol = symbol.ContainingSymbol;
-                    }
-
-                    return symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
-                }
             }
-
-            return null;
         }
 
         private static bool MatchParameters(ImmutableArray<IParameterSymbol> parameters, StackFrameParameterList stackFrameParameters)
