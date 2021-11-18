@@ -56,3 +56,15 @@ https://github.com/dotnet/roslyn/issues/57025
     [UnmanagedCallersOnly]
     static void M5(out int o) => throw null; // error CS8977: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
     ```
+
+4. Starting with Visual Studio 17.1, format specifiers can not contain curly braces. In previous versions `}}` were interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation.
+https://github.com/dotnet/roslyn/issues/5775
+
+```csharp
+using System;
+
+Console.WriteLine($"{{{12:X}}}");
+
+//prints now: "{C}" - not "{X}}"
+```
+
