@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 
-            public async Task WaitForProcessingToStop()
+            public async Task WaitForProcessingToStopAsync()
             {
                 await _queue._queueProcessingTask.ConfigureAwait(false);
             }
