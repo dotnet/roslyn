@@ -118,8 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is an indexer set access. We return a BoundIndexerAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
-                arguments = unwrapPlaceholdersIfNeeded(arguments);
-
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
                     new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
@@ -162,26 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         call,
                         type);
                 }
-            }
-
-            ImmutableArray<BoundExpression> unwrapPlaceholdersIfNeeded(ImmutableArray<BoundExpression> arguments)
-            {
-                if (!arguments.Any(a => a is BoundIndexOrRangeIndexerPatternValuePlaceholder))
-                {
-                    return arguments;
-                }
-
-                return arguments.SelectAsArray(a => unwrapPlaceholderIfNeeded(a));
-            }
-
-            BoundExpression unwrapPlaceholderIfNeeded(BoundExpression argument)
-            {
-                if (argument is BoundIndexOrRangeIndexerPatternValuePlaceholder placeholder)
-                {
-                    return PlaceholderReplacement(placeholder);
-                }
-
-                return argument;
             }
         }
 
@@ -308,7 +286,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
             AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
-            var rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess.WithReceiver(receiver), isLeftOfAssignment);
+
+            BoundExpression rewrittenIndexerAccess;
+
+            if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
+            {
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                    indexerAccess.Arguments,
+                    indexerAccess.Indexer,
+                    indexerAccess.ArgsToParamsOpt,
+                    indexerAccess.ArgumentRefKindsOpt,
+                    ref receiver,
+                    out ArrayBuilder<LocalSymbol>? temps);
+
+                if (temps is not null)
+                {
+                    locals.AddRange(temps);
+                    temps.Free();
+                }
+
+                rewrittenIndexerAccess = indexerAccess.Update(
+                    receiver, indexerAccess.Indexer, rewrittenArguments,
+                    indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
+                    indexerAccess.Expanded,
+                    indexerAccess.ArgsToParamsOpt,
+                    indexerAccess.DefaultArguments,
+                    indexerAccess.Type);
+            }
+            else
+            {
+                rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess.WithReceiver(receiver), isLeftOfAssignment);
+            }
+
             RemovePlaceholderReplacement(argumentPlaceholder);
 
             return F.Sequence(
