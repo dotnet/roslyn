@@ -12,7 +12,7 @@ resources:
     type: git
     name: DartLab.Templates
     ref: refs/heads/main
-    
+
 variables:
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
@@ -21,7 +21,7 @@ variables:
     value: Debug
   - name: _oop64bit
     value: false
-    
+
 stages:
 - template: \stages\visual-studio\base.yml@DartLabTemplates
   parameters:
@@ -36,3 +36,4 @@ stages:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
         lspEditor: false
+        shallowCheckout: false
