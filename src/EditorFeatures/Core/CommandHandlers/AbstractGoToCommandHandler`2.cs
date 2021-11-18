@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -72,7 +73,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     protected abstract string ScopeDescription { get; }
     protected abstract FunctionId FunctionId { get; }
 
-    protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
+    protected abstract Task FindActionAsync(Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
 
     private static TLanguageService? GetService(ITextBuffer buffer)
     {
@@ -115,13 +116,12 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document.Project.Solution.Workspace, service, snapshot, position, _cancellationTokenSource);
+        _inProgressCommand = ExecuteCommandAsync(document.Project.Solution.Workspace, snapshot, position, _cancellationTokenSource);
         return true;
     }
 
     private async Task ExecuteCommandAsync(
         Workspace workspace,
-        TLanguageService service,
         ITextSnapshot snapshot,
         int position,
         CancellationTokenSource cancellationTokenSource)
@@ -137,7 +137,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // potentially interleaving with each other.  Note: this should ideally always be fast as long as the
             // prior task respects cancellation.
             await _inProgressCommand.ConfigureAwait(false);
-            await this.ExecuteCommandWorkerAsync(workspace, service, snapshot, position, cancellationTokenSource).ConfigureAwait(false);
+            await this.ExecuteCommandWorkerAsync(workspace, snapshot, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -149,7 +149,6 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     private async Task ExecuteCommandWorkerAsync(
         Workspace workspace,
-        TLanguageService service,
         ITextSnapshot textSnapshot,
         int position,
         CancellationTokenSource cancellationTokenSource)
@@ -172,8 +171,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
-        var findTask = Task.Run(() => FullyLoadWorkspaceAndFindResultsAsync(
-            workspace, service, textSnapshot, position, findContext, cancellationToken), cancellationToken);
+        var findTask = Task.Run(() => FindResultsAsync(workspace, textSnapshot, position, findContext, cancellationToken), cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -242,8 +240,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         }
     }
 
-    private async Task FullyLoadWorkspaceAndFindResultsAsync(
-        Workspace workspace, TLanguageService service, ITextSnapshot textSnapshot, int position, IFindUsagesContext findContext, CancellationToken cancellationToken)
+    private async Task FindResultsAsync(
+        Workspace workspace, ITextSnapshot textSnapshot, int position, IFindUsagesContext findContext, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
@@ -263,7 +261,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).
             // So we better be able to find it afterwards.
             Contract.ThrowIfNull(document);
-            await FindActionAsync(service, document, position, findContext, cancellationToken).ConfigureAwait(false);
+            await FindActionAsync(document, position, findContext, cancellationToken).ConfigureAwait(false);
         }
     }
 }
