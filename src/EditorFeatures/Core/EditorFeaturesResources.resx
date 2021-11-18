@@ -948,8 +948,8 @@ Do you want to proceed?</value>
   <data name="Gathering_Suggestions_0" xml:space="preserve">
     <value>Gathering Suggestions - '{0}'</value>
   </data>
-  <data name="_0_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
-    <value>{0} - Waiting for the solution to fully load</value>
+  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
+    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
   </data>
   <data name="Reassigned_variable" xml:space="preserve">
     <value>Reassigned variable</value>
@@ -1047,11 +1047,5 @@ Do you want to proceed?</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
-  </data>
-  <data name="Gathering_Suggestions" xml:space="preserve">
-    <value>Gathering Suggestions</value>
-  </data>
-  <data name="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects" xml:space="preserve">
-    <value>The results may be incomplete due to the solution still loading projects.</value>
   </data>
 </root>
