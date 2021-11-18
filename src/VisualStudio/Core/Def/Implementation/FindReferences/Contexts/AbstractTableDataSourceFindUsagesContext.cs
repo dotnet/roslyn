@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
 
-            private readonly AsyncBatchingWorkQueue<(int curr, int maximum)> _progressQueue;
+            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
             protected readonly object Gate = new();
 
