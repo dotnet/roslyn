@@ -61,8 +61,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
                     EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
-                    NotifyChange();
+                    CurrentVersionNumber++;
                 }
+
+                NotifyChange();
             }
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
