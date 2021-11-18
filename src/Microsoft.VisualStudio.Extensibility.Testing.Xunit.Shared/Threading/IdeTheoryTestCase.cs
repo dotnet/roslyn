@@ -8,6 +8,7 @@ namespace Xunit.Threading
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using Xunit.Harness;
     using Xunit.Sdk;
 
     public sealed class IdeTheoryTestCase : IdeTestCaseBase
@@ -18,8 +19,8 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioVersion, rootSuffix, testMethodArguments)
+        public IdeTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
+            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
         {
         }
 
@@ -33,7 +34,7 @@ namespace Xunit.Threading
             }
             else
             {
-                runner = new IdeTheoryTestCaseRunner(SharedData, VisualStudioVersion, this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
+                runner = new IdeTheoryTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
             }
 
             return runner.RunAsync();

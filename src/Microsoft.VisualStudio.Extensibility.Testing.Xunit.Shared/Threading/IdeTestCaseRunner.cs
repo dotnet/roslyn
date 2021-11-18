@@ -16,7 +16,7 @@ namespace Xunit.Threading
     {
         public IdeTestCaseRunner(
             WpfTestSharedData sharedData,
-            VisualStudioVersion visualStudioVersion,
+            VisualStudioInstanceKey visualStudioInstanceKey,
             IXunitTestCase testCase,
             string displayName,
             string skipReason,
@@ -28,7 +28,7 @@ namespace Xunit.Threading
             : base(testCase, displayName, skipReason, constructorArguments, testMethodArguments, messageBus, aggregator, cancellationTokenSource)
         {
             SharedData = sharedData;
-            VisualStudioVersion = visualStudioVersion;
+            VisualStudioInstanceKey = visualStudioInstanceKey;
         }
 
         public WpfTestSharedData SharedData
@@ -36,7 +36,7 @@ namespace Xunit.Threading
             get;
         }
 
-        public VisualStudioVersion VisualStudioVersion
+        public VisualStudioInstanceKey VisualStudioInstanceKey
         {
             get;
         }

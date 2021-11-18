@@ -7,6 +7,7 @@ namespace Xunit.Threading
     using System.ComponentModel;
     using Microsoft.Win32;
     using Xunit.Abstractions;
+    using Xunit.Harness;
     using Xunit.Sdk;
 
     public abstract class IdeTestCaseBase : XunitTestCase
@@ -19,26 +20,19 @@ namespace Xunit.Threading
         {
         }
 
-        protected IdeTestCaseBase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string rootSuffix, object?[]? testMethodArguments = null)
+        protected IdeTestCaseBase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
-            VisualStudioVersion = visualStudioVersion;
-            RootSuffix = rootSuffix;
+            VisualStudioInstanceKey = visualStudioInstanceKey;
 
-            if (!IsInstalled(visualStudioVersion))
+            if (!IsInstalled(visualStudioInstanceKey.Version))
             {
-                SkipReason = $"{visualStudioVersion} is not installed";
+                SkipReason = $"{visualStudioInstanceKey.Version} is not installed";
             }
         }
 
-        public VisualStudioVersion VisualStudioVersion
-        {
-            get;
-            private set;
-        }
-
-        public string RootSuffix
+        public VisualStudioInstanceKey VisualStudioInstanceKey
         {
             get;
             private set;
@@ -57,26 +51,24 @@ namespace Xunit.Threading
         protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
         {
             var baseName = base.GetDisplayName(factAttribute, displayName);
-            return $"{baseName} ({VisualStudioVersion})";
+            return $"{baseName} ({VisualStudioInstanceKey.Version})";
         }
 
         protected override string GetUniqueID()
         {
-            return $"{base.GetUniqueID()}_{VisualStudioVersion}";
+            return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
         }
 
         public override void Serialize(IXunitSerializationInfo data)
         {
             base.Serialize(data);
-            data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
-            data.AddValue(nameof(RootSuffix), RootSuffix);
+            data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
             data.AddValue(nameof(SkipReason), SkipReason);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
-            VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
-            RootSuffix = data.GetValue<string>(nameof(RootSuffix));
+            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
             base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;

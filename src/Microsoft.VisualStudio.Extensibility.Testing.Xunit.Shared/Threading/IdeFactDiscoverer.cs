@@ -7,6 +7,7 @@ namespace Xunit.Threading
     using System.Collections.Generic;
     using System.Linq;
     using Xunit.Abstractions;
+    using Xunit.Harness;
     using Xunit.Sdk;
 
     public class IdeFactDiscoverer : IXunitTestCaseDiscoverer
@@ -24,10 +25,9 @@ namespace Xunit.Threading
             {
                 if (!testMethod.Method.IsGenericMethodDefinition)
                 {
-                    var rootSuffix = GetRootSuffix(testMethod, factAttribute);
-                    foreach (var supportedVersion in GetSupportedVersions(testMethod, factAttribute))
+                    foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
                     {
-                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedVersion, rootSuffix);
+                        yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
                     }
                 }
                 else
@@ -41,12 +41,14 @@ namespace Xunit.Threading
             }
         }
 
-        internal static IEnumerable<VisualStudioVersion> GetSupportedVersions(ITestMethod testMethod, IAttributeInfo factAttribute)
+        internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
-            return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray());
+            var rootSuffix = GetRootSuffix(testMethod, factAttribute);
+            return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray())
+                .Select(version => new VisualStudioInstanceKey(version, rootSuffix));
         }
 
-        internal static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
+        private static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
             return GetRootSuffix(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }

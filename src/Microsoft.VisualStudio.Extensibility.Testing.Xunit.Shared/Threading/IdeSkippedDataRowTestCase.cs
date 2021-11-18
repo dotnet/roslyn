@@ -6,6 +6,7 @@ namespace Xunit.Threading
     using System;
     using System.ComponentModel;
     using Xunit.Abstractions;
+    using Xunit.Harness;
     using Xunit.Sdk;
 
     public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
@@ -16,13 +17,13 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeSkippedDataRowTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioVersion visualStudioVersion, string skipReason, object?[]? testMethodArguments = null)
+        public IdeSkippedDataRowTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, string skipReason, object?[]? testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, skipReason, testMethodArguments)
         {
-            VisualStudioVersion = visualStudioVersion;
+            VisualStudioInstanceKey = visualStudioInstanceKey;
         }
 
-        public VisualStudioVersion VisualStudioVersion
+        public VisualStudioInstanceKey VisualStudioInstanceKey
         {
             get;
             private set;
@@ -31,23 +32,23 @@ namespace Xunit.Threading
         protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
         {
             var baseName = base.GetDisplayName(factAttribute, displayName);
-            return $"{baseName} ({VisualStudioVersion})";
+            return $"{baseName} ({VisualStudioInstanceKey.Version})";
         }
 
         protected override string GetUniqueID()
         {
-            return $"{base.GetUniqueID()}_{VisualStudioVersion}";
+            return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
         }
 
         public override void Serialize(IXunitSerializationInfo data)
         {
             base.Serialize(data);
-            data.AddValue(nameof(VisualStudioVersion), (int)VisualStudioVersion);
+            data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
-            VisualStudioVersion = (VisualStudioVersion)data.GetValue<int>(nameof(VisualStudioVersion));
+            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
             base.Deserialize(data);
         }
     }

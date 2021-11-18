@@ -31,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstanceContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstanceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstanceKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\VSConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
