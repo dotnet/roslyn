@@ -198,15 +198,15 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // We either got no results, or 1.5 has passed and we didn't figure out the symbols to navigate to or
         // present.  So pop up the presenter to show the user that we're involved in a longer search, without
         // blocking them.
-        await PresentResultsInStreamingPresenterAsync(cancellationTokenSource, findContext, findTask, cancellationToken).ConfigureAwait(false);
+        await PresentResultsInStreamingPresenterAsync(findContext, findTask, cancellationTokenSource).ConfigureAwait(false);
     }
 
     private async Task PresentResultsInStreamingPresenterAsync(
-        CancellationTokenSource cancellationTokenSource,
         SwappableFindUsagesContext findContext,
         Task findTask,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
+        var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(this.DisplayName, supportsReferences: false);
 
@@ -241,21 +241,20 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
-            // Let the user know in the FAR window if this is taking a long time because we're waiting for the
-            // solution to be ready.
-            var workspace = document.Project.Solution.Workspace;
-            var isFullyLoaded = await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
+
+            // Let the user know in the FAR window if results may be innacurate because this is running prior to the 
+            // solution being fully loaded.
+            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {
                 await findContext.ReportInformationalMessageAsync(
                     EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
             }
 
-            await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
-
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).
             // So we better be able to find it afterwards.
-            Contract.ThrowIfNull(document);
             await FindActionAsync(document, position, findContext, cancellationToken).ConfigureAwait(false);
         }
     }
