@@ -102,7 +102,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
                 await presenterContext.ReportInformationalMessageAsync(_informationalMessage, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfNull(_definitions);
-            foreach (var definition in _definitions.ToImmutableArray())
+            foreach (var definition in _definitions)
                 await presenterContext.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
 
             // Now swap over to the presenter being the sink for all future callbacks, and clear any buffered data.
