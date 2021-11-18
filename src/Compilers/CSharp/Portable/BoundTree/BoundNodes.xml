@@ -1527,7 +1527,7 @@
     <Field Name="Index" Type="int"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
@@ -1546,7 +1546,7 @@
     <Field Name="EndIndex" Type="int"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
@@ -2078,7 +2078,7 @@
     <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" />
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess,
+    May be BoundIndexerAccess or BoundCall,
     which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
     -->
     <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" />

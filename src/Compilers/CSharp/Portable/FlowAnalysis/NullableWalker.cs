@@ -192,7 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>? _awaitablePlaceholdersOpt;
 
-        private PooledDictionary<BoundValuePlaceholderBase, BoundExpression>? _unvisitedPlaceholdersOpt;
+        // Note: at the moment, we have two kinds of placeholders. Those that we visit first (and store the result from and substitute later)
+        // and those that we visit after subsitution.
+        // Ideally, we should be able to align on the first kind of design, then we could remove the second kind.
+        private PooledDictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholdersToUnvisitedExpressionOpt;
 
         /// <summary>
         /// Variables instances for each lambda or local function defined within the analyzed region.
@@ -370,11 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
-            AssertNoUnvisitedPlaceholderReplacements();
+            AssertNoPlaceholderReplacements();
 
             _nestedFunctionVariables?.Free();
             _awaitablePlaceholdersOpt?.Free();
-            _unvisitedPlaceholdersOpt?.Free();
+            _placeholdersToUnvisitedExpressionOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
@@ -459,22 +462,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _variables.Add(identifier);
         }
 
-        private void AddUnvisitedPlaceholder(BoundValuePlaceholderBase placeholder, BoundExpression unvisited)
+        // Note: this is for placeholders to unvisited expressions
+        private void AddPlaceholder(BoundValuePlaceholderBase placeholder, BoundExpression unvisited)
         {
-            _unvisitedPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
-            _unvisitedPlaceholdersOpt.Add(placeholder, unvisited);
+            _placeholdersToUnvisitedExpressionOpt ??= PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+            _placeholdersToUnvisitedExpressionOpt.Add(placeholder, unvisited);
         }
 
-        private void RemoveUnvisitedPlaceholder(BoundValuePlaceholderBase placeholder)
+        // Note: this is for placeholders to unvisited expressions
+        private void RemovePlaceholder(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert(_unvisitedPlaceholdersOpt is not null);
-            _unvisitedPlaceholdersOpt.Remove(placeholder);
+            Debug.Assert(_placeholdersToUnvisitedExpressionOpt is not null);
+            _placeholdersToUnvisitedExpressionOpt.Remove(placeholder);
         }
 
-        private bool TryReplaceUnvisitedPlaceholder(BoundValuePlaceholderBase placeholder, [NotNullWhen(true)] out BoundExpression? unvisited)
+        // Note: this is for placeholders to unvisited expressions
+        private bool TryReplacePlaceholder(BoundValuePlaceholderBase placeholder, [NotNullWhen(true)] out BoundExpression? unvisited)
         {
-            if (_unvisitedPlaceholdersOpt is not null &&
-                _unvisitedPlaceholdersOpt.TryGetValue(placeholder, out unvisited))
+            if (_placeholdersToUnvisitedExpressionOpt is not null &&
+                _placeholdersToUnvisitedExpressionOpt.TryGetValue(placeholder, out unvisited))
             {
                 return true;
             }
@@ -484,11 +490,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Conditional("DEBUG")]
-        private void AssertNoUnvisitedPlaceholderReplacements()
+        private void AssertNoPlaceholderReplacements()
         {
-            if (_unvisitedPlaceholdersOpt is not null)
+            if (_awaitablePlaceholdersOpt is not null)
             {
-                Debug.Assert(_unvisitedPlaceholdersOpt.Count == 0);
+                Debug.Assert(_awaitablePlaceholdersOpt.Count == 0);
+            }
+            if (_placeholdersToUnvisitedExpressionOpt is not null)
+            {
+                Debug.Assert(_placeholdersToUnvisitedExpressionOpt.Count == 0);
             }
         }
 
@@ -8737,9 +8747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The argument will be visited as part of VisitIndexOrRangeIndexerPatternValuePlaceholder (for the first argument)
             // to maintain proper order of evaluation
-            AddUnvisitedPlaceholder(node.ArgumentPlaceholders[0], node.Argument);
+            AddPlaceholder(node.ArgumentPlaceholders[0], node.Argument);
             VisitRvalue(node.IndexerAccess);
-            RemoveUnvisitedPlaceholder(node.ArgumentPlaceholders[0]);
+            RemovePlaceholder(node.ArgumentPlaceholders[0]);
 
             SetResult(node, ResultType, LvalueResultType);
             return null;
@@ -8748,7 +8758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
         {
             // We use this placeholder as trigger to visit the Argument of implicit indexer access (after its Receiver)
-            if (TryReplaceUnvisitedPlaceholder(node, out var unvisited))
+            if (TryReplacePlaceholder(node, out var unvisited))
             {
                 VisitRvalue(unvisited);
             }

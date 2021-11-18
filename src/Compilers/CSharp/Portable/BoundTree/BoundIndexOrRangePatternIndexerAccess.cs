@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = this.IndexerAccess switch
             {
-                BoundArrayAccess { Expression: var r } => r,
                 BoundIndexerAccess { ReceiverOpt: var r } => r,
                 BoundCall { ReceiverOpt: var r } => r,
                 _ => throw ExceptionUtilities.UnexpectedValue(this.IndexerAccess.Kind)

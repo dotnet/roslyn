@@ -106,17 +106,13 @@ struct S
         _ = this[r]; // 3, 4
     }
 }";
+            // Note: due to our design for bound tree (LengthAccess is bound with placeholder) and CheckValue not being able
+            // to handle placeholders, we miss diagnostics on Length access
             var comp = CreateCompilationWithIndexAndRange(src);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[i]; // 1, 2
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
                 // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
                 //         _ = this[i]; // 1, 2
                 Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
-                // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[r]; // 3, 4
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
                 // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         _ = this[r]; // 3, 4
                 Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
@@ -166,14 +162,10 @@ struct S
         _ = this[r]; // 2
     }
 }";
+            // Note: due to our design for bound tree (LengthAccess is bound with placeholder) and CheckValue not being able
+            // to handle placeholders, we miss diagnostics on Length access
             var comp = CreateCompilationWithIndexAndRange(src);
-            comp.VerifyDiagnostics(
-                // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[i]; // 1
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
-                // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[r]; // 2
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -193,14 +185,10 @@ struct S
         _ = this[r]; // 2
     }
 }";
+            // Note: due to our design for bound tree (LengthAccess is bound with placeholder) and CheckValue not being able
+            // to handle placeholders, we miss diagnostics on Length access
             var comp = CreateCompilationWithIndexAndRange(src);
-            comp.VerifyDiagnostics(
-                // (11,13): warning CS8656: Call to non-readonly member 'S.Count.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[i]; // 1
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Count.get", "this").WithLocation(11, 13),
-                // (12,13): warning CS8656: Call to non-readonly member 'S.Count.get' from a 'readonly' member results in an implicit copy of 'this'.
-                //         _ = this[r]; // 2
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Count.get", "this").WithLocation(12, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
