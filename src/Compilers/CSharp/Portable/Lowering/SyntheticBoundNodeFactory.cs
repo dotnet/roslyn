@@ -1581,11 +1581,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
+#nullable enable
+        internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression, NamedTypeSymbol? nullableType = null)
         {
             // PROTOTYPE(param-nullchecking): consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
-            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, nullableType ?? expression.Type!, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
         }
+#nullable disable
 
         internal BoundExpression RewriteNullableNullEquality(
             SyntaxNode syntax,

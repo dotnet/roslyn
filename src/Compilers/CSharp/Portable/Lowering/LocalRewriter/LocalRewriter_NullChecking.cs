@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
 
-            if (loweredLeft.Type.IsNullableType())
+            if (loweredLeft.Type.IsNullableTypeOrTypeParameter(out var underlyingNullableType))
             {
-                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
+                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft, underlyingNullableType));
             }
             else
             {

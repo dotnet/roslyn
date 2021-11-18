@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Is this System.Nullable`1 type, or its substitution.
         /// 
         /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
-        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter(TypeSymbol?)" /> instead.
         /// </summary>
         public bool IsNullableType() => Type.IsNullableType();
 

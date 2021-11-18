@@ -535,6 +535,8 @@ class B1<T> : A<T> where T : class
         public void TestNullCheckedSubstitution2()
         {
             var source = @"
+using System;
+
 class A<T>
 {
     internal virtual void M<U>(U u!!) where U : T { }
@@ -542,19 +544,37 @@ class A<T>
 class B3<T> : A<T?> where T : struct
 {
     internal override void M<U>(U u!!) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var b3 = new B3<int>();
+        try
+        {
+            b3.M<int?>(1);
+            Console.Write(1);
+            b3.M<int?>(null);
+        }
+        catch
+        {
+            Console.Write(2);
+        }
+    }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "12");
             compilation.VerifyIL("B3<T>.M<U>(U)", @"
 {
-  // Code size       20 (0x14)
+  // Code size       21 (0x15)
   .maxstack  1
-  IL_0000:  ldarg.1
-  IL_0001:  box        ""U""
-  IL_0006:  brtrue.s   IL_0013
-  IL_0008:  ldstr      ""u""
-  IL_000d:  newobj     ""System.ArgumentNullException..ctor(string)""
-  IL_0012:  throw
-  IL_0013:  ret
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  call       ""bool T?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0014
+  IL_0009:  ldstr      ""u""
+  IL_000e:  newobj     ""System.ArgumentNullException..ctor(string)""
+  IL_0013:  throw
+  IL_0014:  ret
 }");
         }
 
