@@ -139,10 +139,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 // potentially interleaving with each other.  Note: this should ideally always be fast as long as the 
                 // prior task respects cancellation.
                 await _inProgressCommand.ConfigureAwait(false);
-
-                // Create an async token to track this work for any integration tests that need to wait on this.
-                // Then, create a threaded-wait-dialog to let the user know this work is happening and to allow
-                // them to cancel it if they no longer care about the results.
                 await this.ExecuteCommandWorkerAsync(workspace, service, snapshot, position, cancellationTokenSource).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
