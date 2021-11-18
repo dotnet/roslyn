@@ -107,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
             // operation. Once this returns, the editor will close the threaded wait dialog it created.
-            // So we need to take ownership of it and start our own TWD instead to track this.
-            context.OperationContext.TakeOwnership();
             _inProgressCommand = ExecuteCommandAsync(document.Project.Solution.Workspace, service, snapshot, position, _cancellationTokenSource);
             return true;
         }
