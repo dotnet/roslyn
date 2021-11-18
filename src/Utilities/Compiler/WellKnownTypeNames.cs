@@ -224,6 +224,7 @@ namespace Analyzer.Utilities
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
+        public const string SystemIOMemoryStream = "System.IO.MemoryStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemIOStream = "System.IO.Stream";
         public const string SystemIOStringReader = "System.IO.StringReader";
@@ -231,6 +232,7 @@ namespace Analyzer.Utilities
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqExpressionsExpression1 = "System.Linq.Expressions.Expression`1";
+        public const string SystemLinqIOrderedEnumerable1 = "System.Linq.IOrderedEnumerable`1";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
