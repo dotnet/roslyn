@@ -40,7 +40,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
-                => Task.CompletedTask;
+                => CreateNoResultsFoundEntryIfNecessaryAsync();
+
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
+            {
+                string message;
+                lock (Gate)
+                {
+                    // If we got definitions, then no need to show the 'no results found' message.
+                    if (this.Definitions.Count > 0)
+                        return;
+
+                    message = NoDefinitionsFoundMessage;
+                }
+
+                var definitionBucket = GetOrCreateDefinitionBucket(CreateNoResultsDefinitionItem(message), expandedByDefault: true);
+                var entry = await SimpleMessageEntry.CreateAsync(definitionBucket, navigationBucket: null, message).ConfigureAwait(false);
+
+                lock (Gate)
+                {
+                    EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
+                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                    NotifyChange();
+                }
+            }
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {

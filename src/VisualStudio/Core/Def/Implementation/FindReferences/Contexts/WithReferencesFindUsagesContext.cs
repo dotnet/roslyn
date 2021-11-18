@@ -259,31 +259,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateNoResultsFoundEntryIfNecessaryAsync(CancellationToken cancellationToken)
             {
-                bool noDefinitions;
+                string message;
                 lock (Gate)
                 {
-                    noDefinitions = this.Definitions.Count == 0;
+                    if (this.Definitions.Count > 0)
+                        return;
+
+                    message = NoDefinitionsFoundMessage;
                 }
 
-                if (noDefinitions)
-                {
-                    // Create a fake definition/reference called "search found no results"
-                    await OnEntryFoundAsync(
-                        NoResultsDefinitionItem,
-                        bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
-                        addToEntriesWhenGroupingByDefinition: true,
-                        addToEntriesWhenNotGroupingByDefinition: true,
-                        expandedByDefault: true,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                // Create a fake definition/reference called "search found no results"
+                await OnEntryFoundAsync(
+                    CreateNoResultsDefinitionItem(message),
+                    bucket => SimpleMessageEntry.CreateAsync(bucket, navigationBucket: null, message)!,
+                    addToEntriesWhenGroupingByDefinition: true,
+                    addToEntriesWhenNotGroupingByDefinition: true,
+                    expandedByDefault: true,
+                    cancellationToken).ConfigureAwait(false);
             }
-
-            private static readonly DefinitionItem NoResultsDefinitionItem =
-                DefinitionItem.CreateNonNavigableItem(
-                    GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(
-                        TextTags.Text,
-                        ServicesVSResources.Search_found_no_results)));
 
             private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(

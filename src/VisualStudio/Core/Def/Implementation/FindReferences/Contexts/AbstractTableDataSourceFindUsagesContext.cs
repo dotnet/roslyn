@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
 
-            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
+            private readonly AsyncBatchingWorkQueue<(int curr, int maximum)> _progressQueue;
 
             protected readonly object Gate = new();
 
@@ -67,6 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// list of results whenever queried for the current snapshot.
             /// </summary>
             private bool _cleared;
+
+            /// <summary>
+            /// Message we show if we find no definitions.  Consumers of the streaming presenter can set their own title.
+            /// </summary>
+            protected string NoDefinitionsFoundMessage = ServicesVSResources.Search_found_no_results;
 
             /// <summary>
             /// The list of all definitions we've heard about.  This may be a superset of the
@@ -414,7 +419,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             public sealed override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => throw new InvalidOperationException("This should never be called in the streaming case.");
+            {
+                lock (Gate)
+                {
+                    NoDefinitionsFoundMessage = message;
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
 
             protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
             {
@@ -444,6 +456,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return ValueTaskFactory.CompletedTask;
             }
+
+            protected DefinitionItem CreateNoResultsDefinitionItem(string message)
+                => DefinitionItem.CreateNonNavigableItem(
+                    GlyphTags.GetTags(Glyph.StatusInformation),
+                    ImmutableArray.Create(new TaggedText(TextTags.Text, message)));
 
             #endregion
 
