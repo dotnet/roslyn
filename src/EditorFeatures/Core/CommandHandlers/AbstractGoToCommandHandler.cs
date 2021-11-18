@@ -245,7 +245,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 // Find failed.  Pop up dialog telling the user why.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(message, title: this.DisplayName, NotificationSeverity.Information);
+
+                // if there was additional information provided then also attach it to the message we show.
+                var informationalMessage = await findContext.GetInformationalMessageAsync(cancellationToken).ConfigureAwait(false);
+                var totalMessage = informationalMessage == null ? message : message + Environment.NewLine + informationalMessage;
+                notificationService.SendNotification(totalMessage, title: this.DisplayName, NotificationSeverity.Information);
             }
         }
 

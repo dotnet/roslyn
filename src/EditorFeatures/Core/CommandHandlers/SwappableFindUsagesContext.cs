@@ -45,9 +45,6 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
     {
     }
 
-    /// <summary>
-    /// Message to show the user in case of failure.
-    /// </summary>
     public async Task<string?> GetMessageAsync(CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -57,9 +54,15 @@ internal sealed class SwappableFindUsagesContext : IFindUsagesContext, IStreamin
         }
     }
 
-    /// <summary>
-    /// Message to show the user in case of failure.
-    /// </summary>
+    public async Task<string?> GetInformationalMessageAsync(CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            Contract.ThrowIfTrue(_streamingPresenterContext != null, "Should not be called if we've switched over to the streaming presenter");
+            return _informationalMessage;
+        }
+    }
+
     public async Task<string?> GetSearchTitleAsync(CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
