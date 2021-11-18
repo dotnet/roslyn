@@ -1610,6 +1610,8 @@ class C
   IL_0013:  throw
   IL_0014:  ret
 }");
+            verifier.VerifyMissing("ThrowIfNull");
+            verifier.VerifyMissing("Throw");
         }
 
         [Fact]
@@ -1639,6 +1641,8 @@ class C
   IL_0013:  throw
   IL_0014:  ret
 }");
+            verifier.VerifyMissing("ThrowIfNull");
+            verifier.VerifyMissing("Throw");
         }
 
         [Fact]
@@ -1731,6 +1735,8 @@ class C
   IL_000e:  nop
   IL_000f:  ret
 }");
+            verifier.VerifyMissing("ThrowIfNull");
+            verifier.VerifyMissing("Throw");
         }
     }
 }
