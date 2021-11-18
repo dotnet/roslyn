@@ -186,16 +186,34 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             if (firstFinishedTask == findTask)
             {
-                // We completed the search within 1.5 seconds.  Either navigate to or present the results we have.  Once
-                // we've done that, we're finished.
-                await NavigateToOrPresentResultsAsync(workspace, findContext, cancellationToken).ConfigureAwait(false);
-                return;
+                // We completed the search within 1.5 seconds.  If we had at least one results then Navigate to it
+                // directly (if there is just one) or present them all if there are many.
+                var definitions = await findContext.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
+                if (definitions.Length > 0)
+                {
+                    var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
+                    await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                        _threadingContext,
+                        workspace,
+                        title ?? this.DisplayName,
+                        definitions,
+                        cancellationToken).ConfigureAwait(false);
+                    return;
+                }
             }
 
-            Contract.ThrowIfFalse(firstFinishedTask == delayTask);
+            // We either got no results, or 1.5 has passed and we didn't figure out the symbols to navigate to or
+            // present.  So pop up the presenter to show the user that we're involved in a longer search, without
+            // blocking them.
+            await PresentResultsInStreamingPresenterAsync(cancellationTokenSource, findContext, findTask, cancellationToken).ConfigureAwait(false);
+        }
 
-            // 1.5 has passed, and we didn't figure out the symbols to navigate to or present.  So pop up the presenter
-            // to show the user that we're involved in a longer search, without blocking them.
+        private async Task PresentResultsInStreamingPresenterAsync(
+            CancellationTokenSource cancellationTokenSource,
+            SwappableFindUsagesContext findContext,
+            Task findTask,
+            CancellationToken cancellationToken)
+        {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(this.DisplayName, supportsReferences: false);
 
@@ -222,34 +240,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 // case some other find operation happens (either through this handler or another handler using the
                 // presenter) and we don't actually finish the search.
                 await presenterContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task NavigateToOrPresentResultsAsync(Workspace workspace, SwappableFindUsagesContext findContext, CancellationToken cancellationToken)
-        {
-            // We have all the cheap stuff, so let's do expensive stuff now
-            var message = await findContext.GetMessageAsync(cancellationToken).ConfigureAwait(false);
-            if (message == null)
-            {
-                // Find succeeded.  Show the results to the user and immediately return.
-                var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext,
-                    workspace,
-                    title ?? this.DisplayName,
-                    await findContext.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false),
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // Find failed.  Pop up dialog telling the user why.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-
-                // if there was additional information provided then also attach it to the message we show.
-                var informationalMessage = await findContext.GetInformationalMessageAsync(cancellationToken).ConfigureAwait(false);
-                var totalMessage = informationalMessage == null ? message : message + Environment.NewLine + informationalMessage;
-                notificationService.SendNotification(totalMessage, title: this.DisplayName, NotificationSeverity.Information);
             }
         }
 
