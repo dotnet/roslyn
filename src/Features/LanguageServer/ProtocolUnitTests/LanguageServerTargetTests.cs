@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
         private static async Task AssertServerQueueClosed(LanguageServerTarget server)
         {
-            await server.GetTestAccessor().GetQueueAccessor().WaitForProcessingToStop().ConfigureAwait(false);
+            await server.GetTestAccessor().GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
             Assert.True(server.HasShutdownStarted);
             Assert.True(server.GetTestAccessor().GetQueueAccessor().IsComplete());
         }
