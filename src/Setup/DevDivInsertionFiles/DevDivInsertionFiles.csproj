@@ -254,14 +254,15 @@
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->
-    <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
+    <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" Condition="'@(_UnsignAssembly)' != ''"/>
 
     <!-- Repack optimized dependencies -->
     <Microsoft.DotNet.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
                                                 DestinationFolder="$(VisualStudioBuildPackagesDir)"
                                                 NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
                                                 Parts="%(_PackageToRepack.Parts)"
-                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
+                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)"
+                                                Condition="'@(_PackageToRepack)' != ''">
       <Output TaskParameter="NewPackage" ItemName="FileWrites" />
     </Microsoft.DotNet.Tools.ReplacePackageParts>
 
