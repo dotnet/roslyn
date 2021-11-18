@@ -19,6 +19,7 @@ namespace Xunit.Threading
             foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
             {
                 yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
+                yield return new IdeInstanceTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(supportedInstance), supportedInstance);
             }
         }
 
@@ -35,6 +36,7 @@ namespace Xunit.Threading
             foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
             {
                 yield return new IdeTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance, dataRow);
+                yield return new IdeInstanceTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(supportedInstance), supportedInstance);
             }
         }
 
@@ -43,6 +45,7 @@ namespace Xunit.Threading
             foreach (var supportedInstance in IdeFactDiscoverer.GetSupportedInstances(testMethod, theoryAttribute))
             {
                 yield return new IdeTheoryTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
+                yield return new IdeInstanceTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), IdeFactDiscoverer.CreateVisualStudioTestMethod(supportedInstance), supportedInstance);
             }
         }
     }

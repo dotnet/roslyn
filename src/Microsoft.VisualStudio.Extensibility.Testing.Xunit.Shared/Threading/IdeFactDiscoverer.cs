@@ -28,6 +28,7 @@ namespace Xunit.Threading
                     foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
                     {
                         yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
+                        yield return new IdeInstanceTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), CreateVisualStudioTestMethod(supportedInstance), supportedInstance);
                     }
                 }
                 else
@@ -39,6 +40,15 @@ namespace Xunit.Threading
             {
                 yield return new ExecutionErrorTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, "[IdeFact] methods are not allowed to have parameters. Did you mean to use [IdeTheory]?");
             }
+        }
+
+        internal static ITestMethod CreateVisualStudioTestMethod(VisualStudioInstanceKey supportedInstance)
+        {
+            var testAssembly = new TestAssembly(new ReflectionAssemblyInfo(typeof(Instances).Assembly));
+            var testCollection = new TestCollection(testAssembly, collectionDefinition: null, nameof(Instances));
+            var testClass = new TestClass(testCollection, new ReflectionTypeInfo(typeof(Instances)));
+            var testMethod = testClass.Class.GetMethods(false).Single(method => method.Name == nameof(Instances.VisualStudio));
+            return new TestMethod(testClass, testMethod);
         }
 
         internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(ITestMethod testMethod, IAttributeInfo factAttribute)

@@ -127,21 +127,21 @@ if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.executed -ne "11") {
+if ($trx.TestRun.ResultSummary.Counters.executed -ne "12") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@executed"
-    Write-Host "Expected '11', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
+    Write-Host "Expected '12', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.total -ne "70") {
+if ($trx.TestRun.ResultSummary.Counters.total -ne "75") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@total"
-    Write-Host "Expected '70', found '$($trx.TestRun.ResultSummary.Counters.total)'"
+    Write-Host "Expected '75', found '$($trx.TestRun.ResultSummary.Counters.total)'"
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.passed -ne "3") {
+if ($trx.TestRun.ResultSummary.Counters.passed -ne "4") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@passed"
-    Write-Host "Expected '3', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
+    Write-Host "Expected '4', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
     $errorCount++
 }
 

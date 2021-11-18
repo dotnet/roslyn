@@ -34,13 +34,44 @@ namespace Xunit.Harness
             var completedTestCaseIds = new HashSet<string>();
             try
             {
-                foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
+                // Handle [Fact], and also handle IdeSkippedDataRowTestCase that doesn't run inside Visual Studio
+                var nonIdeTestCases = testCases.Where(testCase => testCase is not IdeTestCaseBase).ToArray();
+                if (nonIdeTestCases.Any())
                 {
+                    var summary = await RunTestCollectionForUnspecifiedVersionAsync(completedTestCaseIds, messageBus, testCollection, nonIdeTestCases, cancellationTokenSource);
+                    result.Aggregate(summary.Item1);
+                    testAssemblyFinishedMessages.Add(summary.Item2);
+                }
+
+                var ideTestCases = testCases.OfType<IdeTestCaseBase>().Where(testCase => testCase is not IdeInstanceTestCase).ToArray();
+                var ideInstancesInTests = new HashSet<VisualStudioInstanceKey>();
+
+                foreach (var testCasesByTargetVersion in ideTestCases.GroupBy(GetVisualStudioVersionForTestCase))
+                {
+                    ideInstancesInTests.Add(testCasesByTargetVersion.Key);
                     using var marshalledObjects = new MarshalledObjects();
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
                     {
                         marshalledObjects.Add(visualStudioInstanceFactory);
                         var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
+                        result.Aggregate(summary.Item1);
+                        testAssemblyFinishedMessages.Add(summary.Item2);
+                    }
+                }
+
+                foreach (var ideInstanceTestCase in testCases.OfType<IdeInstanceTestCase>())
+                {
+                    if (ideInstancesInTests.Contains(ideInstanceTestCase.VisualStudioInstanceKey))
+                    {
+                        // Already had at least one test run in this version, so no need to launch it separately
+                        continue;
+                    }
+
+                    using var marshalledObjects = new MarshalledObjects();
+                    using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory(leaveRunning: true))
+                    {
+                        marshalledObjects.Add(visualStudioInstanceFactory);
+                        var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, ideInstanceTestCase.VisualStudioInstanceKey, completedTestCaseIds, messageBus, testCollection, new[] { ideInstanceTestCase }, cancellationTokenSource);
                         result.Aggregate(summary.Item1);
                         testAssemblyFinishedMessages.Add(summary.Item2);
                     }
@@ -339,6 +370,10 @@ namespace Xunit.Harness
                         else if (testCase is IdeTheoryTestCase ideTheoryTestCase)
                         {
                             return new IdeTheoryTestCase(this, ideTheoryTestCase.DefaultMethodDisplay, ideTheoryTestCase.DefaultMethodDisplayOptions, ideTheoryTestCase.TestMethod, ideTheoryTestCase.VisualStudioInstanceKey, ideTheoryTestCase.TestMethodArguments);
+                        }
+                        else if (testCase is IdeInstanceTestCase ideInstanceTestCase)
+                        {
+                            return new IdeInstanceTestCase(this, ideInstanceTestCase.DefaultMethodDisplay, ideInstanceTestCase.DefaultMethodDisplayOptions, ideInstanceTestCase.TestMethod, ideInstanceTestCase.VisualStudioInstanceKey, ideInstanceTestCase.TestMethodArguments);
                         }
                         else
                         {

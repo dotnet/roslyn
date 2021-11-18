@@ -43,11 +43,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\OleServiceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\TestInvoker_InProc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InProcess\VisualStudio_InProc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Instances.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\OutOfProcComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\TestInvoker_OutOfProc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\ErrorReportingIdeTestRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\ExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeInstanceTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeSkippedDataRowTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseBase.cs" />

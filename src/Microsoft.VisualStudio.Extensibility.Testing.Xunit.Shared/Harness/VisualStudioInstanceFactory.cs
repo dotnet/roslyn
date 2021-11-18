@@ -22,6 +22,8 @@ namespace Xunit.Harness
     {
         private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
 
+        private readonly bool _leaveRunning;
+
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
@@ -29,12 +31,14 @@ namespace Xunit.Harness
 
         private bool _hasCurrentlyActiveContext;
 
-        public VisualStudioInstanceFactory()
+        public VisualStudioInstanceFactory(bool leaveRunning = false)
         {
             if (Process.GetCurrentProcess().ProcessName != "devenv")
             {
                 AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             }
+
+            _leaveRunning = leaveRunning;
         }
 
         // This looks like it is pointless (since we are returning an assembly that is already loaded) but it is actually required.
@@ -438,7 +442,11 @@ namespace Xunit.Harness
 
         public void Dispose()
         {
-            _currentlyRunningInstance?.Close();
+            if (!_leaveRunning)
+            {
+                _currentlyRunningInstance?.Close();
+            }
+
             _currentlyRunningInstance = null;
 
             // We want to make sure everybody cleaned up their contexts by the end of everything
