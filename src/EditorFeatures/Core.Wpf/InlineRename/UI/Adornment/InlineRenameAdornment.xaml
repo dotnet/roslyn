@@ -6,6 +6,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.InlineRename.Adornment"
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              MinWidth="200"
@@ -15,7 +17,9 @@
              MouseDown="Adornment_ConsumeMouseEvent"
              MouseUp="Adornment_ConsumeMouseEvent"
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
-             Focusable="True">
+             Focusable="False"
+             UseLayoutRounding="True"
+             Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -37,30 +41,81 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Orientation="Vertical">
-        <TextBox x:Name="IdentifierTextBox" Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" GotFocus="IdentifierTextBox_GotFocus"/>
+    <StackPanel Orientation="Vertical" Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" >
+        <Grid Margin="0 0 0 10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="22" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Expander x:Name="OptionsExpander">
-            <Expander.Header>
-                <TextBlock Text="Options" />
-            </Expander.Header>
+            <Button x:Name="ToggleExpandButton" Grid.Column="0" Click="ToggleExpand" Background="Transparent">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Name="border" 
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}"
+                                        Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+                <imaging:CrispImage Grid.Column="0">
+                    <imaging:CrispImage.Style>
+                        <Style TargetType="imaging:CrispImage">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                                    <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.ExpandDown}" />
+                                </DataTrigger>
 
-            <Expander.Content>
-                <StackPanel Orientation="Vertical">
-                    <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}"
-                      Name="OverloadsCheckbox" Visibility="{Binding RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=control, Path=IsRenameOverloadsEditable}" />
-                    <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
-                    <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
-                    <CheckBox Name="FileRenameCheckbox" 
-                          Content="{Binding Path=FileRenameString}" 
-                          Margin="0" 
-                          IsChecked="{Binding Path=RenameFileFlag, Mode=TwoWay}" 
-                          IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}" 
-                          Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+                                <DataTrigger Binding="{Binding IsCollapsed}" Value="False">
+                                    <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.CollapseUp}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </imaging:CrispImage.Style>
+                </imaging:CrispImage>
+            </Button>
+            <TextBox 
+                Grid.Column="1"
+                x:Name="IdentifierTextBox" 
+                Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
+                GotFocus="IdentifierTextBox_GotFocus" 
+                HorizontalAlignment="Stretch" />
+        </Grid>
 
-                    <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=control, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" />
-                </StackPanel>
-            </Expander.Content>
-        </Expander>
+        <!-- Expanded View -->
+        <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"
+                      Name="OverloadsCheckbox" Visibility="{Binding RenameOverloadsVisibility}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
+            <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
+            <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
+            <CheckBox Name="FileRenameCheckbox" 
+                    Content="{Binding Path=FileRenameString}" 
+                    Margin="0" 
+                    IsChecked="{Binding Path=RenameFileFlag, Mode=TwoWay}" 
+                    IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}" 
+                    Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+        </StackPanel>
+
+        <!-- Collapsed View -->
+        <StackPanel Orientation="Horizontal" Visibility="{Binding IsCollapsed, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.OverloadBehavior}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.CommentCode}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.StringQuote}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" />
+        </StackPanel>
+
+        <TextBlock Text="Enter to rename, Shift+Enter to preview" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />
     </StackPanel>
 </UserControl>

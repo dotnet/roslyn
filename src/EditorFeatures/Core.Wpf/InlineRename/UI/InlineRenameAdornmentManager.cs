@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // TODO: Determine if we want a flag to change which UI is shown
                 // for now leave the new one disabled until tests are updated.
 #pragma warning disable CS0162 // Unreachable code detected
-                if (true)
+                if (false)
                 {
                     var newAdornment = new Dashboard(
                         (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),

@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
                 case Key.Tab:
                     // We don't want tab to lose focus for the adornment, so manually 
                     // loop focus back to the first item that is focusable.
-                    FrameworkElement lastItem = OptionsExpander.IsExpanded
-                        ? PreviewChangesCheckbox
-                        : OptionsExpander;
+                    FrameworkElement lastItem = _viewModel.IsExpanded
+                        ? FileRenameCheckbox
+                        : IdentifierTextBox;
 
                     if (lastItem.IsFocused)
                     {
@@ -125,8 +125,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
 
         private void Adornment_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            if (e.OldFocus == this)
+            {
+                return;
+            }
+
+            IdentifierTextBox.Focus();
             e.Handled = true;
+        }
+
+        private void ToggleExpand(object sender, RoutedEventArgs e)
+        {
+            _viewModel.IsExpanded = !_viewModel.IsExpanded;
         }
     }
 }
