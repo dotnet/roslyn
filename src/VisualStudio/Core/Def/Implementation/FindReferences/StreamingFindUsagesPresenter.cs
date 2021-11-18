@@ -308,6 +308,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             if (_serviceProvider.GetService(typeof(SVsUIShell)) is not IVsUIShell uiShell)
                 return null;
 
+            // Guid of the FindRefs window.  Defined here:
+            // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
             var guid = new Guid("a80febb4-e7e0-4147-b476-21aaf2453969");
             if (uiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref guid, out var windowFrame) != VSConstants.S_OK ||
                 windowFrame == null)
