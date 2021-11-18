@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
@@ -30,18 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public GoToBaseCommandHandler(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, streamingPresenter, listenerProvider.GetListener(FeatureAttribute.GoToBase))
+            : base(threadingContext,
+                   streamingPresenter,
+                   uiThreadOperationExecutor,
+                   listenerProvider.GetListener(FeatureAttribute.GoToBase))
         {
         }
 
-        protected override IGoToBaseService? GetService(Document document)
-            => document?.GetLanguageService<IGoToBaseService>();
-
         public override string DisplayName => EditorFeaturesResources.Go_To_Base;
-
         protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
-
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
         protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken)
