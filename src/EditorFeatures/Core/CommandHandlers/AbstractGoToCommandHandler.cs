@@ -37,10 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
-        /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands
-        /// that they properly run after each other.  This is necessary so none of them accidentally stomp on one 
-        /// that is still in progress and is interacting with the UI.  Only valid to read or write to this on the UI
-        /// thread.
+        /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
+        /// they properly run after each other.  This is necessary so none of them accidentally stomp on one that is
+        /// still in progress and is interacting with the UI.  Only valid to read or write to this on the UI thread.
         /// </summary>
         private Task _inProgressCommand = Task.CompletedTask;
 
@@ -49,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         /// this on the UI thread.
         /// </summary>
         /// <remarks>
-        /// Cancellation is complicated with this feature.  There are two things that can cause us to cancel.  The
-        /// first is if the user kicks off another actual go-to-impl command.  In that case, we just attempt to cancel
-        /// the prior command (if it is still running), then wait for it to complete, then run our command.  The second
-        /// is if we have switched over to the streaming presenter and then the user starts some other command (like FAR)
+        /// Cancellation is complicated with this feature.  There are two things that can cause us to cancel.  The first
+        /// is if the user kicks off another actual go-to-impl command.  In that case, we just attempt to cancel the
+        /// prior command (if it is still running), then wait for it to complete, then run our command.  The second is
+        /// if we have switched over to the streaming presenter and then the user starts some other command (like FAR)
         /// that takes over the presenter.  In that case, the presenter will notify us that it has be repurposed and we
         /// will also cancel this source.
         /// </remarks>
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 using var token = _listener.BeginAsyncOperation($"{this.GetType().Name}.{nameof(ExecuteCommandAsync)}");
 
                 // Only start running once the previous command has finished.  That way we don't have results from both
-                // potentially interleaving with each other.  Note: this should ideally always be fast as long as the 
+                // potentially interleaving with each other.  Note: this should ideally always be fast as long as the
                 // prior task respects cancellation.
                 await _inProgressCommand.ConfigureAwait(false);
                 await this.ExecuteCommandWorkerAsync(workspace, service, snapshot, position, cancellationTokenSource).ConfigureAwait(false);
@@ -159,17 +158,17 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // Switch to the BG immediately so we can keep as much work off the UI thread.
             await TaskScheduler.Default;
 
-            // We kick off the work to find the impl/base in the bg.  If we get the results for it within 1.5
-            // seconds, we then either navigate directly to it (in the case of one result), or we show all the
-            // results in the presenter (in the case of multiple).
+            // We kick off the work to find the impl/base in the bg.  If we get the results for it within 1.5 seconds,
+            // we then either navigate directly to it (in the case of one result), or we show all the results in the
+            // presenter (in the case of multiple).
             //
-            // However, if the results don't come back in 1.5 seconds, we just pop open the presenter and continue
-            // the search there.  That way the user is not blocked and can go do other work if they want.
+            // However, if the results don't come back in 1.5 seconds, we just pop open the presenter and continue the
+            // search there.  That way the user is not blocked and can go do other work if they want.
 
-            // We create our own context object, simply to capture all the definitions reported by 
-            // the individual TLanguageService.  Once we get the results back we'll then decide 
-            // what to do with them.  If we get only a single result back, then we'll just go 
-            // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
+            // We create our own context object, simply to capture all the definitions reported by the individual
+            // TLanguageService.  Once we get the results back we'll then decide what to do with them.  If we get only a
+            // single result back, then we'll just go directly to it.  Otherwise, we'll present the results in the
+            // IStreamingFindUsagesPresenter.
             var findContext = new SwappableFindUsagesContext();
 
             var cancellationToken = cancellationTokenSource.Token;
@@ -204,14 +203,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 await TaskScheduler.Default;
 
-                // Now, tell our find-context (which has been collecting intermediary results) to swap over to using the 
-                // actual presenter context.  It will push all results it's been collecting into that, and from that point
-                // onwards will just forward any new results directly to the presenter.
+                // Now, tell our find-context (which has been collecting intermediary results) to swap over to using the
+                // actual presenter context.  It will push all results it's been collecting into that, and from that
+                // point onwards will just forward any new results directly to the presenter.
                 await findContext.SwapAsync(presenterContext, cancellationToken).ConfigureAwait(false);
 
-                // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other words,
-                // if something else decides to present in the presenter (like a find-refs call) we'll hear about that and
-                // can cancel all our work.
+                // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other
+                // words, if something else decides to present in the presenter (like a find-refs call) we'll hear about
+                // that and can cancel all our work.
                 presenterCancellationToken.Register(() => cancellationTokenSource.Cancel());
 
                 // now actuall wait for the find work to be done.
@@ -219,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
             finally
             {
-                // Ensure that once we pop up the presenter, we always make sure to force it to the completed stage in 
-                // case some other find operation happens (either through this handler or another handler using the 
+                // Ensure that once we pop up the presenter, we always make sure to force it to the completed stage in
+                // case some other find operation happens (either through this handler or another handler using the
                 // presenter) and we don't actually finish the search.
                 await presenterContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -255,6 +254,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
+                // Let the user know in the FAR window if this is taking a long time because we're waiting for the
+                // solution to be ready.
                 await findContext.SetSearchTitleAsync(
                     string.Format(EditorFeaturesResources._0_Waiting_for_the_solution_to_fully_load, this.DisplayName), cancellationToken).ConfigureAwait(false);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
