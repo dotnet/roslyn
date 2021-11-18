@@ -113,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 {
                     // Find succeeded.  Show the results to the user and immediately return.
                     await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, document.Project.Solution.Workspace,
-                    findContext.SearchTitle, findContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
+                        _threadingContext, document.Project.Solution.Workspace, findContext.SearchTitle, findContext.GetDefinitions(), cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -127,8 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 context.OperationContext.TakeOwnership();
                 var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(
-                    messageToShow, title: DisplayName, NotificationSeverity.Information);
+                notificationService.SendNotification(messageToShow, title: DisplayName, NotificationSeverity.Information);
             }
         }
     }
