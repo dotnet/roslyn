@@ -72,11 +72,6 @@
         <target state="translated">格式文档执行了额外的清理</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions">
-        <source>Gathering Suggestions</source>
-        <target state="new">Gathering Suggestions</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">获取有关“{0}”的帮助</target>
@@ -90,6 +85,11 @@
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">正在收集建议 -“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">正在收集建议 - 正在等待解决方案完全加载</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -265,11 +265,6 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">制表符大小</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
-        <source>The results may be incomplete due to the solution still loading projects.</source>
-        <target state="new">The results may be incomplete due to the solution still loading projects.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -545,11 +540,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">无法重命名此元素，因为它位于无法导航到的位置。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Waiting_for_the_solution_to_fully_load">
-        <source>{0} - Waiting for the solution to fully load</source>
-        <target state="new">{0} - Waiting for the solution to fully load</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
