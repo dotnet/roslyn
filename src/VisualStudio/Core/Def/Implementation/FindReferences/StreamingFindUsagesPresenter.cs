@@ -55,8 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         /// <summary>
-        /// Optional info bar that can be shown in the FindRefs window.  Useful, for example, for letting the user
-        /// know if the results are incomplete because the solution is loading.
+        /// Optional info bar that can be shown in the FindRefs window.  Useful, for example, for letting the user know
+        /// if the results are incomplete because the solution is loading.  Only valid to read/write on the UI thread.
         /// </summary>
         private IVsInfoBarUIElement? _infoBar;
 
