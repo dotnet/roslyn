@@ -166,7 +166,7 @@ try {
     }
 
     # Self destruct
-    git rm Expand-Template.*
+    git rm Expand-Template.* Apply-Template.ps1
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git rm :/azure-pipelines/expand-template.yml
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
