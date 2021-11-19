@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var ticks = Environment.TickCount;
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
+                    var ticks = Environment.TickCount;
                     using var nestedTokenSource = new CancellationTokenSource();
                     using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
@@ -73,19 +73,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Either the timebox is not enabled, so we need to wait until the operation for complete,
                     // or there's no timeout, and we now have all completion items ready.
                     var result = await getItemsTask.ConfigureAwait(false);
-                    if (!result.HasValue)
+                    if (result is null)
                         return;
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.Value.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
 
                     // report telemetry:
                     var totalTicks = Environment.TickCount - ticks;
-                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(totalTicks, isExpandedCompletion);
-                    CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(result.Value.CompletionItems.Length);
-                    CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(result.Value.GetSymbolsTicks);
-                    CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(result.Value.CreateItemsTicks);
-                    if (result.Value.IsPartialResult)
+                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, isExpandedCompletion, result.IsRemote);
+
+                    if (result.IsPartialResult)
                         CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
                 }
                 else

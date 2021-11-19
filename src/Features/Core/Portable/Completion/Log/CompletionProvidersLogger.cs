@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
             ExtensionMethodCompletionCreateItemsTicks,
+            ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
             ExtensionMethodCompletionTimeoutCount,
@@ -68,27 +69,29 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
         }
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int count, bool isExpanded)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isExpanded, bool isRemote)
         {
             if (isExpanded)
             {
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionExpanderTicks, count);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionExpanderTicks, total);
             }
             else
             {
-                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, count);
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
             }
+
+            if (isRemote)
+            {
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, (total - getSymbols - createItems));
+            }
+
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
         }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
-
-        internal static void LogExtensionMethodCompletionGetSymbolsTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, count);
-
-        internal static void LogExtensionMethodCompletionCreateItemsTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, count);
 
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
