@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
     internal static class StackTraceAnalyzer
 
     {
-        /// <summary
+        /// <summary>
         /// List of parsers to use. Order is important because
         /// take the result from the first parser that returns 
         /// success.
