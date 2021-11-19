@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 false =>
                     generator.InvocationExpression(
                         generator.MemberAccessExpression(
-                            generator.TypeExpression(SpecialType.System_Object),
+                            generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
                             nameof(object.Equals)),
                         binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
                         binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia())
