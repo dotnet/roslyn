@@ -14,15 +14,13 @@ parameters:
   - name: lspEditor
     type: string
     default: false
-  - name: skipPipelinesCheckout
+  - name: shallowCheckout
     type: boolean
     default: true
 
 steps:
-  - ${{ if eq(parameters.skipPipelinesCheckout, true) }}:
-    - checkout: none
-
-  - template: checkout-windows-task.yml
+  - ${{ if eq(parameters.shallowCheckout, true) }}:
+    - template: checkout-windows-task.yml
 
   - task: PowerShell@2
     displayName: Build and Test

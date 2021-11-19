@@ -1,5 +1,7 @@
 # Shallow checkout sources on Windows
 steps:
+  - checkout: none
+
   - script: |
       @echo on
       git init
