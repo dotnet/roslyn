@@ -1848,4 +1848,10 @@ Additional information: {1}</value>
   <data name="End_of_line" xml:space="preserve">
     <value>End of line</value>
   </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
 </root>
