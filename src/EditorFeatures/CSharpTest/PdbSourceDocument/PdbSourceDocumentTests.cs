@@ -665,6 +665,35 @@ public class C
             });
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task EncodedEmbeddedSource_SJIS_FallbackEncoding(Location pdbLocation)
+        {
+            var source = @"
+public class C
+{
+    // ワ
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            var encoding = Encoding.GetEncoding("SJIS");
+
+            await RunTestAsync(async path =>
+            {
+                using var ms = new MemoryStream(encoding.GetBytes(source));
+                var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
+
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
+        }
+
         private static Task TestAsync(
             Location pdbLocation,
             Location sourceLocation,
@@ -811,7 +840,8 @@ public class C
             Func<Compilation, ISymbol> symbolMatcher,
             string[]? preprocessorSymbols = null,
             bool buildReferenceAssembly = false,
-            bool windowsPdb = false)
+            bool windowsPdb = false,
+            Encoding? fallbackEncoding = null)
         {
             var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
@@ -831,7 +861,7 @@ public class C
 
             var project = workspace.CurrentSolution.Projects.First();
 
-            CompileTestSource(path, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb);
+            CompileTestSource(path, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
 
             project = project.AddMetadataReference(MetadataReference.CreateFromFile(GetDllPath(path)));
 
@@ -844,7 +874,7 @@ public class C
             return (project, symbol);
         }
 
-        private static void CompileTestSource(string path, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb)
+        private static void CompileTestSource(string path, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
             var dllFilePath = GetDllPath(path);
             var sourceCodePath = GetSourceFilePath(path);
@@ -895,7 +925,14 @@ public class C
                 emitOptions = emitOptions.WithDebugInformationFormat(DebugInformationFormat.Pdb);
             }
 
-            emitOptions = emitOptions.WithDefaultSourceFileEncoding(source.Encoding);
+            if (fallbackEncoding is null)
+            {
+                emitOptions = emitOptions.WithDefaultSourceFileEncoding(source.Encoding);
+            }
+            else
+            {
+                emitOptions = emitOptions.WithFallbackSourceFileEncoding(fallbackEncoding);
+            }
 
             using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
             using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
