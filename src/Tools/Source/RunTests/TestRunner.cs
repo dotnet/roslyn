@@ -201,7 +201,7 @@ namespace RunTests
             <PostCommands>
                 {postCommands}
             </PostCommands>
-            <Timeout>00:20:00</Timeout>
+            <Timeout>00:30:00</Timeout>
         </HelixWorkItem>
 ";
                 return workItem;
