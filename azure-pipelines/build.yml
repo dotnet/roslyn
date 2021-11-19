@@ -1,6 +1,9 @@
 parameters:
-  windowsPool: Hosted Windows 2019 with VS2019
-  includeMacOS:
+- name: windowsPool
+  type: object
+  default:
+    vmImage: windows-2022
+- name: includeMacOS
 
 jobs:
 - job: Windows
