@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
         DisposeModeField = 'w',
         CombinedTokensField = 'x', // last
+        DelegateCacheContainer = 'x', // TODO: Find new values or avoid the need of this
+        DelegateCacheContainerField = 'w',
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.
@@ -62,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameKindExtensions
     {
         internal static bool IsTypeName(this GeneratedNameKind kind)
-            => kind is GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.StateMachineType or GeneratedNameKind.DynamicCallSiteContainerType;
+            => kind is GeneratedNameKind.LambdaDisplayClass
+                    or GeneratedNameKind.StateMachineType
+                    or GeneratedNameKind.DynamicCallSiteContainerType
+                    or GeneratedNameKind.DelegateCacheContainer;
     }
 }

@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration);
+        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetDelegateCacheContainers(EmitContext context);
+        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context);
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract Compilation CommonCompilation { get; }
         internal abstract IModuleSymbolInternal CommonSourceModule { get; }
@@ -652,6 +654,13 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
+            foreach (var type in this.GetDelegateCacheContainers(context))
+            {
+                AddTopLevelType(names, type);
+                VisitTopLevelType(noPiaIndexer, type);
+                yield return type;
+            }
+
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
                 AddTopLevelType(names, typeDef);
@@ -763,6 +772,34 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+
+        /// <summary>
+        /// When emitting .NET module, an id can be included into a top level type's name to ensure uniqueness across added modules.
+        /// </summary>
+        internal string GetModuleIdForSynthesizedTopLevelTypes()
+        {
+            string moduleId;
+
+            if (OutputKind == OutputKind.NetModule)
+            {
+                moduleId = Name;
+
+                string extension = OutputKind.NetModule.GetDefaultExtension();
+
+                if (moduleId.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    moduleId = moduleId.Substring(0, moduleId.Length - extension.Length);
+                }
+
+                moduleId = MetadataHelpers.MangleForTypeNameIfNeeded(moduleId);
+            }
+            else
+            {
+                moduleId = string.Empty;
+            }
+
+            return moduleId;
+        }
 
         #region Synthesized Members
 

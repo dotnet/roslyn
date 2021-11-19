@@ -239,8 +239,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
 
-        public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
+        public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
+            var module = (CommonPEModuleBuilder)context.Module;
+
+            foreach (var container in module.GetDelegateCacheContainers(context))
+            {
+                yield return container;
+            }
+
+            foreach (var type in module.GetAnonymousTypes(context))
+            {
+                yield return type;
+            }
+
             foreach (var symbol in _changes.Keys)
             {
                 var namespaceTypeDef = (GetISymbolInternalOrNull(symbol)?.GetCciAdapter() as ITypeDefinition)?.AsNamespaceTypeDefinition(context);

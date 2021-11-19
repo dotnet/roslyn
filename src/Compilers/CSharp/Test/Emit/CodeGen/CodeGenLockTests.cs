@@ -521,6 +521,7 @@ class Test
 ");
         }
 
+        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.LockDelegate" />
         [Fact]
         public void LockDelegate()
         {
@@ -532,7 +533,7 @@ partial class Test
     public static void Main()
     {
         D d1;
-        lock (d1= PM)
+        lock (d1 = new D(PM))
         {
         }
     }

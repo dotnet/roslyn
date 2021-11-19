@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes();
                 methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);
 
+                moduleBeingBuiltOpt.DelegateCacheManager.AssignNamesAndFreeze(diagnostics);
+
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 

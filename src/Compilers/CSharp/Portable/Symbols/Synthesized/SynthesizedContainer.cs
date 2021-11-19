@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A container synthesized for a lambda, iterator method, async method, or dynamic-sites.
     /// </summary>
-    internal abstract class SynthesizedContainer : NamedTypeSymbol
+    internal abstract class SynthesizedContainer : SynthesizedContainerBase
     {
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
@@ -58,21 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap = typeMap;
         }
 
-        private ImmutableArray<TypeParameterSymbol> CreateTypeParameters(int parameterCount, bool returnsVoid)
-        {
-            var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
-            for (int i = 0; i < parameterCount; i++)
-            {
-                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
-            }
+        public override Accessibility DeclaredAccessibility => Accessibility.Private;
 
-            if (!returnsVoid)
-            {
-                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, parameterCount, "TResult"));
-            }
+        public override bool IsStatic => false;
 
-            return typeParameters.ToImmutableAndFree();
-        }
+        public sealed override string Name { get; }
+
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
 
         internal TypeMap TypeMap { get; }
 
@@ -144,18 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((object)ctor != null && name == ctor.Name) ? ImmutableArray.Create<Symbol>(ctor) : ImmutableArray<Symbol>.Empty;
         }
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
+        private ImmutableArray<TypeParameterSymbol> CreateTypeParameters(int parameterCount, bool returnsVoid)
         {
-            foreach (var m in this.GetMembers())
+            var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
+            for (int i = 0; i < parameterCount; i++)
             {
-                switch (m.Kind)
-                {
-                    case SymbolKind.Field:
-                        yield return (FieldSymbol)m;
-                        break;
-                }
+                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
             }
-        }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => this.GetMembersUnordered();
 
