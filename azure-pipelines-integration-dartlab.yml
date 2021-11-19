@@ -43,6 +43,7 @@ stages:
           _configuration: Release
           _oop64bit: true
     testMachineTotalCount: 4
+    testAgentElevated: true
     preTestMachineConfigurationStepList:
     - checkout: none
     - download: VisualStudioBuildUnderTest
