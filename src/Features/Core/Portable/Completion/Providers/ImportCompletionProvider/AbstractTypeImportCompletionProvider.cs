@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
 
-        public override void LogCommit()
+        protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);

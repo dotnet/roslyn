@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
 
-        public override void LogCommit()
+        protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
         protected override async Task AddCompletionItemsAsync(
