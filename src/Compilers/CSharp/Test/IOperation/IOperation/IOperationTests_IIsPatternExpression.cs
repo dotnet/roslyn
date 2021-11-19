@@ -2153,6 +2153,84 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X
+{
+    void M(string s)
+    {
+        s = null;
+        var a = new[] { s };
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.String?[]) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: System.String[], NarrowedType: System.String[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.String, NarrowedType: System.String, DeclaredSymbol: System.String? item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(57884, "https://github.com/dotnet/roslyn/issues/57884")]
+        public void TestIsPatternExpression_ListPatterns_Collection_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X<T>
+{
+    static X<U> Create<U>(U u) => throw null!;
+    void M(string s)
+    {
+        s = null;
+        var a = Create(s);
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+    public int Length => throw null!;
+    public char this[int i] => throw null!;
+}
+";
+            // The LengthSymbol and IndexerSymbol should reflect updated nullability:
+            // LengthSymbol: System.Int32 X<System.String?>.Length { get; }, IndexerSymbol: System.Char X<System.String?>.this[System.Int32 i] { get; })
+            // Tracked by https://github.com/dotnet/roslyn/issues/57884
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: X<System.String?>) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: X<System.String>, NarrowedType: X<System.String>, DeclaredSymbol: null, LengthSymbol: System.Int32 X<System.String>.Length { get; }, IndexerSymbol: System.Char X<System.String>.this[System.Int32 i] { get; })
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.Char, NarrowedType: System.Char, DeclaredSymbol: System.Char item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void TestIsPatternExpression_ListPatterns_Span_01()
         {
             string source = @"
@@ -2455,4 +2533,3 @@ Block[B2] - Exit
         }
     }
 }
-

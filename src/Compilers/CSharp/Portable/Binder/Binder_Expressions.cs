@@ -7826,7 +7826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIndexedPropertyAccess(BoundPropertyGroup propertyGroup, bool mustHaveAllOptionalParameters, BindingDiagnosticBag diagnostics)
         {
             var syntax = propertyGroup.Syntax;
-            var receiverOpt = propertyGroup.ReceiverOpt;
+            var receiver = propertyGroup.ReceiverOpt;
+            Debug.Assert(receiver is not null);
             var properties = propertyGroup.Properties;
 
             if (properties.All(s_isIndexedPropertyWithNonOptionalArguments))
@@ -7837,7 +7838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     properties[0].ToDisplayString(s_propertyGroupFormat));
                 return BoundIndexerAccess.ErrorAccess(
                     syntax,
-                    receiverOpt,
+                    receiver,
                     CreateErrorPropertySymbol(properties),
                     ImmutableArray<BoundExpression>.Empty,
                     default(ImmutableArray<string>),
@@ -7846,8 +7847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var arguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(receiverOpt is not null);
-            var result = BindIndexedPropertyAccess(syntax, receiverOpt, properties, arguments, diagnostics);
+            var result = BindIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
             arguments.Free();
             return result;
         }
@@ -7946,11 +7946,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<PropertySymbol> candidates = propertyGroup.ToImmutable();
 
                 if (TryBindIndexOrRangeImplicitIndexer(
-                    syntax,
-                    receiver,
-                    analyzedArguments,
-                    diagnostics,
-                    out var implicitIndexerAccess))
+                        syntax,
+                        receiver,
+                        analyzedArguments,
+                        diagnostics,
+                        out var implicitIndexerAccess))
                 {
                     return implicitIndexerAccess;
                 }
@@ -8087,7 +8087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverValEscape = GetValEscape(receiver, LocalScopeDepth);
             var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiver.Syntax, receiverValEscape, receiver.Type) { WasCompilerGenerated = true };
             if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, receiver, argIsIndex: argIsIndex,
-                out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
+                    out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {
                 return false;
             }
@@ -8207,7 +8207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 candidate is PropertySymbol property &&
                                 IsAccessible(property, syntax, diagnostics) &&
                                 property.OriginalDefinition is { ParameterCount: 1 } original &&
-                                original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
+                                original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None })
                             {
                                 var intPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
                                 argumentPlaceholders = ImmutableArray.Create(intPlaceholder);
@@ -8229,7 +8229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!argIsIndex);
                     // Look for Substring
-                    var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
+                    var substring = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_String__Substring, diagnostics, syntax);
                     if (substring is object)
                     {
                         makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);
@@ -8264,8 +8264,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.OriginalDefinition is var original &&
                                 !original.ReturnsVoid &&
                                 original.ParameterCount == 2 &&
-                                original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
-                                original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
+                                original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None } &&
+                                original.Parameters[1] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None })
                             {
                                 makeCall(syntax, receiver, method, out indexerOrSliceAccess, out argumentPlaceholders);
                                 lookupResult.Free();

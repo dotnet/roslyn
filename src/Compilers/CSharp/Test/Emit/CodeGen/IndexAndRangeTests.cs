@@ -342,6 +342,9 @@ public struct S
 ";
             var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
             comp.VerifyDiagnostics(
+                // (24,9): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         this[^1] += 5;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(24, 9),
                 // (24,9): error CS1604: Cannot assign to 'this[^1]' because it is read-only
                 //         this[^1] += 5;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this[^1]").WithArguments("this[^1]").WithLocation(24, 9)

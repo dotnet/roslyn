@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note: at the moment, we have two kinds of placeholders. Those that we visit first (and store the result from and substitute later)
         // and those that we visit after subsitution.
         // Ideally, we should be able to align on the first kind of design, then we could remove the second kind.
+        // Removing this map is tracked as part of https://github.com/dotnet/roslyn/issues/57855
         private PooledDictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholdersToUnvisitedExpressionOpt;
 
         /// <summary>
@@ -462,21 +463,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _variables.Add(identifier);
         }
 
-        // Note: this is for placeholders to unvisited expressions
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
         private void AddPlaceholder(BoundValuePlaceholderBase placeholder, BoundExpression unvisited)
         {
             _placeholdersToUnvisitedExpressionOpt ??= PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
             _placeholdersToUnvisitedExpressionOpt.Add(placeholder, unvisited);
         }
 
-        // Note: this is for placeholders to unvisited expressions
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
         private void RemovePlaceholder(BoundValuePlaceholderBase placeholder)
         {
             Debug.Assert(_placeholdersToUnvisitedExpressionOpt is not null);
             _placeholdersToUnvisitedExpressionOpt.Remove(placeholder);
         }
 
-        // Note: this is for placeholders to unvisited expressions
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
         private bool TryReplacePlaceholder(BoundValuePlaceholderBase placeholder, [NotNullWhen(true)] out BoundExpression? unvisited)
         {
             if (_placeholdersToUnvisitedExpressionOpt is not null &&

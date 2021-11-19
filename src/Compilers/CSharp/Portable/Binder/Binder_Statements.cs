@@ -1612,6 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
                 // array[int]
                 BoundArrayAccess => null,
+                BoundDynamicIndexerAccess => null,
                 BoundBadExpression => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };

@@ -794,6 +794,104 @@ class X
     }
 
     [Fact]
+    public void ListPattern_MissingMembers_IndexCtor()
+    {
+        var source = @"
+class X
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+
+    public void M()
+    {
+        _ = this is [0];
+        _ = this is [.., 0];
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.MakeMemberMissing(WellKnownMember.System_Index__ctor);
+        compilation.VerifyEmitDiagnostics(
+            // (10,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this is [0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", ".ctor").WithLocation(10, 21),
+            // (11,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this is [.., 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.., 0]").WithArguments("System.Index", ".ctor").WithLocation(11, 21),
+            // (12,18): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this[^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(12, 18)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MissingMembers_RangeCtor()
+    {
+        var source = @"
+class X
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+
+    public void M()
+    {
+        _ = this is [0];
+
+        _ = this is [.._];
+        _ = this is [0, .._];
+        _ = this is [.._, 0];
+        _ = this is [0, .._, 0];
+
+        _ = this[^1];
+
+        _ = this[..];
+        _ = this[1..];
+        _ = this[..^1];
+        _ = this[1..^1];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__ctor);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__get_All);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__StartAt);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__EndAt);
+        // Note: slice patterns always use range expressions with start and end.
+        // But range syntax binds differently depending whether start/end are there and depending on what members are available.
+
+        compilation.VerifyEmitDiagnostics(
+            // (12,22): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [.._];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(12, 22),
+            // (13,25): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [0, .._];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(13, 25),
+            // (14,22): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [.._, 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(14, 22),
+            // (15,25): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [0, .._, 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(15, 25),
+            // (19,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", ".ctor").WithLocation(19, 18),
+            // (20,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[1..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", ".ctor").WithLocation(20, 18),
+            // (21,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..^1").WithArguments("System.Range", ".ctor").WithLocation(21, 18),
+            // (22,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Range", ".ctor").WithLocation(22, 18)
+            );
+    }
+
+    [Fact]
     public void ListPattern_MissingMembers_Substring()
     {
         var source = @"
@@ -806,12 +904,18 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.MakeMemberMissing(SpecialMember.System_String__Substring);
         compilation.VerifyEmitDiagnostics(
+            // (6,19): error CS0656: Missing compiler required member 'System.String.Substring'
+            //         _ = s is [.. var slice];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var slice").WithArguments("System.String", "Substring").WithLocation(6, 19),
             // (6,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = s is [.. var slice];
             Diagnostic(ErrorCode.ERR_BadArgType, ".. var slice").WithArguments("1", "System.Range", "int").WithLocation(6, 19),
+            // (7,13): error CS0656: Missing compiler required member 'System.String.Substring'
+            //         _ = s[..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s[..]").WithArguments("System.String", "Substring").WithLocation(7, 13),
             // (7,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = s[..];
             Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(7, 15)
@@ -3044,7 +3148,7 @@ struct S
     readonly void M(Index i, Range r)
     {
         _ = this[i]; // 1, 2
-        _ = this[r]; // 3, 4 
+        _ = this[r]; // 3, 4
 
         _ = this is [1];
         _ = this is [2, ..var rest];
@@ -3059,10 +3163,10 @@ struct S
             //         _ = this[i]; // 1, 2
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
             // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[r]; // 3, 4 
+            //         _ = this[r]; // 3, 4
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
             // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
-            //         _ = this[r]; // 3, 4 
+            //         _ = this[r]; // 3, 4
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13)
             );
     }

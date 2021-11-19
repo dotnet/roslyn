@@ -226,6 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(indexerAccess is BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
                     analyzedArguments.Free();
 
+                    if (!systemRangeType.HasUseSiteError)
+                    {
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Range__ctor, diagnostics, syntax: node);
+                    }
+
                     Debug.Assert(indexerAccess.Type is not null);
                     sliceType = indexerAccess.Type;
                 }
@@ -233,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pattern = BindPattern(node.Pattern, sliceType, GetValEscape(sliceType, inputValEscape), permitDesignations, hasErrors, diagnostics);
             }
 
+            Debug.Assert(GetIndexerOrImplicitIndexerSymbol(indexerAccess) is var _);
             return new BoundSlicePattern(node, pattern, indexerAccess, receiverPlaceholder, argumentPlaceholder, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
@@ -295,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors = !BindLengthAndIndexerForListPattern(node, narrowedType, inputValEscape, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
+                hasErrors |= !BindLengthAndIndexerForListPattern(node, narrowedType, inputValEscape, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
 
                 Debug.Assert(indexerAccess!.Type is not null);
                 elementType = indexerAccess.Type;
@@ -311,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inputValEscape, permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
                 out Symbol? variableSymbol, out BoundExpression? variableAccess);
 
+            Debug.Assert(GetIndexerOrImplicitIndexerSymbol(indexerAccess) is var _);
             return new BoundListPattern(
                 syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
                 indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,
@@ -332,13 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, uint inputValEscape, BindingDiagnosticBag diagnostics,
             out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
+            bool hasErrors = false;
             if (inputType.IsDynamic())
             {
+                hasErrors |= true;
                 Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
 
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, GetValEscape(inputType, inputValEscape), inputType) { WasCompilerGenerated = true };
-            bool hasErrors = false;
             if (inputType.IsSZArray())
             {
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
@@ -372,6 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Index__op_Implicit_FromInt32, diagnostics, syntax: node);
+
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
             }
 
             return !hasErrors && !lengthAccess.HasErrors && !indexerAccess.HasErrors;
