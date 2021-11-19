@@ -6,12 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -84,12 +81,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             RequestExecutionQueue queue,
             CancellationToken cancellationToken) where TRequestType : class
         {
-            if (request is LSP.ExecuteCommandParams executeCommandRequest)
-            {
-                // If we have a workspace/executeCommand request, get the request name from the command name.
-                methodName = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(executeCommandRequest.Command);
-            }
-
             // Get the handler matching the requested method.
             var requestHandlerMetadata = new RequestHandlerMetadata(methodName, typeof(TRequestType), typeof(TResponseType));
 

@@ -232,6 +232,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        /// <summary>
+        /// Specially handle the execute workspace command method as we have to deserialize the request
+        /// to figure out which <see cref="AbstractExecuteWorkspaceCommandHandler"/> actually handles it.
+        /// </summary>
+        [JsonRpcMethod(Methods.WorkspaceExecuteCommandName, UseSingleObjectParameterDeserialization = true)]
+        public async Task<object?> ExecuteWorkspaceCommandAsync(LSP.ExecuteCommandParams request, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+            var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
+
+            var result = await RequestDispatcher.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
+                requestMethod,
+                request,
+                _clientCapabilities,
+                ClientName,
+                Queue,
+                cancellationToken).ConfigureAwait(false);
+            return result;
+        }
+
         private void ShutdownRequestQueue()
         {
             Queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
