@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -15,61 +17,51 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     public sealed partial class DiagnosticDescriptorCreationAnalyzer
     {
         private const string DiagnosticCategoryAndIdRangeFile = "DiagnosticCategoryAndIdRanges.txt";
         private static readonly (string? prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
 
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeInSpecifiedFormatMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeInSpecifiedFormatDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableUseCategoriesFromSpecifiedRangeTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseCategoriesFromSpecifiedRangeMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseCategoriesFromSpecifiedRangeDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
         /// <summary>
-        /// RS1018 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
+        /// RS1018 (<inheritdoc cref="DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
         /// </summary>
         public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
-            s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle,
-            s_localizableDiagnosticIdMustBeInSpecifiedFormatMessage,
+            CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatTitle)),
+            CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDiagnosticIdMustBeInSpecifiedFormatDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1020 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeTitle"/>)
+        /// RS1020 (<inheritdoc cref="UseCategoriesFromSpecifiedRangeTitle"/>)
         /// </summary>
         public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
-            s_localizableUseCategoriesFromSpecifiedRangeTitle,
-            s_localizableUseCategoriesFromSpecifiedRangeMessage,
+            CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeTitle)),
+            CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: s_localizableUseCategoriesFromSpecifiedRangeDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1021 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
+        /// RS1021 (<inheritdoc cref="AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
         /// </summary>
         public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
-            s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle,
-            s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage,
+            CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidTitle)),
+            CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         private static void AnalyzeAllowedIdsInfoList(
             string ruleId,
@@ -118,19 +110,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.
                 string arg1 = ruleId;
                 string arg2 = category;
-                string arg3 = string.Empty;
+                var arg3 = new StringBuilder();
                 foreach (var range in allowedIdsInfoList)
                 {
                     if (arg3.Length != 0)
                     {
-                        arg3 += ", ";
+                        arg3.Append(", ");
                     }
 
-                    arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
+                    if (ShouldValidateRange(range))
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}-{0}{2}", range.prefix, range.start, range.end);
+                    }
+                    else
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}XXXX", range.prefix);
+                    }
                 }
 
                 string arg4 = Path.GetFileName(additionalText.Path);
-                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3, arg4);
+                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3.ToString(), arg4);
                 addDiagnostic(diagnostic);
             }
         }
@@ -351,34 +350,37 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             // Parse an entry for diagnostic ID.
             // We require diagnostic ID to have an alphabetical prefix followed by a numerical suffix.
-            prefix = string.Empty;
+            var prefixBuilder = new StringBuilder();
             suffix = -1;
-            string suffixStr = string.Empty;
+            var suffixStr = new StringBuilder();
             bool seenDigit = false;
             foreach (char ch in entry)
             {
                 bool isDigit = char.IsDigit(ch);
                 if (seenDigit && !isDigit)
                 {
+                    prefix = prefixBuilder.ToString();
                     return false;
                 }
 
                 if (isDigit)
                 {
-                    suffixStr += ch;
+                    suffixStr.Append(ch);
                     seenDigit = true;
                 }
                 else if (!char.IsLetter(ch))
                 {
+                    prefix = prefixBuilder.ToString();
                     return false;
                 }
                 else
                 {
-                    prefix += ch;
+                    prefixBuilder.Append(ch);
                 }
             }
 
-            return prefix.Length > 0 && suffixStr.Length > 0 && int.TryParse(suffixStr, out suffix);
+            prefix = prefixBuilder.ToString();
+            return prefix.Length > 0 && int.TryParse(suffixStr.ToString(), out suffix);
         }
     }
 }

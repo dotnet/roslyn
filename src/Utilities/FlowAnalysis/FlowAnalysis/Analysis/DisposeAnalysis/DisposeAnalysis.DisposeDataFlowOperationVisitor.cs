@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -100,6 +100,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
                 if (StringReaderType != null &&
                     instanceType.Equals(StringReaderType))
+                {
+                    return defaultValue;
+                }
+
+                // Special case: MemoryStream doesn't need to be disposed. Subclasses *might* need to be disposed, but that is the less common case, and the common case is a huge source of noisy warnings.
+                if (MemoryStreamNamedType != null &&
+                    instanceType.Equals(MemoryStreamNamedType))
                 {
                     return defaultValue;
                 }

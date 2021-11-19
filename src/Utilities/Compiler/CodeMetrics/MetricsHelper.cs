@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         internal static int GetAverageRoundedMetricValue(int total, int childrenCount)
         {
             Debug.Assert(childrenCount != 0);
-            return RoundMetricValue(total / childrenCount);
+            return RoundMetricValue((double)total / childrenCount);
         }
 
         private static int RoundMetricValue(double value) => (int)Math.Round(value, 0);

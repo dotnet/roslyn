@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class ExplicitAllocationAnalyzerTests
     {
         [Fact]
-        public async Task ExplicitAllocation_ObjectInitializer()
+        public async Task ExplicitAllocation_ObjectInitializerAsync()
         {
             var sampleProgram =
     @"using System;
@@ -42,7 +42,7 @@ public class TestClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectInitializer_VisualBasic()
+        public async Task ExplicitAllocation_ObjectInitializer_VisualBasicAsync()
         {
             var code =
     @"Imports System
@@ -67,7 +67,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning()
+        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarningAsync()
         {
             var sampleProgram =
     @"using System;
@@ -90,7 +90,7 @@ public struct TestStruct
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning_VisualBasic()
+        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning_VisualBasicAsync()
         {
             var code =
     @"Imports System
@@ -111,7 +111,7 @@ End Structure";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitArrayCreation()
+        public async Task ExplicitAllocation_ImplicitArrayCreationAsync()
         {
             var sampleProgram =
     @"using System.Collections.Generic;
@@ -132,7 +132,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitArrayCreation_VisualBasic()
+        public async Task ExplicitAllocation_ImplicitArrayCreation_VisualBasicAsync()
         {
             var sampleProgram =
     @"Imports System.Collections.Generic
@@ -151,7 +151,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_AnonymousObjectCreation()
+        public async Task ExplicitAllocation_AnonymousObjectCreationAsync()
         {
             var sampleProgram =
 @"using System;
@@ -172,7 +172,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_AnonymousObjectCreation_VisualBasic()
+        public async Task ExplicitAllocation_AnonymousObjectCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -191,7 +191,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ArrayCreation()
+        public async Task ExplicitAllocation_ArrayCreationAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -212,7 +212,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ArrayCreation_VisualBasic()
+        public async Task ExplicitAllocation_ArrayCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System.Collections.Generic
@@ -231,7 +231,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectCreation()
+        public async Task ExplicitAllocation_ObjectCreationAsync()
         {
             var sampleProgram =
 @"using System;
@@ -252,7 +252,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectCreation_VisualBasic()
+        public async Task ExplicitAllocation_ObjectCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -271,7 +271,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_LetClause()
+        public async Task ExplicitAllocation_LetClauseAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -299,7 +299,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_LetClause_VisualBasic()
+        public async Task ExplicitAllocation_LetClause_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System.Collections.Generic
@@ -326,7 +326,7 @@ End Class";
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_to_System_Object_type()
+        public async Task Converting_any_value_type_to_System_Object_typeAsync()
         {
             var source = @"
 using Roslyn.Utilities;
@@ -349,7 +349,7 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_to_System_Object_type_VisualBasic()
+        public async Task Converting_any_value_type_to_System_Object_type_VisualBasicAsync()
         {
             var source = @"
 Imports Roslyn.Utilities
@@ -371,7 +371,7 @@ End Class";
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_to_System_ValueType_type()
+        public async Task Converting_any_value_type_to_System_ValueType_typeAsync()
         {
             var source = @"
 using Roslyn.Utilities;
@@ -394,7 +394,7 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_to_System_ValueType_type_VisualBasic()
+        public async Task Converting_any_value_type_to_System_ValueType_type_VisualBasicAsync()
         {
             var source = @"
 Imports Roslyn.Utilities
@@ -416,7 +416,7 @@ End Class";
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_into_interface_reference()
+        public async Task Converting_any_value_type_into_interface_referenceAsync()
         {
             var source = @"
 using Roslyn.Utilities;
@@ -441,7 +441,7 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Converting_any_value_type_into_interface_reference_VisualBasic()
+        public async Task Converting_any_value_type_into_interface_reference_VisualBasicAsync()
         {
             var source = @"
 Imports Roslyn.Utilities
@@ -466,7 +466,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_StructCreation_NoWarning()
+        public async Task ExplicitAllocation_StructCreation_NoWarningAsync()
         {
             var sampleProgram =
 @"using System;
@@ -488,7 +488,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_StructCreation_NoWarning_VisualBasic()
+        public async Task ExplicitAllocation_StructCreation_NoWarning_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -508,7 +508,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning()
+        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarningAsync()
         {
             var sampleProgram =
 @"using System;
@@ -526,7 +526,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning_VisualBasic()
+        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -542,7 +542,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning()
+        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarningAsync()
         {
             var sampleProgram =
 @"using System;
@@ -572,7 +572,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning_VisualBasic()
+        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -597,7 +597,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_NoParamsArrayCreation()
+        public async Task ExplicitAllocation_NoParamsArrayCreationAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -615,7 +615,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_NoParamsArrayCreation_VisualBasic()
+        public async Task ExplicitAllocation_NoParamsArrayCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System.Collections.Generic
@@ -631,7 +631,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ExplicitDelegateCreation()
+        public async Task ExplicitAllocation_ExplicitDelegateCreationAsync()
         {
             var sampleProgram =
 @"using System;
@@ -652,7 +652,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ExplicitDelegateCreation_VisualBasic()
+        public async Task ExplicitAllocation_ExplicitDelegateCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -671,7 +671,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitDelegateCreation()
+        public async Task ExplicitAllocation_ImplicitDelegateCreationAsync()
         {
             var sampleProgram =
 @"using System;
@@ -689,7 +689,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitDelegateCreation_VisualBasic()
+        public async Task ExplicitAllocation_ImplicitDelegateCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -705,7 +705,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ListInitializerCreation()
+        public async Task ExplicitAllocation_ListInitializerCreationAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -726,7 +726,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ListInitializerCreation_VisualBasic()
+        public async Task ExplicitAllocation_ListInitializerCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System.Collections.Generic
@@ -745,7 +745,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation()
+        public async Task ExplicitAllocation_GenericObjectCreationAsync()
         {
             var sampleProgram =
 @"using System;
@@ -767,7 +767,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation_VisualBasic()
+        public async Task ExplicitAllocation_GenericObjectCreation_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -786,7 +786,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation2()
+        public async Task ExplicitAllocation_GenericObjectCreation2Async()
         {
             var sampleProgram =
 @"using System;
@@ -808,7 +808,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation2_VisualBasic()
+        public async Task ExplicitAllocation_GenericObjectCreation2_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System
@@ -827,7 +827,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation3()
+        public async Task ExplicitAllocation_GenericObjectCreation3Async()
         {
             var sampleProgram =
 @"using System;
@@ -846,7 +846,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ExplicitAllocation_GenericObjectCreation3_VisualBasic()
+        public async Task ExplicitAllocation_GenericObjectCreation3_VisualBasicAsync()
         {
             var sampleProgram =
 @"Imports System

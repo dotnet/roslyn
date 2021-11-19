@@ -341,13 +341,13 @@
     <value>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</value>
   </data>
   <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
-    <value>Compare symbols correctly</value>
+    <value>Use 'SymbolEqualityComparer' when comparing symbols</value>
   </data>
   <data name="CompareSymbolsCorrectlyTitle" xml:space="preserve">
-    <value>Compare symbols correctly</value>
+    <value>Symbols should be compared for equality</value>
   </data>
   <data name="CompareSymbolsCorrectlyCodeFix" xml:space="preserve">
-    <value>Compare symbols correctly</value>
+    <value>Use a 'SymbolEqualityComparer' for symbol comparison</value>
   </data>
   <data name="ConfigureGeneratedCodeAnalysisMessage" xml:space="preserve">
     <value>Configure generated code analysis</value>

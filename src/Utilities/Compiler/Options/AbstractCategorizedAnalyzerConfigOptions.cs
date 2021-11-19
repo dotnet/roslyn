@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -93,15 +93,12 @@ namespace Analyzer.Utilities
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
 
-            T? optionValue;
-            if (rule != null)
+            if (rule != null
+                && (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out T? optionValue)
+                || TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue)
+                || TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue)))
             {
-                if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out optionValue) ||
-                    TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
-                    TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue))
-                {
-                    return (true, optionValue);
-                }
+                return (true, optionValue);
             }
 
             if (TryGetGeneralOptionValue(optionKeyPrefix, out optionValue))

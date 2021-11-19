@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
-        <source>Compare symbols correctly</source>
-        <target state="translated">Comparar símbolos corretamente</target>
+        <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
+        <target state="translated">Usar um ' SymbolEqualityComparer ' para a comparação de símbolos</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
@@ -33,13 +33,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
-        <source>Compare symbols correctly</source>
-        <target state="translated">Comparar símbolos corretamente</target>
+        <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
+        <target state="translated">Use ' SymbolEqualityComparer ' ao comparar símbolos</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyTitle">
-        <source>Compare symbols correctly</source>
-        <target state="translated">Comparar símbolos corretamente</target>
+        <source>Symbols should be compared for equality</source>
+        <target state="translated">Os símbolos devem ser comparados quanto à igualdade</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">

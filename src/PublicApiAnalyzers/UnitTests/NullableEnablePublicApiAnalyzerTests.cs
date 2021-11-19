@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #pragma warning disable CA1305
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Fix tests
 
         [Fact]
-        public async Task NullableEnableShippedAPI_NullableMember()
+        public async Task NullableEnableShippedAPI_NullableMemberAsync()
         {
             var source = @"
 #nullable enable
@@ -92,7 +92,7 @@ public class C
         }
 
         [Fact]
-        public async Task NullableEnableShippedAPI_NonNullableMember()
+        public async Task NullableEnableShippedAPI_NonNullableMemberAsync()
         {
             var source = @"
 #nullable enable
@@ -123,7 +123,7 @@ public class C
         }
 
         [Fact]
-        public async Task NullableEnableShippedAPI_NonEmptyFile()
+        public async Task NullableEnableShippedAPI_NonEmptyFileAsync()
         {
             var source = @"
 #nullable enable
@@ -155,7 +155,7 @@ C.Field -> string";
         }
 
         [Fact]
-        public async Task DoNotWarnIfAlreadyEnabled_ViaUnshippedFile()
+        public async Task DoNotWarnIfAlreadyEnabled_ViaUnshippedFileAsync()
         {
             var source = @"
 #nullable enable
@@ -177,7 +177,7 @@ C.Field2 -> string";
         }
 
         [Fact]
-        public async Task DoNotWarnIfAlreadyEnabled_ViaShippedFile()
+        public async Task DoNotWarnIfAlreadyEnabled_ViaShippedFileAsync()
         {
             var source = @"
 #nullable enable

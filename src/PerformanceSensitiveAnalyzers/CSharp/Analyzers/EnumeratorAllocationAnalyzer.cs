@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,24 +11,22 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
+    using static AnalyzersResources;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class EnumeratorAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ReferenceTypeEnumeratorRuleId = "HAA0401";
 
-        private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-        private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-
         internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new(
             ReferenceTypeEnumeratorRuleId,
-            s_localizableReferenceTypeEnumeratorRuleTitle,
-            s_localizableReferenceTypeEnumeratorRuleMessage,
+            CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleTitle)),
+            CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleMessage)),
             DiagnosticCategory.Performance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ReferenceTypeEnumeratorRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ReferenceTypeEnumeratorRule);
 
         protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.ForEachStatement, SyntaxKind.InvocationExpression);
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("class TestClass$$ ")]
         [InlineData("class [|TestClass|] ")]
         [InlineData("[|class TestClass|] ")]
-        public async Task CreateTestAccessorCSharp(string typeHeader)
+        public async Task CreateTestAccessorCSharpAsync(string typeHeader)
         {
             var source = typeHeader + @"{
 }";
@@ -55,7 +55,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("struct TestStruct$$ ")]
         [InlineData("struct [|TestStruct|] ")]
         [InlineData("[|struct TestStruct|] ")]
-        public async Task CreateTestAccessorStructCSharp(string typeHeader)
+        public async Task CreateTestAccessorStructCSharpAsync(string typeHeader)
         {
             var source = typeHeader + @"{
 }";
@@ -90,7 +90,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("record TestRecord$$ ")]
         [InlineData("record [|TestRecord|] ")]
         [InlineData("[|record TestRecord|] ")]
-        public async Task CreateTestAccessorRecordCSharp(string typeHeader)
+        public async Task CreateTestAccessorRecordCSharpAsync(string typeHeader)
         {
             var source = typeHeader + @"{
 }";
@@ -133,7 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData(TypeKind.Delegate)]
         [InlineData(TypeKind.Enum)]
         [InlineData(TypeKind.Interface)]
-        public async Task UnsupportedTypeCSharp(TypeKind typeKind)
+        public async Task UnsupportedTypeCSharpAsync(TypeKind typeKind)
         {
             var declaration = typeKind switch
             {
@@ -152,7 +152,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("Class TestClass$$")]
         [InlineData("Class [|TestClass|]")]
         [InlineData("[|Class TestClass|]")]
-        public async Task CreateTestAccessorVisualBasic(string typeHeader)
+        public async Task CreateTestAccessorVisualBasicAsync(string typeHeader)
         {
             var source = $@"{typeHeader}
 End Class";
@@ -184,7 +184,7 @@ End Class";
         [InlineData("Structure TestStructure$$")]
         [InlineData("Structure [|TestStructure|]")]
         [InlineData("[|Structure TestStructure|]")]
-        public async Task CreateTestAccessorStructureVisualBasic(string typeHeader)
+        public async Task CreateTestAccessorStructureVisualBasicAsync(string typeHeader)
         {
             var source = $@"{typeHeader}
 End Structure";
@@ -215,7 +215,7 @@ End Structure";
         [InlineData(TypeKind.Enum)]
         [InlineData(TypeKind.Interface)]
         [InlineData(TypeKind.Module)]
-        public async Task UnsupportedTypeVisualBasic(TypeKind typeKind)
+        public async Task UnsupportedTypeVisualBasicAsync(TypeKind typeKind)
         {
             var declaration = typeKind switch
             {
