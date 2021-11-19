@@ -39,14 +39,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => e.IndexerAccess is BoundArrayAccess arrayAccess ? arrayAccess.Expression.Type : Binder.GetIndexerOrImplicitIndexerSymbol(e.IndexerAccess),
-                    BoundDagIndexerEvaluation e => e.IndexerAccess is BoundArrayAccess arrayAccess ? arrayAccess.Expression.Type : Binder.GetIndexerOrImplicitIndexerSymbol(e.IndexerAccess),
+                    BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
                 Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation);
                 return result;
+
+                static Symbol? getSymbolFromIndexerAccess(BoundExpression indexerAccess)
+                {
+                    switch (indexerAccess)
+                    {
+                        case BoundArrayAccess arrayAccess:
+                            return arrayAccess.Expression.Type;
+
+                        case BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess arrayAccess }:
+                            return arrayAccess.Expression.Type;
+
+                        default:
+                            return Binder.GetIndexerOrImplicitIndexerSymbol(indexerAccess);
+                    }
+                }
             }
         }
 

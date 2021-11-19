@@ -125,7 +125,7 @@ public class X
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       72 (0x48)
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (char V_0, //first
                 char[] V_1, //others
@@ -135,13 +135,13 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0046
+  IL_0003:  brfalse.s  IL_0045
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int System.Array.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
   IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0039
+  IL_0010:  ble.un.s   IL_0038
   IL_0012:  ldloc.3
   IL_0013:  ldc.i4.0
   IL_0014:  ldelem.u2
@@ -156,24 +156,22 @@ public class X
   IL_0029:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
   IL_002e:  stloc.1
   IL_002f:  ldloc.3
-  IL_0030:  dup
-  IL_0031:  ldlen
-  IL_0032:  conv.i4
-  IL_0033:  ldc.i4.1
-  IL_0034:  sub
-  IL_0035:  ldelem.u2
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldloc.0
-  IL_003c:  ldloc.2
-  IL_003d:  bne.un.s   IL_0046
-  IL_003f:  ldloc.1
-  IL_0040:  call       ""bool X.Test(char[])""
-  IL_0045:  ret
-  IL_0046:  ldc.i4.0
-  IL_0047:  ret
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  ldelem.u2
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.1
+  IL_0039:  ret
+  IL_003a:  ldloc.0
+  IL_003b:  ldloc.2
+  IL_003c:  bne.un.s   IL_0045
+  IL_003e:  ldloc.1
+  IL_003f:  call       ""bool X.Test(char[])""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(string)", @"
@@ -7637,5 +7635,50 @@ if (new[] {data} is {pattern})
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+    }
+
+    [Fact]
+    public void ArrayLengthAccess()
+    {
+        var source = @"
+class C
+{
+    public int M(int[] a)
+    {
+        switch (a)
+        {
+            case [.., var x]: return x;
+        }
+
+        return 3;
+    }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0014
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0014
+  IL_000e:  ldarg.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldelem.i4
+  IL_0013:  ret
+  IL_0014:  ldc.i4.3
+  IL_0015:  ret
+}
+");
     }
 }

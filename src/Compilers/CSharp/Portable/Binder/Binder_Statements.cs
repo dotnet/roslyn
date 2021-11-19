@@ -1610,7 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundCall call } => call.Method,
                 // this[int]
                 BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
-                // array[int]
+                // array[Index]
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess } => null,
+                // array[int or Range]
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,
                 BoundBadExpression => null,

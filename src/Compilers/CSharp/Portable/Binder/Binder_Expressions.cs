@@ -3220,7 +3220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, diagnostics, allowIndexAndRange: false);
+                    size = ConvertToArrayIndex(size, diagnostics, allowIndexAndRange: false, indexOrRangeWellknownType: out _);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
@@ -7517,7 +7517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_NamedArgumentForArray, node);
             }
 
-            bool hasErrors = ReportRefOrOutArgument(arguments, diagnostics);
+            ReportRefOrOutArgument(arguments, diagnostics);
             var arrayType = (ArrayTypeSymbol)expr.Type;
 
             // Note that the spec says to determine which of {int, uint, long, ulong} *each* index
@@ -7535,11 +7535,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Convert all the arguments to the array index type.
             BoundExpression[] convertedArguments = new BoundExpression[arguments.Arguments.Count];
+            WellKnownType indexOrRangeWellknownType = WellKnownType.Unknown;
             for (int i = 0; i < arguments.Arguments.Count; ++i)
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, diagnostics, allowIndexAndRange: rank == 1);
+                BoundExpression index = ConvertToArrayIndex(argument, diagnostics, allowIndexAndRange: rank == 1, out indexOrRangeWellknownType);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -7555,22 +7556,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol resultType = rank == 1 &&
-                TypeSymbol.Equals(
-                    convertedArguments[0].Type,
-                    Compilation.GetWellKnownType(WellKnownType.System_Range),
-                    TypeCompareKind.ConsiderEverything)
+            TypeSymbol resultType = indexOrRangeWellknownType == WellKnownType.System_Range
                 ? arrayType
                 : arrayType.ElementType;
 
-            return hasErrors
-                ? new BoundArrayAccess(node, BindToTypeForErrorRecovery(expr), convertedArguments.Select(e => BindToTypeForErrorRecovery(e)).AsImmutableOrNull(), resultType, hasErrors: true)
-                : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
+            if (indexOrRangeWellknownType == WellKnownType.System_Index)
+            {
+                Debug.Assert(convertedArguments.Length == 1);
+
+                var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, GetValEscape(expr, LocalScopeDepth), expr.Type) { WasCompilerGenerated = true };
+                var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
+
+                return new BoundImplicitIndexerAccess(
+                    node,
+                    argument: convertedArguments[0],
+                    lengthOrCountAccess: new BoundArrayLength(node, receiverPlaceholder, int32) { WasCompilerGenerated = true },
+                    receiverPlaceholder,
+                    indexerOrSliceAccess: new BoundArrayAccess(node, expr, ImmutableArray<BoundExpression>.CastUp(argumentPlaceholders), resultType),
+                    argumentPlaceholders,
+                    resultType);
+            }
+
+            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange, out WellKnownType indexOrRangeWellknownType)
         {
             Debug.Assert(index != null);
+
+            indexOrRangeWellknownType = WellKnownType.Unknown;
 
             if (index.Kind == BoundKind.OutVariablePendingInference)
             {
@@ -7597,6 +7612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
                     if (result is object)
                     {
+                        indexOrRangeWellknownType = WellKnownType.System_Range;
                         // This member is needed for lowering and should produce an error if not present
                         _ = GetWellKnownTypeMember(
                             WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
@@ -7606,6 +7622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    indexOrRangeWellknownType = WellKnownType.System_Index;
+
                     // This member is needed for lowering and should produce an error if not present
                     _ = GetWellKnownTypeMember(
                         WellKnownMember.System_Index__GetOffset,
@@ -7733,7 +7751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false);
+            index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false, indexOrRangeWellknownType: out _);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, refersToLocation: false, pointedAtType, hasErrors);
         }
 

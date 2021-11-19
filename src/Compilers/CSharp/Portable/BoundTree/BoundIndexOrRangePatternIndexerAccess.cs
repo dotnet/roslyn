@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundIndexerAccess { ReceiverOpt: var r } => r,
                 BoundCall { ReceiverOpt: var r } => r,
+                BoundArrayAccess { Expression: var r } => r,
                 _ => throw ExceptionUtilities.UnexpectedValue(this.IndexerOrSliceAccess.Kind)
             };
 
