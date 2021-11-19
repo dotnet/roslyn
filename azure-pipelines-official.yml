@@ -82,7 +82,7 @@ stages:
     displayName: Official Build
     timeoutInMinutes: 360
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: NetCore1ESPool-Internal
       demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
     steps:

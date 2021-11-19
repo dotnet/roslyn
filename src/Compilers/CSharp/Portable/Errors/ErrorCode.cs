@@ -2003,6 +2003,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LambdaExplicitReturnTypeVar = 8975,
         ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
 
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
+
         ERR_IncorrectNullCheckSyntax = 8990,
         ERR_MustNullCheckInImplementation = 8991,
         ERR_NonNullableValueTypeIsNullChecked = 8992,
@@ -2011,6 +2015,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullCheckingOnNullableValueType = 8995,
 
         #endregion
+
+        ERR_CannotBeMadeNullable = 8978,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

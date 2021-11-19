@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Debugger.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -39,7 +40,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document designTimeDocument, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            if (!DebuggerContractVersionCheck.IsRequiredDebuggerContractVersionAvailable())
+            {
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+            }
+
+            return AnalyzeSemanticsImplAsync(document, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Document designTimeDocument, CancellationToken cancellationToken)
         {
             var workspace = designTimeDocument.Project.Solution.Workspace;
 
@@ -49,8 +61,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // avoid creating and synchronizing compile-time solution if the Hot Reload/EnC session is not active
-            if (mefServices.GetExports<ManagedEditAndContinueLanguageService>().SingleOrDefault()?.Value.Service.IsSessionActive != true &&
-                mefServices.GetExports<ManagedHotReloadLanguageService>().SingleOrDefault()?.Value.Service.IsSessionActive != true)
+            if (mefServices.GetExports<EditAndContinueLanguageService>().SingleOrDefault()?.Value.IsSessionActive != true)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }

@@ -502,6 +502,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            Assert.Equal(OperationKind.FunctionPointerInvocation, operation.Kind);
+            Assert.NotNull(operation.Target);
+
+            IEnumerable<IOperation> children = new[] { operation.Target }.Concat(operation.Arguments);
+
+            var signature = operation.GetFunctionPointerSignature();
+            Assert.NotNull(signature);
+            Assert.Same(((IFunctionPointerTypeSymbol)operation.Target.Type).Signature, signature);
+
+            AssertEx.Equal(children, operation.Children);
+        }
+
         public override void VisitArgument(IArgumentOperation operation)
         {
             Assert.Equal(OperationKind.Argument, operation.Kind);
