@@ -153,7 +153,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 IMethodSymbol m => m.Parameters,
                 IPropertySymbol p => p.Parameters,
-                _ => ImmutableArray<IParameterSymbol>.Empty
+                _ => ImmutableArray<IParameterSymbol>.Empty,
             };
         }
 
