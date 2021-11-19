@@ -686,33 +686,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode resultExpr;
             if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
-                TypeCompareKind.ConsiderEverything))
-            {
-                // array[Index] is treated like a pattern-based System.Index indexing
-                // expression, except that array indexers don't actually exist (they
-                // don't have symbols)
-
-                var arrayLocal = F.StoreToTemp(
-                    VisitExpression(node.Expression),
-                    out BoundAssignmentOperator arrayAssign);
-
-                BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Indices[0], out PatternIndexOffsetLoweringStrategy strategy);
-
-                var indexOffsetExpr = MakePatternIndexOffsetExpression(
-                    makeOffsetInput,
-                    F.ArrayLength(arrayLocal),
-                    strategy);
-
-                resultExpr = F.Sequence(
-                    ImmutableArray.Create(arrayLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(arrayAssign),
-                    F.ArrayAccess(
-                        arrayLocal,
-                        ImmutableArray.Create(indexOffsetExpr)));
-            }
-            else if (TypeSymbol.Equals(
-                indexType,
                 _compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything))
             {

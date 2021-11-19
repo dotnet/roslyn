@@ -1610,7 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundCall call } => call.Method,
                 // this[int]
                 BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
-                // array[int]
+                // array[Index]
+                BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundArrayAccess } => null,
+                // array[int or Range]
                 BoundArrayAccess => null,
                 BoundBadExpression => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)

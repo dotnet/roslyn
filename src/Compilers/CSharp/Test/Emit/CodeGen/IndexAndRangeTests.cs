@@ -120,6 +120,7 @@ class C
 {
     static int M1(int[] arr) => arr[^1];
     static char M2(string s) => s[^1];
+    static int M3(int[] arr, int i) => arr[^i];
 }
 ";
             var verifier = CompileAndVerifyWithIndexAndRange(src);
@@ -151,6 +152,20 @@ class C
   IL_0008:  sub
   IL_0009:  callvirt   ""char string.this[int].get""
   IL_000e:  ret
+}
+");
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldarg.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  ret
 }
 ");
         }
