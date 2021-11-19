@@ -159,6 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             lock (_gate)
             {
+                // We should not have an existing computation active
+                Contract.ThrowIfTrue(_cancellationSeries.HasActiveToken);
+
                 var cancellationToken = _cancellationSeries.CreateNext();
                 var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(BeforeExpand));
 
@@ -202,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             lock (_gate)
             {
-                _cancellationSeries.CreateNext();
+                _cancellationSeries.CreateNext(new CancellationToken(canceled: true));
                 _workspace.WorkspaceChanged -= OnWorkpaceChanged;
                 _resettableDelay = null;
             }
