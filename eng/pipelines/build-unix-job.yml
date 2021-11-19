@@ -28,6 +28,8 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - checkout: none
+
     - template: checkout-unix-task.yml
 
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}

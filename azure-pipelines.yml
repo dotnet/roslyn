@@ -157,6 +157,8 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
+    - checkout: none
+
     - template: eng/pipelines/checkout-windows-task.yml
 
     - script: eng/test-determinism.cmd -configuration Debug
@@ -173,6 +175,8 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
+    - checkout: none
+
     - template: eng/pipelines/checkout-windows-task.yml
 
     - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
@@ -205,6 +209,8 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
+    - checkout: none
+
     - template: eng/pipelines/checkout-windows-task.yml
 
     - task: PowerShell@2
