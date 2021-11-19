@@ -17,6 +17,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
         }
 
+        public new Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>(CancellationToken cancellationToken)
+            where TService : class
+            where TInterface : class
+        {
+            return base.GetRequiredGlobalServiceAsync<TService, TInterface>(cancellationToken);
+        }
+
+        public new Task<TService> GetComponentModelServiceAsync<TService>(CancellationToken cancellationToken)
+            where TService : class
+        {
+            return base.GetComponentModelServiceAsync<TService>(cancellationToken);
+        }
+
         public async Task<string> GetActiveWindowCaptionAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
