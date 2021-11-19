@@ -1171,7 +1171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            EnsureEditableDocuments(documentId);
             var containedDocument = TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
@@ -1441,9 +1440,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception("A file was reloaded during the source control checkout.");
             }
         }
-
-        public void EnsureEditableDocuments(params DocumentId[] documents)
-            => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {

@@ -9511,32 +9511,23 @@ using System.Diagnostics; // Unused.
         }
 
         [WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/55730")]
-        public void ReservedDeviceNameAsFileName()
+        [InlineData("a.cs /t:library /appconfig:.\\aux.config")]
+        [InlineData("a.cs /out:com1.dll")]
+        [InlineData("a.cs /doc:..\\lpt2.xml")]
+        [InlineData("a.cs /pdb:..\\prn.pdb")]
+        [Theory]
+        public void ReservedDeviceNameAsFileName(string commandLine)
         {
-            var parsedArgs = DefaultParse(new[] { "com9.cs", "/t:library " }, WorkingDirectory);
-            Assert.Equal(0, parsedArgs.Errors.Length);
-
-            parsedArgs = DefaultParse(new[] { "a.cs", "/t:library ", "/appconfig:.\\aux.config" }, WorkingDirectory);
-            Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
-
-
-            parsedArgs = DefaultParse(new[] { "a.cs", "/out:com1.dll " }, WorkingDirectory);
-            Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
-
-            parsedArgs = DefaultParse(new[] { "a.cs", "/doc:..\\lpt2.xml:  " }, WorkingDirectory);
-            Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
-
-            parsedArgs = DefaultParse(new[] { "a.cs", "/debug+", "/pdb:.\\prn.pdb" }, WorkingDirectory);
-            Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
-
-            parsedArgs = DefaultParse(new[] { "a.cs", "@con.rsp" }, WorkingDirectory);
-            Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_OpenResponseFile, parsedArgs.Errors.First().Code);
+            var parsedArgs = DefaultParse(commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), WorkingDirectory);
+            if (ExecutionConditionUtil.OperatingSystemRestrictsFileNames)
+            {
+                Assert.Equal(1, parsedArgs.Errors.Length);
+                Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
+            }
+            else
+            {
+                Assert.Equal(0, parsedArgs.Errors.Length);
+            }
         }
 
         [Fact]

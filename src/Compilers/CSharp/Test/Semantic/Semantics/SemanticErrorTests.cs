@@ -7355,7 +7355,7 @@ unsafe public class MyClass
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1,2]')
   Children(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')

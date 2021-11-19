@@ -78,7 +78,8 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString.AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider`1+MyCodeAction", "Convert Between Regular And Verbatim String" },
             { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType.AbstractUseTypeCodeRefactoringProvider+MyCodeAction", "Use Type" },
             { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier.LambdaSimplifierCodeRefactoringProvider+MyCodeAction", "Lambda Simplifier" },
-            { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary.InlineTemporaryCodeRefactoringProvider+MyCodeAction", "Inline Temporary" },
+            { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary.CSharpInlineTemporaryCodeRefactoringProvider+MyCodeAction", "Inline Temporary" },
+            { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable.EnableNullableCodeRefactoringProvider+MyCodeAction", "Enable nullable" },
             { "Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod.CSharpConvertLocalFunctionToMethodCodeRefactoringProvider+MyCodeAction", "Convert Local Function To Method" },
             { "Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString.CSharpUseInterpolatedVerbatimStringCodeFixProvider+MyCodeAction", "Use Interpolated Verbatim String" },
             { "Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveNewModifier.RemoveNewModifierCodeFixProvider+MyCodeAction", "Remove New Modifier" },
@@ -259,7 +260,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator.VisualBasicConvertToIteratorCodeFixProvider+MyCodeAction", "Convert To Iterator" },
             { "Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile.MoveToTopOfFileCodeFixProvider+MoveToLineCodeAction", "Move To Top Of File" },
             { "Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase.OverloadBaseCodeFixProvider+AddKeywordAction", "Overload Base: Add Keyword" },
-            { "Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary.InlineTemporaryCodeRefactoringProvider+MyCodeAction", "Inline Temporary" },
+            { "Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary.VisualBasicInlineTemporaryCodeRefactoringProvider+MyCodeAction", "Inline Temporary" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers.VisualBasicRemoveSharedFromModuleMembersCodeFixProvider+MyCodeAction", "Remove Shared From Module Members" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal.VisualBasicRemoveUnnecessaryByValCodeFixProvider+MyCodeAction", "Remove Unnecessary ByVal" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast.VisualBasicRemoveUnnecessaryCastCodeFixProvider+MyCodeAction", "Remove Unnecessary Cast" },
@@ -279,6 +280,8 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.ConvertAnonymousType.AbstractConvertAnonymousTypeToClassCodeRefactoringProvider`6+MyCodeAction", "Convert Anonymous Type To Class" },
             { "Microsoft.CodeAnalysis.ConvertAnonymousType.AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider`3+MyCodeAction", "Convert Anonymous Type To Tuple" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider+MyCodeAction", "Simplify Object Creation" },
+            { "Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking.RenameTrackingTaggerProvider+RenameTrackingCodeAction", "Rename Tracking" },
+            { "Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc.AddInheritdocCodeFixProvider+MyCodeAction", "Add Inheritdoc" },
         }.ToImmutableDictionary();
 
         public static void Main(string[] args)
