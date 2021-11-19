@@ -14,7 +14,7 @@ resources:
   - repository: DartLabTemplates
     type: git
     name: DartLab.Templates
-    ref: refs/heads/main
+    ref: refs/heads/dev/bradwhit/RemoveCheckoutNone
 
 variables:
 - name: XUNIT_LOGS
@@ -43,7 +43,7 @@ stages:
           _configuration: Release
           _oop64bit: true
     preTestMachineConfigurationStepList:
-    # - checkout: none
+    - checkout: none
     - download: VisualStudioBuildUnderTest
     - task: PowerShell@2
       name: SetProductsDropName
