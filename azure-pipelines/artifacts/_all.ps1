@@ -25,10 +25,9 @@ Function EnsureTrailingSlash($path) {
 Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse |% {
     $ArtifactName = $_.BaseName
 
+    $totalFileCount = 0
     $fileGroups = & $_
-    if (!$fileGroups -or $fileGroups.Count -eq 0) {
-        Write-Warning "No files found for the `"$ArtifactName`" artifact."
-    } else {
+    if ($fileGroups) {
         $fileGroups.GetEnumerator() | % {
             $BaseDirectory = New-Object Uri ((EnsureTrailingSlash $_.Key.ToString()), [UriKind]::Absolute)
             $_.Value | % {
@@ -46,7 +45,12 @@ Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse |% {
                 Add-Member -InputObject $artifact -MemberType NoteProperty -Name ContainerFolder -Value (Split-Path $RelativePath)
 
                 Write-Output $artifact
+                $totalFileCount += 1
             }
         }
+    }
+
+    if ($totalFileCount -eq 0) {
+        Write-Warning "No files found for the `"$ArtifactName`" artifact."
     }
 }
