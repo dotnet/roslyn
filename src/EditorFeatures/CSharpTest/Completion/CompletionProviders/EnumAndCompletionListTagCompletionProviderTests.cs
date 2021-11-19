@@ -1721,9 +1721,11 @@ class C
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestNullableEnum(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using System;
 class C
 {{
@@ -1742,9 +1744,11 @@ class C
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestTypeAlias(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using AT = System.{typeName};
 
 public class Program

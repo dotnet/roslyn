@@ -6875,6 +6875,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
+  <data name="ERR_CannotUseRefInUnmanagedCallersOnly" xml:space="preserve">
+    <value>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</value>
+  </data>
   <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
     <value>newlines in interpolations</value>
   </data>

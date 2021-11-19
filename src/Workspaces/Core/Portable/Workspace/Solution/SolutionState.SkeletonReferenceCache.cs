@@ -36,7 +36,7 @@ internal partial class SolutionState
     /// <para/>
     /// The implementation works by keeping metadata references around associated with a specific <see cref="VersionStamp"/>
     /// for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for that project
-    /// is the same, then all the references of it can be reused.  When an <see cref="SolutionState.ICompilationTracker"/> forks
+    /// is the same, then all the references of it can be reused.  When an <see cref="ICompilationTracker"/> forks
     /// itself, it  will also <see cref="Clone"/> this, allowing previously computed references to be used by later forks.
     /// However, this means that later forks (esp. ones that fail to produce a skeleton, or which produce a skeleton for 
     /// different semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
@@ -44,14 +44,6 @@ internal partial class SolutionState
     /// </summary>
     private partial class SkeletonReferenceCache
     {
-        /// <summary>
-        /// Mapping from compilation instance to metadata-references for it.  This allows us to associate the same
-        /// <see cref="SkeletonReferenceSet"/> to different compilations that may not be the same as the original
-        /// compilation we generated the set from.  This allows us to use compilations as keys as long as they're
-        /// alive, but also associate the set with new compilations that are generated in the future if the older
-        /// compilations were thrown away.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, SkeletonReferenceSet> s_compilationToReferenceMap = new();
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
 
         /// <summary>
@@ -115,84 +107,68 @@ internal partial class SolutionState
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
         {
-            // First, just see if we have cached a reference set that is complimentary with the version of the project
-            // being passed in.  If so, we can just reuse what we already computed before.
-            var workspace = solution.Workspace;
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-            var metadataReference = TryGetReferenceSet(version)?.GetMetadataReference(properties);
-            if (metadataReference != null)
-            {
-                workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {compilationTracker.ProjectState.Id}");
-                return metadataReference;
-            }
-
-            var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            // Didn't have a direct mapping to a reference set.  Compute one for ourselves.
-            var referenceSet = await GetOrBuildReferenceSetAsync(workspace, version, compilation, cancellationToken).ConfigureAwait(false);
-
-            // another thread may have come in and beaten us to computing this.  So attempt to actually cache this
-            // in the global map.  if it succeeds, use our computed version.  If it fails, use the one the other
-            // thread succeeded in storing.
-            referenceSet = s_compilationToReferenceMap.GetValue(compilation, _ => referenceSet);
-
-            lock (_stateGate)
-            {
-                // whoever won, still store this reference set against us with the provided version.
-                _version = version;
-                _skeletonReferenceSet = referenceSet;
-            }
-
-            return referenceSet.GetMetadataReference(properties);
+            var referenceSet = await TryGetOrCreateReferenceSetAsync(
+                compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
+            return referenceSet?.GetMetadataReference(properties);
         }
 
-        private async Task<SkeletonReferenceSet> GetOrBuildReferenceSetAsync(
-            Workspace workspace,
+        private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
+            ICompilationTracker compilationTracker,
+            SolutionState solution,
             VersionStamp version,
-            Compilation compilation,
             CancellationToken cancellationToken)
         {
-            var referenceSet = TryGetExistingReferenceSet(version, compilation);
-            if (referenceSet != null)
+            // First, just see if we have cached a reference set that is complimentary with the version of the project
+            // being passed in.  If so, we can just reuse what we already computed before.
+            if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
                 return referenceSet;
 
-            // okay, we don't have one. so create one now.
-            ITemporaryStreamStorage? storage;
-
+            // okay, we don't have anything cached with this version. so create one now.  Note: this is expensive
+            // so ensure only one thread is doing hte work to actually make the compilation and emit it.
             using (await _emitGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // after taking the gate, another thread may have succeeded.  See if we can use their version if so:
-                referenceSet = TryGetExistingReferenceSet(version, compilation);
-                if (referenceSet != null)
+                if (TryReadSkeletonReferenceSetAtThisVersion(version, out referenceSet))
                     return referenceSet;
 
-                storage = TryCreateMetadataStorage(workspace, compilation, cancellationToken);
-            }
+                // Ok, first thread to get in and actually do this work.  Build the compilation and try to emit it.
+                // Regardless of if we succeed or fail, store this result so this only happens once.
 
-            if (storage == null)
-            {
-                // unfortunately, we couldn't create one. see if we have one from previous compilation., it might be
-                // out-of-date big time, but better than nothing.
-                referenceSet = TryGetReferenceSet(version: null);
-                if (referenceSet != null)
+                var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                var storage = TryCreateMetadataStorage(solution.Workspace, compilation, cancellationToken);
+
+                lock (_stateGate)
                 {
-                    workspace.LogTestMessage($"We failed to create metadata so we're using the one we just found from an earlier version.");
-                    return referenceSet;
+                    // If we successfully created the metadata storage, then create the new set that points to it.
+                    // if we didn't, that's ok too, we'll just say that for this requested version, that we can
+                    // return any prior computed reference set (including 'null' if we've never successfully made
+                    // a skeleton).
+                    if (storage != null)
+                        _skeletonReferenceSet = new SkeletonReferenceSet(storage, compilation.AssemblyName, new DeferredDocumentationProvider(compilation));
+
+                    _version = version;
+
+                    return _skeletonReferenceSet;
+                }
+            }
+        }
+
+        private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
+        {
+            lock (_stateGate)
+            {
+                // if we're asking about the same version as we've cached, then return whatever have (regardless of
+                // whether it succeeded or not.
+                if (version == _version)
+                {
+                    result = _skeletonReferenceSet;
+                    return true;
                 }
             }
 
-            return new SkeletonReferenceSet(storage, compilation.AssemblyName, new DeferredDocumentationProvider(compilation));
-        }
-
-        private SkeletonReferenceSet? TryGetExistingReferenceSet(VersionStamp version, Compilation compilation)
-        {
-            // first, check if we have a direct mapping from this compilation to a reference set. If so, use it.  This
-            // ensures the same compilations will get same metadata reference.
-            if (s_compilationToReferenceMap.TryGetValue(compilation, out var referenceSet))
-                return referenceSet;
-
-            // Then see if we already have a reference set for this version.  if so, we're done and can return that.
-            return TryGetReferenceSet(version);
+            result = null;
+            return false;
         }
 
         private static ITemporaryStreamStorage? TryCreateMetadataStorage(Workspace workspace, Compilation compilation, CancellationToken cancellationToken)
@@ -205,8 +181,6 @@ internal partial class SolutionState
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
-                    //       we don't allocate anything for skeleton assembly.
                     using var stream = SerializableBytes.CreateWritableStream();
                     // note: cloning compilation so we don't retain all the generated symbols after its emitted.
                     // * REVIEW * is cloning clone p2p reference compilation as well?
@@ -251,39 +225,6 @@ internal partial class SolutionState
                 workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
             }
         }
-
-        /// <summary>
-        /// Tries to get the <see cref="SkeletonReferenceSet"/> for this project matching <paramref name="version"/>.
-        /// if <paramref name="version"/> is <see langword="null"/>, any cached <see cref="SkeletonReferenceSet"/> 
-        /// can be returned, even if it doesn't correspond to that version.  This is useful in error tolerance cases
-        /// as building a skeleton assembly may easily fail. In that case it's better to use the last successfully 
-        /// built skeleton than just have no semantic information for that project at all.
-        /// </summary>
-        private SkeletonReferenceSet? TryGetReferenceSet(VersionStamp? version)
-        {
-            // Otherwise, we don't have a direct mapping stored.  Try to see if the cached reference we have is
-            // applicable to this project semantic version.
-            lock (_stateGate)
-            {
-                // if we don't have a skeleton cached, then we have nothing to return.
-                if (_skeletonReferenceSet == null)
-                    return null;
-
-                // if the caller is requiring a particular semantic version, it much match what we have cached.
-                if (version != null && version != _version)
-                    return null;
-
-                return _skeletonReferenceSet;
-            }
-        }
-
-        /// <summary>
-        /// Return a metadata reference if we already have a reference-set computed for this particular <paramref name="version"/>.
-        /// If a reference already exists for the provided <paramref name="properties"/>, the same instance will be returned.  Otherwise,
-        /// a fresh instance will be returned.
-        /// </summary>
-        public MetadataReference? TryGetReference(VersionStamp version, MetadataReferenceProperties properties)
-            => TryGetReferenceSet(version)?.GetMetadataReference(properties);
 
         private sealed class SkeletonReferenceSet
         {
