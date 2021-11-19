@@ -1052,6 +1052,11 @@
         <target state="translated">移除未使用的參考</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">將 {0} 重新命名為 {1}</target>
@@ -1225,6 +1230,11 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">[環境] &gt; [字型和色彩選項] 頁面中所做的變更覆寫了某些色彩配置的色彩。請選擇 [字型和色彩] 頁面中的 [使用預設] 來還原所有自訂。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

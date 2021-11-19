@@ -1052,6 +1052,11 @@
         <target state="translated">Nicht verwendete Verweise entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">"{0}" in "{1}" umbenennen</target>
@@ -1225,6 +1230,11 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Einige Farbschemafarben werden durch Änderungen überschrieben, die auf der Optionsseite "Umgebung" &gt; "Schriftarten und Farben" vorgenommen wurden. Wählen Sie auf der Seite "Schriftarten und Farben" die Option "Standardwerte verwenden" aus, um alle Anpassungen rückgängig zu machen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

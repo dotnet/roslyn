@@ -1881,4 +1881,10 @@ Additional information: {1}</value>
     <value>Stack Trace {0}</value>
     <comment>Header for numbered stack trace view tabs</comment>
   </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
 </root>
