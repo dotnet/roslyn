@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             }
         }
 
-
         [Fact]
         public Task TestSymbolFound_DebuggerLine()
         {

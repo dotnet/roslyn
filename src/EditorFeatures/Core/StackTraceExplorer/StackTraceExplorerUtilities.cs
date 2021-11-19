@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                     var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
                     if (matchingMethods.Any())
                     {
-                        return await matchingMethods[0].ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
+                        return await GetDefinitionAsync(matchingMethods[0]).ConfigureAwait(false);
                     }
                 }
                 else
@@ -74,11 +74,15 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
                 if (matchingMethods.Any())
                 {
-                    return await matchingMethods[0].ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
+                    return await GetDefinitionAsync(matchingMethods[0]).ConfigureAwait(false);
                 }
             }
 
             return null;
+
+            //
+            // Local Functions
+            //
 
             async Task<ImmutableArray<IMethodSymbol>> GetMatchingMembersFromCompilationAsync(Project project)
             {
@@ -96,6 +100,17 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                     .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
                     .Where(m => MatchParameters(m.Parameters, methodArguments))
                     .ToImmutableArrayOrEmpty();
+            }
+
+            Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
+            {
+                ISymbol symbol = method;
+                if (symbolPart == StackFrameSymbolPart.Class)
+                {
+                    symbol = method.ContainingType;
+                }
+
+                return symbol.ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken);
             }
         }
 
