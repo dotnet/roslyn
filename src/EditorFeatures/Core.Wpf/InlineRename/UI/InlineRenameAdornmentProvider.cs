@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class DashboardAdornmentProvider : IWpfTextViewConnectionListener
+    internal class InlineRenameAdornmentProvider : IWpfTextViewConnectionListener
     {
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
-        private readonly IDashboardColorUpdater? _dashboardColorUpdater;
+        private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
 
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DashboardAdornmentProvider(
+        public InlineRenameAdornmentProvider(
             InlineRenameService renameService,
             IEditorFormatMapService editorFormatMapService,
-            [Import(AllowDefault = true)] IDashboardColorUpdater? dashboardColorUpdater)
+            [Import(AllowDefault = true)] IInlineRenameColorUpdater? dashboardColorUpdater)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new DashboardAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v));
+            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            if (textView.Properties.TryGetProperty(typeof(DashboardAdornmentManager), out DashboardAdornmentManager manager))
+            if (textView.Properties.TryGetProperty(typeof(InlineRenameAdornmentManager), out InlineRenameAdornmentManager manager))
             {
                 manager.Dispose();
-                textView.Properties.RemoveProperty(typeof(DashboardAdornmentManager));
+                textView.Properties.RemoveProperty(typeof(InlineRenameAdornmentManager));
             }
         }
     }

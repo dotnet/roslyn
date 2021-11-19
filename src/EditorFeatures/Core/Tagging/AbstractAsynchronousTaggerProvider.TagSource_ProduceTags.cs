@@ -370,8 +370,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private bool ShouldSkipTagProduction()
-                => _dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)) ||
-                   _dataSource.PerLanguageOptions.Any(option => !_dataSource.GlobalOptions.GetOption(option, _subjectBuffer.GetLanguageName()));
+            {
+                if (_dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                    return true;
+
+                var languageName = _subjectBuffer.GetLanguageName();
+                return _dataSource.PerLanguageOptions.Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
+            }
 
             private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
             {

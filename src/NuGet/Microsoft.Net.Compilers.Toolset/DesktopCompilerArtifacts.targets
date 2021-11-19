@@ -56,23 +56,21 @@
         
         We don't currently collect optimization data for the following assemblies.
       -->
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Threading.Tasks.Extensions.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Buffers.dll"/>
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Memory.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>      
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Text.Encoding.CodePages.dll"/>
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll"/>
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll"/> 
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Text.Encoding.CodePages.dll"/>   
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Threading.Tasks.Extensions.dll"/>  
       
       <!--
         System.Numerics.Vector requires JIT, since its size is dynamic and based on the underlying CPU support.
       -->
       <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
-      
-      <!-- Note: do not use Update attribute (see https://github.com/microsoft/msbuild/issues/1124) -->
-      <DesktopCompilerArtifact NgenPriority="1" Condition="'%(Identity)' == '$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll'" />
-      <DesktopCompilerArtifact NgenPriority="1" Condition="'%(Identity)' == '$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll'" />
-      
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>            
       <DesktopCompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
       <DesktopCompilerArtifact Include="@(_NoNGen)" />
 

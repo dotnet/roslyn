@@ -734,22 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch)
-        {
-            var bodyEditsForLambda = bodyMatch.GetTreeEdits();
-            var editMap = BuildEditMap(bodyEditsForLambda);
-            foreach (var edit in bodyEditsForLambda.Edits)
-            {
-                if (HasParentEdit(editMap, edit))
-                {
-                    return;
-                }
-
-                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch);
-                classifier.ClassifyEdit();
-            }
-        }
-
         protected override bool TryMatchActiveStatement(
             SyntaxNode oldStatement,
             int statementPart,

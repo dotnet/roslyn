@@ -7,7 +7,9 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <!--Temporarily bypass ibcmerge due to an error 
+      https://github.com/dotnet/roslyn/issues/57863 -->
+    <ApplyNgenOptimization></ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -48,6 +50,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />    
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
@@ -62,8 +65,8 @@
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="InlineRename\Dashboard\Images\ErrorIcon.png" />
-    <Resource Include="InlineRename\Dashboard\Images\InfoIcon.png" />
+    <Resource Include="InlineRename\UI\Dashboard\Images\ErrorIcon.png" />
+    <Resource Include="InlineRename\UI\Dashboard\Images\InfoIcon.png" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
