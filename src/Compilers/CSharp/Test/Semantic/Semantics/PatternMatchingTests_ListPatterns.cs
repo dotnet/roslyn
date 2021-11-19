@@ -1401,15 +1401,24 @@ class X
         var csCompilation = CreateCompilation(csSource, parseOptions: TestOptions.RegularWithListPatterns, references: new[] { vbCompilation.EmitToImageReference() });
         // PROTOTYPE(list-patterns) Unsupported because the lookup fails not that the indexer is static
         csCompilation.VerifyEmitDiagnostics(
-            // (6,28): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Test1").WithLocation(6, 28),
-            // (6,28): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", "op_Implicit").WithLocation(6, 28),
-            // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
-            //         _ = new Test1()[0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
+            // (20,24): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
+            //         _ = new X() is [1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1]").WithArguments("System.Index", "op_Implicit").WithLocation(20, 24),
+            // (20,24): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = new X() is [1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1]").WithArguments("System.Index", ".ctor").WithLocation(20, 24),
+            // (21,24): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
+            //         _ = new X() is [.. 1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. 1]").WithArguments("System.Index", "op_Implicit").WithLocation(21, 24),
+            // (21,24): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = new X() is [.. 1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. 1]").WithArguments("System.Index", ".ctor").WithLocation(21, 24),
+            // (21,25): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = new X() is [.. 1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. 1").WithArguments("System.Range", ".ctor").WithLocation(21, 25),
+            // (22,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = new X()[^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(22, 21));
     }
 
     [Fact]
