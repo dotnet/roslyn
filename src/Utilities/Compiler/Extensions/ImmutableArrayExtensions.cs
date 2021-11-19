@@ -60,14 +60,5 @@ namespace System.Collections.Immutable
 
             return false;
         }
-
-        public static void AddIfNotNull<T>(this ImmutableArray<T>.Builder builder, T? item)
-            where T : class
-        {
-            if (item != null)
-            {
-                builder.Add(item);
-            }
-        }
     }
 }
