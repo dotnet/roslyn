@@ -44,24 +44,6 @@ namespace Analyzer.Utilities
                 _ => throw new NotImplementedException()
             };
 
-        protected static bool HasSupportedKeyPrefix(string key, [NotNullWhen(returnValue: true)] out string? keyPrefix)
-        {
-            if (key.StartsWith(DotnetCodeQualityKeyPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                keyPrefix = DotnetCodeQualityKeyPrefix;
-                return true;
-            }
-
-            if (key.StartsWith(BuildPropertyKeyPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                keyPrefix = BuildPropertyKeyPrefix;
-                return true;
-            }
-
-            keyPrefix = null;
-            return false;
-        }
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4905", AllowCaptures = false)]
         public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
         {
