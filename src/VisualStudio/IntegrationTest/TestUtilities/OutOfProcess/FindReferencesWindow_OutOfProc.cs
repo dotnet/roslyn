@@ -42,6 +42,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
         {
             _inProc.NavigateTo(windowCaption, reference, isPreview, shouldActivate);
+            WaitForNavigate();
+        }
+
+        private void WaitForNavigate()
+        {
+            // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.FindReferences);
+
+            // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
+            VisualStudioInstance.Editor.WaitForEditorOperations(Helper.HangMitigatingTimeout);
         }
     }
 }
