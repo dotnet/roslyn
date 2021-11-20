@@ -13,6 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
+        internal bool ContainsFieldKeyword
+        {
+            get
+            {
+                if (CSharpSyntaxNode is not PropertyDeclarationSyntax property)
+                {
+                    return false;
+                }
+
+                if (property.AccessorList is not { } accessorList)
+                {
+                    return false;
+                }
+
+                foreach (var accessor in accessorList.Accessors)
+                {
+                    var containsFieldKeyword = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!.Expression).DescendantTokens()
+                        .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && !t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
+                    if (containsFieldKeyword)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;

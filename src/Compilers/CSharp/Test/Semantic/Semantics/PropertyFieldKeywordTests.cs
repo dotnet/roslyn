@@ -389,9 +389,13 @@ public class C
     public string P { set => field = value; }
 }
 ");
-            var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
-            Assert.Equal(1, fields.Length);
-            Assert.Equal("<P>k__BackingField", fields[0].Name);
+            for (int i = 0; i < 3; i++)
+            {
+                var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
+                Assert.Equal(1, fields.Length);
+                Assert.Equal("<P>k__BackingField", fields[0].Name);
+            }
+
         }
     }
 }

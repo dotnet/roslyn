@@ -1388,11 +1388,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.Property:
-                        if (m is SourcePropertySymbolBase propertySymbol)
+                        if (m is SourcePropertySymbol propertySymbol)
                         {
                             // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
                             if (propertySymbol.BackingField is null &&
-                                propertySymbol.CSharpSyntaxNode is BasePropertyDeclarationSyntax propertySyntax)
+                                propertySymbol.ContainsFieldKeyword)
                             {
                                 if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
                                 {

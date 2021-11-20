@@ -67,10 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         /// <summary>
-        /// This should only be set via CreateBackingField to avoid race conditions.
+        /// This should only be set via GetOrCreateBackingField to avoid race conditions.
         /// </summary>
         private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
-        private readonly object _backingFieldLock = new();
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                CreateBackingField(isCreatedForFieldKeyword: false);
+                _ = GetOrCreateBackingField(isCreatedForFieldKeyword: false);
             }
 
             if (hasGetAccessor)
@@ -183,19 +182,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void CreateBackingField(bool isCreatedForFieldKeyword)
+        internal SynthesizedBackingFieldSymbol GetOrCreateBackingField(bool isCreatedForFieldKeyword)
         {
-            lock (_backingFieldLock)
+            Debug.Assert(!IsIndexer);
+            if (_lazyBackingFieldSymbol is null)
             {
-                Debug.Assert(BackingField is null && !IsIndexer);
-                _lazyBackingFieldSymbol = new SynthesizedBackingFieldSymbol(this,
-                                          GeneratedNames.MakeBackingFieldName(_name),
-                                          isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
-                                          this.IsStatic,
-                                          hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
-                                          isCreatedForfieldKeyword: isCreatedForFieldKeyword);
-
+                var backingField = new SynthesizedBackingFieldSymbol(this,
+                                              GeneratedNames.MakeBackingFieldName(_name),
+                                              isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
+                                              this.IsStatic,
+                                              hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
+                                              isCreatedForfieldKeyword: isCreatedForFieldKeyword);
+                InterlockedOperations.Initialize(ref _lazyBackingFieldSymbol, backingField);
             }
+
+            return _lazyBackingFieldSymbol;
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)

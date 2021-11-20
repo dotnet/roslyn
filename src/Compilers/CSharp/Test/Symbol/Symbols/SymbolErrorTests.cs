@@ -7948,17 +7948,34 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         {
             var text = @"abstract class C
 {
+    public int P { get; set { } } // PROTOTYPE(semi-auto-props): Should be an error prior to semi-auto-props. ie, uncomment the Diagnostic(...) line in VerifyDiagnostics.
+    public int Q { get { return 0; } set; } // PROTOTYPE(semi-auto-props): Should be an error prior to semi-auto-props. ie, uncomment the Diagnostic(...) line in VerifyDiagnostics.
+    public extern object R { get; } // no error
+    protected abstract object S { set; } // no error
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (3,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
+                //Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get"),
+                // (4,38): error CS0501: 'C.Q.set' must declare a body because it is not marked abstract, extern, or partial
+                //Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
+                // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get"));
+        }
+
+        [Fact]
+        public void CS0501ERR_ConcreteMissingBody02_SemiAutoProps()
+        {
+            var text = @"abstract class C
+{
     public int P { get; set { } }
     public int Q { get { return 0; } set; }
     public extern object R { get; } // no error
     protected abstract object S { set; } // no error
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (3,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get"),
-                // (4,38): error CS0501: 'C.Q.set' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                //Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get"));
         }
