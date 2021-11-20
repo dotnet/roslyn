@@ -707,8 +707,7 @@ tryAgain:
                 SyntaxKind.CloseBracketToken,
                 static p => p.ParsePattern(Precedence.Conditional));
             TryParseSimpleDesignation(out VariableDesignationSyntax designation, whenIsKeyword);
-            var result = _syntaxFactory.ListPattern(openBracket, list, closeBracket, designation);
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureListPattern);
+            return _syntaxFactory.ListPattern(openBracket, list, closeBracket, designation);
         }
     }
 }

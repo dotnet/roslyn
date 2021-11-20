@@ -2114,7 +2114,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithIndex(source);
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2141,11 +2141,89 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
           IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '42') (InputType: System.Int32, NarrowedType: System.Int32)
             Value:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
-          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: T[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<T>(T[] array, System.Range range)
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null) (Syntax: '.. var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], SliceSymbol: null
             Pattern:
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var slice') (InputType: System.Int32[], NarrowedType: System.Int32[], DeclaredSymbol: System.Int32[]? slice, MatchesNull: True)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_ListPatterns_Array_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X
+{
+    void M(string s)
+    {
+        s = null;
+        var a = new[] { s };
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.String?[]) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: System.String[], NarrowedType: System.String[], DeclaredSymbol: null, LengthSymbol: System.Int32 System.Array.Length { get; }, IndexerSymbol: null)
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.String, NarrowedType: System.String, DeclaredSymbol: System.String? item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+            };
+
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(57884, "https://github.com/dotnet/roslyn/issues/57884")]
+        public void TestIsPatternExpression_ListPatterns_Collection_Nullability()
+        {
+            string source = @"
+#nullable enable
+class X<T>
+{
+    static X<U> Create<U>(U u) => throw null!;
+    void M(string s)
+    {
+        s = null;
+        var a = Create(s);
+        _ = /*<bind>*/a is [var item]/*</bind>*/;
+    }
+    public int Length => throw null!;
+    public char this[int i] => throw null!;
+}
+";
+            // The LengthSymbol and IndexerSymbol should reflect updated nullability:
+            // LengthSymbol: System.Int32 X<System.String?>.Length { get; }, IndexerSymbol: System.Char X<System.String?>.this[System.Int32 i] { get; })
+            // Tracked by https://github.com/dotnet/roslyn/issues/57884
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is [var item]')
+  Value:
+    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: X<System.String?>) (Syntax: 'a')
+  Pattern:
+    IListPatternOperation (OperationKind.ListPattern, Type: null) (Syntax: '[var item]') (InputType: X<System.String>, NarrowedType: X<System.String>, DeclaredSymbol: null, LengthSymbol: System.Int32 X<System.String>.Length { get; }, IndexerSymbol: System.Char X<System.String>.this[System.Int32 i] { get; })
+      Patterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var item') (InputType: System.Char, NarrowedType: System.Char, DeclaredSymbol: System.Char item, MatchesNull: True)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13)
+            };
 
             var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
@@ -2236,14 +2314,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value:
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: X) (Syntax: 'this')
   Pattern:
-    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: null, IndexerSymbol: null)
+    IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: null, IndexerSymbol: System.Int32 X.this[System.Int32 i] { get; })
       Patterns (0)
 ";
             var expectedDiagnostics = new[]
             {
-                // (8,31): error CS9200: List patterns may not be used for a value of type 'X'.
+                // (8,31): error CS0518: Predefined type 'System.Index' is not defined or imported
                 //         _ = /*<bind>*/this is []/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("X").WithLocation(8, 31)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Index").WithLocation(8, 31)
             };
 
             var comp = CreateCompilation(source);
@@ -2275,12 +2353,12 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 ";
             var expectedDiagnostics = new[]
             {
-                // (8,31): error CS9200: List patterns may not be used for a value of type 'X'.
+                // (8,31): error CS0021: Cannot apply indexing with [] to an expression of type 'X'
                 //         _ = /*<bind>*/this is []/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[]").WithArguments("X").WithLocation(8, 31)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("X").WithLocation(8, 31)
             };
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithIndex(source);
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2307,20 +2385,20 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Pattern:
     IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[.. 0]') (InputType: X, NarrowedType: X, DeclaredSymbol: null, LengthSymbol: System.Int32 X.Count { get; }, IndexerSymbol: System.Int32 X.this[System.Int32 i] { get; })
       Patterns (1):
-          ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 0') (InputType: X, NarrowedType: X, SliceSymbol: null
+          ISlicePatternOperation (OperationKind.SlicePattern, Type: null, IsInvalid) (Syntax: '.. 0') (InputType: X, NarrowedType: X, SliceSymbol: System.Int32 X.this[System.Int32 i] { get; }
             Pattern:
-              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '0') (InputType: ?, NarrowedType: System.Int32)
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
                 Value:
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new[]
             {
-                // (9,32): error CS9201: Slice patterns may not be used for a value of type 'X'.
+                // (9,32): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
                 //         _ = /*<bind>*/this is [.. 0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".. 0").WithArguments("X").WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_BadArgType, ".. 0").WithArguments("1", "System.Range", "int").WithLocation(9, 32)
             };
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithIndexAndRange(source);
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2394,7 +2472,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "42").WithArguments("int", "int[]").WithLocation(6, 31)
             };
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2450,7 +2528,8 @@ Block[B2] - Exit
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray },
+                expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
         }
     }
 }

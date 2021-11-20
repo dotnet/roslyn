@@ -273,6 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.VisitInterpolatedString(node);
                 return null;
             }
+
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+            {
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
+                return null;
+            }
         }
 #endif
     }

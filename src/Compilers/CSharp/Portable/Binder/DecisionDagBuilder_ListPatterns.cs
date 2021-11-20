@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
                          input.Type.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
                          list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) == (list.HasSlice ? 1 : 0) &&
-                         list.LengthProperty is not null);
+                         list.LengthAccess is not null);
 
             var syntax = list.Syntax;
             var subpatterns = list.Subpatterns;
@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(list.LengthProperty is not null);
-                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, isLengthOrCount: true, input);
+                Debug.Assert(list.LengthAccess is not null);
+                var lengthProperty = Binder.GetPropertySymbol(list.LengthAccess, out _, out _);
+                Debug.Assert(lengthProperty is not null);
+                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
                 tests.Add(new Tests.One(list.HasSlice
@@ -53,7 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerAccess, slice.SliceMethod, input);
+                            Debug.Assert(slice.IndexerAccess is not null);
+                            Debug.Assert(index <= 0);
+                            Debug.Assert(slice.ReceiverPlaceholder is not null);
+                            Debug.Assert(slice.ArgumentPlaceholder is not null);
+
+                            Debug.Assert(slice.IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(slicePattern.Syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index,
+                                slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
+
                             tests.Add(new Tests.One(sliceEvaluation));
                             var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
                             tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
@@ -62,7 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var indexEvaluation = new BoundDagIndexerEvaluation(subpattern.Syntax, subpattern.InputType, lengthTemp, index++, list.IndexerAccess, list.IndexerSymbol, input);
+                    Debug.Assert(list.IndexerAccess is not null);
+                    Debug.Assert(list.ReceiverPlaceholder is not null);
+                    Debug.Assert(list.ArgumentPlaceholder is not null);
+
+                    Debug.Assert(list.IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(subpattern.Syntax, subpattern.InputType, lengthTemp, index++,
+                        list.IndexerAccess, list.ReceiverPlaceholder, list.ArgumentPlaceholder, input);
+
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));

@@ -1587,6 +1587,14 @@ symIsHidden:;
             return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
         }
 
+        internal bool IsAccessible(Symbol symbol, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var result = IsAccessible(symbol, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
+            return result;
+        }
+
         /// <summary>
         /// Check whether "symbol" is accessible from this binder.
         /// Also checks protected access via "accessThroughType", and sets "failedThroughTypeCheck" if fails

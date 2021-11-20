@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
         ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
-        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsPatternImplicitIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
@@ -1933,6 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 9.0
 
         #region diagnostics introduced for C# 10.0
+
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
         ERR_GlobalUsingInNamespace = 8914,
@@ -2006,14 +2007,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         // at runtime.
         ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
 
-        // PROTOTYPE(list-patterns)
-        ERR_UnsupportedTypeForListPattern = 9200,
-        ERR_UnsupportedTypeForSlicePattern,
-        ERR_MisplacedSlicePattern,
+        #endregion
+
+        #region diagnostics introduced for C# 11.0
+
+        ERR_CannotBeMadeNullable = 8978,
+        ERR_UnsupportedTypeForListPattern = 8979,
+        ERR_MisplacedSlicePattern = 8980,
 
         #endregion
 
-        ERR_CannotBeMadeNullable = 8978,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

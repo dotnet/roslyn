@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
-        // PROTOTYPE(list-patterns) new patterns added
+        // new patterns added in C# 11.0
         SlicePattern = 9034,
         ListPattern = 9035,
 

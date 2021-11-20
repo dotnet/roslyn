@@ -32,18 +32,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this switch
+                var result = this switch
                 {
                     BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
                     BoundDagPropertyEvaluation e => e.Property,
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
-                    BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagSliceEvaluation e => e.IndexerAccess is BoundArrayAccess arrayAccess ? arrayAccess.Expression.Type : Binder.GetIndexerOrImplicitIndexerSymbol(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => e.IndexerAccess is BoundArrayAccess arrayAccess ? arrayAccess.Expression.Type : Binder.GetIndexerOrImplicitIndexerSymbol(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
+
+                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation);
+                return result;
             }
         }
 

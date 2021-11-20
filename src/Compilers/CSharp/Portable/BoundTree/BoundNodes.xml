@@ -79,7 +79,15 @@
     <Field Name="Type" Type="TypeSymbol?"/>
   </AbstractNode>
 
+  <!--
+  Consider adding a val escape to all placeholder nodes.
+  Consider marking all placeholder nodes as compiler generated.
+  -->
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
+  </AbstractNode>
+
+  <!-- Placeholders that are replaced by PlaceholderReplacer, ie before they get visited by LocalRewriter -->
+  <AbstractNode Name="BoundEarlyValuePlaceholderBase" Base="BoundValuePlaceholderBase">
   </AbstractNode>
 
   <!--
@@ -130,11 +138,36 @@
     <Field Name="IsNewInstance" Type="bool" Null="NotApplicable"/>
   </Node>
 
-  <!--
-  This node is used to represent an expression of a certain type, when attempting to bind its Index or Range pattern indexer
-  It does survive past initial binding but will be replaced with a synthesized argument in DAG lowering.
-  -->
-  <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <!-- This node is used to represent the argument of type Index or Range for an implicit Index or Range indexer. It does not survive lowering -->
+  <Node Name="BoundImplicitIndexerValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering -->
+  <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+  </Node>
+
+  <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
+  <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+  </Node>
+
+  <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
+  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- This node represents the receiver for a slice pattern. It does not survive lowering -->
+  <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+  </Node>
+
+  <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
+  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -1485,22 +1518,46 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
     <Field Name="Index" Type="int"/>
   </Node>
+
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
     <Field Name="IndexerType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
+
     <!-- Negative Index values indicate positions after a slice pattern -->
     <Field Name="Index" Type="int"/>
-    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
-    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
-  </Node>
+
+    <!--
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression"/>
+
+    <!-- The receiver placeholder for indexer access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder"/>
+
+    <!-- The argument placeholder of type Index for indexer access -->
+    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder"/>
+   </Node>
+
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
     <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
-    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
-    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+
+    <!--
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression"/>
+
+    <!-- The receiver placeholder for indexer access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder"/>
+
+    <!-- The argument placeholder of type Range for indexer access -->
+    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder"/>
   </Node>
+
   <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
     <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
@@ -2009,13 +2066,27 @@
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
+  <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
-    <Field Name="Receiver" Type="BoundExpression" Null="disallow" />
-    <Field Name="LengthOrCountProperty" Type="PropertySymbol" Null="disallow" />
-    <Field Name="PatternSymbol" Type="Symbol" Null="disallow" />
+    <!-- An expression with type Index or Range -->
     <Field Name="Argument" Type="BoundExpression" Null="disallow" />
+
+    <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
+
+    <!-- The receiver placeholder for length access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundImplicitIndexerReceiverPlaceholder" SkipInVisitor="true" />
+
+    <!--
+    May be BoundIndexerAccess or BoundCall,
+    which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
+    We don't mark this property as SkipInVisitor="true" because it contains real receiver, but we
+    make sure SemanticModel doesn't dig too deep into the node.
+    -->
+    <Field Name="IndexerOrSliceAccess" Type="BoundExpression" Null="disallow" />
+
+    <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
+    <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundImplicitIndexerValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
@@ -2174,15 +2245,35 @@
   <Node Name="BoundListPattern" Base="BoundObjectPattern">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
-    <Field Name="LengthProperty" Type="PropertySymbol?"/>
-    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
-    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
+    <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
+
+    <!--
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
+
+    <!-- The receiver placeholder for length and indexer access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundListPatternReceiverPlaceholder?" SkipInVisitor="true"/>
+
+    <!-- The argument placeholder of type Index for indexer indexer access -->
+    <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
     <Field Name="Pattern" Type="BoundPattern?"/>
-    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
-    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+
+    <!--
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
+    which are built using placeholders for receiver and argument.
+    -->
+    <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
+
+    <!-- The receiver placeholder for indexer access -->
+    <Field Name="ReceiverPlaceholder" Type="BoundSlicePatternReceiverPlaceholder?" SkipInVisitor="true"/>
+
+    <!-- The argument placeholder of type Range for indexer access -->
+    <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">
