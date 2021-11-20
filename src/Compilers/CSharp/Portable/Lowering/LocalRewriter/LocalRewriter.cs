@@ -965,14 +965,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    return CanBePassedByReference(((BoundIndexOrRangePatternIndexerAccess)expr).IndexerAccess);
+                case BoundKind.ImplicitIndexerAccess:
+                    return CanBePassedByReference(((BoundImplicitIndexerAccess)expr).IndexerOrSliceAccess);
 
-                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     // That placeholder is always replaced with a temp local
                     return true;
 
-                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
+                case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Implicit Index or Range indexers only have by-value parameters:
                     // this[int], Slice(int, int), Substring(int, int)
                     return false;
@@ -1070,13 +1070,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+            public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
             {
                 Fail(node);
                 return null;
             }
 
-            public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+            public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
             {
                 Fail(node);
                 return null;

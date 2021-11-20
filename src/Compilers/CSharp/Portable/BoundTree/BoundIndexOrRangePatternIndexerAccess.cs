@@ -7,23 +7,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundIndexOrRangePatternIndexerAccess
+    internal partial class BoundImplicitIndexerAccess
     {
-        internal BoundIndexOrRangePatternIndexerAccess WithLengthOrCountAccess(BoundExpression lengthOrCountAccess)
+        internal BoundImplicitIndexerAccess WithLengthOrCountAccess(BoundExpression lengthOrCountAccess)
         {
             return this.Update(this.Argument, lengthOrCountAccess, this.ReceiverPlaceholder,
-                this.IndexerAccess, this.ArgumentPlaceholders, this.Type);
+                this.IndexerOrSliceAccess, this.ArgumentPlaceholders, this.Type);
         }
 
         // The receiver expression is the receiver of IndexerAccess.
         // The LengthOrCountAccess uses a placeholder as receiver.
         internal BoundExpression GetReceiver()
         {
-            var receiver = this.IndexerAccess switch
+            var receiver = this.IndexerOrSliceAccess switch
             {
                 BoundIndexerAccess { ReceiverOpt: var r } => r,
                 BoundCall { ReceiverOpt: var r } => r,
-                _ => throw ExceptionUtilities.UnexpectedValue(this.IndexerAccess.Kind)
+                _ => throw ExceptionUtilities.UnexpectedValue(this.IndexerOrSliceAccess.Kind)
             };
 
             Debug.Assert(receiver is not null);

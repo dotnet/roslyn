@@ -274,10 +274,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
                 Visit(node.Argument);
-                Visit(node.IndexerAccess);
+                Visit(node.IndexerOrSliceAccess);
                 return null;
             }
         }

@@ -183,22 +183,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
         {
             return PlaceholderReplacement(node);
         }
 
-        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+        public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
         {
             return PlaceholderReplacement(node);
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+            return VisitImplicitIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundExpression VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
@@ -213,16 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Argument.Type,
                     _compilation.GetWellKnownType(WellKnownType.System_Range),
                     TypeCompareKind.ConsiderEverything));
-                Debug.Assert(!isLeftOfAssignment || node.IndexerAccess.GetRefKind() == RefKind.Ref);
+                Debug.Assert(!isLeftOfAssignment || node.IndexerOrSliceAccess.GetRefKind() == RefKind.Ref);
 
                 return VisitRangePatternIndexerAccess(node);
             }
         }
 
-        private BoundExpression VisitIndexPatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
-            Debug.Assert(node.IndexerAccess is BoundIndexerAccess);
+            Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess);
 
             Debug.Assert(TypeSymbol.Equals(
                 node.Argument.Type,
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(strategy);
             }
 
-            var indexerAccess = (BoundIndexerAccess)node.IndexerAccess;
+            var indexerAccess = (BoundIndexerAccess)node.IndexerOrSliceAccess;
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
             AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
@@ -432,10 +432,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
-            Debug.Assert(node.IndexerAccess is BoundCall);
+            Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
 
             Debug.Assert(TypeSymbol.Equals(
                 node.Argument.Type,
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPlaceholderReplacement(node.ArgumentPlaceholders[0], startExpr);
             AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
 
-            var sliceCall = (BoundCall)node.IndexerAccess;
+            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
             var rewrittenIndexerAccess = VisitExpression(sliceCall.WithReceiver(receiver));
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
-        private BoundExpression RewriteLengthAccess(BoundIndexOrRangePatternIndexerAccess node, BoundExpression receiver)
+        private BoundExpression RewriteLengthAccess(BoundImplicitIndexerAccess node, BoundExpression receiver)
         {
             var receiverPlaceholder = node.ReceiverPlaceholder;
             AddPlaceholderReplacement(receiverPlaceholder, receiver);

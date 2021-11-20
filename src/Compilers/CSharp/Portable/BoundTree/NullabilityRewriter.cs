@@ -162,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
-            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerAccess);
-            BoundIndexOrRangePatternIndexerAccess updatedNode;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {

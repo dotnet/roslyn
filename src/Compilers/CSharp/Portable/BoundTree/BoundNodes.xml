@@ -139,12 +139,12 @@
   </Node>
 
   <!-- This node is used to represent the argument of type Index or Range for an implicit Index or Range indexer. It does not survive lowering -->
-  <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundImplicitIndexerValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <!-- This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering -->
-  <Node Name="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
@@ -1527,7 +1527,7 @@
     <Field Name="Index" Type="int"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess,
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
@@ -1546,7 +1546,7 @@
     <Field Name="EndIndex" Type="int"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess,
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression"/>
@@ -2066,7 +2066,7 @@
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true">
+  <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <!-- An expression with type Index or Range -->
@@ -2075,7 +2075,7 @@
     <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
 
     <!-- The receiver placeholder for length access -->
-    <Field Name="ReceiverPlaceholder" Type="BoundIndexOrRangeIndexerPatternReceiverPlaceholder" SkipInVisitor="true" />
+    <Field Name="ReceiverPlaceholder" Type="BoundImplicitIndexerReceiverPlaceholder" SkipInVisitor="true" />
 
     <!--
     May be BoundIndexerAccess or BoundCall,
@@ -2083,10 +2083,10 @@
     We don't mark this property as SkipInVisitor="true" because it contains real receiver, but we
     make sure SemanticModel doesn't dig too deep into the node.
     -->
-    <Field Name="IndexerAccess" Type="BoundExpression" Null="disallow" />
+    <Field Name="IndexerOrSliceAccess" Type="BoundExpression" Null="disallow" />
 
     <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
-    <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundIndexOrRangeIndexerPatternValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
+    <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundImplicitIndexerValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
@@ -2248,7 +2248,7 @@
     <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>
@@ -2264,7 +2264,7 @@
     <Field Name="Pattern" Type="BoundPattern?"/>
 
     <!--
-    May be BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
+    May be BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess,
     which are built using placeholders for receiver and argument.
     -->
     <Field Name="IndexerAccess" Type="BoundExpression?" SkipInVisitor="true"/>

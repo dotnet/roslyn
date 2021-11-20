@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+            public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
                 // We only need to visit receiver and the argument. SemanticModel isn't interested in anything else. 
                 Visit(node.GetReceiver());

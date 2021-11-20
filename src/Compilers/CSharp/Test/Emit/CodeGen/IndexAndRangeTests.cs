@@ -72,16 +72,16 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (16,55): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
                 // (17,64): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
                 // (19,58): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
                 // (20,46): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
             );
         }
 

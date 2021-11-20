@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
                     indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
-                    Debug.Assert(indexerAccess is BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
+                    Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
                     analyzedArguments.Free();
 
                     if (!systemRangeType.HasUseSiteError)
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
             indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
-            Debug.Assert(indexerAccess is BoundIndexerAccess or BoundIndexOrRangePatternIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
+            Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
             analyzedArguments.Free();
 
             if (!systemIndexType.HasUseSiteError)

@@ -1563,10 +1563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
                     {
-                        var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
-                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerAccess, out receiver, out propertySyntax);
+                        var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerOrSliceAccess, out receiver, out propertySyntax);
                     }
                     break;
                 default:
@@ -1607,9 +1607,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this[Index], this[Range]
                 BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
                 // Slice(int, int), Substring(int, int)
-                BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundCall call } => call.Method,
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundCall call } => call.Method,
                 // this[int]
-                BoundIndexOrRangePatternIndexerAccess { IndexerAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
                 // array[int]
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,

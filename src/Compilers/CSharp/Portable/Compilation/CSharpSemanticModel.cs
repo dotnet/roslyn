@@ -3427,8 +3427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    return GetSemanticSymbols(((BoundIndexOrRangePatternIndexerAccess)boundNode).IndexerAccess,
+                case BoundKind.ImplicitIndexerAccess:
+                    return GetSemanticSymbols(((BoundImplicitIndexerAccess)boundNode).IndexerOrSliceAccess,
                         boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
 
                 case BoundKind.EventAssignmentOperator:

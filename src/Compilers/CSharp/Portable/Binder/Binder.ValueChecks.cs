@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    return CheckValueKind(node, implicitIndexer.IndexerAccess, valueKind, checkingReceiver, diagnostics);
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)expr;
+                    return CheckValueKind(node, implicitIndexer.IndexerOrSliceAccess, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
@@ -581,10 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
                     throw ExceptionUtilities.Unreachable;
 
-                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     break;
 
                 case BoundKind.DeconstructValuePlaceholder:
@@ -2340,10 +2340,10 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
                     // Note: the LengthOrCountAccess use is purely local
-                    return CheckRefEscape(node, implicitIndexerAccess.IndexerAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckRefEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.FunctionPointerInvocation:
                     var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
@@ -2578,8 +2578,8 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
-                    return ((BoundIndexOrRangeIndexerPatternReceiverPlaceholder)expr).ValEscape;
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    return ((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape;
 
                 case BoundKind.ListPatternReceiverPlaceholder:
                     return ((BoundListPatternReceiverPlaceholder)expr).ValEscape;
@@ -2587,10 +2587,10 @@ moreArguments:
                 case BoundKind.SlicePatternReceiverPlaceholder:
                     return ((BoundSlicePatternReceiverPlaceholder)expr).ValEscape;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
                     // Note: the LengthOrCountAccess use is purely local
-                    return GetValEscape(implicitIndexerAccess.IndexerAccess, scopeOfTheContainingExpression);
+                    return GetValEscape(implicitIndexerAccess.IndexerOrSliceAccess, scopeOfTheContainingExpression);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -2995,8 +2995,8 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangeIndexerPatternReceiverPlaceholder:
-                    if (((BoundIndexOrRangeIndexerPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
@@ -3019,10 +3019,10 @@ moreArguments:
                     }
                     return true;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var implicitIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)expr;
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
                     // Note: the LengthOrCountAccess use is purely local
-                    return CheckValEscape(node, implicitIndexerAccess.IndexerAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckValEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;

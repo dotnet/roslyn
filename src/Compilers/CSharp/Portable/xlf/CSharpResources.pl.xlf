@@ -462,9 +462,9 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać konwersji procedury obsługi ciągu interpolowanego.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do indeksatora z wzorcem System.Index lub System.Range</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">

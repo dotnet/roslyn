@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // array[Index]
 
                             var indexerAccess = e.IndexerAccess;
-                            if (indexerAccess is BoundIndexOrRangePatternIndexerAccess implicitAccess)
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
                             {
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // array[Range]
 
                             var indexerAccess = e.IndexerAccess;
-                            if (indexerAccess is BoundIndexOrRangePatternIndexerAccess implicitAccess)
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
                             {
                                 indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
                             }

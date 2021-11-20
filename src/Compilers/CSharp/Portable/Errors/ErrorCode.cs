@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
         ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
-        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsPatternImplicitIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,

@@ -8055,7 +8055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out BoundIndexOrRangePatternIndexerAccess? implicitIndexerAccess)
+            [NotNullWhen(true)] out BoundImplicitIndexerAccess? implicitIndexerAccess)
         {
             Debug.Assert(receiver is not null);
             implicitIndexerAccess = null;
@@ -8085,7 +8085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool argIsIndex = argIsIndexNotRange.Value();
             var receiverValEscape = GetValEscape(receiver, LocalScopeDepth);
-            var receiverPlaceholder = new BoundIndexOrRangeIndexerPatternReceiverPlaceholder(receiver.Syntax, receiverValEscape, receiver.Type) { WasCompilerGenerated = true };
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiverValEscape, receiver.Type) { WasCompilerGenerated = true };
             if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, receiver, argIsIndex: argIsIndex,
                     out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {
@@ -8096,12 +8096,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(indexerOrSliceAccess is BoundIndexerAccess or BoundCall);
             Debug.Assert(indexerOrSliceAccess.Type is not null);
 
-            implicitIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+            implicitIndexerAccess = new BoundImplicitIndexerAccess(
                 syntax,
                 argument: BindToNaturalType(argument, diagnostics),
                 lengthOrCountAccess: lengthOrCountAccess,
                 receiverPlaceholder,
-                indexerAccess: indexerOrSliceAccess,
+                indexerOrSliceAccess: indexerOrSliceAccess,
                 argumentPlaceholders,
                 indexerOrSliceAccess.Type);
 
@@ -8144,7 +8144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
             [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
-            out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders,
+            out ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
             BindingDiagnosticBag diagnostics)
         {
             // SPEC:
@@ -8176,7 +8176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression receiver,
                 bool argIsIndex,
                 [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
-                out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders,
+                out ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
                 BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(receiver.Type is not null);
@@ -8209,7 +8209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 property.OriginalDefinition is { ParameterCount: 1 } original &&
                                 original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None })
                             {
-                                var intPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                                var intPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
                                 argumentPlaceholders = ImmutableArray.Create(intPlaceholder);
 
                                 var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -8282,10 +8282,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             void makeCall(SyntaxNode syntax, BoundExpression receiver, MethodSymbol method,
-                out BoundExpression indexerOrSliceAccess, out ImmutableArray<BoundIndexOrRangeIndexerPatternValuePlaceholder> argumentPlaceholders)
+                out BoundExpression indexerOrSliceAccess, out ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders)
             {
-                var startArgumentPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
-                var lengthArgumentPlaceholder = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                var startArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                var lengthArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
                 argumentPlaceholders = ImmutableArray.Create(startArgumentPlaceholder, lengthArgumentPlaceholder);
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();

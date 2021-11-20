@@ -8750,19 +8750,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            // The argument will be visited as part of VisitIndexOrRangeIndexerPatternValuePlaceholder (for the first argument)
+            // The argument will be visited as part of VisitImplicitIndexerValuePlaceholder (for the first argument)
             // to maintain proper order of evaluation
             AddPlaceholder(node.ArgumentPlaceholders[0], node.Argument);
-            VisitRvalue(node.IndexerAccess);
+            VisitRvalue(node.IndexerOrSliceAccess);
             RemovePlaceholder(node.ArgumentPlaceholders[0]);
 
             SetResult(node, ResultType, LvalueResultType);
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+        public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
         {
             // We use this placeholder as trigger to visit the Argument of implicit indexer access (after its Receiver)
             if (TryReplacePlaceholder(node, out var unvisited))
@@ -8774,7 +8774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangeIndexerPatternReceiverPlaceholder(BoundIndexOrRangeIndexerPatternReceiverPlaceholder node)
+        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
         {
             SetNotNullResult(node);
             return null;

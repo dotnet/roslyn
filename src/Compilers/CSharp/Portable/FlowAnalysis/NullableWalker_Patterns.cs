@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
                         : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations,
 
-                    BoundIndexOrRangePatternIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerAccess, isSlice),
+                    BoundImplicitIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerOrSliceAccess, isSlice),
                     _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
                 };
             }
