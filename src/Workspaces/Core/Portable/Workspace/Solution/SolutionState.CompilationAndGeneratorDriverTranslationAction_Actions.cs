@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         return generatorDriver.ReplaceAdditionalText(oldText, newText);
                     }
-                    catch (ArgumentException ex) when (FatalError.ReportWithDumpAndCatch(ex))
+                    catch (ArgumentException ex) when (FatalError.ReportAndCatch(ex))
                     {
                         // For some reason, our generator driver has gotten out of sync; by returning null here we force
                         // ourselves to create a new driver in FinalizeCompilationAsync. This is the investigation for

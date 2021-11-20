@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 workspaceRegistrationService,
                 lspMiscellaneousFilesWorkspace,
                 globalOptions,
-                listenerProvider,
                 supportedLanguages,
                 userVisibleServerName,
                 TelemetryServerName);
