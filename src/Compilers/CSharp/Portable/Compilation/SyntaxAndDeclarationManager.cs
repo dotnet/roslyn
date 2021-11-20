@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = PooledDictionary<SyntaxTree, ImmutableArray<LoadDirective>>.GetInstance();
             var loadedSyntaxTreeMapBuilder = PooledDictionary<string, SyntaxTree>.GetInstance();
             var declMapBuilder = PooledDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>>.GetInstance();
-            var declTable = DeclarationTable.Empty;
+            var declTableInput = DeclarationTableInput.Empty;
 
             foreach (var tree in externalSyntaxTrees)
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loadDirectiveMapBuilder,
                     loadedSyntaxTreeMapBuilder,
                     declMapBuilder,
-                    ref declTable);
+                    ref declTableInput);
             }
 
             return new State(
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMapBuilder.ToImmutableDictionaryAndFree(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionaryAndFree(),
                 declMapBuilder.ToImmutableDictionaryAndFree(),
-                declTable);
+                declTableInput);
         }
 
         public SyntaxAndDeclarationManager AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = state.LoadDirectiveMap.ToBuilder();
             var loadedSyntaxTreeMapBuilder = state.LoadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var declTable = state.DeclarationTable;
+            var declTableInput = state.DeclarationTableInput.Reduce();
 
             var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             treesBuilder.AddRange(state.SyntaxTrees);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loadDirectiveMapBuilder,
                         loadedSyntaxTreeMapBuilder,
                         declMapBuilder,
-                        ref declTable);
+                        ref declTableInput);
             }
 
             state = new State(
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMapBuilder.ToImmutableDictionary(),
                 loadedSyntaxTreeMapBuilder.ToImmutableDictionary(),
                 declMapBuilder.ToImmutableDictionary(),
-                declTable);
+                declTableInput);
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
@@ -150,15 +150,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ref DeclarationTable declTable)
+            ref DeclarationTableInput declTableInput)
         {
             var sourceCodeKind = tree.Options.Kind;
             if (sourceCodeKind == SourceCodeKind.Script)
             {
-                AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, ref declTable);
+                AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, ref declTableInput);
             }
 
-            AddSyntaxTreeToDeclarationMapAndTable(tree, scriptClassName, isSubmission, declMapBuilder, ref declTable);
+            AddSyntaxTreeToDeclarationMapAndTable(tree, scriptClassName, isSubmission, declMapBuilder, ref declTableInput);
 
             treesBuilder.Add(tree);
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IDictionary<SyntaxTree, ImmutableArray<LoadDirective>> loadDirectiveMapBuilder,
             IDictionary<string, SyntaxTree> loadedSyntaxTreeMapBuilder,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ref DeclarationTable declTable)
+            ref DeclarationTableInput declTableInput)
         {
             ArrayBuilder<LoadDirective> loadDirectives = null;
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 loadDirectiveMapBuilder,
                                 loadedSyntaxTreeMapBuilder,
                                 declMapBuilder,
-                                ref declTable);
+                                ref declTableInput);
                         }
                         catch (Exception e)
                         {
@@ -271,11 +271,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             string scriptClassName,
             bool isSubmission,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMapBuilder,
-            ref DeclarationTable declTable)
+            ref DeclarationTableInput declTableInput)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, scriptClassName, isSubmission));
             declMapBuilder.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
-            declTable = declTable.AddRootDeclaration(lazyRoot);
+            declTableInput = declTableInput.AddRootDeclaration(lazyRoot);
         }
 
         public SyntaxAndDeclarationManager RemoveSyntaxTrees(HashSet<SyntaxTree> trees)
@@ -310,14 +310,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var declTable = state.DeclarationTable;
+            var declTableInput = state.DeclarationTableInput.Reduce();
             foreach (var tree in syntaxTrees)
             {
                 if (removeSet.Contains(tree))
                 {
                     loadDirectiveMap = loadDirectiveMap.Remove(tree);
                     loadedSyntaxTreeMap = loadedSyntaxTreeMap.Remove(tree.FilePath);
-                    RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTable);
+                    RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTableInput);
                 }
                 else if (!IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMap,
                 loadedSyntaxTreeMap,
                 declMapBuilder.ToImmutableDictionary(),
-                declTable);
+                declTableInput);
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
@@ -430,10 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void RemoveSyntaxTreeFromDeclarationMapAndTable(
             SyntaxTree tree,
             IDictionary<SyntaxTree, Lazy<RootSingleNamespaceDeclaration>> declMap,
-            ref DeclarationTable declTable)
+            ref DeclarationTableInput declTableInput)
         {
             var lazyRoot = declMap[tree];
-            declTable = declTable.RemoveRootDeclaration(lazyRoot);
+            declTableInput = declTableInput.RemoveRootDeclaration(lazyRoot);
             declMap.Remove(tree);
         }
 
@@ -469,12 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loadDirectiveMapBuilder = loadDirectiveMap.ToBuilder();
             var loadedSyntaxTreeMapBuilder = loadedSyntaxTreeMap.ToBuilder();
             var declMapBuilder = state.RootNamespaces.ToBuilder();
-            var declTable = state.DeclarationTable;
+            var declTableInput = state.DeclarationTableInput.Reduce();
             foreach (var tree in removeSet)
             {
                 loadDirectiveMapBuilder.Remove(tree);
                 loadedSyntaxTreeMapBuilder.Remove(tree.FilePath);
-                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTable);
+                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMapBuilder, ref declTableInput);
             }
             removeSet.Free();
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loadDirectiveMapBuilder,
                     loadedSyntaxTreeMapBuilder,
                     declMapBuilder,
-                    ref declTable);
+                    ref declTableInput);
 
                 for (var i = oldOrdinal + 1; i < syntaxTrees.Length; i++)
                 {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, ref declTable);
+                AddSyntaxTreeToDeclarationMapAndTable(newTree, this.ScriptClassName, this.IsSubmission, declMapBuilder, ref declTableInput);
 
                 if (newLoadDirectivesSyntax.Any())
                 {
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 loadDirectiveMapBuilder.ToImmutable(),
                 loadedSyntaxTreeMapBuilder.ToImmutable(),
                 declMapBuilder.ToImmutable(),
-                declTable);
+                declTableInput);
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return externalSyntaxTrees.Any(t => t.HasReferenceOrLoadDirectives());
             }
 
-            return state.DeclarationTable.ReferenceDirectives.Any();
+            return state.DeclarationTableInput.GetDeclarationTable().ReferenceDirectives.Any();
         }
 
         private static bool TryGetLoadedSyntaxTree(ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap, LoadDirective directive, out SyntaxTree loadedTree)

@@ -408,12 +408,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Same(cachedStateAfterFirstChange, cachedStateAfterSecondChange);
 
-            static object GetDeclarationManagerCachedStateForUnchangingTrees(Compilation compilation)
+            static object? GetDeclarationManagerCachedStateForUnchangingTrees(Compilation compilation)
             {
                 var syntaxAndDeclarationsManager = compilation.GetFieldValue("_syntaxAndDeclarations");
                 var state = syntaxAndDeclarationsManager.GetType().GetMethod("GetLazyState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(syntaxAndDeclarationsManager, null);
-                var declarationTable = state.GetFieldValue("DeclarationTable");
-                return declarationTable.GetFieldValue("_cache");
+                var declarationTable = state.GetFieldValue("DeclarationTableInput")?.GetFieldValue("_finalTable");
+                return declarationTable?.GetFieldValue("_cache");
             }
 
             static async Task<Project> MakeChangesToDocument(Project project)
