@@ -159,9 +159,7 @@ namespace Analyzer.Utilities
             }
         }
 
-#pragma warning disable IDE0051 // Remove unused private members - Used in some projects that include this shared project.
         private static TEnum GetNonFlagsEnumOptionValue<TEnum>(
-#pragma warning restore IDE0051 // Remove unused private members
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
