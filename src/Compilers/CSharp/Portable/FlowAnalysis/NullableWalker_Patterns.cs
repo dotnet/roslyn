@@ -516,8 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
-                                case BoundDagAssignmentEvaluation e:
-                                    break;
+                                case BoundDagAssignmentEvaluation:
+                                    throw ExceptionUtilities.Unreachable;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }

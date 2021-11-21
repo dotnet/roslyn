@@ -231,6 +231,289 @@ public class X
     }
 
     [Fact]
+    [WorkItem(57731, "https://github.com/dotnet/roslyn/issues/57731")]
+    public void ListPattern_Codegen()
+    {
+        var source = @"
+public class X
+{
+    static int Test0(int[][] a)
+    {
+        switch (a)
+        {
+            case [.., [.., 1, 2, 3]]:
+            case [[1, 2, 3, ..], ..]:
+                return 0;
+        }
+        return 1;
+    }
+    static int Test1(int[] x)
+    {
+        switch (x)
+        {
+            case [.., 1] and [1, ..]: return 0;
+        }
+
+        return 1;
+    }
+    static int Test2(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..] and [.., 1]: return 0;
+        }
+
+        return 3;
+    }
+    static int Test3(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+        }
+
+        return 3;
+    }
+    static int Test4(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+            case [6, .., 7]: return 8;
+        }
+
+        return 3;
+    }
+}
+";
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        AssertEx.Multiple(
+            () => verifier.VerifyIL("X.Test0", @"
+{
+  // Code size      100 (0x64)
+  .maxstack  3
+  .locals init (int[] V_0,
+                int[] V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0062
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0062
+  IL_000c:  ldarg.0
+  IL_000d:  dup
+  IL_000e:  ldlen
+  IL_000f:  conv.i4
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldelem.ref
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  brfalse.s  IL_003e
+  IL_0017:  ldloc.0
+  IL_0018:  callvirt   ""int System.Array.Length.get""
+  IL_001d:  ldc.i4.3
+  IL_001e:  blt.s      IL_003e
+  IL_0020:  ldloc.0
+  IL_0021:  dup
+  IL_0022:  ldlen
+  IL_0023:  conv.i4
+  IL_0024:  ldc.i4.3
+  IL_0025:  sub
+  IL_0026:  ldelem.i4
+  IL_0027:  ldc.i4.1
+  IL_0028:  bne.un.s   IL_003e
+  IL_002a:  ldloc.0
+  IL_002b:  dup
+  IL_002c:  ldlen
+  IL_002d:  conv.i4
+  IL_002e:  ldc.i4.2
+  IL_002f:  sub
+  IL_0030:  ldelem.i4
+  IL_0031:  ldc.i4.2
+  IL_0032:  bne.un.s   IL_003e
+  IL_0034:  ldloc.0
+  IL_0035:  dup
+  IL_0036:  ldlen
+  IL_0037:  conv.i4
+  IL_0038:  ldc.i4.1
+  IL_0039:  sub
+  IL_003a:  ldelem.i4
+  IL_003b:  ldc.i4.3
+  IL_003c:  beq.s      IL_0060
+  IL_003e:  ldarg.0
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldelem.ref
+  IL_0041:  stloc.1
+  IL_0042:  ldloc.1
+  IL_0043:  brfalse.s  IL_0062
+  IL_0045:  ldloc.1
+  IL_0046:  callvirt   ""int System.Array.Length.get""
+  IL_004b:  ldc.i4.3
+  IL_004c:  blt.s      IL_0062
+  IL_004e:  ldloc.1
+  IL_004f:  ldc.i4.0
+  IL_0050:  ldelem.i4
+  IL_0051:  ldc.i4.1
+  IL_0052:  bne.un.s   IL_0062
+  IL_0054:  ldloc.1
+  IL_0055:  ldc.i4.1
+  IL_0056:  ldelem.i4
+  IL_0057:  ldc.i4.2
+  IL_0058:  bne.un.s   IL_0062
+  IL_005a:  ldloc.1
+  IL_005b:  ldc.i4.2
+  IL_005c:  ldelem.i4
+  IL_005d:  ldc.i4.3
+  IL_005e:  bne.un.s   IL_0062
+  IL_0060:  ldc.i4.0
+  IL_0061:  ret
+  IL_0062:  ldc.i4.1
+  IL_0063:  ret
+}"),
+            () => verifier.VerifyIL("X.Test1", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_001e
+  IL_000c:  ldarg.0
+  IL_000d:  dup
+  IL_000e:  ldlen
+  IL_000f:  conv.i4
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldelem.i4
+  IL_0013:  ldc.i4.1
+  IL_0014:  bne.un.s   IL_001e
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldelem.i4
+  IL_0019:  ldc.i4.1
+  IL_001a:  bne.un.s   IL_001e
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
+}"),
+            () => verifier.VerifyIL("X.Test2", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_001e
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldelem.i4
+  IL_000f:  ldc.i4.2
+  IL_0010:  bne.un.s   IL_001e
+  IL_0012:  ldarg.0
+  IL_0013:  dup
+  IL_0014:  ldlen
+  IL_0015:  conv.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  sub
+  IL_0018:  ldelem.i4
+  IL_0019:  ldc.i4.1
+  IL_001a:  bne.un.s   IL_001e
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+  IL_001e:  ldc.i4.3
+  IL_001f:  ret
+}"),
+            () => verifier.VerifyIL("X.Test3", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0022
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0022
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldelem.i4
+  IL_000f:  ldc.i4.2
+  IL_0010:  beq.s      IL_001e
+  IL_0012:  ldarg.0
+  IL_0013:  dup
+  IL_0014:  ldlen
+  IL_0015:  conv.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  sub
+  IL_0018:  ldelem.i4
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_0020
+  IL_001c:  br.s       IL_0022
+  IL_001e:  ldc.i4.4
+  IL_001f:  ret
+  IL_0020:  ldc.i4.5
+  IL_0021:  ret
+  IL_0022:  ldc.i4.3
+  IL_0023:  ret
+}"),
+            () => verifier.VerifyIL("X.Test4", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0030
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0030
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldelem.i4
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.2
+  IL_0012:  beq.s      IL_002a
+  IL_0014:  ldarg.0
+  IL_0015:  dup
+  IL_0016:  ldlen
+  IL_0017:  conv.i4
+  IL_0018:  ldc.i4.1
+  IL_0019:  sub
+  IL_001a:  ldelem.i4
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.i4.1
+  IL_001e:  beq.s      IL_002c
+  IL_0020:  ldloc.0
+  IL_0021:  ldc.i4.6
+  IL_0022:  bne.un.s   IL_0030
+  IL_0024:  ldloc.1
+  IL_0025:  ldc.i4.7
+  IL_0026:  beq.s      IL_002e
+  IL_0028:  br.s       IL_0030
+  IL_002a:  ldc.i4.4
+  IL_002b:  ret
+  IL_002c:  ldc.i4.5
+  IL_002d:  ret
+  IL_002e:  ldc.i4.8
+  IL_002f:  ret
+  IL_0030:  ldc.i4.3
+  IL_0031:  ret
+}
+")
+        );
+    }
+
+    [Fact]
     public void ListPattern_LangVer()
     {
         var source = @"
@@ -5535,16 +5818,15 @@ class C
                 );
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [9]
+@"[0]: t0 != null ? [1] : [8]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [9]
+[2]: t1 >= 1 ? [3] : [8]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 42 ? [5] : [6]
 [5]: leaf `case [..,42]:`
-[6]: t1 == 1 ? [7] : [9]
+[6]: t1 == 1 ? [7] : [8]
 [7]: t3 = t0[0]; [8]
-[8]: t3 <-- t2; [9]
-[9]: leaf <break> `switch (a)
+[8]: leaf <break> `switch (a)
         {
             case [..,42]:
             case [42]:
@@ -5577,28 +5859,25 @@ class C
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t1 = t0.a; [1]
-[1]: t1 != null ? [2] : [22]
+[1]: t1 != null ? [2] : [19]
 [2]: t2 = t1.Length; [3]
-[3]: t2 >= 1 ? [4] : [22]
+[3]: t2 >= 1 ? [4] : [19]
 [4]: t3 = t1[-1]; [5]
-[5]: t3 == 42 ? [6] : [19]
+[5]: t3 == 42 ? [6] : [17]
 [6]: t4 = t0.b; [7]
-[7]: t4 != null ? [8] : [22]
+[7]: t4 != null ? [8] : [19]
 [8]: t5 = t4.Length; [9]
-[9]: t5 >= 1 ? [10] : [22]
+[9]: t5 >= 1 ? [10] : [19]
 [10]: t6 = t4[-1]; [11]
 [11]: t6 == 43 ? [12] : [13]
 [12]: leaf `case ([.., 42], [.., 43]):`
-[13]: t2 == 1 ? [14] : [22]
+[13]: t2 == 1 ? [14] : [19]
 [14]: t7 = t1[0]; [15]
-[15]: t7 <-- t3; [16]
-[16]: t5 == 1 ? [17] : [22]
-[17]: t9 = t4[0]; [18]
-[18]: t9 <-- t6; [22]
-[19]: t2 == 1 ? [20] : [22]
-[20]: t7 = t1[0]; [21]
-[21]: t7 <-- t3; [22]
-[22]: leaf <break> `switch (a, b)
+[15]: t5 == 1 ? [16] : [19]
+[16]: t8 = t4[0]; [19]
+[17]: t2 == 1 ? [18] : [19]
+[18]: t7 = t1[0]; [19]
+[19]: leaf <break> `switch (a, b)
         {
             case ([.., 42], [.., 43]):
             case ([42], [43]):
@@ -5664,20 +5943,19 @@ class C
             );
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [13]
+@"[0]: t0 != null ? [1] : [12]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 2 ? [3] : [13]
+[2]: t1 >= 2 ? [3] : [12]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 1 ? [5] : [13]
+[4]: t2 == 1 ? [5] : [12]
 [5]: t3 = t0[-1]; [6]
 [6]: t3 == 3 ? [7] : [8]
 [7]: leaf `case [1, .., 3]:`
-[8]: t1 == 3 ? [9] : [13]
+[8]: t1 == 3 ? [9] : [12]
 [9]: t4 = t0[1]; [10]
-[10]: t4 == 2 ? [11] : [13]
+[10]: t4 == 2 ? [11] : [12]
 [11]: t5 = t0[2]; [12]
-[12]: t5 <-- t3; [13]
-[13]: leaf <break> `switch (a)
+[12]: leaf <break> `switch (a)
         {
             case [1, .., 3]:
             case [1, 2, 3]:
@@ -5843,26 +6121,45 @@ class C
             //             case [var unreachable]:
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
 
-        VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [10]
+        AssertEx.Multiple(
+            () => VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [9]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [10]
+[2]: t1 >= 1 ? [3] : [9]
 [3]: t2 = t0[0]; [4]
 [4]: t2 == null ? [5] : [6]
 [5]: leaf `case [null, ..]:`
 [6]: t3 = t0[-1]; [7]
-[7]: t1 == 1 ? [8] : [9]
-[8]: t3 <-- t2; [11]
-[9]: t3 == null ? [10] : [11]
-[10]: leaf <break> `switch (a)
+[7]: t1 == 1 ? [10] : [8]
+[8]: t3 == null ? [9] : [10]
+[9]: leaf <break> `switch (a)
         {
             case [null, ..]:
             case [.., not null]:
             case [var unreachable]:
                     break;
         }`
-[11]: leaf `case [.., not null]:`
-");
+[10]: leaf `case [.., not null]:`
+", index: 0),
+            () => VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [9]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [9]
+[3]: t2 = t0[0]; [4]
+[4]: t2 is string ? [5] : [6]
+[5]: leaf `case [string, ..]:`
+[6]: t3 = t0[-1]; [7]
+[7]: t1 == 1 ? [10] : [8]
+[8]: t3 is string ? [9] : [10]
+[9]: leaf <break> `switch (a)
+        {
+            case [string, ..]:
+            case [.., not string]:
+            case [var unreachable]:
+                    break;
+        }`
+[10]: leaf `case [.., not string]:`
+", index: 1));
     }
 
     [Fact]
@@ -5894,18 +6191,16 @@ class C
         CompileAndVerify(comp, expectedOutput: "2");
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [11]
+@"[0]: t0 != null ? [1] : [9]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 2 ? [3] : [11]
+[2]: t1 >= 2 ? [3] : [9]
 [3]: t2 = t0[1]; [4]
 [4]: t2 > 0 ? [5] : [6]
 [5]: leaf `case [_, > 0, ..]:`
 [6]: t3 = t0[-2]; [7]
-[7]: t1 == 3 ? [8] : [9]
-[8]: t3 <-- t2; [10]
-[9]: t3 <= 0 ? [10] : [11]
-[10]: leaf `case [.., <= 0, _]:`
-[11]: leaf `default`
+[7]: t3 <= 0 ? [8] : [9]
+[8]: leaf `case [.., <= 0, _]:`
+[9]: leaf `default`
 ");
     }
 
@@ -6060,22 +6355,21 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 != null ? [1] : [15]
+@"[0]: t0 != null ? [1] : [14]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [13]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 > 0 ? [5] : [6]
 [5]: leaf <arm> `[.., >0] => 1`
 [6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
-[8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf <arm> `[<0, ..] => 2`
-[12]: t3 == 0 ? [13] : [14]
-[13]: leaf <arm> `[0, ..] => 3`
-[14]: leaf <arm> `{ Length: not 1 } => 4`
-[15]: leaf <default> `a switch
+[7]: t1 == 1 ? [8] : [9]
+[8]: t3 < 0 ? [10] : [12]
+[9]: t3 < 0 ? [10] : [11]
+[10]: leaf <arm> `[<0, ..] => 2`
+[11]: t3 == 0 ? [12] : [13]
+[12]: leaf <arm> `[0, ..] => 3`
+[13]: leaf <arm> `{ Length: not 1 } => 4`
+[14]: leaf <default> `a switch
         {
             [.., >0] => 1,
             [<0, ..] => 2,
@@ -6137,33 +6431,27 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [26]
+@"[0]: t0 != null ? [1] : [20]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [26]
+[2]: t1 >= 1 ? [3] : [20]
 [3]: t2 = t0[-1]; [4]
-[4]: t2 != null ? [5] : [23]
+[4]: t2 != null ? [5] : [18]
 [5]: t3 = t2.Length; [6]
-[6]: t3 >= 1 ? [7] : [18]
+[6]: t3 >= 1 ? [7] : [15]
 [7]: t4 = t2[-1]; [8]
 [8]: t4 == 42 ? [9] : [10]
 [9]: leaf `case [.., [.., 42]]:`
-[10]: t1 == 1 ? [11] : [26]
+[10]: t1 == 1 ? [11] : [20]
 [11]: t5 = t0[0]; [12]
-[12]: t5 <-- t2; [13]
-[13]: t7 = t5.Length; [14]
-[14]: t7 <-- t3; [15]
-[15]: t7 == 1 ? [16] : [26]
-[16]: t9 = t5[0]; [17]
-[17]: t9 <-- t4; [26]
-[18]: t1 == 1 ? [19] : [26]
+[12]: t6 = t5.Length; [13]
+[13]: t6 == 1 ? [14] : [20]
+[14]: t7 = t5[0]; [20]
+[15]: t1 == 1 ? [16] : [20]
+[16]: t5 = t0[0]; [17]
+[17]: t6 = t5.Length; [20]
+[18]: t1 == 1 ? [19] : [20]
 [19]: t5 = t0[0]; [20]
-[20]: t5 <-- t2; [21]
-[21]: t7 = t5.Length; [22]
-[22]: t7 <-- t3; [26]
-[23]: t1 == 1 ? [24] : [26]
-[24]: t5 = t0[0]; [25]
-[25]: t5 <-- t2; [26]
-[26]: leaf <break> `switch (a)
+[20]: leaf <break> `switch (a)
         {
             case [.., [.., 42]]:
             case [[42]]:
@@ -6453,21 +6741,20 @@ class C
                 //             case [_]:         
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [14]
+@"[0]: t0 != null ? [1] : [13]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [13]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 0 ? [5] : [6]
 [5]: leaf `case [.., 0]:`
 [6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
-[8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf `case [<0, ..]:`
-[12]: t2 > 0 ? [13] : [14]
-[13]: leaf `case [.., >0]:`
-[14]: leaf <break> `switch (a)
+[7]: t1 == 1 ? [8] : [9]
+[8]: t3 < 0 ? [10] : [12]
+[9]: t3 < 0 ? [10] : [11]
+[10]: leaf `case [<0, ..]:`
+[11]: t2 > 0 ? [12] : [13]
+[12]: leaf `case [.., >0]:`
+[13]: leaf <break> `switch (a)
         {
             case [.., 0]:
             case [<0, ..]:
