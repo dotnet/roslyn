@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly Dictionary<string, DocumentId> _fileToDocumentMap = new();
+        private readonly Dictionary<string, (DocumentId documentId, Encoding encoding)> _fileToDocumentMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: text.Encoding ?? Encoding.UTF8))
+                var encoding = text.Encoding ?? Encoding.UTF8;
+                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: encoding))
                 {
                     text.Write(textWriter, cancellationToken);
                 }
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Mark read-only
                 new FileInfo(tempFilePath).IsReadOnly = true;
 
-                _fileToDocumentMap[tempFilePath] = document.Id;
+                _fileToDocumentMap[tempFilePath] = (document.Id, encoding);
             }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
@@ -234,9 +235,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
             {
-                workspace.OnDocumentOpened(documentId, sourceTextContainer);
+                workspace.OnDocumentOpened(value.documentId, sourceTextContainer);
 
                 return true;
             }
@@ -246,15 +247,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
             {
-                var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-
-                // This method is ultimately called from an RDT event on the UI thread, so we get the text
-                // synchronously. We need the text to preserve the encoding.
-                var encoding = document.GetTextSynchronously(CancellationToken.None).Encoding;
-
-                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, encoding ?? Encoding.UTF8));
+                workspace.OnDocumentClosed(value.documentId, new FileTextLoader(filePath, value.encoding));
 
                 return true;
             }
