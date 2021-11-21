@@ -29,7 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var accessor in accessorList.Accessors)
                 {
-                    var containsFieldKeyword = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!.Expression).DescendantTokens()
+                    var body = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody);
+                    if (body is null)
+                    {
+                        continue;
+                    }
+
+                    var containsFieldKeyword = body.DescendantTokens()
                         .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && !t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
                     if (containsFieldKeyword)
                     {
