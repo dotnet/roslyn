@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var q = from r in propertyReferences
                     where r.Definition is IPropertySymbol
                     from loc in r.Locations
-                    where loc.Location.IsInSource
                     select (property: (IPropertySymbol)r.Definition, location: loc);
 
             var referencesByDocument = q.ToLookup(t => t.location.Document);
