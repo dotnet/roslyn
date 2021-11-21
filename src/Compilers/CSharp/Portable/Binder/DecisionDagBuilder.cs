@@ -699,13 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode).Rewrite(
-                static (node, replacement) => !node.WasCompilerGenerated ? BoundDecisionDag.TrivialReplacement(node, replacement) : node switch
-                {
-                    BoundEvaluationDecisionDagNode evalNode => replacement(evalNode.Next),
-                    BoundTestDecisionDagNode testNode => replacement(testNode.WhenFalse),
-                    _ => throw ExceptionUtilities.Unreachable
-                });
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode).RemoveCompilerGeneratedNodes();
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share the same ID.
