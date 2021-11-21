@@ -1519,7 +1519,7 @@
     <Field Name="Index" Type="int"/>
   </Node>
 
-  <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
+  <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation" HasValidate="true">
     <Field Name="IndexerType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
 
@@ -1539,7 +1539,7 @@
     <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder"/>
    </Node>
 
-  <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
+  <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation" HasValidate="true">
     <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
@@ -2066,7 +2066,7 @@
     <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true">
+  <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <!-- An expression with type Index or Range -->
@@ -2242,7 +2242,7 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <Node Name="BoundListPattern" Base="BoundObjectPattern">
+  <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
     <Field Name="LengthAccess" Type="BoundExpression?" SkipInVisitor="true"/>
@@ -2260,7 +2260,7 @@
     <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?" SkipInVisitor="true"/>
   </Node>
 
-  <Node Name="BoundSlicePattern" Base="BoundPattern">
+  <Node Name="BoundSlicePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Pattern" Type="BoundPattern?"/>
 
     <!--

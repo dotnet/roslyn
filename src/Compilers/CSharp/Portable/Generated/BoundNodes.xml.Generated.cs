@@ -5453,7 +5453,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IndexerAccess = indexerAccess;
             this.ReceiverPlaceholder = receiverPlaceholder;
             this.ArgumentPlaceholder = argumentPlaceholder;
+            Validate();
         }
+
+        private partial void Validate();
 
 
         public TypeSymbol IndexerType { get; }
@@ -5502,7 +5505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IndexerAccess = indexerAccess;
             this.ReceiverPlaceholder = receiverPlaceholder;
             this.ArgumentPlaceholder = argumentPlaceholder;
+            Validate();
         }
+
+        private partial void Validate();
 
 
         public TypeSymbol SliceType { get; }
@@ -7338,7 +7344,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReceiverPlaceholder = receiverPlaceholder;
             this.IndexerOrSliceAccess = indexerOrSliceAccess;
             this.ArgumentPlaceholders = argumentPlaceholders;
+            Validate();
         }
+
+        private partial void Validate();
 
 
         public new TypeSymbol Type => base.Type!;
@@ -8046,7 +8055,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IndexerAccess = indexerAccess;
             this.ReceiverPlaceholder = receiverPlaceholder;
             this.ArgumentPlaceholder = argumentPlaceholder;
+            Validate();
         }
+
+        private partial void Validate();
 
 
         public ImmutableArray<BoundPattern> Subpatterns { get; }
@@ -8088,7 +8100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IndexerAccess = indexerAccess;
             this.ReceiverPlaceholder = receiverPlaceholder;
             this.ArgumentPlaceholder = argumentPlaceholder;
+            Validate();
         }
+
+        private partial void Validate();
 
 
         public BoundPattern? Pattern { get; }

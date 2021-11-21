@@ -471,8 +471,23 @@ namespace BoundTreeGenerator
                                 WriteLine("this.{0} = {1};", field.Name, FieldNullHandling(node, field.Name) == NullHandling.Always ? "null" : ToCamelCase(field.Name));
                             }
                         }
+
+                        bool hasValidate = HasValidate(node);
+
+                        if (hasValidate)
+                        {
+                            WriteLine("Validate();");
+                        }
+
                         Unbrace();
                         Blank();
+
+                        if (hasValidate)
+                        {
+                            WriteLine("private partial void Validate();");
+                            Blank();
+                        }
+
                         break;
                     }
 

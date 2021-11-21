@@ -29,5 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver is not null);
             return receiver;
         }
+
+        private partial void Validate()
+        {
+            Debug.Assert(LengthOrCountAccess is BoundPropertyAccess or BoundLocal);
+            Debug.Assert(IndexerOrSliceAccess is BoundIndexerAccess or BoundCall);
+        }
     }
 }
