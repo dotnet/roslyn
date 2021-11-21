@@ -7975,7 +7975,6 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                //Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get"));
         }

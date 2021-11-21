@@ -4,7 +4,9 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
@@ -18,6 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     */
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
+        private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
+        {
+            if (!ExecutionConditionUtil.IsDesktop)
+            {
+                // Hacky. We could otherwise run the tests only when IsDesktop is true, similar to what's done in CodeGenDisplayClassOptimizationTests
+                expected = expected.Replace("[mscorlib]", "[netstandard]");
+            }
+
+            CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+        }
+
         [Fact]
         public void TestSimpleCase()
         {
@@ -27,20 +40,20 @@ public class C
     public string P { get; set => field = value; }
 }
 ");
-            CompileAndVerify(comp).VerifyTypeIL("C", @"
+            VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private string '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
 	.method public hidebysig specialname 
 		instance string get_P () cil managed 
 	{
-		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2050
@@ -55,7 +68,7 @@ public class C
 			string 'value'
 		) cil managed 
 	{
-		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
 		// Method begins at RVA 0x2058
@@ -73,7 +86,7 @@ public class C
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties
@@ -95,13 +108,13 @@ public class C
     public string P { get => field; }
 }
 ");
-            CompileAndVerify(comp).VerifyTypeIL("C", @"
+            VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private initonly string '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -122,7 +135,7 @@ public class C
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties
@@ -162,7 +175,7 @@ public class C : B
     public string P { get => field; }
 }
 ");
-            CompileAndVerify(comp).VerifyTypeIL("C", @"
+            VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends B
 {
@@ -256,11 +269,11 @@ public class C
     }
 }
 ");
-            CompileAndVerify(comp).VerifyTypeIL("C", @"
+            VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
-	.custom instance void [netstandard]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+	.custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
 		01 00 04 49 74 65 6d 00 00
 	)
 	// Fields
@@ -299,7 +312,7 @@ public class C
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties
@@ -326,13 +339,13 @@ public class C
         set => _ = i;
     }
 }
-");
-            CompileAndVerify(comp).VerifyTypeIL("C", @"
+", options: TestOptions.ReleaseDll);
+            VerifyTypeIL(comp, "C", @"
 
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
-	.custom instance void [netstandard]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+	.custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
 		01 00 04 49 74 65 6d 00 00
 	)
 	// Methods
@@ -365,7 +378,7 @@ public class C
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties
@@ -395,7 +408,6 @@ public class C
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
-
         }
     }
 }
