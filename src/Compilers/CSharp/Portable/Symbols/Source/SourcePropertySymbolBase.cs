@@ -194,7 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
                                               isCreatedForfieldKeyword: isCreatedForFieldKeyword);
                 InterlockedOperations.Initialize(ref _lazyBackingFieldSymbol, backingField);
-                _propertyFlags |= Flags.IsAutoProperty;
+                if (isCreatedForFieldKeyword) // If not created for field keyword, it's set in SourcePropertySymbolBase ctor.
+                {
+                    _propertyFlags |= Flags.IsAutoProperty; // PROTOTYPE(semi-auto-props): Revise precisely when we need to set this.
+                }
             }
 
             return _lazyBackingFieldSymbol;
