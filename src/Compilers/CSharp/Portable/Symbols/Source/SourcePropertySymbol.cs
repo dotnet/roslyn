@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics)
         {
-            if (IsAutoProperty)
+            if (isAutoProperty)
             {
                 Binder.CheckFeatureAvailability(
                     syntax,

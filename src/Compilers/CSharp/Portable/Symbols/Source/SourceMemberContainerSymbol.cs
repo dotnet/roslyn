@@ -1390,20 +1390,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SymbolKind.Property:
                         if (m is SourcePropertySymbol propertySymbol)
                         {
-                            // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
-                            if (propertySymbol.BackingField is null &&
-                                propertySymbol.ContainsFieldKeyword)
-                            {
-                                if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
-                                {
-                                    getMethod.TryGetBodyBinder()?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
-                                }
-                                if (propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
-                                {
-                                    setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
-                                }
-                            }
-
                             FieldSymbol? backingField = propertySymbol.BackingField;
                             if (backingField is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true })
                             {
@@ -4402,7 +4388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            FieldSymbol backingField = property.NonFieldKeywordBackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:

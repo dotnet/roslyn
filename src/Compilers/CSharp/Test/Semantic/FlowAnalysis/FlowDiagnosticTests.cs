@@ -1242,6 +1242,8 @@ public struct S
 struct Program
 {
     public int X { get; private set; }
+    public int X2 { get => field; private set => value = field; }
+
     public Program(int x)
     {
     }
@@ -1251,8 +1253,13 @@ struct Program
 }";
             CreateCompilation(program)
                 .VerifyDiagnostics(
-                // (5,12): error CS0843: Backing field for automatically implemented property 'Program.X' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X"));
+                 // (7,12): error CS0843: Auto-implemented property 'Program.X2' must be fully assigned before control is returned to the caller.
+                 //     public Program(int x)
+                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X2").WithLocation(7, 12),
+                 // (7,12): error CS0843: Auto-implemented property 'Program.X' must be fully assigned before control is returned to the caller.
+                 //     public Program(int x)
+                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X").WithLocation(7, 12)
+   );
         }
 
         [Fact]
@@ -1264,6 +1271,10 @@ struct Program
     internal static long Q { get; } = 10;
     public decimal R { get; } = 300;
 
+    public int P2 { get => field; set => field = value; } = 1;
+    internal static long Q2 { get => field; } = 10;
+    public decimal R2 { get => field; } = 300;
+
     public S(int i) {}
 }";
 
@@ -1274,7 +1285,13 @@ struct Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
                 // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public decimal R { get; } = 300;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20),
+                // (7,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int P2 { get => field; set => field = value; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P2").WithArguments("struct field initializers", "10.0").WithLocation(7, 16),
+                // (9,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R2 { get => field; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R2").WithArguments("struct field initializers", "10.0").WithLocation(9, 20));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
@@ -1286,20 +1303,27 @@ struct Program
             var text = @"struct S
 {
     public int P { get; private set; }
+    public int P2 { get => field; private set => field = value; }
     internal static long Q { get; } = 10;
+    internal static long Q2 { get => field; } = 10;
     public decimal R { get; } = 300;
+    public decimal R2 { get => field; } = 300;
 
     public S(int p)
     {
         P = p;
+        P2 = p;
     }
 }";
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (7,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public decimal R { get; } = 300;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(7, 20),
+                // (8,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R2 { get => field; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R2").WithArguments("struct field initializers", "10.0").WithLocation(8, 20));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
@@ -1315,16 +1339,22 @@ struct Program
     {
         public int i;
         public int ii { get; }
+        public int i2 { get => field; }
     }
 
     S1 x { get; }
     S1 x2 { get; }
 
+    S1 y { get => field; }
+    S1 y2 { get => field; }
+
 
     public Program(int dummy)
     {
         x.i = 1;
+        y.i = 1;
         System.Console.WriteLine(x2.ii);
+        System.Console.WriteLine(y2.ii);
     }
 
     public void Goo()
@@ -1339,21 +1369,37 @@ struct Program
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    // (20,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(20, 9),
+    // (21,9): error CS1612: Cannot modify the return value of 'Program.y' because it is not a variable
+    //         y.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "y").WithArguments("Program.y").WithLocation(21, 9),
+    // (20,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(20, 9),
+    // (21,9): error CS0170: Use of possibly unassigned field 'i'
+    //         y.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "y.i").WithArguments("i").WithLocation(21, 9),
+    // (22,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(22, 34),
+    // (23,34): error CS8079: Use of possibly unassigned auto-implemented property 'y2'
+    //         System.Console.WriteLine(y2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "y2").WithArguments("y2").WithLocation(23, 34),
+    // (18,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(18, 12),
+    // (18,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(18, 12),
+    // (18,12): error CS0843: Auto-implemented property 'Program.y' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y").WithLocation(18, 12),
+    // (18,12): error CS0843: Auto-implemented property 'Program.y2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y2").WithLocation(18, 12)
+    );
         }
 
         [Fact]
@@ -1366,16 +1412,23 @@ struct Program
     {
         public int i;
         public int ii { get; }
+        public int iii { get => field; }
     }
 
     S1 x { get; set;}
     S1 x2 { get; set;}
 
+    S1 y { get => field; set => field = value; }
+    S1 y2 { get => field; set => field = value; }
 
     public Program(int dummy)
     {
         x.i = 1;
+        y.i = 1;
         System.Console.WriteLine(x2.ii);
+        System.Console.WriteLine(x2.iii);
+        System.Console.WriteLine(y2.ii);
+        System.Console.WriteLine(y2.iii);
     }
 
     public void Goo()
@@ -1388,23 +1441,39 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text); // PROTOTYPE(semi-auto-props) TODO: ERR_UnassignedThisAutoProperty is showing only for x and y
             comp.VerifyDiagnostics(
-    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    // (19,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(19, 9),
+    // (20,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         y.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "y").WithArguments("Program.y").WithLocation(20, 9),
+    // (19,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
-    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(19, 9),
+    // (20,9): error CS0170: Use of possibly unassigned field 'i'
+    //         y.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "y.i").WithArguments("i").WithLocation(20, 9),
+    // (21,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
-    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(21, 34),
+    // (23,34): error CS8079: Use of possibly unassigned auto-implemented property 'y2'
+    //         System.Console.WriteLine(y2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "y2").WithArguments("y2").WithLocation(23, 34),
+    // (17,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(17, 12),
+    // (17,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(17, 12),
+    // (17,12): error CS0843: Auto-implemented property 'Program.y' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y").WithLocation(17, 12),
+    // (17,12): error CS0843: Auto-implemented property 'Program.y2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y2").WithLocation(17, 12)
+    );
         }
 
         [Fact]
@@ -1417,19 +1486,28 @@ struct Program
     {
         public int i;
         public int ii { get; }
+        public int iii { get => field; }
     }
 
     S1 x { get; set;}
     S1 x2 { get;}
 
+    S1 y { get => field; set => field = value;}
+    S1 y2 { get => field;}
 
     public Program(int dummy)
     {
         x = new S1();
         x.i += 1;
 
+        y = new S1();
+        y.i += 1;
+
         x2 = new S1();
         x2.i += 1;
+
+        y2 = new S1();
+        y2.i += 1;
     }
 
     public void Goo()
@@ -1444,14 +1522,22 @@ struct Program
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-    // (17,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    // (20,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i += 1;
-    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(17, 9),
-    // (20,9): error CS1612: Cannot modify the return value of 'Program.x2' because it is not a variable
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(20, 9),
+    // (23,9): error CS1612: Cannot modify the return value of 'Program.y' because it is not a variable
+    //         y.i += 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "y").WithArguments("Program.y").WithLocation(23, 9),
+    // (26,9): error CS1612: Cannot modify the return value of 'Program.x2' because it is not a variable
     //         x2.i += 1;
-    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x2").WithArguments("Program.x2").WithLocation(20, 9)
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x2").WithArguments("Program.x2").WithLocation(26, 9),
+    // (29,9): error CS1612: Cannot modify the return value of 'Program.y2' because it is not a variable
+    //         y2.i += 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "y2").WithArguments("Program.y2").WithLocation(29, 9)
                 );
         }
+
+        // PROTOTYPE(semi-auto-props): Update the following tests for semi auto props
 
         [Fact]
         public void AutoPropInitialization7()
