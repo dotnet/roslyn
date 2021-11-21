@@ -6692,6 +6692,7 @@ int[] a = null;
 _ = a is { Length: -1 };
 ";
         var comp = CreateCompilation(src);
+        comp.MakeTypeMissing(WellKnownType.System_Index);
         comp.VerifyDiagnostics();
     }
 
@@ -7637,5 +7638,88 @@ if (new[] {data} is {pattern})
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+    }
+
+    [Fact]
+    public void ListPattern_NotCountableInterface()
+    {
+        var source = @"
+_ = new C() is INotCountable and [var x, .. var y];
+
+interface INotCountable { }
+class C : INotCountable
+{
+    public int Length { get => 0; }
+    public int this[System.Index i] { get => 0; }
+    public int this[System.Range r] { get => 0; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics(
+            // (2,34): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("INotCountable").WithLocation(2, 34),
+            // (2,42): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("INotCountable").WithLocation(2, 42)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_ExplicitInterfaceImplementation()
+    {
+        var source = @"
+if (new C() is Interface and [var x, .. var y])
+{
+    System.Console.Write((x, y));
+}
+
+interface Interface
+{
+    int Length { get; }
+    int this[System.Index i] { get; }
+    int this[System.Range r] { get; }
+}
+class C : Interface
+{
+    int Interface.Length { get => 2; }
+    int Interface.this[System.Index i] { get => 42; }
+    int Interface.this[System.Range r] { get => 43; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_Tuples()
+    {
+        var source = @"
+_ = (1, 2) is [var x, .. var y];
+
+System.Runtime.CompilerServices.ITuple ituple = default;
+_ = ituple is [var x2];
+_ = ituple is [..var y2];
+
+_ = ituple switch
+{
+    [1, 2] => 0,
+    (1, 2) => 0,
+    _ => 0,
+};
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.ITuple });
+        comp.VerifyEmitDiagnostics(
+            // (2,15): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("(int, int)").WithLocation(2, 15),
+            // (2,23): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("(int, int)").WithLocation(2, 23),
+            // (6,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = ituple is [..var y2];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var y2").WithArguments("1", "System.Range", "int").WithLocation(6, 16)
+            );
     }
 }
