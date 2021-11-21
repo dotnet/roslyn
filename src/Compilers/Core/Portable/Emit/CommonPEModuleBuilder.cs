@@ -654,11 +654,11 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
-            foreach (var type in this.GetDelegateCacheContainers(context))
+            foreach (var typeDef in GetDelegateCacheContainers(context))
             {
-                AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
-                yield return type;
+                AddTopLevelType(names, typeDef);
+                VisitTopLevelType(typeReferenceIndexer, typeDef);
+                yield return typeDef;
             }
 
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
