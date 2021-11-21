@@ -149,8 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics)
         {
-            if (isAutoProperty)
+            if (IsAutoPropertyWithoutAccessorBinding)
             {
+                // These features are C# 3 and C# 6 features.
+                // Accessor binding is only important for semi auto property which is C# 11 feature. It's:
+                // 1. redundant to check accessor binding in this case.
+                // 2. problematic as it will cause a cycle. Binding will create a property symbol, then we require binding again and again.
                 Binder.CheckFeatureAvailability(
                     syntax,
                     (hasGetAccessor && !hasSetAccessor) ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,

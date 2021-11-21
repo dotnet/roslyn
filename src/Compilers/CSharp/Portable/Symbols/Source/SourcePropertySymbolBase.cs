@@ -703,7 +703,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (_propertyFlags & Flags.IsAutoProperty) != 0;
             }
         }
-        
+
+        private protected bool IsAutoPropertyWithoutAccessorBinding
+        {
+            get
+            {
+                return (_propertyFlags & Flags.IsAutoProperty) != 0;
+            }
+        }
 
         /// <summary>
         /// Backing field for automatically implemented property, or
