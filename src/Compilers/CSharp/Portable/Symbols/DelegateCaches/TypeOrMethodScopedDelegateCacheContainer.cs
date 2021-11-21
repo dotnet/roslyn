@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     using FieldSymbolsCollection = SmallDictionary<ValueTuple<NamedTypeSymbol, MethodSymbol>, FieldSymbol>;
-
+    /*
     internal class TypeOrMethodScopedDelegateCacheContainer : DelegateCacheContainer
     {
         private readonly Symbol _containingSymbol;
@@ -101,4 +101,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Fields are added using <see cref="SyntheticBoundNodeFactory.AddField(NamedTypeSymbol, FieldSymbol)"/>
         public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
     }
+    */
 }

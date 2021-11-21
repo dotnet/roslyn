@@ -52,43 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration);
         }
 
-        private static string MakeScopedIndexedTypeName(string nameKind, string suffixOpt, int index, int generation, string scopeIdOpt)
+        internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
         {
-            Debug.Assert(!String.IsNullOrWhiteSpace(nameKind));
-
-            var result = PooledStringBuilder.GetInstance();
-            var builder = result.Builder;
-
-            builder.Append("<").Append(scopeIdOpt).Append(">").Append(nameKind);
-
-            if (suffixOpt != null || index > 0)
+            var name = "<" + moduleId + ">f__AnonymousType" + StringExtensions.GetNumeral(index);
+            if (submissionSlotIndex >= 0)
             {
-                builder.Append(SuffixSeparator).Append(suffixOpt).Append(StringExtensions.GetNumeral(index));
+                name += "#" + StringExtensions.GetNumeral(submissionSlotIndex);
             }
 
-            if (generation > 0)
-            {
-                builder.Append(GenerationSeparator).Append(StringExtensions.GetNumeral(generation));
-            }
-
-            return result.ToStringAndFree();
-        }
-
-        internal static string MakeDelegateCacheContainerName(int index, int generation, string scopeIdOpt)
-        {
-            Debug.Assert((char)GeneratedNameKind.DelegateCacheContainer == 'x');
-            return MakeScopedIndexedTypeName("x", null, index, generation, scopeIdOpt);
-        }
-
-        internal static string MakeDelegateCacheContainerFieldName(string targetMethodName, int index)
-        {
-            Debug.Assert((char)GeneratedNameKind.DelegateCacheContainerField == 'w');
-
-            var name = "<" + targetMethodName + ">w";
-            if (index > 0)
-            {
-                name += SuffixSeparator + StringExtensions.GetNumeral(index);
-            }
             return name;
         }
 
