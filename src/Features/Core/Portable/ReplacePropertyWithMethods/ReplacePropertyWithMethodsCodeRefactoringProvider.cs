@@ -434,9 +434,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         }
 
         public int GetHashCode((IPropertySymbol property, ReferenceLocation location) obj)
-        {
-            return obj.location.Location.SourceSpan.GetHashCode();
-        }
+            => obj.location.Location.SourceSpan.GetHashCode();
 
         private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
         {
