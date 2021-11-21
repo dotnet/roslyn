@@ -340,7 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: false));
 
-            infoBarHost?.AddInfoBar(_infoBar);
+            infoBarHost.AddInfoBar(_infoBar);
         }
     }
 }
