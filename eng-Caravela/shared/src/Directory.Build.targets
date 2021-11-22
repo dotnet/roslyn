@@ -1,0 +1,3 @@
+<Project>
+    <!-- This empty file prevents inheriting the Directory.Build.targets from the repository root. -->
+</Project>

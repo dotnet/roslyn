@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <AssemblyName>postsharp-eng</AssemblyName>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <PublishSingleFile>true</PublishSingleFile>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <PublishDir>$(MSBuildThisFileDirectory)..\..\..\..\tools\</PublishDir>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <!-- NU1701: Package 'Microsoft.Build 17.0.0' was restored using '.NETFramework,Version=v4.6.1 ...' instead of 
+            the project target framework 'net5.0'. This package may not be fully compatible with your project.
+            -->
+        <NoWarn>NU1701</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build" Version="17.0.0" />
+        <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
+        <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="6.0.0" />
+        <PackageReference Include="Microsoft.NET.StringTools" Version="1.0.0" />
+        <PackageReference Include="NuGet.Versioning" Version="5.8.1" />
+        <PackageReference Include="Spectre.Console" Version="0.42.0" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    </ItemGroup>
+
+</Project>

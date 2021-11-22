@@ -1,0 +1,33 @@
+<Project>
+
+    <PropertyGroup Condition=" '$(ContinuousIntegrationBuild)' == '' ">
+        <!-- Copied from TeamCity.VSTest.TestAdapter package. -->
+        <ContinuousIntegrationBuild Condition=" '$(TEAMCITY_PROJECT_NAME)' != '' or '$(TEAMCITY_VERSION)' != '' ">True</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <!-- Code quality and documentation -->
+    <PropertyGroup Condition="'$(DisableCodeQuality)'!='True'">
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+        <!-- Disable XML doc warnings for now -->
+        <NoWarn>1591,1572,1573</NoWarn>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup  Condition="'$(DisableCodeQuality)'!='True' AND '$(ContinuousIntegrationBuild)'=='True'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(DisableCodeQuality)'!='True'">
+        <!-- Beta version fixes issue with record parameter names -->
+        <PackageReference Include="StyleCop.Analyzers"
+                          Version="1.2.0-beta.354"
+                          Condition="'$(EnforceCodeStyleInBuild)'=='True'"
+                          PrivateAssets="All" />
+        <Content Include="$(MSBuildThisFileDirectory)\stylecop.json"
+                 Condition="'$(EnforceCodeStyleInBuild)'=='True'"
+                 Pack="false" />
+    </ItemGroup>
+
+</Project>

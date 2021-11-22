@@ -1,0 +1,13 @@
+{
+  "SignClient": {
+    "AzureAd": {
+      "AADInstance": "https://login.microsoftonline.com/",
+      "ClientId": "c7332db4-9a38-4517-9968-fd7b39af66f6",
+      "TenantId": "171276b2-7a8c-4c9b-bc49-57889e2e4f42"
+    },
+    "Service": {
+      "Url": "https://signservice.postsharp.net",
+      "ResourceId": "https://SignService/d4e6f350-201e-4744-9a19-c413e8f0c565"
+    }
+  }
+}
