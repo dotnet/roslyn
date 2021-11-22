@@ -60,8 +60,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new();
         private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new();
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
-                                                                                                    IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
@@ -267,9 +268,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            document = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-
-            var newRoot = await GetNewRootAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetNewRootAsync(
+                await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false),
+                diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
@@ -340,7 +341,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     // Make sure the inner diagnostics are placed first
-                    FixAllExpressionValueIsUnusedDiagnostics(diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start), semanticModel, root,
+                    FixAllExpressionValueIsUnusedDiagnostics(
+                        diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start), semanticModel, root,
                         preference, nameGenerator, editor, syntaxFacts);
                     break;
 
@@ -349,7 +351,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // Example: 
                     // int a = 0; int b = 1;
                     // After fix it would be int a; int b;
-                    await FixAllValueAssignedIsUnusedDiagnosticsAsync(diagnostics.OrderBy(d => d.Location.SourceSpan.Start), document, semanticModel, root, containingMemberDeclaration,
+                    await FixAllValueAssignedIsUnusedDiagnosticsAsync(
+                        diagnostics.OrderBy(d => d.Location.SourceSpan.Start), document, semanticModel, root, containingMemberDeclaration,
                         preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
                     break;
 
@@ -662,11 +665,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
-                                                                              syntaxFacts.IsExecutableBlock(n.Parent) &&
-                                                                              !(n is TCatchStatementSyntax) &&
-                                                                              !(n is TCatchBlockSyntax),
-                                                                              syntaxFacts);
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>(
+                    (n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
+                                        syntaxFacts.IsExecutableBlock(n.Parent) &&
+                                        n is not TCatchStatementSyntax &&
+                                        n is not TCatchBlockSyntax,
+                                        syntaxFacts);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(
@@ -829,12 +833,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var declStatement = memberDeclaration.GetCurrentNode(originalDeclStatement);
                 Contract.ThrowIfNull(declStatement);
 
-                var documentUpdated = false;
-
                 // Check if the variable declaration is unused after all the fixes, and hence can be removed.
                 if (await TryRemoveUnusedLocalAsync(declStatement, originalDeclStatement).ConfigureAwait(false))
                 {
-                    documentUpdated = true;
+                    await OnDocumentUpdatedAsync().ConfigureAwait(false);
                 }
                 else if (declStatement.HasAnnotation(s_newLocalDeclarationStatementAnnotation))
                 {
@@ -842,13 +844,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (await moveDeclarationService.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false))
                     {
                         document = await moveDeclarationService.MoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
-                        documentUpdated = true;
+                        await OnDocumentUpdatedAsync().ConfigureAwait(false);
                     }
-                }
-
-                if (documentUpdated)
-                {
-                    await OnDocumentUpdatedAsync().ConfigureAwait(false);
                 }
             }
 
