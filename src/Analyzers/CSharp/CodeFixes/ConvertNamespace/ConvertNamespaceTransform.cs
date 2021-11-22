@@ -66,12 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
+            // We move leading and trailing trivia on the open brace to just be trailing trivia on the semicolon, so we preserve
+            // comments etc. logically at the top of the file.
+            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                .WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia)
+                .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+
             var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
                 namespaceDeclaration.AttributeLists,
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
                 namespaceDeclaration.Name,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia),
+                semiColon,
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
                 namespaceDeclaration.Members).WithAdditionalAnnotations(Formatter.Annotation);
