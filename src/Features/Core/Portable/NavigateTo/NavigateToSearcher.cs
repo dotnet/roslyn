@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -25,9 +26,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
-        private readonly bool _searchCurrentDocument;
         private readonly IImmutableSet<string> _kinds;
-        private readonly Document? _currentDocument;
         private readonly IStreamingProgressTracker _progress;
 
         private readonly Document? _activeDocument;
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
-            bool searchCurrentDocument,
             IImmutableSet<string> kinds)
         {
             _host = host;
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _asyncListener = asyncListener;
             _callback = callback;
             _searchPattern = searchPattern;
-            _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
             _progress = new StreamingProgressTracker((current, maximum, ct) =>
             {
@@ -63,11 +60,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _activeDocument = docTrackingService.GetActiveDocument(_solution);
             _visibleDocuments = docTrackingService.GetVisibleDocuments(_solution)
                                                   .WhereAsArray(d => d != _activeDocument);
-
-            if (_searchCurrentDocument)
-            {
-                _currentDocument = _activeDocument;
-            }
         }
 
         public static NavigateToSearcher Create(
@@ -75,16 +67,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
-            bool searchCurrentDocument,
             IImmutableSet<string> kinds,
             CancellationToken disposalToken,
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, searchCurrentDocument, kinds);
+            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, kinds);
         }
 
-        internal async Task SearchAsync(CancellationToken cancellationToken)
+        internal async Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
         {
             var isFullyLoaded = true;
 
@@ -93,11 +84,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
-                // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
-                // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
-                // that support that.
-                isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                await SearchAllProjectsAsync(isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                if (searchCurrentDocument)
+                {
+                    await SearchCurrentDocumentAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
+                    // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
+                    // that support that.
+                    isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    await SearchAllProjectsAsync(isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -110,27 +108,67 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
+        private async Task SearchCurrentDocumentAsync(CancellationToken cancellationToken)
+        {
+            if (_activeDocument == null)
+                return;
+
+            var project = _activeDocument.Project;
+            var service = _host.GetNavigateToSearchService(project);
+            if (service == null)
+                return;
+
+            await _progress.AddItemsAsync(1, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await service.SearchDocumentAsync(
+                    _activeDocument, _searchPattern, _kinds,
+                    r => _callback.AddItemAsync(project, r, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private async Task SearchAllProjectsAsync(bool isFullyLoaded, CancellationToken cancellationToken)
         {
+            var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             var orderedProjects = GetOrderedProjectsToProcess();
-            var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+            var searchGeneratedDocuments = isFullyLoaded;
 
-            // If we're fully loaded then we're done at this point.  All the searches would have been against the latest
-            // computed data and we don't need to do anything else.
-            if (isFullyLoaded)
-                return;
+            var projectCount = orderedProjects.Sum(g => g.Length);
 
-            // We weren't fully loaded *but* we reported some items to the user, then consider that good enough for now.
-            // The user will have some results they can use, and (in the case that we actually examined the cache for
-            // data) we will tell the user that the results may be incomplete/inaccurate and they should try again soon.
-            if (itemsReported > 0)
-                return;
+            // We do at least two passes.  One for loaded docs.  One for source generated docs.
+            await _progress.AddItemsAsync(projectCount * 2, cancellationToken).ConfigureAwait(false);
 
-            // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
-            // projects were using cached data then we can try searching them again, but this tell them to use the
-            // latest data.  The ensures the user at least gets some result instead of nothing.
-            var projectsUsingCache = projectResults.SelectAsArray(t => t.location == NavigateToSearchLocation.Cache, t => t.project);
-            await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
+            if (!isFullyLoaded)
+            {
+                // We need an additional pass to look through cached docs.
+                await _progress.AddItemsAsync(projectCount, cancellationToken).ConfigureAwait(false);
+
+                await SearchCachedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+
+                // If searching cached data returned any results, then we're done.  We've at least shown some results
+                // to the user.  That will hopefully serve them well enough until the solution fully loads.
+                if (seenItems.Count > 0)
+                {
+                    // Ensure that we actually complete all our workitems so that the progress bar completes.
+                    await _progress.ItemsCompletedAsync(projectCount * 2, cancellationToken).ConfigureAwait(false);
+                    return;
+                }
+            }
+
+            await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+            await SearchGeneratedDocumentsAsync(seenItems, cancellationToken).ConfigureAwait(false);
+
+            // Report a telemetry even to track if we found uncached items after failing to find cached items.
+            // In practice if we see that we are always finding uncached items, then it's likely something
+            // has broken in the caching system since we would expect to normally find values there.  Specifically
+            // we expect: foundFullItems <<< not foundFullItems.
+            if (!isFullyLoaded)
+                Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
         }
 
         /// <summary>
@@ -143,18 +181,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// </summary>
         private ImmutableArray<ImmutableArray<Project>> GetOrderedProjectsToProcess()
         {
-            // If we're only searching the current doc, we don't need to examine anything else but that.
-            if (_searchCurrentDocument)
-            {
-                // Note: _currentDocument may still be null.  Just because the user asked to search current document
-                // doesn't mean we were able to map the view to an active doc inside Roslyn.  In this case, we just
-                // don't search anything.
-                var project = _currentDocument?.Project;
-                return project == null
-                    ? ImmutableArray<ImmutableArray<Project>>.Empty
-                    : ImmutableArray.Create(ImmutableArray.Create(project));
-            }
-
             using var result = TemporaryArray<ImmutableArray<Project>>.Empty;
 
             using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
@@ -212,68 +238,126 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutable();
         }
 
-        private async Task<(int itemsReported, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
-            ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
+        private async Task ProcessOrderedProjectsAsync(
+            bool parallel,
+            ImmutableArray<ImmutableArray<Project>> orderedProjects,
+            HashSet<INavigateToSearchResult> seenItems,
+            Func<INavigateToSearchService, Project, Func<INavigateToSearchResult, Task>, Task> processProjectAsync,
+            CancellationToken cancellationToken)
         {
-            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
-
-            using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
-
-            var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
+            // Process each group one at a time.  However, in each group process all projects in parallel to get results
+            // as quickly as possible.  The net effect of this is that we will search the active doc immediately, then
+            // the open docs in parallel, then the rest of the projects after that.  Because the active/open docs should
+            // be a far smaller set, those results should come in almost immediately in a prioritized fashion, with the
+            // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
-                result.AddRange(await Task.WhenAll(projectGroup.Select(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)))).ConfigureAwait(false));
-
-            return (seenItems.Count, result.ToImmutable());
-        }
-
-        private async Task<(Project project, NavigateToSearchLocation location)> SearchAsync(
-            Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
-        {
-            try
             {
-                var location = await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
-                return (project, location);
-            }
-            finally
-            {
-                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<NavigateToSearchLocation> SearchCoreAsync(
-            Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
-        {
-            // If they don't even support the service, then always show them as having done the
-            // complete search.  That way we don't call back into this project ever.
-            var service = _host.GetNavigateToSearchService(project);
-            if (service == null)
-                return NavigateToSearchLocation.Latest;
-
-            if (_searchCurrentDocument)
-            {
-                Contract.ThrowIfNull(_currentDocument);
-                return await service.SearchDocumentAsync(
-                    _currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await service.SearchProjectAsync(
-                    project, GetPriorityDocuments(project), _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
-            }
-
-            Task OnResultFound(INavigateToSearchResult result)
-            {
-                // If we're seeing a dupe in another project, then filter it out here.  The results from
-                // the individual projects will already contain the information about all the projects
-                // leading to a better condensed view that doesn't look like it contains duplicate info.
-                lock (seenItems)
+                if (!parallel)
                 {
-                    if (!seenItems.Add(result))
-                        return Task.CompletedTask;
+                    foreach (var project in projectGroup)
+                        await SearchCoreAsync(project).ConfigureAwait(false);
                 }
-
-                return _callback.AddItemAsync(project, result, cancellationToken);
+                else
+                {
+                    var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p), cancellationToken));
+                    await Task.WhenAll(allTasks).ConfigureAwait(false);
+                }
             }
+
+            return;
+
+            async Task SearchCoreAsync(Project project)
+            {
+                try
+                {
+                    // If they don't even support the service, then always show them as having done the
+                    // complete search.  That way we don't call back into this project ever.
+                    var service = _host.GetNavigateToSearchService(project);
+                    if (service == null)
+                        return;
+
+                    await processProjectAsync(service, project, result =>
+                    {
+                        // If we're seeing a dupe in another project, then filter it out here.  The results from
+                        // the individual projects will already contain the information about all the projects
+                        // leading to a better condensed view that doesn't look like it contains duplicate info.
+                        lock (seenItems)
+                        {
+                            if (!seenItems.Add(result))
+                                return Task.CompletedTask;
+                        }
+
+                        return _callback.AddItemAsync(project, result, cancellationToken);
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // after each project is searched, increment our progress.
+                    await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private Task SearchFullyLoadedProjectsAsync(
+            ImmutableArray<ImmutableArray<Project>> orderedProjects,
+            HashSet<INavigateToSearchResult> seenItems,
+            CancellationToken cancellationToken)
+        {
+            // Search the fully loaded project in parallel.  We know this will be called after we've already hydrated the 
+            // oop side.  So all calls will immediately see the solution as ready on the other end, and can start checking
+            // all the docs it has.  Most docs will then find a hit in the index and can return results immediately.  Docs
+            // that are not in the cache can be rescanned and have their new index contents checked.
+            return ProcessOrderedProjectsAsync(
+                parallel: true,
+                orderedProjects,
+                seenItems,
+                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                cancellationToken);
+        }
+
+        private Task SearchCachedDocumentsAsync(
+            ImmutableArray<ImmutableArray<Project>> orderedProjects,
+            HashSet<INavigateToSearchResult> seenItems,
+            CancellationToken cancellationToken)
+        {
+            // We searched cached information in parallel.  This is because there's no syncing step when searching cached
+            // docs.  As such, we can just send a request for all projects in parallel to our OOP host and have it read
+            // and search the local DB easily.  The DB can easily scale to feed all the threads trying to read from it
+            // and we can get high throughput just processing everything in parallel.
+            return ProcessOrderedProjectsAsync(
+                parallel: true,
+                orderedProjects,
+                seenItems,
+                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                cancellationToken);
+        }
+
+        private Task SearchGeneratedDocumentsAsync(
+            HashSet<INavigateToSearchResult> seenItems,
+            CancellationToken cancellationToken)
+        {
+            // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
+            // creating and processing the entire compilation for a project, which itself may require dependent compilations
+            // as references.  These dependents might also be skeleton references in the case of cross language projects.
+            //
+            // As such, we always want to compute the information for one project before moving onto a project that depends on
+            // it.  That way information is available as soon as possible, and then computation for it immediately benefits 
+            // what comes next.  Importantly, this avoids the problem of picking a project deep in the dependency tree, which
+            // then pulls on N other projects, forcing results for this single project to pay that full price (that would 
+            // be paid when we hit these through a normal topological walk).
+            //
+            // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process in
+            // the desired order if we process serially.
+            var allProjects = _solution.GetProjectDependencyGraph()
+                                       .GetDependencySets(cancellationToken)
+                                       .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
+
+            return ProcessOrderedProjectsAsync(
+                parallel: false,
+                allProjects,
+                seenItems,
+                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, cb, cancellationToken),
+                cancellationToken);
         }
     }
 }

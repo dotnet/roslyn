@@ -27,16 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
-        private static readonly string[] s_columns = new string[]
-        {
-            StandardTableColumnDefinitions.Priority,
-            StandardTableColumnDefinitions.Text,
-            StandardTableColumnDefinitions.ProjectName,
-            StandardTableColumnDefinitions.DocumentName,
-            StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column
-        };
-
         private readonly TableDataSource _source;
 
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
@@ -46,7 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        internal override IReadOnlyCollection<string> Columns => s_columns;
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+            StandardTableColumnDefinitions.Priority,
+            StandardTableColumnDefinitions.Text,
+            StandardTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.DocumentName,
+            StandardTableColumnDefinitions.Line,
+            StandardTableColumnDefinitions.Column);
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {

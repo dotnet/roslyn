@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 // in order to highlight values in this document.
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     document.Project,
-                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
                 return result;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                         if (!highlights.IsDefaultOrEmpty)
                         {
