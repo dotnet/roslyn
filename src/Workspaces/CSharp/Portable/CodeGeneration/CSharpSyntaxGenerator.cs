@@ -19,20 +19,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-
-#if !LIGHTWEIGHT
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-#if !LIGHTWEIGHT
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
-#endif
-#if LIGHTWEIGHT
-    public
-#endif
     class CSharpSyntaxGenerator : SyntaxGenerator
     {
         // A bit hacky, but we need to actually run ParseToken on the "nameof" text as there's no
@@ -41,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly IdentifierNameSyntax s_nameOfIdentifier =
             SyntaxFactory.IdentifierName(SyntaxFactory.ParseToken("nameof"));
 
-#if !LIGHTWEIGHT
         [ImportingConstructor]
-#endif
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpSyntaxGenerator()
         {

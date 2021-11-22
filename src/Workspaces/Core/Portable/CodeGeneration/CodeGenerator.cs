@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static readonly SyntaxAnnotation Annotation = new(nameof(CodeGenerator));
 
-#if !LIGHTWEIGHT
         private static ICodeGenerationService GetCodeGenerationService(Workspace workspace, string language)
             => workspace.Services.GetLanguageServices(language).GetRequiredService<ICodeGenerationService>();
 
@@ -204,6 +203,5 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static bool CanAdd(Solution solution, ISymbol destination, CancellationToken cancellationToken = default)
             => GetCodeGenerationService(solution.Workspace, destination.Language).CanAddTo(destination, solution, cancellationToken);
-#endif
     }
 }

@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         object? GetOption(OptionKey optionKey);
 
-#if !LIGHTWEIGHT
         /// <summary>
         /// Fetches an immutable set of all current options.
         /// </summary>
@@ -67,12 +66,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// Returns the set of all registered options.
         /// </summary>
         IEnumerable<IOption> GetRegisteredOptions();
-#endif
 
         /// <inheritdoc cref="IGlobalOptionService.TryMapEditorConfigKeyToOption"/>
         bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey);
 
-#if !LIGHTWEIGHT
         /// <summary>
         /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
         /// </summary>
@@ -100,6 +97,5 @@ namespace Microsoft.CodeAnalysis.Options
         /// Unregisters a workspace from the option service.
         /// </summary>
         void UnregisterWorkspace(Workspace workspace);
-#endif
     }
 }
