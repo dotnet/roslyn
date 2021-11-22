@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // Redundant initialization.
                         // For example, "int a = 0;"
                         var variableDeclarator = node.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
-                        Debug.Assert(variableDeclarator != null);
+                        Contract.ThrowIfNull(variableDeclarator);
                         nodesToRemove.Add(variableDeclarator);
 
                         // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
@@ -573,8 +573,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (preference == UnusedValuePreference.UnusedLocalVariable && !removeAssignments)
                     {
                         var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
-                        Debug.Assert(type != null);
-                        Debug.Assert(newLocalNameOpt != null);
+                        Contract.ThrowIfNull(type);
+                        Contract.ThrowIfNull(newLocalNameOpt);
                         var declarationStatement = CreateLocalDeclarationStatement(type, newLocalNameOpt);
                         nodesToAdd.Add((declarationStatement, node));
                     }
@@ -700,7 +700,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool ShouldRemoveStatement(TLocalDeclarationStatementSyntax localDeclarationStatement, out SeparatedSyntaxList<SyntaxNode> variables)
             {
                 Debug.Assert(removeAssignments);
-                Debug.Assert(localDeclarationStatement != null);
 
                 // We should remove the entire local declaration statement if all its variables are marked for removal.
                 variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
