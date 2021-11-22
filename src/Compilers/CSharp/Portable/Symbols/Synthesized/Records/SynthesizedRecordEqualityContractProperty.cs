@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        modifiers: new SyntaxTokenList(),
                        MethodKind.PropertyGet,
                        usesInit: false,
-                       isAutoPropertyAccessor: true,
+                       isAutoPropertyAccessor: false,
                        isNullableAnalysisEnabled: false,
                        diagnostics)
             {
