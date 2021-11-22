@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            Debug.Assert(isAutoPropertyAccessor == property.IsAutoProperty);
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
