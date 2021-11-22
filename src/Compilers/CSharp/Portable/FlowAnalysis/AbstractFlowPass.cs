@@ -1494,7 +1494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // Can be called as part of a bad expression.
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
         {
             foreach (var child in node.Initializers)
@@ -2601,27 +2600,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
 
-            if (node.InitializerOpt != null)
-            {
-                VisitArrayInitializationInternal(node, node.InitializerOpt);
-            }
-
+            VisitRvalue(node.InitializerOpt);
             return null;
-        }
-
-        private void VisitArrayInitializationInternal(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
-        {
-            foreach (var child in node.Initializers)
-            {
-                if (child.Kind == BoundKind.ArrayInitialization)
-                {
-                    VisitArrayInitializationInternal(arrayCreation, (BoundArrayInitialization)child);
-                }
-                else
-                {
-                    VisitRvalue(child);
-                }
-            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

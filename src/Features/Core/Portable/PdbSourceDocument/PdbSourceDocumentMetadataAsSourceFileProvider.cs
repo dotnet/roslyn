@@ -9,6 +9,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly Dictionary<string, DocumentId> _fileToDocumentMap = new();
+        private readonly Dictionary<string, (DocumentId documentId, Encoding encoding)> _fileToDocumentMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -82,9 +83,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     return null;
             }
 
+            Encoding? defaultEncoding = null;
+            if (pdbCompilationOptions.TryGetValue("default-encoding", out var encodingString))
+            {
+                defaultEncoding = Encoding.GetEncoding(encodingString);
+            }
+            else if (pdbCompilationOptions.TryGetValue("fallback-encoding", out var fallbackEncodingString))
+            {
+                defaultEncoding = Encoding.GetEncoding(fallbackEncodingString);
+            }
+
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
-            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, cancellationToken)).ToArray();
+            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, defaultEncoding, cancellationToken)).ToArray();
             var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
             if (textLoaders.Where(t => t is null).Any())
                 return null;
@@ -151,7 +162,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                var encoding = text.Encoding ?? Encoding.UTF8;
+                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: encoding))
                 {
                     text.Write(textWriter, cancellationToken);
                 }
@@ -159,7 +171,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Mark read-only
                 new FileInfo(tempFilePath).IsReadOnly = true;
 
-                _fileToDocumentMap[tempFilePath] = document.Id;
+                _fileToDocumentMap[tempFilePath] = (document.Id, encoding);
             }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
@@ -223,9 +235,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
             {
-                workspace.OnDocumentOpened(documentId, sourceTextContainer);
+                workspace.OnDocumentOpened(value.documentId, sourceTextContainer);
 
                 return true;
             }
@@ -235,9 +247,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var documentId))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
             {
-                workspace.OnDocumentClosed(documentId, new FileTextLoader(filePath, MetadataAsSourceGeneratedFileInfo.Encoding));
+                workspace.OnDocumentClosed(value.documentId, new FileTextLoader(filePath, value.encoding));
 
                 return true;
             }
@@ -268,5 +280,5 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         }
     }
 
-    internal sealed record SourceDocument(string FilePath, SourceText? EmbeddedText);
+    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes);
 }

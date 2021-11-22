@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_new_line_before_else=true",
+                "[*.cs]\r\ncsharp_new_line_before_else = true",
                 (CSharpFormattingOptions2.NewLineForElse, true));
         }
 
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
+                "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
         }
 
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:warning",
+                "[*.cs]\r\ncsharp_using_directive_placement = inside_namespace:warning",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             await TestAsync(
                 string.Empty,
-                $"{expectedHeader}\r\ndotnet_diagnostic.{id}.severity={expectedSeverity}",
+                $"{expectedHeader}\r\ndotnet_diagnostic.{id}.severity = {expectedSeverity}",
                 (analyzerSetting, severity));
         }
 
@@ -141,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task TestUpdateExistingWhitespaceOptionAsync()
         {
             await TestAsync(
-                "[*.cs]\r\ncsharp_new_line_before_else=true",
-                "[*.cs]\r\ncsharp_new_line_before_else=false",
+                "[*.cs]\r\ncsharp_new_line_before_else = true",
+                "[*.cs]\r\ncsharp_new_line_before_else = false",
                 (CSharpFormattingOptions2.NewLineForElse, false));
         }
 
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
-dotnet_diagnostic.CA1000.severity=false
+dotnet_diagnostic.CA1000.severity = false
 
 ";
 
@@ -161,11 +159,11 @@ dotnet_diagnostic.CA1000.severity=false
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
-dotnet_diagnostic.CA1000.severity=false
+dotnet_diagnostic.CA1000.severity = false
 
 
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
             await TestAsync(
                 initialEditorConfig,
                 updatedEditorConfig,
@@ -189,7 +187,7 @@ root = true
 [*.xml]
 indent_size = 2
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
             await TestAsync(
                 initialEditorConfig,
                 updatedEditorConfig,
@@ -224,7 +222,7 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
 
             await TestAsync(
                 initialEditorConfig,
@@ -237,7 +235,7 @@ csharp_new_line_before_else=true";
         {
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_new_line_before_else=true\r\ncsharp_new_line_before_catch=true\r\ncsharp_new_line_before_finally=true",
+                "[*.cs]\r\ncsharp_new_line_before_else = true\r\ncsharp_new_line_before_catch = true\r\ncsharp_new_line_before_finally = true",
                 (CSharpFormattingOptions2.NewLineForElse, true),
                 (CSharpFormattingOptions2.NewLineForCatch, true),
                 (CSharpFormattingOptions2.NewLineForFinally, true));
@@ -268,7 +266,7 @@ indent_size = 2
 
 # Dotnet code style settings:
 [*.{cs,vb}]
-dotnet_sort_system_directives_first=true
+dotnet_sort_system_directives_first = true
 
 # CSharp code style settings:
 [*.cs]";
@@ -313,7 +311,7 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else=true";
+csharp_new_line_before_else = true";
 
             await TestAsync(
                 initialEditorConfig,
@@ -332,7 +330,7 @@ csharp_new_line_before_else=true";
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity=error", update.NewText);
+            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity = error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -351,7 +349,7 @@ csharp_new_line_before_else=true";
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:error", update.NewText);
             value = "false:error";
             var editorconfig = workspace.CurrentSolution.Projects.SelectMany(p => p.AnalyzerConfigDocuments.Where(a => a.FilePath == EditorconfigPath)).Single();
             var text = await editorconfig.GetTextAsync();
@@ -360,7 +358,7 @@ csharp_new_line_before_else=true";
             setting.ChangeValue(0);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -372,7 +370,7 @@ csharp_new_line_before_else=true";
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
+            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else = false", update.NewText);
         }
     }
 }

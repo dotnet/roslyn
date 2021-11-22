@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -62,12 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
+            // We move leading and trailing trivia on the open brace to just be trailing trivia on the semicolon, so we preserve
+            // comments etc. logically at the top of the file.
+            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                .WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia)
+                .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+
             var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
                 namespaceDeclaration.AttributeLists,
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
                 namespaceDeclaration.Name,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia),
+                semiColon,
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
                 namespaceDeclaration.Members).WithAdditionalAnnotations(Formatter.Annotation);
@@ -80,6 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 fileScopedNamespace = fileScopedNamespace.ReplaceToken(
                     firstBodyToken,
                     firstBodyToken.WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            }
+
+            // Copy leading trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
+            if (namespaceDeclaration.CloseBraceToken.HasLeadingTrivia)
+            {
+                // Ensure there is one blank line before the trivia
+                fileScopedNamespace = fileScopedNamespace
+                    .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
+                    .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia.WithoutLeadingBlankLines());
             }
 
             return fileScopedNamespace;

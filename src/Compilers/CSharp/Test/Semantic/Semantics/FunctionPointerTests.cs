@@ -2877,12 +2877,12 @@ unsafe class C
                 // (7,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
                 //         ptr?.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12),
-                // (8,16): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                // (8,17): error CS8977: 'delegate*<void>' cannot be made nullable.
                 //         ptr = c?.GetPtr();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(8, 16),
-                // (9,11): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(8, 17),
+                // (9,12): error CS8977: 'delegate*<void>' cannot be made nullable.
                 //         (c?.GetPtr())();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(9, 11)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".GetPtr()").WithArguments("delegate*<void>").WithLocation(9, 12)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -2920,14 +2920,14 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
 
             VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
 IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
-  Operation: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+  Operation:
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
       Children(1):
-          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-  WhenNotNull: 
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+  WhenNotNull:
     IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
-      Instance Receiver: 
-        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+      Instance Receiver:
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
       Arguments(0)
 ");
 
@@ -2941,14 +2941,14 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(c?.GetPtr())()')
   Children(1):
       IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
-        Operation: 
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+        Operation:
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'c')
             Children(1):
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-        WhenNotNull: 
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+        WhenNotNull:
           IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
-            Instance Receiver: 
-              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+            Instance Receiver:
+              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
             Arguments(0)
 ");
 

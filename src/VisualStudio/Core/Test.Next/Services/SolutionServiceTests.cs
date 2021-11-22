@@ -744,6 +744,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Contains(LanguageNames.VisualBasic, project2Options.GetTestAccessor().Languages);
         }
 
+        [Fact]
+        public async Task TestPartialProjectSync_ReferenceToNonExistentProject()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+
+            // This reference a project that doesn't exist.
+            // Ensure that it's still fine to get the checksum for this project we have.
+            project1 = project1.AddProjectReference(new ProjectReference(ProjectId.CreateNewId()));
+
+            solution = project1.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);

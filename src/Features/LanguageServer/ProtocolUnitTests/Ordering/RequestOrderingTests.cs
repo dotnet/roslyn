@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -170,10 +171,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
 
-            // remaining tasks should be canceled
-            await Assert.ThrowsAsync<TaskCanceledException>(() => Task.WhenAll(waitables.Skip(1)));
+            // The failed request returns to the client before the shutdown completes.
+            // Wait for the queue to finish handling the failed request and shutdown.
+            await testLspServer.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
 
-            Assert.All(waitables.Skip(1), w => Assert.True(w.IsCanceled));
+            // remaining tasks should be canceled
+            var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledUnsafeAsync();
+            Assert.True(areAllItemsCancelled);
         }
 
         [Fact]

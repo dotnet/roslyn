@@ -31,7 +31,7 @@
 "Title"="C#/VB LSP semantic tokens experience"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Roslyn\OOPCoreClr]
+[$RootKey$\FeatureFlags\Roslyn\ServiceHubCore]
 "Description"="Run C#/VB out-of-process code analysis on .Net 6 ServiceHub host."
 "Value"=dword:00000000
 "Title"="Run C#/VB code analysis on .Net 6 (requires restart)"
