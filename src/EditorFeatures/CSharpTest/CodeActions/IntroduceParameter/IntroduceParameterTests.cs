@@ -1854,5 +1854,83 @@ class TestClass
 
             await TestMissingInRegularAndScriptAsync(code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestReferenceInDifferentDocumentWithUsings()
+        {
+            var code =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar()
+        {
+            [|var x = 2|];
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar();
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+
+            var expected =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar(int x)
+        {
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar(2);
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }
