@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
+            ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
             ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken);
             ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
             ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken);
@@ -71,6 +72,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportMessageAsync(message, cancellationToken);
 
+        public ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ReportInformationalMessageAsync(message, cancellationToken);
+
         public ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken)
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
     }
@@ -95,6 +99,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
             => _context.ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            => _context.ReportInformationalMessageAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _context.SetSearchTitleAsync(title, cancellationToken);
