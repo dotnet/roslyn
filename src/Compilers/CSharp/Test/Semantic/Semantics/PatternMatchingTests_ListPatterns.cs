@@ -1385,6 +1385,11 @@ class X
         var vbSource = @"
 Namespace System
     Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
     End Structure
 End Namespace
 Public Class Test1
@@ -1407,18 +1412,12 @@ class X
 }
 ";
         var vbCompilation = CreateVisualBasicCompilation(vbSource);
-        var csCompilation = CreateCompilation(csSource, parseOptions: TestOptions.RegularWithListPatterns, references: new[] { vbCompilation.EmitToImageReference() });
-        // PROTOTYPE(list-patterns) Unsupported because the lookup fails not that the indexer is static
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        // Note: the VB indexer's name is "Item" but C# looks for "this[]", but we can't put Default on Shared indexer declaration
         csCompilation.VerifyEmitDiagnostics(
             // (6,28): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1() is [0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Test1").WithLocation(6, 28),
-            // (6,28): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", "op_Implicit").WithLocation(6, 28),
-            // (6,28): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", ".ctor").WithLocation(6, 28),
             // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1()[0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
@@ -7720,6 +7719,35 @@ _ = ituple switch
             // (6,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             // _ = ituple is [..var y2];
             Diagnostic(ErrorCode.ERR_BadArgType, "..var y2").WithArguments("1", "System.Range", "int").WithLocation(6, 16)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_NullTestOnSlice()
+    {
+        var source = @"
+using System;
+Span<int> s = default;
+switch (s)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // error
+        break;
+}
+
+int[] a = default;
+switch (a)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // no error
+        break;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (7,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //     case [1,2,3]: // error
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(7, 10)
             );
     }
 }
