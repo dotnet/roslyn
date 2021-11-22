@@ -3457,7 +3457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.HasErrors)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo);
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _);
                 }
 
                 TypeWithAnnotations inferredType = (bestType is null)
@@ -3517,7 +3517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
             Binder binder,
             BoundNode node,
-            Conversions conversions)
+            Conversions conversions,
+            out bool inferredFromFunctionType)
         {
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
@@ -3545,7 +3546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo);
+            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo, out inferredFromFunctionType);
 
             TypeWithAnnotations inferredType;
             if (bestType is { })
