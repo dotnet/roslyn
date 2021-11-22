@@ -8788,5 +8788,43 @@ namespace ConsoleApp
 }";
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RemoveUnusedVariableTopLevel()
+        {
+            var source =
+@"
+int i;
+i = 2;
+";
+            var fixedSource =
+@"
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources = { source },
+                },
+                FixedState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources = { fixedSource },
+                    ExpectedDiagnostics =
+                    {
+                        // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                        DiagnosticResult.CompilerError("CS5001"),
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.UnusedLocalVariable },
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.SkipFixAllCheck,
+            }.RunAsync();
+        }
     }
 }
