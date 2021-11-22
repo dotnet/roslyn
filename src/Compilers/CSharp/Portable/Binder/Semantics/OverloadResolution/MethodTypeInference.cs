@@ -1310,6 +1310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            Debug.Assert(inferredReturnType.Type is not FunctionTypeSymbol);
+
             LowerBoundInference(inferredReturnType, returnType, ref useSiteInfo);
             return true;
         }
@@ -2924,7 +2926,12 @@ OuterBreak:
             // the anonymous function is explicitly typed.  Make an inference from the
             // delegate parameters to the return type.
 
-            return anonymousFunction.InferReturnType(_conversions, fixedDelegate, ref useSiteInfo);
+            var returnType = anonymousFunction.InferReturnType(_conversions, fixedDelegate, ref useSiteInfo, out bool inferredFromFunctionType);
+            if (inferredFromFunctionType)
+            {
+                return default;
+            }
+            return returnType;
         }
 
         /// <summary>
