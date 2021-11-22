@@ -196,6 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InterlockedOperations.Initialize(ref _lazyBackingFieldSymbol, backingField);
             }
 
+            // We want to do this check regardless whether _lazyBackingFieldSymbol is null or not.
+            // Consider `public int P { get => field; } = 0;
+            // We'll create the backing field because we saw an initialzer, but we haven't yet determined
+            // whether it's an auto property.
             if (isCreatedForFieldKeyword) // If not created for field keyword, the flag is set in SourcePropertySymbolBase ctor.
             {
                 _propertyFlags |= Flags.IsAutoProperty; // PROTOTYPE(semi-auto-props): Revise precisely when we need to set this.
@@ -396,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
                     // If we already have a backing field. We should still do binding since we create a backing field just if
-                    // we see an initializer. In this case binding is needed to know whether it's an auto property.
+                    // we see an initializer. In this case binding is needed to know whether it's an auto property. See CreateBackingField method.
                     if (this is SourcePropertySymbol { ContainsFieldKeyword: true } propertySymbol)
                     {
                         if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
