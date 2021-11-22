@@ -169,13 +169,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             TEnum defaultValue)
             where TEnum : struct
-        {
-            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
-            return analyzerConfigOptions.GetOptionValue(
-                optionName, tree, rule,
-                tryParseValue: (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
-                defaultValue: defaultValue);
-        }
+            => GetFlagsEnumOptionValue(options, optionName, rule, tree, compilation, defaultValue);
 
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
