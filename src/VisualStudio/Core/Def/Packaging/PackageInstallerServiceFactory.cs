@@ -272,21 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool TryInstallPackage(
-            Workspace workspace,
-            DocumentId documentId,
-            string source,
-            string packageName,
-            string? version,
-            bool includePrerelease,
-            IProgressTracker progressTracker,
-            CancellationToken cancellationToken)
-        {
-            return this.ThreadingContext.JoinableTaskFactory.Run(
-                () => TryInstallPackageAsync(workspace, documentId, source, packageName, version, includePrerelease, progressTracker, cancellationToken));
-        }
-
-        private async Task<bool> TryInstallPackageAsync(
+        public async Task<bool> TryInstallPackageAsync(
             Workspace workspace,
             DocumentId documentId,
             string source,

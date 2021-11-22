@@ -57,18 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             PullMembersUpOptions pullMembersUpOptions,
             CancellationToken cancellationToken)
         {
-            if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
+            return pullMembersUpOptions.Destination.TypeKind switch
             {
-                return PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
-            }
-            else if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Class)
-            {
-                return PullMembersIntoClassAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination);
-            }
+                TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken),
+                // We can treat VB modules as a static class
+                TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination),
+            };
         }
 
         private static IMethodSymbol FilterOutNonPublicAccessor(IMethodSymbol getterOrSetter)

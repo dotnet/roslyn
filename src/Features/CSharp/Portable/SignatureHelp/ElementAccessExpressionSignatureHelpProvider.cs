@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                                                    .Sort(semanticModel, expression.SpanStart);
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(expression, openBrace);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Convert(p, openBrace, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -225,12 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),

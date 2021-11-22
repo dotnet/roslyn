@@ -6,8 +6,8 @@
   -->
   <PropertyGroup>
     <MajorVersion>4</MajorVersion>
-    <MinorVersion>0</MinorVersion>
-    <PatchVersion>1</PatchVersion>
+    <MinorVersion>1</MinorVersion>
+    <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
@@ -29,7 +29,7 @@
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.3.3-beta1.21105.3</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>6.0.0-rc1.21366.2</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.1.0-beta1.21322.2</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.1-beta1.21480.3</MicrosoftCodeAnalysisTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.0.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
@@ -98,8 +98,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.3.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta2-21477-02</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-21477-02</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>16.9.0-beta1.21055.5</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftExtensionsLoggingVersion>5.0.0</MicrosoftExtensionsLoggingVersion>
@@ -122,8 +122,8 @@
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
-    <MicrosoftServiceHubClientVersion>3.0.3075</MicrosoftServiceHubClientVersion>
-    <MicrosoftServiceHubFrameworkVersion>3.0.3075</MicrosoftServiceHubFrameworkVersion>
+    <MicrosoftServiceHubClientVersion>3.1.4</MicrosoftServiceHubClientVersion>
+    <MicrosoftServiceHubFrameworkVersion>3.1.4</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCacheVersion>17.0.13-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -184,6 +184,7 @@
     <MicrosoftVisualStudioValidationVersion>17.0.28</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0-beta.21267.2</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>4.0.0-beta.21267.2</MicrosoftVisualStudioVsInteractiveWindowVersion>
+    <MicrosoftVisualStudioWinFormsInterfacesVersion>17.0.0-previews-4-31709-430</MicrosoftVisualStudioWinFormsInterfacesVersion>
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>16.3.43</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>

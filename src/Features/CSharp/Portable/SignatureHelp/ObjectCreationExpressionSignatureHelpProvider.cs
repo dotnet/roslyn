@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList!);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, type)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
+                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
+                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
 
             return CreateSignatureHelpItems(items, textSpan,
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);

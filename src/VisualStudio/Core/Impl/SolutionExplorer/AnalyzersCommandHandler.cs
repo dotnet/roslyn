@@ -13,14 +13,17 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -28,10 +31,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSLangProj140;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
+using VSUtilities = Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -40,8 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
-
+        private readonly IAsynchronousOperationListener _listener;
         private ContextMenuController _analyzerFolderContextMenuController;
         private ContextMenuController _analyzerContextMenuController;
         private ContextMenuController _diagnosticContextMenuController;
@@ -77,11 +83,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _tracker = tracker;
             _analyzerReferenceManager = analyzerReferenceManager;
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
+            _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         /// <summary>
@@ -395,22 +405,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private void SetSeverityHandler(object sender, EventArgs args)
+#pragma warning disable VSTHRD100 // Avoid async void methods. This signature is required for events.
+        private async void SetSeverityHandler(object sender, EventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var selectedItem = (MenuCommand)sender;
+            try
+            {
+                if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
+                    return;
+
+                // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
+                // while we do the work.  If we receive any failure notifications, we'll return them here so we
+                // can report them once the dialog has been dismissed.
+                using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
+                await SetSeverityHandlerAsync(workspace, (MenuCommand)sender, notificationMessages).ConfigureAwait(false);
+
+                if (notificationMessages.Count > 0)
+                {
+                    var totalMessage = string.Join(Environment.NewLine, notificationMessages);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    SendErrorNotification(
+                        workspace,
+                        SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
+                        totalMessage);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
+        }
+
+        private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)
+        {
+            using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+            var uiThreadOperationExecutor = componentModel.GetService<VSUtilities.IUIThreadOperationExecutor>();
+
+            using var context = uiThreadOperationExecutor.BeginExecute(
+                title: ServicesVSResources.Updating_severity,
+                defaultDescription: "",
+                allowCancellation: true,
+                showProgress: true);
+
             var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
-
             if (!selectedAction.HasValue)
-            {
                 return;
-            }
-
-            var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
-
-            if (workspace == null)
-            {
-                return;
-            }
 
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
@@ -422,12 +465,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (pathToRuleSet == null && pathToAnalyzerConfigDoc == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
+                    notificationMessages.Add(SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                     continue;
                 }
 
-                var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
                 var editHandlerService = componentModel.GetService<ICodeActionEditHandlerService>();
 
                 try
@@ -439,38 +480,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         // If project is using the default built-in ruleset or no ruleset, then prefer .editorconfig for severity configuration.
                         if (pathToAnalyzerConfigDoc != null)
                         {
-                            uiThreadOperationExecutor.Execute(
+                            using var scope1 = context.AddScope(allowCancellation: true, description: "");
+                            var newSolution = await selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).ConfigureAwait(false);
+                            var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                            await editHandlerService.ApplyAsync(
+                                _workspace,
+                                fromDocument: null,
+                                operations: operations,
                                 title: ServicesVSResources.Updating_severity,
-                                defaultDescription: "",
-                                allowCancellation: true,
-                                showProgress: true,
-                                action: context =>
-                                {
-                                    var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
-                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
-                                    var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                                    editHandlerService.Apply(
-                                        _workspace,
-                                        fromDocument: null,
-                                        operations: operations,
-                                        title: ServicesVSResources.Updating_severity,
-                                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                                        cancellationToken: context.UserCancellationToken);
-                                });
+                                progressTracker: new UIThreadOperationContextProgressTracker(scope1),
+                                cancellationToken: context.UserCancellationToken).ConfigureAwait(true);
                             continue;
                         }
 
                         // Otherwise, fall back to using ruleset.
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
+                            notificationMessages.Add(SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                             continue;
                         }
 
                         pathToRuleSet = CreateCopyOfRuleSetForProject(pathToRuleSet, envDteProject);
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
+                            notificationMessages.Add(string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
                             continue;
                         }
 
@@ -478,24 +511,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         fileInfo.IsReadOnly = false;
                     }
 
-                    uiThreadOperationExecutor.Execute(
-                        title: SolutionExplorerShim.Rule_Set,
-                        defaultDescription: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
+                    using var scope2 = context.AddScope(
                         allowCancellation: false,
-                        showProgress: false,
-                        action: c =>
-                        {
-                            if (envDteProject.DTE.SourceControl.IsItemUnderSCC(pathToRuleSet))
-                            {
-                                envDteProject.DTE.SourceControl.CheckOutItem(pathToRuleSet);
-                            }
-                        });
+                        string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)));
+
+                    if (envDteProject.DTE.SourceControl.IsItemUnderSCC(pathToRuleSet))
+                        envDteProject.DTE.SourceControl.CheckOutItem(pathToRuleSet);
 
                     selectedDiagnostic.SetRuleSetSeverity(selectedAction.Value, pathToRuleSet);
                 }
                 catch (Exception e)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, e.Message);
+                    notificationMessages.Add(e.Message);
                 }
             }
         }
@@ -636,14 +663,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             SendErrorNotification(
                 workspace,
                 SolutionExplorerShim.The_rule_set_file_could_not_be_opened,
-                message);
-        }
-
-        private void SendUnableToUpdateRuleSetNotification(Workspace workspace, string message)
-        {
-            SendErrorNotification(
-                workspace,
-                SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
                 message);
         }
 

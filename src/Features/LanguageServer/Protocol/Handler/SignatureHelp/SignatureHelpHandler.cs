@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -41,9 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             if (document == null)
-            {
                 return null;
-            }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 

@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -26,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return SpecializedTasks.True
         End Function
 
-        Public Function WouldNavigateToSymbolAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
+        Public Function GetExternalNavigationSymbolLocationAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, linePosition As LinePosition)?) Implements ISymbolNavigationService.GetExternalNavigationSymbolLocationAsync
             _wouldNavigateToSymbol = True
-            Return Task.FromResult(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?)(Nothing)
+            Return Task.FromResult(Of (filePath As String, linePosition As LinePosition)?)(Nothing)
         End Function
     End Class
 End Namespace

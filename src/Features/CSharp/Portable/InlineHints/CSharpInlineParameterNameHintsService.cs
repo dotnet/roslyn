@@ -4,11 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
@@ -29,23 +31,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
         protected override void AddAllParameterNameHintLocations(
              SemanticModel semanticModel,
+             ISyntaxFactsService syntaxFacts,
              SyntaxNode node,
-             ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+             ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
              CancellationToken cancellationToken)
         {
             if (node is BaseArgumentListSyntax argumentList)
             {
-                AddArguments(semanticModel, buffer, argumentList, cancellationToken);
+                AddArguments(semanticModel, syntaxFacts, buffer, argumentList, cancellationToken);
             }
             else if (node is AttributeArgumentListSyntax attributeArgumentList)
             {
-                AddArguments(semanticModel, buffer, attributeArgumentList, cancellationToken);
+                AddArguments(semanticModel, syntaxFacts, buffer, attributeArgumentList, cancellationToken);
             }
         }
 
         private static void AddArguments(
             SemanticModel semanticModel,
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            ISyntaxFactsService syntaxFacts,
+            ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
             AttributeArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
@@ -55,13 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+                var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
+                buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
             }
         }
 
         private static void AddArguments(
             SemanticModel semanticModel,
-            ArrayBuilder<(int position, IParameterSymbol? parameter, HintKind kind)> buffer,
+            ISyntaxFactsService syntaxFacts,
+            ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
             BaseArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
@@ -71,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)));
+                var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
+                buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
             }
         }
 

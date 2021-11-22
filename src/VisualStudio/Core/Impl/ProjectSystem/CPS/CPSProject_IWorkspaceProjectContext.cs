@@ -105,7 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 if (string.IsNullOrEmpty(value))
                 {
                     _visualStudioProject.OutputFilePath = null;
-                    _visualStudioProject.OutputRefFilePath = null;
                     return;
                 }
 
@@ -124,13 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 {
                     _visualStudioProject.OutputFilePath = value;
                 }
-
-                // Compute the ref path based on the non-ref path. Ideally this should come from the
-                // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath =
-                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
-                    "ref",
-                    Path.GetFileName(_visualStudioProject.OutputFilePath));
             }
         }
 
@@ -180,6 +172,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
             {
                 _visualStudioProject.DependencyNodeTargetIdentifier = value;
+            }
+            else if (name == AdditionalPropertyNames.TargetRefPath)
+            {
+                // If we don't have a path, always set it to null
+                if (string.IsNullOrEmpty(value))
+                {
+                    _visualStudioProject.OutputRefFilePath = null;
+                }
+                else
+                {
+                    // If we only have a non-rooted path, make it full. This is apparently working around cases
+                    // where CPS pushes us a temporary path when they're loading. It's possible this hack
+                    // can be removed now, but we still have tests asserting it.
+                    if (!PathUtilities.IsAbsolute(value))
+                    {
+                        var rootDirectory = _visualStudioProject.FilePath != null
+                                            ? Path.GetDirectoryName(_visualStudioProject.FilePath)
+                                            : Path.GetTempPath();
+
+                        _visualStudioProject.OutputRefFilePath = Path.Combine(rootDirectory, value);
+                    }
+                    else
+                    {
+                        _visualStudioProject.OutputRefFilePath = value;
+                    }
+                }
             }
         }
 

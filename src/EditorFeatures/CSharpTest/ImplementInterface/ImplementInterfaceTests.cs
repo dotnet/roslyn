@@ -1117,7 +1117,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return ((IComparer)this.x).Compare(x, y);
+        return this.x.Compare(x, y);
     }
 }",
 codeAction: ("False;False;False:global::System.Collections.IComparer;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;x", 1));
@@ -1142,7 +1142,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return ((IComparer)a).Compare(x, y);
+        return a.Compare(x, y);
     }
 }",
 codeAction: ("False;False;False:global::System.Collections.IComparer;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a", 1));

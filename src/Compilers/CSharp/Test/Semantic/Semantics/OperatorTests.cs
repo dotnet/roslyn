@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3211,7 +3212,7 @@ class C
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
-            Assert.Equal(expected, results);
+            AssertEx.Equal(expected, results);
         }
 
         private void TestOperatorKinds(string source)
@@ -3240,7 +3241,21 @@ class C
                                               child.Text == "isDynamic" ||
                                               child.Text == "leftConversion" ||
                                               child.Text == "finalConversion"
-                                        select child.Text + ": " + (child.Text == "@operator" ? ((BinaryOperatorSignature)child.Value).Kind.ToString() : child.Value.ToString())));
+                                        select child.Text + ": " +
+                                               (child.Text switch
+                                               {
+                                                   "@operator" => ((BinaryOperatorSignature)child.Value).Kind.ToString(),
+                                                   "leftConversion" or "finalConversion" => (child.Children.SingleOrDefault() is TreeDumperNode node ?
+                                                                                                (node.Text switch
+                                                                                                {
+                                                                                                    "conversion" => node.Children.ElementAt(1).Value,
+                                                                                                    "valuePlaceholder" => Conversion.Identity,
+                                                                                                    _ => throw ExceptionUtilities.UnexpectedValue(node.Text)
+                                                                                                }) :
+                                                                                                Conversion.NoConversion
+                                                                                            ).ToString(),
+                                                   _ => child.Value.ToString()
+                                               })));
         }
 
         private void TestTypes(string source)
@@ -4976,7 +4991,7 @@ struct A
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2 ?? a2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A").WithLocation(8, 18));
         }
 
         [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]

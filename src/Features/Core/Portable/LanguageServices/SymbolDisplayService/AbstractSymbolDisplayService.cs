@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
     {
-        protected readonly IAnonymousTypeDisplayService AnonymousTypeDisplayService;
+        protected readonly IStructuralTypeDisplayService AnonymousTypeDisplayService;
 
-        protected AbstractSymbolDisplayService(IAnonymousTypeDisplayService anonymousTypeDisplayService)
-            => AnonymousTypeDisplayService = anonymousTypeDisplayService;
+        protected AbstractSymbolDisplayService(IStructuralTypeDisplayService structuralTypeDisplayService)
+            => AnonymousTypeDisplayService = structuralTypeDisplayService;
 
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 

@@ -56,14 +56,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
 
-                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
+                // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
+                // in projects targeting a lesser version.
+                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp7)
+                    return;
+
+                var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
+                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionType),
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             });
         }
 
-        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionTypeOpt)
+        private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
@@ -73,13 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
-                return;
-            }
-
-            // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
-            {
                 return;
             }
 
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
                 return;
 
             // Looks good!

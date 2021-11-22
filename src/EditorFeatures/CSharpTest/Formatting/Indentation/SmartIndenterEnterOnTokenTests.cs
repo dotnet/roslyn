@@ -1523,7 +1523,7 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                .WithChangedOption(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp, indentStyle)
                 .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();

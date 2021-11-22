@@ -1032,4 +1032,20 @@ Do you want to proceed?</value>
   <data name="Regex_OtherEscape" xml:space="preserve">
     <value>Regex - Other Escape</value>
   </data>
+  <data name="Inline_Diagnostics_Error" xml:space="preserve">
+    <value>Inline Diagnostics - Error</value>
+  </data>
+  <data name="Inline_Diagnostics_Rude_Edit" xml:space="preserve">
+    <value>Inline Diagnostics - Rude Edit</value>
+  </data>
+  <data name="Inline_Diagnostics_Warning" xml:space="preserve">
+    <value>Inline Diagnostics - Warning</value>
+  </data>
+  <data name="Execute_Suggested_Action" xml:space="preserve">
+    <value>Execute Suggested Action</value>
+  </data>
+  <data name="Language_client_initialization_failed" xml:space="preserve">
+    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
+    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
 </root>

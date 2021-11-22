@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol)
 
             Return CreateSignatureHelpItems(accessibleConstructors.Select(
-                Function(c) Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Function(c) Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
 
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                            within As ISymbol,
                                            attribute As AttributeSyntax,
                                            semanticModel As SemanticModel,
-                                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                           structuralTypeDisplayService As IStructuralTypeDisplayService,
                                            documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = attribute.SpanStart
             Dim namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within).
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim item = CreateItem(
                 constructor, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
