@@ -1802,6 +1802,12 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>

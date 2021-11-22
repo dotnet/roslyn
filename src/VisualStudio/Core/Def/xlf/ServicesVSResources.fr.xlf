@@ -252,6 +252,11 @@
         <target state="translated">Commentaires</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Calculer les actions rapides de manière asynchrone (expérimental, requiert un redémarrage)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Membre conteneur</target>
@@ -1025,6 +1030,11 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Élever les membres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Actions rapides</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
