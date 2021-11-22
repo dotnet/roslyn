@@ -321,18 +321,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(0, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public void SelectTypeNavBarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(1, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public void SelectMemberNavBarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(2, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public bool IsNavBarEnabled()
