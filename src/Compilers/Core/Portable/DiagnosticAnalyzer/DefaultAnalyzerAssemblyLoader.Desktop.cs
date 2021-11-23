@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         private int _hookedAssemblyResolve;
 
-        protected override Assembly LoadFromPathImpl(string fullPath)
+        protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
         {
             if (Interlocked.CompareExchange(ref _hookedAssemblyResolve, 0, 1) == 0)
             {

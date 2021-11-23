@@ -11,6 +11,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
+    /// to <see cref="AddDependencyLocation(string)"/>.
+    /// </summary>
+    /// <remarks>
+    /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
+    /// will always return the same thing, per that interface's contract.
+    /// </remarks>
     internal abstract class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
         private readonly object _guard = new();
@@ -21,7 +29,10 @@ namespace Microsoft.CodeAnalysis
         // maps file name to a full path (lock _guard to read/write):
         private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
-        protected abstract Assembly LoadFromPathImpl(string fullPath);
+        /// <summary>
+        /// Implemented by derived types to actually perform the load for an assembly that doesn't have a cached result.
+        /// </summary>
+        protected abstract Assembly LoadFromPathUncheckedImpl(string fullPath);
 
         #region Public API
 
@@ -52,6 +63,10 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        /// <summary>
+        /// Returns the cached assembly for fullPath if we've done a load for this path before, or calls <see cref="LoadFromPathUncheckedImpl"/> if
+        /// it needs to be loaded. This method skips the check in release builds that the path is an absolute path, hence the "Unchecked" in the name.
+        /// </summary>
         protected Assembly LoadFromPathUnchecked(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -69,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // Otherwise, load the assembly.
             if (loadedAssembly == null)
             {
-                loadedAssembly = LoadFromPathImpl(fullPath);
+                loadedAssembly = LoadFromPathUncheckedImpl(fullPath);
             }
 
             // Add the loaded assembly to the path cache.
