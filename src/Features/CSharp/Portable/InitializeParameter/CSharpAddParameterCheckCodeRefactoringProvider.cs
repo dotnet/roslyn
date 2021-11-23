@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -94,12 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, IParameterSymbol parameter, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (tree is null)
-            {
-                return null;
-            }
-
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpParseOptions)tree.Options;
             if (options.LanguageVersion < LanguageVersion.Preview)
             {

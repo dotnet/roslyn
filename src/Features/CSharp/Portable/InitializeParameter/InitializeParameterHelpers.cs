@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             SyntaxEditor editor,
             SyntaxNode functionDeclaration,
             bool returnsVoid,
-            SyntaxNode statementToAddAfterOpt,
+            SyntaxNode? statementToAddAfterOpt,
             StatementSyntax statement)
         {
             var body = GetBody(functionDeclaration);
