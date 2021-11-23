@@ -101,16 +101,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             var identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
-            return AddToCache(fullPath, identity);
-        }
 
-        [return: NotNullIfNotNull("identity")]
-        private AssemblyIdentity? AddToCache(string fullPath, AssemblyIdentity? identity)
-        {
             lock (_guard)
             {
                 if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out var existingIdentity) && existingIdentity != null)
                 {
+                    // Somebody else beat us, so used the cached value
                     identity = existingIdentity;
                 }
                 else
