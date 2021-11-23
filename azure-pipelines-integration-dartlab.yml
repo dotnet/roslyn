@@ -1,4 +1,4 @@
-# Add a description of your pipeline here
+# Roslyn integration test pipeline for validating against branch builds of VS.
 
 trigger: none # Manual trigger for now
 
