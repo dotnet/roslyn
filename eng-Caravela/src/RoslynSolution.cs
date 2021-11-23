@@ -4,7 +4,8 @@
 
 using System.IO;
 using System.Text;
-using PostSharp.Engineering.BuildTools.Commands.Build;
+using PostSharp.Engineering.BuildTools.Build;
+using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Utilities;
 
 namespace Build
@@ -50,14 +51,14 @@ namespace Build
         {
             string filter = "";
 
-            if ( !options.Properties.ContainsKey("TestAll"))
+            if (!options.Properties.ContainsKey("TestAll"))
             {
                 filter = "Category!=OuterLoop";
             }
 
             // We run Caravela's unit tests.
             var project = Path.Combine(context.RepoDirectory, "src", "Caravela", "Caravela.Compiler.UnitTests", "Caravela.Compiler.UnitTests.csproj");
-            return DotNetSolution.RunDotNet(context, options, project, "test", $"--filter \"{filter}\"");
+            return DotNetHelper.Run(context, options, project, "test", $"--filter \"{filter}\"");
 
 
         }

@@ -19,7 +19,12 @@ If ( -Not ( Test-Path -Path ".\.git" ) ) {
 
 
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
+$TargetDir = "$EngineeringDirectory\shared"
+echo "Copying $ScriptDir to $TargetDir"
 
-echo "Copying $ScriptDir to $EngineeringDirectory\shared"
+if ( Test-Path $TargetDir ) {
+  rd $TargetDir -Recurse -Force
+}
 
-Copy-Item $ScriptDir\* "$EngineeringDirectory\shared" -Force -Recurse -Exclude ".git" 
+
+Copy-Item $ScriptDir\* $TargetDir -Force -Recurse -Exclude ".git" 

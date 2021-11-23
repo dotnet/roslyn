@@ -20,8 +20,10 @@ namespace PostSharp.Engineering.BuildTools.Engineering
                 return false;
             }
 
+            var branch = options.Branch ?? "master";
+
             // Check out master and pull.
-            if ( !ToolInvocationHelper.InvokeTool( context.Console, "git", $"checkout master", sharedRepo ) )
+            if ( !ToolInvocationHelper.InvokeTool( context.Console, "git", $"checkout {branch}", sharedRepo ) )
             {
                 return false;
             }

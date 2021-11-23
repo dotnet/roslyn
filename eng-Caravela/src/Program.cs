@@ -1,6 +1,7 @@
 ﻿using PostSharp.Engineering.BuildTools;
-using PostSharp.Engineering.BuildTools.Commands.Build;
-using PostSharp.Engineering.BuildTools.Commands.NuGet;
+using PostSharp.Engineering.BuildTools.Build;
+using PostSharp.Engineering.BuildTools.Build.Model;
+using PostSharp.Engineering.BuildTools.NuGet;
 using Spectre.Console.Cli;
 using System;
 using System.Collections.Immutable;
@@ -64,7 +65,7 @@ namespace Build
                 Solutions = ImmutableArray.Create<Solution>(
                     new RoslynSolution()),
                 PublishingTargets = ImmutableArray.Create<PublishingTarget>(publicPublishing, privatePublishing),
-                SupportedProperties = ImmutableDictionary.Create<string,string>().Add( "TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
+                SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
             };
             product.BuildCompleted += OnBuildCompleted;
             var commandApp = new CommandApp();
