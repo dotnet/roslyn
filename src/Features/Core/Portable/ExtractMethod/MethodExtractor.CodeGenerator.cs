@@ -124,7 +124,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newSyntaxRoot);
-                newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
                 var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 

@@ -18,9 +18,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
         IStreamingProgressTracker ProgressTracker { get; }
 
         /// <summary>
-        /// Report a message to be displayed to the user.
+        /// Report a failure message to be displayed to the user.  This will be reported if the find operation returns
+        /// no results.
         /// </summary>
         ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Report a informational message to be displayed to the user.  This may appear to the user in the results
+        /// UI in some fashion (for example: in an info-bar).
+        /// </summary>
+        ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken);
 
         /// <summary>
         /// Set the title of the window that results are displayed in.

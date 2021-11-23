@@ -286,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static INamedTypeSymbol? TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol? within, Compilation compilation)
         {
@@ -317,8 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
         {
+            // The reference type might be nullable, so we need to remove the annotation.
+            // Otherwise, we will end up with items like "string?.Empty".
             if (type.TypeKind is TypeKind.Struct or TypeKind.Class)
-                return type as INamedTypeSymbol;
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated) as INamedTypeSymbol;
 
             return null;
         }

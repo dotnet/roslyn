@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,18 +34,21 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         // low vm more info page link
         private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
-
+        private readonly IGlobalOptionService _globalOptions;
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService? _workspaceCacheService;
 
         private bool _alreadyLogged;
+        private bool _infoBarShown;
 
         private VirtualMemoryNotificationListener(
             IThreadingContext threadingContext,
             IVsShell shell,
+            IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace)
             : base(threadingContext, assertIsForeground: true)
         {
+            _globalOptions = globalOptions;
             _workspace = workspace;
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
 
@@ -60,14 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices
             ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out var cookie));
         }
 
-        public static async Task<VirtualMemoryNotificationListener> CreateAsync(VisualStudioWorkspace workspace, IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        public static async Task<VirtualMemoryNotificationListener> CreateAsync(
+            VisualStudioWorkspace workspace,
+            IThreadingContext threadingContext,
+            IAsyncServiceProvider serviceProvider,
+            IGlobalOptionService globalOptions,
+            CancellationToken cancellationToken)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             Assumes.Present(shell);
 
-            return new VirtualMemoryNotificationListener(threadingContext, shell, workspace);
+            return new VirtualMemoryNotificationListener(threadingContext, shell, globalOptions, workspace);
         }
 
         /// <summary>
@@ -129,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return availableMemory < MemoryThreshold &&
                 !SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis &&
-                _workspace.Options.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
+                _globalOptions.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
         private void DisableBackgroundAnalysis()
@@ -146,23 +156,22 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void ShowInfoBarIfRequired()
         {
-            if (_workspace.Options.GetOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown))
+            if (_infoBarShown)
             {
-                // Info bar already shown.
                 return;
             }
 
             // Show info bar.
             _workspace.Services.GetRequiredService<IErrorReportingService>()
-                .ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                .ShowGlobalErrorInfo(
+                    message: ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                    TelemetryFeatureName.VirtualMemoryNotification,
                     exception: null,
                     new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, RenableBackgroundAnalysis),
                     new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
                         () => VisualStudioNavigateToLinkService.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
 
-            // Update info bar shown state.
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true)));
+            _infoBarShown = true;
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -173,8 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // For newly opened solution, reset the info bar state.
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false)));
+            _infoBarShown = false;
         }
     }
 }

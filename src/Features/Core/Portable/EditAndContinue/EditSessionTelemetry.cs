@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly object _guard = new();
 
+        // Limit the number of reported items to limit the size of the telemetry event (max total size is 64K).
+        private const int MaxReportedProjectIds = 20;
+
         private readonly HashSet<(ushort, ushort)> _rudeEdits = new();
         private readonly HashSet<string> _emitErrorIds = new();
         private readonly HashSet<Guid> _projectsWithValidDelta = new();
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     case ProjectAnalysisSummary.ValidChanges:
                         _hadValidChanges = true;
 
-                        if (errorsIds.IsEmpty)
+                        if (errorsIds.IsEmpty && _projectsWithValidDelta.Count < MaxReportedProjectIds)
                         {
                             _projectsWithValidDelta.Add(projectTelemetryId);
                         }
