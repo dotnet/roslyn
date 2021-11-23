@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts,
                 analyzers,
                 generators,
+                pathMap,
                 emitOptions,
                 options,
                 cancellationToken);
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -88,6 +92,7 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts.NullToEmpty(),
                 analyzers.NullToEmpty(),
                 generators.NullToEmpty(),
+                pathMap.NullToEmpty(),
                 emitOptions,
                 options,
                 cancellationToken);

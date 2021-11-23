@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         internal string ClientDirectory { get; }
 
         /// <summary>
-        /// The path in which the compilation takes place.
+        /// The path in which the compilation takes place. This is also referred to as "baseDirectory" in 
+        /// the code base.
         /// </summary>
         internal string WorkingDirectory { get; }
 
@@ -1081,7 +1082,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
-                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators, Arguments.EmitOptions);
+                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators, Arguments.PathMap, Arguments.EmitOptions);
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
@@ -1663,9 +1664,10 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, emitOptions);
+            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using (var stream = File.Create(filePath))
             {

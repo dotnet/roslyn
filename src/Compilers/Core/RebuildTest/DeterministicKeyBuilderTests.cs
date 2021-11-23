@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -74,6 +76,23 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             expected = expected?.Trim(s_trimChars);
             actual = actual?.Trim(s_trimChars);
             Assert.Equal(expected, actual);
+        }
+
+        private protected static void AssertSyntaxTreePathMap(string? expected, CommonCompiler compiler)
+        {
+            Assert.Empty(compiler.Arguments.Errors);
+
+            var writer = new StringWriter();
+            var compilation = compiler.CreateCompilation(
+                writer,
+                touchedFilesLogger: null,
+                errorLoggerOpt: null,
+                analyzerConfigOptions: default,
+                globalConfigOptions: default);
+            AssertEx.NotNull(compilation);
+            Assert.Empty(writer.GetStringBuilder().ToString());
+            var obj = GetSyntaxTreeValues(compilation, compiler.Arguments.PathMap);
+            AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }
 
         protected static JProperty GetJsonProperty(
@@ -166,6 +185,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             Assert.True(false, $"Could not find reference with MVID {expectedMvid}");
             throw null!;
+        }
+
+        protected static JArray GetSyntaxTreeValues(Compilation compilation, ImmutableArray<KeyValuePair<string, string>> pathMap = default)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(pathMap: pathMap), "compilation.syntaxTrees");
+            return (JArray)property.Value; ;
         }
 
         protected static string GetChecksum(SourceText text)

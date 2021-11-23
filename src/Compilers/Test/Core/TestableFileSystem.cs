@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
@@ -48,6 +49,14 @@ namespace Roslyn.Test.Utilities
             {
                 FileExistsFunc = filePath => set.Contains(filePath)
             };
+        }
+
+        public static TestableFileSystem CreateForFiles(params (string FilePath, TestableFile TestableFile)[] files)
+        {
+            var map = files.ToDictionary(
+                x => x.FilePath,
+                x => x.TestableFile);
+            return CreateForMap(map);
         }
 
         public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)

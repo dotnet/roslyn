@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System;
+using System.IO;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -357,6 +359,47 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 var obj = GetParseOptionsValue(parseOptions);
                 AssertJsonCore(expected, obj.Value<JArray>("preprocessorSymbols")?.ToString(Formatting.Indented));
             }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"c:\src\code.cs", @"c:\src", null)]
+        [InlineData(@"d:\src\code.cs", @"d:\src\", @"/pathmap:d:\=c:\")]
+        [InlineData(@"e:\long\path\src\code.cs", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
+        public void CSharpPathMapWindows(string filePath, string workingDirectory, string? pathMap)
+        {
+            var args = new List<string>(new[] { filePath, "/nostdlib", "/langversion:9" });
+            if (pathMap is not null)
+            {
+                args.Add(pathMap);
+            }
+
+            var compiler = new MockCSharpCompiler(
+                null,
+                workingDirectory: workingDirectory,
+                args.ToArray());
+            compiler.FileSystem = TestableFileSystem.CreateForFiles((filePath, new TestableFile("hello")));
+            AssertSyntaxTreePathMap(@"
+[
+  {
+    ""fileName"": ""c:\\src\\code.cs"",
+    ""text"": {
+      ""checksum"": ""2cf24dba5fb0a3e26e83b2ac5b9e29e1b161e5c1fa7425e7343362938b9824"",
+      ""checksumAlgorithm"": ""Sha256"",
+      ""encoding"": ""Unicode (UTF-8)""
+    },
+    ""parseOptions"": {
+      ""kind"": ""Regular"",
+      ""specifiedKind"": ""Regular"",
+      ""documentationMode"": ""None"",
+      ""language"": ""C#"",
+      ""features"": null,
+      ""languageVersion"": ""CSharp9"",
+      ""specifiedLanguageVersion"": ""CSharp9"",
+      ""preprocessorSymbols"": []
+    }
+  }
+]
+", compiler);
         }
     }
 }

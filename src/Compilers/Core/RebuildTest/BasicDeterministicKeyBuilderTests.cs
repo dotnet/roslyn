@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void BasicPreprocessorSymbols()
         {
-            assert(null);
+            assert(@"{}");
 
             assert(@"
 {
@@ -178,6 +178,49 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 var obj = GetParseOptionsValue(parseOptions);
                 AssertJsonCore(expected, obj.Value<JObject>("preprocessorSymbols")?.ToString(Formatting.Indented));
             }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"c:\src\code.vb", @"c:\src", null)]
+        [InlineData(@"d:\src\code.vb", @"d:\src\", @"/pathmap:d:\=c:\")]
+        [InlineData(@"e:\long\path\src\code.vb", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
+        public void BasicPathMapWindows(string filePath, string workingDirectory, string? pathMap)
+        {
+            var args = new List<string>(new[] { filePath, "/nostdlib", "/vbruntime-", "/langversion:15" });
+            if (pathMap is not null)
+            {
+                args.Add(pathMap);
+            }
+
+            var compiler = new MockVisualBasicCompiler(
+                baseDirectory: workingDirectory,
+                args.ToArray());
+            compiler.FileSystem = TestableFileSystem.CreateForFiles((filePath, new TestableFile("hello")));
+            AssertSyntaxTreePathMap(@"
+[
+  {
+    ""fileName"": ""c:\\src\\code.vb"",
+    ""text"": {
+      ""checksum"": ""2cf24dba5fb0a3e26e83b2ac5b9e29e1b161e5c1fa7425e7343362938b9824"",
+      ""checksumAlgorithm"": ""Sha256"",
+      ""encoding"": ""Unicode (UTF-8)""
+    },
+    ""parseOptions"": {
+      ""kind"": ""Regular"",
+      ""specifiedKind"": ""Regular"",
+      ""documentationMode"": ""None"",
+      ""language"": ""Visual Basic"",
+      ""features"": null,
+      ""languageVersion"": ""VisualBasic15"",
+      ""specifiedLanguageVersion"": ""VisualBasic15"",
+      ""preprocessorSymbols"": {
+        ""TARGET"": ""exe"",
+        ""VBC_VER"": ""16.9""
+      }
+    }
+  }
+]
+", compiler);
         }
     }
 }

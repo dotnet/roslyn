@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,14 +45,23 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        protected void WriteFileName(JsonWriter writer, string name, string? filePath, DeterministicKeyOptions options)
+        protected void WriteFilePath(
+            JsonWriter writer,
+            string propertyName,
+            string? filePath,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            DeterministicKeyOptions options)
         {
             if ((options & DeterministicKeyOptions.IgnorePaths) != 0)
             {
                 filePath = Path.GetFileName(filePath);
             }
+            else if (filePath is not null)
+            {
+                filePath = PathUtilities.NormalizePathPrefix(filePath, pathMap);
+            }
 
-            writer.Write(name, filePath);
+            writer.Write(propertyName, filePath);
         }
 
         protected void WriteByteArrayValue(JsonWriter writer, string name, ImmutableArray<byte> value)
@@ -114,6 +124,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -127,7 +138,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, pathMap, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -149,7 +160,12 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken.ThrowIfCancellationRequested();
 
                     writer.WriteObjectStart();
-                    WriteFileName(writer, "fileName", additionalText.Path, options);
+
+                    // PROTOTYPE: additional text file do not presently go through path map hence not 
+                    // doing it here. This needs to be resolved before merge. It's not incorrect to do
+                    // this but it is possible that we need to file a follow up item to add these paths
+                    // to the path map code path
+                    WriteFilePath(writer, "fileName", additionalText.Path, pathMap: default, options);
                     writer.WriteKey("text");
                     WriteSourceText(writer, additionalText.GetText(cancellationToken));
                     writer.WriteObjectEnd();
@@ -194,6 +210,7 @@ namespace Microsoft.CodeAnalysis
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
@@ -208,7 +225,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var syntaxTree in syntaxTrees)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                WriteSyntaxTree(writer, syntaxTree, options, cancellationToken);
+                WriteSyntaxTree(writer, syntaxTree, pathMap, options, cancellationToken);
             }
             writer.WriteArrayEnd();
 
@@ -245,10 +262,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteSyntaxTree(JsonWriter writer, SyntaxTreeKey syntaxTree, DeterministicKeyOptions options, CancellationToken cancellationToken)
+        private void WriteSyntaxTree(
+            JsonWriter writer,
+            SyntaxTreeKey syntaxTree,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            DeterministicKeyOptions options,
+            CancellationToken cancellationToken)
         {
             writer.WriteObjectStart();
-            WriteFileName(writer, "fileName", syntaxTree.FilePath, options);
+            WriteFilePath(writer, "fileName", syntaxTree.FilePath, pathMap, options);
             writer.WriteKey("text");
             WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
             writer.WriteKey("parseOptions");
@@ -337,6 +359,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.Options,
                     compilation.SyntaxTrees.SelectAsArray(x => SyntaxTreeKey.Create(x)),
                     compilation.References.AsImmutable(),
+                    default,
                     deterministicKeyOptions,
                     cancellationToken);
             }

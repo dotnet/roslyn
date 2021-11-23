@@ -130,17 +130,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, additionalTexts, analyzers, generators, emitOptions, options);
+                compilationOptions, syntaxTrees, references, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
         }
 
         internal string GetDeterministicKey(
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
             => GetDeterministicKey(
@@ -150,6 +152,7 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts,
                 analyzers,
                 generators,
+                pathMap,
                 emitOptions,
                 options);
 
