@@ -762,24 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '@':
-                    if (TextWindow.PeekChar(1) == '"')
-                    {
-                        var errorCode = this.ScanVerbatimStringLiteral(ref info);
-                        if (errorCode is ErrorCode code)
-                            this.AddError(code);
-                    }
-                    else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        break;
-                    }
-                    else if (!this.ScanIdentifierOrKeyword(ref info))
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Text = TextWindow.GetText(intern: true);
-                        this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
-                    }
-
+                    this.ScanAtSignToken(ref info);
                     break;
 
                 case '$':
@@ -939,6 +922,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
+            }
+        }
+
+        private void ScanAtSignToken(ref TokenInfo info)
+        {
+            if (TextWindow.PeekChar(1) == '"')
+            {
+                var errorCode = this.ScanVerbatimStringLiteral(ref info);
+                if (errorCode is ErrorCode code)
+                    this.AddError(code);
+            }
+            else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+            }
+            else if (!this.ScanIdentifierOrKeyword(ref info))
+            {
+                TextWindow.AdvanceChar();
+                info.Text = TextWindow.GetText(intern: true);
+                this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
             }
         }
 
