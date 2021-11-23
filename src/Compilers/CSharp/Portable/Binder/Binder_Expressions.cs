@@ -2560,32 +2560,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetTypeWithAnnotations, wasCompilerGenerated: false, diagnostics: bag);
-                if (underlyingExpr.HasErrors || bag.HasAnyErrors())
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetTypeWithAnnotations.Type);
-
-                    return new BoundConversion(
-                        node,
-                        operand,
-                        Conversion.NoConversion,
-                        @checked: CheckOverflowAtRuntime,
-                        explicitCastInCode: true,
-                        conversionGroupOpt: new ConversionGroup(Conversion.NoConversion, explicitType: targetTypeWithAnnotations),
-                        constantValueOpt: ConstantValue.NotAvailable,
-                        type: targetTypeWithAnnotations.Type,
-                        hasErrors: true);
-                }
 
                 // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
                 // constant value is produced place it in the tree so that it gets emitted.  This maintains 
                 // parity with the native compiler which also evaluated the conversion at compile time. 
-                if (underlyingExpr.ConstantValue != null)
+                if (underlyingExpr.ConstantValue != null &&
+                    !underlyingExpr.HasErrors && !bag.HasAnyErrors())
                 {
                     underlyingExpr.WasCompilerGenerated = true;
+                    diagnostics.AddRange(bag.DiagnosticBag);
                     return BindCastCore(node, underlyingExpr, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
                 }
 
-                return BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                var bag2 = BindingDiagnosticBag.GetInstance(diagnostics);
+
+                var result = BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: bag2);
+
+                if (bag2.AccumulatesDiagnostics && bag.HasAnyErrors() && !bag2.HasAnyErrors())
+                {
+                    diagnostics.AddRange(bag.DiagnosticBag);
+                }
+
+                diagnostics.AddRange(bag2);
+                bag2.Free();
+                return result;
             }
             finally
             {
@@ -3250,7 +3248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: rank);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo, out _);
             diagnostics.Add(node, useSiteInfo);
 
             if ((object)bestType == null || bestType.IsVoidType()) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
@@ -3277,7 +3275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteInfo, out _);
             diagnostics.Add(node, useSiteInfo);
 
             if ((object)bestType == null || bestType.IsVoidType())
@@ -4802,6 +4800,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
+
+                        // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
+                        // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
+                        // we therefore can't get the receiver at the point it will be needed for the constructor. We could technically
+                        // support it for top-level member indexer initializers (ie, initializers directly on the `new Type` instance),
+                        // but for user and language simplicity we blanket forbid this.
+                        foreach (var argument in arguments)
+                        {
+                            if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
+                            {
+                                var handlerPlaceholders = operand switch
+                                {
+                                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
+                                    BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
+                                };
+
+                                if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
+                                    hasErrors = true;
+                                }
+                            }
+                        }
 
                         break;
                     }
@@ -8503,7 +8525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = GetUniqueSignatureFromMethodGroup(node);
             if (method is { } &&
-                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations) is { } delegateType)
+                GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations) is { } delegateType)
             {
                 return delegateType;
             }
@@ -8588,16 +8610,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
+            SyntaxNode syntax,
             RefKind returnRefKind,
-            TypeWithAnnotations returnTypeOpt,
+            TypeWithAnnotations returnType,
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<TypeWithAnnotations> parameterTypes)
         {
+            Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
-            Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
+            Debug.Assert(returnType.Type is { }); // Expecting System.Void rather than null return type.
 
-            bool returnsVoid = !returnTypeOpt.HasType;
-            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnTypeOpt);
+            bool returnsVoid = returnType.Type.IsVoidType();
+            var typeArguments = returnsVoid ? parameterTypes : parameterTypes.Add(returnType);
 
             if (returnsVoid && returnRefKind != RefKind.None)
             {
@@ -8614,6 +8638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
 
+            // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None && !hasByRefParameters)
             {
                 var wkDelegateType = returnsVoid ?
@@ -8636,23 +8661,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var refKinds = (hasByRefParameters || returnRefKind != RefKind.None) ? RefKindVector.Create(parameterTypes.Length + (returnsVoid ? 0 : 1)) : default;
-            Debug.Assert(Enumerable.Range(0, refKinds.Capacity).All(i => refKinds[i] == RefKind.None));
-
-            if (hasByRefParameters)
+            // Synthesize a delegate type for other cases.
+            var fieldsBuilder = ArrayBuilder<AnonymousTypeField>.GetInstance(parameterTypes.Length + 1);
+            var location = syntax.Location;
+            for (int i = 0; i < parameterTypes.Length; i++)
             {
-                for (int i = 0; i < parameterRefKinds.Length; i++)
-                {
-                    refKinds[i] = parameterRefKinds[i];
-                }
+                fieldsBuilder.Add(new AnonymousTypeField(name: "", location, parameterTypes[i], parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i]));
             }
-            if (returnRefKind != RefKind.None)
-            {
-                refKinds[parameterTypes.Length] = returnRefKind;
-            }
+            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind));
 
-            var synthesizedType = Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount: parameterTypes.Length, refKinds, returnsVoid, generation: 0);
-            return synthesizedType.Construct(typeArguments);
+            var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
+            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);
 
             static bool isValidTypeArgument(TypeSymbol? type)
             {
@@ -8820,11 +8839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)
         {
-            var operatorToken = node.OperatorToken;
-            // TODO: need a special ERR for this.
-            //       conditional access is not really a binary operator.
-            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
-            diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_CannotBeMadeNullable, access.Display);
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, access.Syntax.Location));
             receiver = BadExpression(receiver.Syntax, receiver);
 
             return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);

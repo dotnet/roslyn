@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var severity = descriptor.DefaultSeverity switch
                     {
-                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RudeEdit,
+                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
                         DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
                         _ => throw ExceptionUtilities.UnexpectedValue(descriptor.DefaultSeverity)
                     };

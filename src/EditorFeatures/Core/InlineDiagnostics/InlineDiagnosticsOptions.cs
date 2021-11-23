@@ -11,32 +11,29 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal static class InlineDiagnosticsOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class InlineDiagnosticsOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public InlineDiagnosticsOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            EnableInlineDiagnostics,
+            Location);
+
         public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
-            new(nameof(InlineDiagnosticsOptions),
-                nameof(EnableInlineDiagnostics),
+            new("InlineDiagnosticsOptions",
+                "EnableInlineDiagnostics",
                 defaultValue: false,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
 
         public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
-            new(nameof(InlineDiagnosticsOptions),
-                nameof(Location),
+            new("InlineDiagnosticsOptions",
+                "Location",
                 defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal sealed class InlineDiagnosticsOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineDiagnosticsOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineDiagnosticsOptions.EnableInlineDiagnostics,
-            InlineDiagnosticsOptions.Location);
     }
 }

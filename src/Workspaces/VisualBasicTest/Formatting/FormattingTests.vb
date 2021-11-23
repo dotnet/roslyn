@@ -869,11 +869,11 @@ End Class"
             Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
         Dim aa = 1 + {continuation}
- {continuation}
- {continuation}
- {continuation}
- {continuation}
- {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
 2 + {continuation}
 3
     End Sub
@@ -902,11 +902,11 @@ End Class"
             Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
         Dim aa = 1 + {continuation}
- {continuation}
- {continuation}
- {continuation}
- {continuation}
- {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
     2 + {continuation}
     3
     End Sub
@@ -1086,8 +1086,8 @@ End Class"
             Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
         Dim a = {continuation}
- {continuation}
- {continuation}
+                {continuation}
+                {continuation}
                 1
     End Sub
 End Class"
@@ -2421,7 +2421,7 @@ End Module</Code>
             Dim code = <Code>_      
     </Code>
 
-            Dim expected = <Code> _
+            Dim expected = <Code>_
 </Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)

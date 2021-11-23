@@ -3320,6 +3320,137 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    /// <summary>
+    /// Represents an interpolated string converted to a custom interpolated string handler type.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.InterpolatedStringHandlerCreation"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IInterpolatedStringHandlerCreationOperation : IOperation
+    {
+        /// <summary>
+        /// The construction of the interpolated string handler instance. This can be an <see cref="IObjectCreationOperation" /> for valid code, and
+        /// <see cref="IDynamicObjectCreationOperation" /> or <see cref="IInvalidOperation" /> for invalid code.
+        /// </summary>
+        IOperation HandlerCreation { get; }
+        /// <summary>
+        /// True if the last parameter of <see cref="HandlerCreation" /> is an out <see langword="bool" /> parameter that will be checked before executing the code in
+        /// <see cref="Content" />. False otherwise.
+        /// </summary>
+        bool HandlerCreationHasSuccessParameter { get; }
+        /// <summary>
+        /// True if the AppendLiteral or AppendFormatted calls in nested <see cref="IInterpolatedStringOperation.Parts" /> return <see langword="bool" />. When that is true, each part
+        /// will be conditional on the return of the part before it, only being executed when the Append call returns true. False otherwise.
+        /// </summary>
+        /// <remarks>
+        /// when this is true and <see cref="HandlerCreationHasSuccessParameter" /> is true, then the first part in nested <see cref="IInterpolatedStringOperation.Parts" /> is conditionally
+        /// run. If this is true and <see cref="HandlerCreationHasSuccessParameter" /> is false, then the first part is unconditionally run.
+        /// <br />
+        /// Just because this is true or false does not guarantee that all Append calls actually do return boolean values, as there could be dynamic calls or errors.
+        /// It only governs what the compiler was expecting, based on the first calls it did see.
+        /// </remarks>
+        bool HandlerAppendCallsReturnBool { get; }
+        /// <summary>
+        /// The interpolated string expression or addition operation that makes up the content of this string. This is either an <see cref="IInterpolatedStringOperation" />
+        /// or an <see cref="IInterpolatedStringAdditionOperation" /> operation.
+        /// </summary>
+        IOperation Content { get; }
+    }
+    /// <summary>
+    /// Represents an addition of multiple interpolated string literals being converted to an interpolated string handler type.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.InterpolatedStringAddition"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IInterpolatedStringAdditionOperation : IOperation
+    {
+        /// <summary>
+        /// The interpolated string expression or addition operation on the left side of the operator. This is either an <see cref="IInterpolatedStringOperation" />
+        /// or an <see cref="IInterpolatedStringAdditionOperation" /> operation.
+        /// </summary>
+        IOperation Left { get; }
+        /// <summary>
+        /// The interpolated string expression or addition operation on the right side of the operator. This is either an <see cref="IInterpolatedStringOperation" />
+        /// or an <see cref="IInterpolatedStringAdditionOperation" /> operation.
+        /// </summary>
+        IOperation Right { get; }
+    }
+    /// <summary>
+    /// Represents a call to either AppendLiteral or AppendFormatted as part of an interpolated string handler conversion.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.InterpolatedStringAppendLiteral"/></description></item>
+    /// <item><description><see cref="OperationKind.InterpolatedStringAppendFormatted"/></description></item>
+    /// <item><description><see cref="OperationKind.InterpolatedStringAppendInvalid"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IInterpolatedStringAppendOperation : IInterpolatedStringContentOperation
+    {
+        /// <summary>
+        /// If this interpolated string is subject to an interpolated string handler conversion, the construction of the interpolated string handler instance.
+        /// This can be an <see cref="IInvocationOperation" />  or <see cref="IDynamicInvocationOperation" /> for valid code, and <see cref="IInvalidOperation" /> for invalid code.
+        /// </summary>
+        IOperation AppendCall { get; }
+    }
+    /// <summary>
+    /// Represents an argument from the method call, indexer access, or constructor invocation that is creating the containing <see cref="IInterpolatedStringHandlerCreationOperation" />
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.InterpolatedStringHandlerArgumentPlaceholder"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IInterpolatedStringHandlerArgumentPlaceholderOperation : IOperation
+    {
+        /// <summary>
+        /// The index of the argument of the method call, indexer, or object creation containing the interpolated string handler conversion this placeholder is referencing.
+        /// -1 if <see cref="PlaceholderKind" /> is anything other than <see cref="InterpolatedStringArgumentPlaceholderKind.CallsiteArgument" />.
+        /// </summary>
+        int ArgumentIndex { get; }
+        /// <summary>
+        /// The component this placeholder represents.
+        /// </summary>
+        InterpolatedStringArgumentPlaceholderKind PlaceholderKind { get; }
+    }
+    /// <summary>
+    /// Represents an invocation of a function pointer.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.FunctionPointerInvocation"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IFunctionPointerInvocationOperation : IOperation
+    {
+        /// <summary>
+        /// Invoked pointer.
+        /// </summary>
+        IOperation Target { get; }
+        /// <summary>
+        /// Arguments of the invocation. Arguments are in evaluation order.
+        /// </summary>
+        ImmutableArray<IArgumentOperation> Arguments { get; }
+    }
     #endregion
 
     #region Implementations
@@ -6746,14 +6877,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
-        internal FlowCaptureReferenceOperation(CaptureId id, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal FlowCaptureReferenceOperation(CaptureId id, bool isInitialization, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Id = id;
+            IsInitialization = isInitialization;
             OperationConstantValue = constantValue;
             Type = type;
         }
         public CaptureId Id { get; }
+        public bool IsInitialization { get; }
         protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
         protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
@@ -7602,6 +7735,194 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWith(this, argument);
     }
+    internal sealed partial class InterpolatedStringHandlerCreationOperation : Operation, IInterpolatedStringHandlerCreationOperation
+    {
+        internal InterpolatedStringHandlerCreationOperation(IOperation handlerCreation, bool handlerCreationHasSuccessParameter, bool handlerAppendCallsReturnBool, IOperation content, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            HandlerCreation = SetParentOperation(handlerCreation, this);
+            HandlerCreationHasSuccessParameter = handlerCreationHasSuccessParameter;
+            HandlerAppendCallsReturnBool = handlerAppendCallsReturnBool;
+            Content = SetParentOperation(content, this);
+            Type = type;
+        }
+        public IOperation HandlerCreation { get; }
+        public bool HandlerCreationHasSuccessParameter { get; }
+        public bool HandlerAppendCallsReturnBool { get; }
+        public IOperation Content { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when HandlerCreation != null
+                    => HandlerCreation,
+                1 when Content != null
+                    => Content,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (HandlerCreation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Content != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InterpolatedStringHandlerCreation;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringHandlerCreation(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringHandlerCreation(this, argument);
+    }
+    internal sealed partial class InterpolatedStringAdditionOperation : Operation, IInterpolatedStringAdditionOperation
+    {
+        internal InterpolatedStringAdditionOperation(IOperation left, IOperation right, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Left = SetParentOperation(left, this);
+            Right = SetParentOperation(right, this);
+        }
+        public IOperation Left { get; }
+        public IOperation Right { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Left != null
+                    => Left,
+                1 when Right != null
+                    => Right,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Left != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Right != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InterpolatedStringAddition;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringAddition(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringAddition(this, argument);
+    }
+    internal sealed partial class InterpolatedStringAppendOperation : BaseInterpolatedStringContentOperation, IInterpolatedStringAppendOperation
+    {
+        internal InterpolatedStringAppendOperation(IOperation appendCall, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            AppendCall = SetParentOperation(appendCall, this);
+            Kind = kind;
+        }
+        public IOperation AppendCall { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when AppendCall != null
+                    => AppendCall,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (AppendCall != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind { get; }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringAppend(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringAppend(this, argument);
+    }
+    internal sealed partial class InterpolatedStringHandlerArgumentPlaceholderOperation : Operation, IInterpolatedStringHandlerArgumentPlaceholderOperation
+    {
+        internal InterpolatedStringHandlerArgumentPlaceholderOperation(int argumentIndex, InterpolatedStringArgumentPlaceholderKind placeholderKind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ArgumentIndex = argumentIndex;
+            PlaceholderKind = placeholderKind;
+        }
+        public int ArgumentIndex { get; }
+        public InterpolatedStringArgumentPlaceholderKind PlaceholderKind { get; }
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InterpolatedStringHandlerArgumentPlaceholder;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInterpolatedStringHandlerArgumentPlaceholder(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringHandlerArgumentPlaceholder(this, argument);
+    }
+    internal sealed partial class FunctionPointerInvocationOperation : Operation, IFunctionPointerInvocationOperation
+    {
+        internal FunctionPointerInvocationOperation(IOperation target, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Target = SetParentOperation(target, this);
+            Arguments = SetParentOperation(arguments, this);
+            Type = type;
+        }
+        public IOperation Target { get; }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Target != null
+                    => Target,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.FunctionPointerInvocation;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerInvocation(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -8058,7 +8379,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object? argument)
         {
             var internalOperation = (FlowCaptureReferenceOperation)operation;
-            return new FlowCaptureReferenceOperation(internalOperation.Id, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new FlowCaptureReferenceOperation(internalOperation.Id, internalOperation.IsInitialization, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, object? argument)
         {
@@ -8159,6 +8480,31 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var internalOperation = (WithOperation)operation;
             return new WithOperation(Visit(internalOperation.Operand), internalOperation.CloneMethod, Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringHandlerCreationOperation)operation;
+            return new InterpolatedStringHandlerCreationOperation(Visit(internalOperation.HandlerCreation), internalOperation.HandlerCreationHasSuccessParameter, internalOperation.HandlerAppendCallsReturnBool, Visit(internalOperation.Content), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringAdditionOperation)operation;
+            return new InterpolatedStringAdditionOperation(Visit(internalOperation.Left), Visit(internalOperation.Right), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringAppendOperation)operation;
+            return new InterpolatedStringAppendOperation(Visit(internalOperation.AppendCall), internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, object? argument)
+        {
+            var internalOperation = (InterpolatedStringHandlerArgumentPlaceholderOperation)operation;
+            return new InterpolatedStringHandlerArgumentPlaceholderOperation(internalOperation.ArgumentIndex, internalOperation.PlaceholderKind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, object? argument)
+        {
+            var internalOperation = (FunctionPointerInvocationOperation)operation;
+            return new FunctionPointerInvocationOperation(Visit(internalOperation.Target), VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion
@@ -8289,6 +8635,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation) => DefaultVisit(operation);
+        public virtual void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8415,6 +8766,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
             testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
             Return testState
         End Function
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
             testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
 
             Return testState
         End Function

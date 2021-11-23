@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
+            if (!context.CompletionOptions.ProvideDateAndTimeCompletions)
                 return;
 
             if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and

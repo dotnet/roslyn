@@ -744,6 +744,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Contains(LanguageNames.VisualBasic, project2Options.GetTestAccessor().Languages);
         }
 
+        [Fact]
+        public async Task TestPartialProjectSync_ReferenceToNonExistentProject()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+
+            // This reference a project that doesn't exist.
+            // Ensure that it's still fine to get the checksum for this project we have.
+            project1 = project1.AddProjectReference(new ProjectReference(ProjectId.CreateNewId()));
+
+            solution = project1.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
@@ -773,7 +796,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
             var primaryWorkspace = recoveredSolution.Workspace;
             Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(primaryWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -784,14 +806,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredNewSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.NotSame(primaryWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
 
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }

@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private readonly object _uniqueKey = new();
 
         protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// 
         /// If this is specified the tagger engine will track text changes and pass them along as
         /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
-        /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
+        /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
         /// </summary>
         protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
@@ -55,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
-        /// Options controlling this tagger.  The tagger infrastructure will check this option
-        /// against the buffer it is associated with to see if it should tag or not.
+        /// Global options controlling if the tagger should tag or not.
         /// 
         /// An empty enumerable can be returned to indicate that this tagger should 
         /// run unconditionally.
@@ -82,9 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
+            GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
 
 #if DEBUG
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
+            if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to 
         /// determine the caret position.  This value will be passed in as the value to 
         /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
-        /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
+        /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
         /// </summary>
         protected virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
             => textViewOpt?.GetCaretPoint(subjectBuffer);
@@ -169,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine
         /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
-        /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> at some point in
+        /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
         /// the future to produce tags for these spans.
         /// </summary>
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -187,14 +191,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Produce tags for the given context.
         /// </summary>
-        protected virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
+        protected virtual async Task ProduceTagsAsync(
+            TaggerContext<TTag> context, CancellationToken cancellationToken)
         {
             foreach (var spanToTag in context.SpansToTag)
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
                 await ProduceTagsAsync(
                     context, spanToTag,
-                    GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
+                    GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -204,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ? caretPosition.Value.Position : null;
         }
 
-        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         internal TestAccessor GetTestAccessor()
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 => _provider = provider;
 
             internal Task ProduceTagsAsync(TaggerContext<TTag> context)
-                => _provider.ProduceTagsAsync(context);
+                => _provider.ProduceTagsAsync(context, CancellationToken.None);
         }
     }
 }
