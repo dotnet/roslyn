@@ -474,6 +474,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""version"": ""4.0.0.0"",
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
+  ""secondaryModules"": [],
   ""properties"": {{
     ""kind"": ""Assembly"",
     ""embedInteropTypes"": false,
@@ -498,6 +499,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""version"": ""4.0.0.0"",
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
+  ""secondaryModules"": [],
   ""properties"": {{
     ""kind"": ""Assembly"",
     ""embedInteropTypes"": false,
@@ -526,6 +528,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""version"": ""4.0.0.0"",
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
+  ""secondaryModules"": [],
   ""properties"": {{
     ""kind"": ""Assembly"",
     ""embedInteropTypes"": {embedInteropTypes.ToString().ToLowerInvariant()},
@@ -533,6 +536,38 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }}
 }}
 ";
+
+            AssertJsonCore(expected, obj.ToString(Formatting.Indented));
+        }
+
+        [Fact]
+        public void MetadataReferenceMultiModule()
+        {
+            var reference = TestReferences.SymbolsTests.MultiModule.Assembly;
+            var obj = GetReferenceValue(reference);
+
+            var expected = @"
+{
+  ""name"": ""MultiModule"",
+  ""version"": ""0.0.0.0"",
+  ""publicKey"": """",
+  ""mvid"": ""0f07ef6c-4b63-421d-870e-1358db815764"",
+  ""secondaryModules"": [
+    {
+      ""name"": ""mod2.netmodule"",
+      ""mvid"": ""82f316ce-66f1-45b6-a2c7-b4476bda03fd""
+    },
+    {
+      ""name"": ""mod3.netmodule"",
+      ""mvid"": ""ff9f3a02-95e7-44b2-a278-e9149fa82ee4""
+    }
+  ],
+  ""properties"": {
+    ""kind"": ""Assembly"",
+    ""embedInteropTypes"": false,
+    ""aliases"": []
+  }
+}";
 
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }

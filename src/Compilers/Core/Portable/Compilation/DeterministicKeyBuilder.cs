@@ -279,43 +279,54 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
             {
-                ModuleMetadata moduleMetadata;
                 switch (peReference.GetMetadata())
                 {
                     case AssemblyMetadata assemblyMetadata:
                         {
-                            if (assemblyMetadata.GetModules() is { Length: 1 } modules)
+                            var modules = assemblyMetadata.GetModules();
+                            writeModuleMetadata(modules[0]);
+                            writer.WriteKey("secondaryModules");
+                            writer.WriteArrayStart();
+                            for (var i = 1; i < modules.Length; i++)
                             {
-                                moduleMetadata = modules[0];
+                                writer.WriteObjectStart();
+                                writeModuleMetadata(modules[i]);
+                                writer.WriteObjectEnd();
                             }
-                            else
-                            {
-                                // TODO: need to add multi-module support
-                                throw new InvalidOperationException();
-                            }
+                            writer.WriteArrayEnd();
                         }
                         break;
                     case ModuleMetadata m:
-                        moduleMetadata = m;
+                        writeModuleMetadata(m);
                         break;
                     default:
                         throw new NotSupportedException();
                 }
 
-                // The path of a reference, unlike the path of a file, does not contribute to the output
-                // of the compilation. Only the MVID, name and version contribute here hence the file path
-                // is deliberately omitted here.
-                if (moduleMetadata.GetMetadataReader() is { IsAssembly: true } peReader)
-                {
-                    var assemblyDef = peReader.GetAssemblyDefinition();
-                    writer.Write("name", peReader.GetString(assemblyDef.Name));
-                    writer.Write("version", assemblyDef.Version.ToString());
-                    WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
-                }
-
-                writer.Write("mvid", GetGuidValue(moduleMetadata.GetModuleVersionId()));
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
+
+                void writeModuleMetadata(ModuleMetadata moduleMetadata)
+                {
+                    // The path of a reference, unlike the path of a file, does not contribute to the output
+                    // of the compilation. Only the MVID, name and version contribute here hence the file path
+                    // is deliberately omitted here.
+                    var peReader = moduleMetadata.GetMetadataReader();
+                    if (peReader.IsAssembly)
+                    {
+                        var assemblyDef = peReader.GetAssemblyDefinition();
+                        writer.Write("name", peReader.GetString(assemblyDef.Name));
+                        writer.Write("version", assemblyDef.Version.ToString());
+                        WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
+                    }
+                    else
+                    {
+                        var moduleDef = peReader.GetModuleDefinition();
+                        writer.Write("name", peReader.GetString(moduleDef.Name));
+                    }
+
+                    writer.Write("mvid", GetGuidValue(moduleMetadata.GetModuleVersionId()));
+                }
             }
             else if (reference is CompilationReference compilationReference)
             {
