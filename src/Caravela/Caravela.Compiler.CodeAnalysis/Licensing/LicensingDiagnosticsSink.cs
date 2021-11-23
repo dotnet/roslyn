@@ -9,10 +9,16 @@ using PostSharp.Backstage.Extensibility;
 
 namespace Caravela.Compiler.Licensing
 {
-    internal class LicensingDiagnosticsSink : IDiagnosticsSink
+    // TODO: IDiagnosticsSink needs to be generalized to provide all data for DiagnosticDescriptor
+    internal class DiagnosticBagSink : IDiagnosticsSink
     {
-        private readonly List<Diagnostic> _diagnostics = new();
-        
+        private readonly DiagnosticBag _diagnostics;
+
+        public DiagnosticBagSink(DiagnosticBag diagnostics)
+        {
+            _diagnostics = diagnostics;
+        }
+
         public void ReportWarning(string message, IDiagnosticsLocation? location = null)
             => this.AddDiagnostic(message, ErrorCode.WRN_LicensingMessage);
 
@@ -21,7 +27,5 @@ namespace Caravela.Compiler.Licensing
 
         private void AddDiagnostic(string message, ErrorCode errorCode) =>
             _diagnostics.Add(Diagnostic.Create(CaravelaCompilerMessageProvider.Instance, (int)errorCode, message));
-
-        public IEnumerable<Diagnostic> GetDiagnostics() => _diagnostics;
     }
 }

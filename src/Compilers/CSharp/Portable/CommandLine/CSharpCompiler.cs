@@ -11,10 +11,17 @@ using System.Linq;
 using System.Threading;
 using Caravela.Compiler;
 using Caravela.Compiler.Interface.TypeForwards;
+using Caravela.Compiler.Licensing;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing;
+using PostSharp.Backstage.Licensing.Consumption;
+using PostSharp.Backstage.Licensing.Consumption.Sources;
+using PostSharp.Backstage.Licensing.Registration;
+using PostSharp.Backstage.Licensing.Registration.Evaluation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -405,15 +412,69 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Caravela>
+        private IServiceProvider CreateServices(DiagnosticBag diagnostics)
+        {
+            var services = new BackstageServiceProvider();
 
+            services
+                .AddCurrentDateTimeProvider()
+                .AddFileSystem()
+                .AddStandardDirectories()
+                .AddSingleton<IDiagnosticsSink>(new DiagnosticBagSink(diagnostics))
+                .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo())
+                .AddStandardLicenseFilesLocations()
+                .AddFirstRunEvaluationLicenseActivator();
+
+            ILicenseSource[] licenseSources;
+            // ReSharper disable once VirtualMemberCallInConstructor (Used for testing.)
+            var singleLicenseSource = GetSingleLicenseSource();
+
+            if (singleLicenseSource == null)
+            {
+                licenseSources = new ILicenseSource[]
+                {
+                    FileLicenseSource.CreateUserLicenseFileLicenseSource(services),
+                    new BuildOptionsLicenseSource()
+                };
+            }
+            else
+            {
+                licenseSources = new[] { singleLicenseSource };
+            }
+
+            services.AddLicenseConsumption(licenseSources);
+
+            return services;
+        }
+
+        // When a value is returned, all other license sources are ignored. Used for testing.
+        protected virtual ILicenseSource? GetSingleLicenseSource() => null;
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
+            // If there are no transformers, don't do anything, not even annotating
+            if (transformers.IsEmpty)
+            {
+                return TransformersResult.Empty(inputCompilation);
+            }
+
+            var services = CreateServices(diagnostics);
+            var license = new CaravelaCompilerLicenseConsumptionManager(services);
+
+            license.ConsumeFeatures(LicensedFeatures.Community);
+
+            bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
+            if (shouldDebugTransformedCode)
+            {
+                license.ConsumeFeatures(LicensedFeatures.Caravela);
+            }
+
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
-            
-            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, cancellationToken);
+
+            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, services, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
@@ -421,26 +482,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static TransformersResult RunTransformers(
-            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics, ImmutableArray<ResourceDescription> manifestResources,
-            IAnalyzerAssemblyLoader assemblyLoader, CancellationToken cancellationToken )
+            Compilation inputCompilation,
+            ImmutableArray<ISourceTransformer> transformers,
+            SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions,
+            ImmutableArray<object> plugins,
+            AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics,
+            ImmutableArray<ResourceDescription> manifestResources,
+            IAnalyzerAssemblyLoader assemblyLoader,
+            IServiceProvider services,
+            CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
                 return TransformersResult.Empty(inputCompilation);
             }
-            
+
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
             var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
             List<ManagedResource> addedResources = new();
             var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
-            
+
             // Add tracking annotations to the input tree.
             var annotatedInputCompilation = inputCompilation;
             bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
             if (!shouldDebugTransformedCode)
             {
                 // mark old trees as debuggable
@@ -453,13 +522,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     newTreesToOldTrees[annotatedTree] = tree;
                 }
             }
-            
+
             // We source-only analyzers
             if (sourceOnlyAnalyzersOptions != null)
             {
                 // Executing the analyzers can realize most of the compilation, so we pay attention to execute them on the same compilation
                 // as the one we give as the input for transformations.
-                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers( sourceOnlyAnalyzersOptions, annotatedInputCompilation, diagnostics, cancellationToken);
+                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(sourceOnlyAnalyzersOptions, annotatedInputCompilation, diagnostics, cancellationToken);
             }
 
             // Execute the transformers.
@@ -469,19 +538,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new TransformerContext(outputCompilation, plugins,
-                        analyzerConfigProvider.GlobalOptions, inputResources.AddRange(addedResources), diagnostics,
+                    var context = new TransformerContext(outputCompilation,
+                        plugins,
+                        analyzerConfigProvider.GlobalOptions,
+                        inputResources.AddRange(addedResources),
+                        services,
+                        diagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
-                    
+
                     diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                     addedResources.AddRange(context.AddedResources);
 
-                    
                     foreach (var transformedTree in context.TransformedTrees)
                     {
                         SyntaxTree newTree = transformedTree.NewTree;
-                        
                         
                         // Annotate the new tree.
                         /*
@@ -504,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         */
-                        
+
                         // Update the compilation and indices.
                         if (transformedTree.OldTree != null)
                         {
@@ -539,7 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {

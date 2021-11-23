@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 // <Caravela>
 using Caravela.Compiler;
-using Caravela.Compiler.Licensing;
 // </Caravela>
 
 namespace Microsoft.CodeAnalysis
@@ -809,14 +808,6 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            // <Caravela>
-            CaravelaCompilerSimpleLicenseManager licenseManager = new();
-            if (ReportDiagnostics(licenseManager.GetDiagnostics(), consoleOutput, errorLogger, compilation: null))
-            {
-                return Failed;
-            }
-            // </Caravela>
-
             var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -1212,7 +1203,7 @@ namespace Microsoft.CodeAnalysis
                         embeddedTextBuilder.Free();
                     }
                 }
-                
+
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
 
@@ -1228,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Split analyzers between those that must run on source code only and those that will run on transformed code.
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
-                    
+
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
                     //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
@@ -1238,16 +1229,16 @@ namespace Microsoft.CodeAnalysis
 
                     var sourceOnlyAnalyzerOptions = new SourceOnlyAnalyzersOptions(
                         analyzerOptions, sourceOnlyAnalyzers, severityFilter, Arguments.ReportAnalyzer);
-                    
+
                     // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken );
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
                     compilation = transformersResult.TransformedCompilation;
-                    
+
                     // Map diagnostics to the final compilation, because suppressors need it.
                     MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
-                    
+
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;

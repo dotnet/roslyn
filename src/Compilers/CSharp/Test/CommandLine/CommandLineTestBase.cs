@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Caravela.Compiler;
+using PostSharp.Backstage.Licensing.Consumption.Sources;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -58,15 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         internal MockCSharpCompiler CreateCSharpCompiler(string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
         {
             // <Caravela>
-            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader);
+            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, loader: loader);
             // </Caravela>
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
+        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseSource singleLicenseSource = null)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
             // <Caravela>
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader, singleLicenseSource);
             // </Caravela>
         }
     }

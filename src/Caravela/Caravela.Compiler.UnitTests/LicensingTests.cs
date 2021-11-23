@@ -1,0 +1,108 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
+using System.IO;
+using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using PostSharp.Backstage.Licensing.Consumption.Sources;
+using PostSharp.Backstage.Licensing.Licenses;
+using Xunit;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using License = System.ComponentModel.License;
+
+namespace Caravela.Compiler.UnitTests
+{
+    public class LicensingTests : CommandLineTestBase
+    {
+        private TempFile? _src;
+
+        [Fact]
+        public void LicenseNotRequiredWithoutTransformers()
+        {
+            var dir = Temp.CreateDirectory();
+            _src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+
+            var args = new[] { "/nologo", "/t:library", _src.Path };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: ImmutableArray<ISourceTransformer>.Empty, singleLicenseSource: new EmptyLicenseSource());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(0, exitCode);
+            Assert.Empty(output);
+        }
+
+        [Fact]
+        public void CustomTransformersRequireCommunityLicense()
+        {
+            var dir = Temp.CreateDirectory();
+            _src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+
+            var args = new[] { "/nologo", "/t:library", _src.Path };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: new ISourceTransformer[] { new DummyTransformer() }.ToImmutableArray(), singleLicenseSource: new EmptyLicenseSource());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString().Trim();
+
+            Assert.NotEqual(0, exitCode);
+            Assert.Equal("error RE0007: No license available for feature(s) Community", output);
+        }
+
+        [Fact]
+        public void TransformedCodeDebuggingRequiresCaravelaLicense()
+        {
+            var dir = Temp.CreateDirectory();
+            var fileNameWithoutExtension = "temp";
+            _src = dir.CreateFile($"{fileNameWithoutExtension}.cs").WriteAllText("class C { }");
+            var config = dir.CreateFile($"{fileNameWithoutExtension}.editorconfig").WriteAllText(
+                @"is_global = true
+build_property.CaravelaDebugTransformedCode = True
+");
+
+            var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: new ISourceTransformer[] { new DummyTransformer() }.ToImmutableArray(), singleLicenseSource: new EmptyLicenseSource());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString().Trim();
+
+            Assert.NotEqual(0, exitCode);
+            Assert.Equal($"error RE0007: No license available for feature(s) Community{Environment.NewLine}error RE0007: No license available for feature(s) Caravela", output);
+        }
+
+        public override void Dispose()
+        {
+            if (_src != null)
+            {
+                CleanupAllGeneratedFiles(_src.Path);
+            }
+
+            base.Dispose();
+        }
+
+        private class EmptyLicenseSource : ILicenseSource
+        {
+            public IEnumerable<ILicense> GetLicenses()
+            {
+                yield break;
+            }
+        }
+
+        private class DummyTransformer : ISourceTransformer
+        {
+            public void Execute(TransformerContext context)
+            {
+            }
+        }
+    }
+}

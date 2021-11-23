@@ -16,7 +16,7 @@ namespace Caravela.Compiler.Licensing
                 typeof(CaravelaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyBuildInfoAttribute),
                     inherit: false);
 
-            if (attributes.Length != 0)
+            if (attributes.Length != 1)
             {
                 throw new InvalidOperationException(
                     $"{nameof(CaravelaCompilerApplicationInfo)} has failed to initialize.");
