@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                return Load(AppDomain.CurrentDomain.ApplyPolicy(args.Name));
+                return GetOrLoad(AppDomain.CurrentDomain.ApplyPolicy(args.Name));
             }
             catch
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
-        private Assembly? Load(string displayName)
+        private Assembly? GetOrLoad(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
             {
