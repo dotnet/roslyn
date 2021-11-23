@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             AnonymousObjectCreationRule,
             LetCauseRule);
 
-        protected override ImmutableArray<OperationKind> Operations => ImmutableArray.Create(
+        protected override ImmutableArray<OperationKind> Operations { get; } = ImmutableArray.Create(
             OperationKind.ArrayCreation,
             OperationKind.ObjectCreation,
             OperationKind.AnonymousObjectCreation,

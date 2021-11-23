@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(StringConcatenationAllocationRule, ValueTypeToReferenceTypeInAStringConcatenationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 

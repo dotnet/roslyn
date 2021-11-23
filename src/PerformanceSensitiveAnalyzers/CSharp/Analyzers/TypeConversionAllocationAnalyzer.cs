@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ValueTypeToReferenceTypeConversionRule, DelegateOnStructInstanceRule, MethodGroupAllocationRule, ReadonlyMethodGroupAllocationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxKind.ReturnStatement,
             SyntaxKind.YieldReturnStatement,
