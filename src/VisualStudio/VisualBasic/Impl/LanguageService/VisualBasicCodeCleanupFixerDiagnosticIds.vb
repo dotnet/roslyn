@@ -10,7 +10,7 @@ Imports Microsoft.VisualStudio.Language.CodeCleanUp
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
-    Partial Friend Class VisualBasicCodeCleanUpFixer
+    Friend NotInheritable Class VisualBasicCodeCleanUpFixerDiagnosticIds
         <Export>
         <FixId(VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024)>
         <Name(VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024)>

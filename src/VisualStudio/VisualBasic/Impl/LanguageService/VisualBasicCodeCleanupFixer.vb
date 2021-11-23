@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
     <Export(GetType(AbstractCodeCleanUpFixer))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
-    Partial Friend Class VisualBasicCodeCleanUpFixer
+    Friend Class VisualBasicCodeCleanUpFixer
         Inherits AbstractCodeCleanUpFixer
 
         <ImportingConstructor>

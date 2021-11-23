@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    internal sealed class CommonCodeCleanUpFixerDiagnosticIds
+    internal static class CommonCodeCleanUpFixerDiagnosticIds
     {
         [Export]
         [FixId(IDEDiagnosticIds.AddQualificationDiagnosticId)]
