@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // In the special case when there are no interpolations, we just construct a format string
                 // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
                 // so we still treat it as a composite format string.
-                var text = LanguageParser.Substring(originalText, openQuoteIndex + 1, closeQuoteIndex - 1);
+                var text = Substring(originalText, openQuoteIndex + 1, closeQuoteIndex - 1);
                 if (text.Length > 0)
                 {
                     var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
