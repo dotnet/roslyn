@@ -160,12 +160,7 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken.ThrowIfCancellationRequested();
 
                     writer.WriteObjectStart();
-
-                    // PROTOTYPE: additional text file do not presently go through path map hence not 
-                    // doing it here. This needs to be resolved before merge. It's not incorrect to do
-                    // this but it is possible that we need to file a follow up item to add these paths
-                    // to the path map code path
-                    WriteFilePath(writer, "fileName", additionalText.Path, pathMap: default, options);
+                    WriteFilePath(writer, "fileName", additionalText.Path, pathMap, options);
                     writer.WriteKey("text");
                     WriteSourceText(writer, additionalText.GetText(cancellationToken));
                     writer.WriteObjectEnd();

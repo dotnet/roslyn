@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
@@ -191,6 +193,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var property = GetJsonProperty(compilation.GetDeterministicKey(pathMap: pathMap), "compilation.syntaxTrees");
             return (JArray)property.Value; ;
+        }
+
+        protected static JArray GetAdditionalTextValues(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, ImmutableArray<KeyValuePair<string, string>> pathMap = default)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(additionalTexts: additionalTexts, pathMap: pathMap), "additionalTexts");
+            return (JArray)property.Value;
         }
 
         protected static string GetChecksum(SourceText text)
@@ -595,6 +603,41 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 }";
 
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
+        }
+
+        [Theory]
+        [InlineData(@"c:\src\data.txt", null, null)]
+        [InlineData(@"d:\src\data.txt", @"d:\", @"c:\")]
+        [InlineData(@"d:\long\src\data.txt", @"d:\long\", @"c:\")]
+        public void PathMapAdditionalFiles(string filePath, string? pathMapFrom, string? pathMapTo)
+        {
+            var pathMap = (pathMapFrom, pathMapTo) switch
+            {
+                (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
+                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                _ => throw new InvalidOperationException(),
+            };
+
+            var additionalText = new InMemoryAdditionalText(filePath, "hello world");
+            var array = GetAdditionalTextValues(
+                CreateCompilation(new SyntaxTree[] { }),
+                ImmutableArray.Create<AdditionalText>(additionalText),
+                pathMap);
+
+            var expected = @"
+[
+  {
+    ""fileName"": ""c:\\src\\data.txt"",
+    ""text"": {
+      ""checksum"": ""8f8ceeeb5e1b799fe3c7dd9f059bf8852c57cb"",
+      ""checksumAlgorithm"": ""Sha1"",
+      ""encoding"": ""Unicode (UTF-8)""
+    }
+  }
+]
+";
+
+            AssertJsonCore(expected, array.ToString(Formatting.Indented));
         }
     }
 }
