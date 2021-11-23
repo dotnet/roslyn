@@ -718,9 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var info = default(TokenInfo);
                 var position = _lexer.TextWindow.Position;
                 _lexer.ScanStringLiteral(ref info, inDirective: false);
-
-                if (!_allowNewlines && info.Kind == SyntaxKind.MultiLineRawStringLiteralToken)
-                    TrySetRecoverableError(_lexer.MakeError(position, _lexer.TextWindow.Position - position, ErrorCode.ERR_RawStringInVerbatimInterpolatedStrings));
             }
 
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)
