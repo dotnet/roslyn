@@ -11,7 +11,7 @@ steps:
     displayName: Copy Test Artifacts to Logs
     inputs:
       contents: '$(Build.SourcesDirectory)/TestArtifacts/**'
-      targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
     continueOnError: true
     condition: not(succeeded())
 
@@ -19,7 +19,7 @@ steps:
     displayName: Copy Dumps to Logs
     inputs:
       contents: '$(Build.SourcesDirectory)/bin/**/*.dmp'
-      targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
     continueOnError: true
     condition: not(succeeded())
 
