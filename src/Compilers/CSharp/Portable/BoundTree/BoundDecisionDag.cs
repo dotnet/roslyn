@@ -211,7 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return replacement[evalNode.Next];
 
                         case BoundTestDecisionDagNode testNode:
-                            Debug.Assert(testNode.Test is BoundDagValueTest);
+                            Debug.Assert(testNode.Test is BoundDagValueTest { Input.Source: BoundDagPropertyEvaluation { IsLengthOrCount: true } });
+                            // Short-circuit to the "false" branch which is the default as if we never inserted such test.
+                            // Note that when the "true" branch is important, we have unset the compiler-generated flag earlier.
                             return replacement[testNode.WhenFalse];
 
                         default:
