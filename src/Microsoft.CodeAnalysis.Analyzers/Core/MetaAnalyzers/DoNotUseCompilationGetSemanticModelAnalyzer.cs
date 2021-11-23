@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                             if (invocation.TargetMethod.Name.Equals("GetSemanticModel", StringComparison.Ordinal) &&
                                 (
-                                    invocation.TargetMethod.ContainingType.Equals(compilationType) ||
-                                    invocation.TargetMethod.ContainingType.Equals(csharpCompilation) ||
-                                    invocation.TargetMethod.ContainingType.Equals(visualBasicCompilation)
+                                    SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, compilationType) ||
+                                    SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, csharpCompilation) ||
+                                    SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, visualBasicCompilation)
                                 ))
                             {
                                 operationContext.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(Rule));

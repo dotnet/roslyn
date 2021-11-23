@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         foreach (ITypeSymbol innerType in type.GetBaseTypesAndThis())
                         {
-                            if (innerType.Equals(_compilationType))
+                            if (SymbolEqualityComparer.Default.Equals(innerType, _compilationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         foreach (INamedTypeSymbol iface in type.AllInterfaces)
                         {
-                            if (iface.Equals(_symbolType) || iface.Equals(_operationType))
+                            if (SymbolEqualityComparer.Default.Equals(iface, _symbolType) || SymbolEqualityComparer.Default.Equals(iface, _operationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;

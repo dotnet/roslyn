@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     {
                         AnalyzeFixerWithFixAll(fixer, context);
                     }
-                    else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
+                    else if (SymbolEqualityComparer.Default.Equals(fixer.BaseType, _codeFixProviderSymbol))
                     {
                         Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     foreach (INamedTypeSymbol type in fixer.GetBaseTypesAndThis())
                     {
-                        if (!type.Equals(_codeFixProviderSymbol))
+                        if (!SymbolEqualityComparer.Default.Equals(type, _codeFixProviderSymbol))
                         {
                             IMethodSymbol getFixAllProviderMethod = type.GetMembers(GetFixAllProviderMethodName).OfType<IMethodSymbol>().FirstOrDefault();
                             if (getFixAllProviderMethod != null && getFixAllProviderMethod.IsOverride)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                     foreach (var argument in invocation.Arguments)
                     {
-                        if (argument.Parameter.Equals(param))
+                        if (SymbolEqualityComparer.Default.Equals(argument.Parameter, param))
                         {
                             return argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null;
                         }
@@ -323,13 +323,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     // Local functions
                     bool IsCodeActionWithOverriddenEquivalenceKey(INamedTypeSymbol namedType)
                     {
-                        if (namedType == null || namedType.Equals(_codeActionSymbol))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, _codeActionSymbol))
                         {
                             return false;
                         }
 
                         // We are already tracking CodeActions with equivalence key in this compilation.
-                        if (namedType.ContainingAssembly.Equals(_sourceAssembly))
+                        if (SymbolEqualityComparer.Default.Equals(namedType.ContainingAssembly, _sourceAssembly))
                         {
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }

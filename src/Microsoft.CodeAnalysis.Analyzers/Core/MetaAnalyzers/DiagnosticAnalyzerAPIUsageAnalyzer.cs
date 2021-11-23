@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         do
                         {
                             var typeToProcess = typesToProcess.Dequeue();
-                            Debug.Assert(typeToProcess.ContainingAssembly.Equals(declaredType.ContainingAssembly));
+                            Debug.Assert(SymbolEqualityComparer.Default.Equals(typeToProcess.ContainingAssembly, declaredType.ContainingAssembly));
                             Debug.Assert(namedTypesToAccessedTypesMap.ContainsKey(typeToProcess));
 
                             foreach (INamedTypeSymbol usedType in namedTypesToAccessedTypesMap[typeToProcess])

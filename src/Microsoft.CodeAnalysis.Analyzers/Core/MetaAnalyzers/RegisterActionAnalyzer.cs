@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     foreach (INamedTypeSymbol contextType in allowedContextTypes)
                     {
-                        if (namedType.Equals(contextType))
+                        if (SymbolEqualityComparer.Default.Equals(namedType, contextType))
                         {
                             return true;
                         }
@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                         if (symbol != null &&
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
-                                                symbol.Kind == SymbolKind.Field &&
+                                            symbol.Kind == SymbolKind.Field &&
 #pragma warning restore CA1508 // Avoid dead conditional code
-                                                _symbolKind.Equals(symbol.ContainingType) &&
+                                            SymbolEqualityComparer.Default.Equals(_symbolKind, symbol.ContainingType) &&
                                             !s_supportedSymbolKinds.Contains(symbol.Name))
                                         {
                                             Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private void NoteRegisterActionInvocation(IMethodSymbol method, TInvocationExpressionSyntax invocation, SemanticModel model, CancellationToken cancellationToken)
             {
-                if (method.ContainingType.Equals(_analysisContext))
+                if (SymbolEqualityComparer.Default.Equals(method.ContainingType, _analysisContext))
                 {
                     // Not a nested action.
                     return;
@@ -531,8 +531,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private void ReportDiagnostic(CodeBlockAnalysisContext codeBlockContext, IParameterSymbol contextParameter, bool hasEndAction)
             {
                 Debug.Assert(IsContextType(contextParameter.Type, _codeBlockStartAnalysisContext, _compilationStartAnalysisContext, _operationBlockStartAnalysisContext));
-                bool isCompilationStartAction = contextParameter.Type.OriginalDefinition.Equals(_compilationStartAnalysisContext.OriginalDefinition);
-                bool isOperationBlockStartAction = !isCompilationStartAction && contextParameter.Type.OriginalDefinition.Equals(_operationBlockStartAnalysisContext.OriginalDefinition);
+                bool isCompilationStartAction = SymbolEqualityComparer.Default.Equals(contextParameter.Type.OriginalDefinition, _compilationStartAnalysisContext.OriginalDefinition);
+                bool isOperationBlockStartAction = !isCompilationStartAction && SymbolEqualityComparer.Default.Equals(contextParameter.Type.OriginalDefinition, _operationBlockStartAnalysisContext.OriginalDefinition);
 
                 Location location = contextParameter.DeclaringSyntaxReferences.First()
                         .GetSyntax(codeBlockContext.CancellationToken).GetLocation();

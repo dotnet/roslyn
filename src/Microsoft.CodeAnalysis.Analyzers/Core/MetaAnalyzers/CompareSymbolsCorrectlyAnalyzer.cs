@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (symbolEqualityComparerType != null)
                 {
-                    var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+                    var collectionTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericDictionary2));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericHashSet1));
                     collectionTypesBuilder.AddIfNotNull(compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsConcurrentConcurrentDictionary2));
@@ -260,24 +260,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol symbolType)
-        {
-            if (typeSymbol == null)
-            {
-                return false;
-            }
-
-            if (typeSymbol.Equals(symbolType))
-            {
-                return true;
-            }
-
-            if (typeSymbol.AllInterfaces.Contains(symbolType))
-            {
-                return true;
-            }
-
-            return false;
-        }
+            => typeSymbol != null
+                && (SymbolEqualityComparer.Default.Equals(typeSymbol, symbolType)
+                    || typeSymbol.AllInterfaces.Contains(symbolType));
 
         private static bool IsSymbolClassType(IOperation operation)
         {
@@ -352,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (!builder.ContainsKey(methodName))
                 {
-                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>());
+                    builder.Add(methodName, ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default));
                 }
 
                 builder[methodName].Add(typeSymbol);

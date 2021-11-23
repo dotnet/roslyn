@@ -827,8 +827,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // If so, we return the abstract value for the task wrapping the underlying return value.
             if (OwningSymbol is IMethodSymbol method &&
                 method.IsAsync &&
-                method.ReturnType.OriginalDefinition.Equals(GenericTaskNamedType) &&
-                !method.ReturnType.Equals(returnValueOperation.Type))
+                SymbolEqualityComparer.Default.Equals(method.ReturnType.OriginalDefinition, GenericTaskNamedType) &&
+                !SymbolEqualityComparer.Default.Equals(method.ReturnType, returnValueOperation.Type))
             {
                 var location = AbstractLocation.CreateAllocationLocation(returnValueOperation, method.ReturnType, DataFlowAnalysisContext.InterproceduralAnalysisData?.CallStack);
                 implicitTaskPointsToValue = PointsToAbstractValue.Create(location, mayBeNull: false);
@@ -1737,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 foreach (var interfaceType in methodSymbol.ContainingType.AllInterfaces)
                 {
-                    if (interfaceType.OriginalDefinition.Equals(GenericIEquatableNamedType))
+                    if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, GenericIEquatableNamedType))
                     {
                         var equalsMember = interfaceType.GetMembers("Equals").OfType<IMethodSymbol>().FirstOrDefault();
                         if (equalsMember != null && methodSymbol.IsOverrideOrImplementationOfInterfaceMember(equalsMember))
@@ -3137,7 +3137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     HandleEnterLockOperation(arguments[0].Value);
                 }
                 else if (InterlockedNamedType != null &&
-                    targetMethod.ContainingType.OriginalDefinition.Equals(InterlockedNamedType))
+                    SymbolEqualityComparer.Default.Equals(targetMethod.ContainingType.OriginalDefinition, InterlockedNamedType))
                 {
                     ProcessInterlockedOperation(targetMethod, arguments, InterlockedNamedType);
                 }
