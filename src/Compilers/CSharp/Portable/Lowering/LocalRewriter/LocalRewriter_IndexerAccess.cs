@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
-            Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess);
+            Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess or BoundArrayAccess);
 
             Debug.Assert(TypeSymbol.Equals(
                 node.Argument.Type,
@@ -259,15 +259,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (strategy)
             {
                 case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
-                    // ensure we evaluate the input before accessing length
-                    if (makeOffsetInput.ConstantValue is null)
+                    BoundExpression lengthAccess = RewriteLengthAccess(node, receiver);
+
+                    // ensure we evaluate the input before accessing length, unless it is an array length
+                    if (makeOffsetInput.ConstantValue is null && lengthAccess.Kind is not BoundKind.ArrayLength)
                     {
                         makeOffsetInput = F.StoreToTemp(makeOffsetInput, out BoundAssignmentOperator inputStore);
                         locals.Add(((BoundLocal)makeOffsetInput).LocalSymbol);
                         sideeffects.Add(inputStore);
                     }
 
-                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, RewriteLengthAccess(node, receiver), strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, lengthAccess, strategy);
                     break;
 
                 case PatternIndexOffsetLoweringStrategy.UseAsIs:
@@ -282,40 +284,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(strategy);
             }
 
-            var indexerAccess = (BoundIndexerAccess)node.IndexerOrSliceAccess;
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
             AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
 
             BoundExpression rewrittenIndexerAccess;
 
-            if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
+            if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
-                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
-                    indexerAccess.Arguments,
-                    indexerAccess.Indexer,
-                    indexerAccess.ArgsToParamsOpt,
-                    indexerAccess.ArgumentRefKindsOpt,
-                    ref receiver,
-                    out ArrayBuilder<LocalSymbol>? temps);
-
-                if (temps is not null)
+                if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
                 {
-                    locals.AddRange(temps);
-                    temps.Free();
-                }
+                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                        indexerAccess.Arguments,
+                        indexerAccess.Indexer,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        ref receiver,
+                        out ArrayBuilder<LocalSymbol>? temps);
 
-                rewrittenIndexerAccess = indexerAccess.Update(
-                    receiver, indexerAccess.Indexer, rewrittenArguments,
-                    indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
-                    indexerAccess.Expanded,
-                    indexerAccess.ArgsToParamsOpt,
-                    indexerAccess.DefaultArguments,
-                    indexerAccess.Type);
+                    if (temps is not null)
+                    {
+                        locals.AddRange(temps);
+                        temps.Free();
+                    }
+
+                    rewrittenIndexerAccess = indexerAccess.Update(
+                        receiver, indexerAccess.Indexer, rewrittenArguments,
+                        indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.Expanded,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.DefaultArguments,
+                        indexerAccess.Type);
+                }
+                else
+                {
+                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess.WithReceiver(receiver), isLeftOfAssignment);
+                }
             }
             else
             {
-                rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess.WithReceiver(receiver), isLeftOfAssignment);
+                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess(((BoundArrayAccess)node.IndexerOrSliceAccess).WithReceiver(receiver));
             }
 
             RemovePlaceholderReplacement(argumentPlaceholder);

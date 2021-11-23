@@ -2078,7 +2078,7 @@
     <Field Name="ReceiverPlaceholder" Type="BoundImplicitIndexerReceiverPlaceholder" SkipInVisitor="true" />
 
     <!--
-    May be BoundIndexerAccess or BoundCall,
+    May be BoundIndexerAccess or BoundCall or BoundArrayAccess,
     which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
     We don't mark this property as SkipInVisitor="true" because it contains real receiver, but we
     make sure SemanticModel doesn't dig too deep into the node.
