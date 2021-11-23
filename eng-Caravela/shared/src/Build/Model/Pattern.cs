@@ -2,7 +2,11 @@
 // This project is not open source. Please see the LICENSE.md file in the repository root for details.
 
 using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 
 namespace PostSharp.Engineering.BuildTools.Build.Model
@@ -22,11 +26,15 @@ namespace PostSharp.Engineering.BuildTools.Build.Model
 
         public Pattern Remove( params ParametricString[] patterns ) => new( this.Items.AddRange( patterns.Select( p => (p, true) ) ) );
 
-        internal void AddToMatcher( Matcher matcher, VersionInfo parameters )
+        internal bool TryGetFiles( string directory, VersionInfo versionInfo, List<FilePatternMatch> files )
         {
+            var matches = new List<string>();
+
+            var matcher = new Matcher( StringComparison.OrdinalIgnoreCase );
+
             foreach ( var pattern in this.Items )
             {
-                var file = pattern.Pattern.ToString( parameters );
+                var file = pattern.Pattern.ToString( versionInfo );
 
                 if ( pattern.IsExclude )
                 {
@@ -36,7 +44,25 @@ namespace PostSharp.Engineering.BuildTools.Build.Model
                 {
                     matcher.AddInclude( file );
                 }
+              
             }
+var matchingResult =
+            matcher.Execute( new DirectoryInfoWrapper( new DirectoryInfo( directory ) ) );
+
+            if ( !matchingResult.HasMatches )
+            {
+                return false;
+            }
+            else
+            {
+                files.AddRange( matchingResult.Files );
+            }
+
+            return true;
         }
+
+        public override string ToString()
+            => string.Join( " ", this.Items.Select( i => (i.IsExclude ? "-" : "+") + i.Pattern ) );
+        
     }
 }
