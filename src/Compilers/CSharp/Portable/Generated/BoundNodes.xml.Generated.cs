@@ -5456,6 +5456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Validate();
         }
 
+        [Conditional("DEBUG")]
         private partial void Validate();
 
 
@@ -5508,6 +5509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Validate();
         }
 
+        [Conditional("DEBUG")]
         private partial void Validate();
 
 
@@ -7347,6 +7349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Validate();
         }
 
+        [Conditional("DEBUG")]
         private partial void Validate();
 
 
@@ -8058,6 +8061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Validate();
         }
 
+        [Conditional("DEBUG")]
         private partial void Validate();
 
 
@@ -8103,6 +8107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Validate();
         }
 
+        [Conditional("DEBUG")]
         private partial void Validate();
 
 

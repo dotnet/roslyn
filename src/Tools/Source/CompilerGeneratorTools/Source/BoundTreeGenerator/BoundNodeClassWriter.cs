@@ -484,6 +484,7 @@ namespace BoundTreeGenerator
 
                         if (hasValidate)
                         {
+                            WriteLine(@"[Conditional(""DEBUG"")]");
                             WriteLine("private partial void Validate();");
                             Blank();
                         }
