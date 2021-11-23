@@ -4,11 +4,12 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     /// <summary>
-    /// A copy of IEditAndContinueSolutionProvider that's usable by the XAML Language Service
+    /// A copy of <see cref="IEditAndContinueSolutionProvider"/> that's usable by the XAML Language Service
     /// </summary>
     internal interface IXamlEditAndContinueSolutionProvider
     {
