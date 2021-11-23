@@ -46,6 +46,7 @@
       "src\\Dependencies\\Collections\\Microsoft.CodeAnalysis.Collections.shproj",
       "src\\Dependencies\\PooledObjects\\Microsoft.CodeAnalysis.PooledObjects.shproj",
       "src\\Features\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Features.csproj",
+      "src\\Features\\VisualBasic\\Portable\\Microsoft.CodeAnalysis.VisualBasic.Features.csproj",
       "src\\Features\\Core\\Portable\\Microsoft.CodeAnalysis.Features.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package.csproj",
@@ -70,6 +71,7 @@
       "src\\Tools\\Source\\RunTests\\RunTests.csproj",
       "src\\Workspaces\\Core\\Portable\\Microsoft.CodeAnalysis.Workspaces.csproj",
       "src\\Workspaces\\SharedUtilitiesAndExtensions\\Compiler\\Core\\CompilerExtensions.shproj",
+      "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.vbproj"
       "src\\Workspaces\\VisualBasic\\Portable\\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj"
     ]
   }
