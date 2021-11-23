@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -91,6 +90,28 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 closeParenToken: closeParenToken,
                 statement: ifTrueStatement,
                 @else: null);
+        }
+
+        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (tree is null)
+            {
+                return null;
+            }
+
+            var options = (CSharpParseOptions)tree.Options;
+            if (options.LanguageVersion < LanguageVersion.Preview)
+            {
+                return null;
+            }
+
+            var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntax = (ParameterSyntax)await parameter.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            syntaxRoot = syntaxRoot.ReplaceNode(
+                syntax,
+                syntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));
+            return document.WithSyntaxRoot(syntaxRoot);
         }
     }
 }

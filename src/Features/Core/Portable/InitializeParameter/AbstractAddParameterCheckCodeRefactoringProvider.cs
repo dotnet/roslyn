@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
+        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(
+            Document document,
+            IParameterSymbol parameter,
+            CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -318,8 +322,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatementOpt,
             CancellationToken cancellationToken)
         {
-            // First see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
-            var documentOpt = await TryAddNullCheckToAssignmentAsync(
+            // First see if we can adopt the '!!' parameter null checking syntax.
+            var documentOpt = await TryAddNullCheckToParameterDeclarationAsync(document, parameter, cancellationToken).ConfigureAwait(false);
+            if (documentOpt != null)
+            {
+                return documentOpt;
+            }
+
+            // Then see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
+            documentOpt = await TryAddNullCheckToAssignmentAsync(
                 document, parameter, blockStatementOpt, cancellationToken).ConfigureAwait(false);
 
             if (documentOpt != null)

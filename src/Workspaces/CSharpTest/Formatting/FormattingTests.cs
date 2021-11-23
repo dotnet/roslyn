@@ -5776,6 +5776,28 @@ void bar()
         }
 
         [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNullCheckedParameter()
+        {
+            var code =
+@"class C
+{
+    static object F(string s !!)
+    {
+    }
+}";
+            var expectedCode =
+@"class C
+{
+    static object F(string s!!)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
         [WorkItem(545335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545335")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PreprocessorOnSameLine()
