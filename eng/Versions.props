@@ -60,7 +60,7 @@
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>6.1.0.5902</ICSharpCodeDecompilerVersion>
-    <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
     <!--
       SourceBuild will requires that all dependencies also be source buildable. We are referencing a
       version of MSBuild that is not SourceBuild compatible, which makes our build incompatible. Since we only
@@ -202,6 +202,17 @@
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>3.0.0-beta2-19053-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
+    <!--
+      The package "Microsoft.CodeAnalysis.Analyzer.Testing" brings in an earlier version of these NuGet dependencies than
+      is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
+      as our configured SDK, we must set the version to be the same.
+     -->
+    <NuGetCommonVersion>6.0.0</NuGetCommonVersion>
+    <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
+    <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
+    <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
+    <NuGetProtocolVersion>$(NuGetCommonVersion)</NuGetProtocolVersion>
+    <NuGetVersioningVersion>$(NuGetCommonVersion)</NuGetVersioningVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.21418.3</RoslynToolsVSIXExpInstallerVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>

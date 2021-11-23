@@ -96,6 +96,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public virtual async Task InitializeAsync()
         {
             TestServices = await CreateTestServicesAsync();
+
+            await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
+            await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
         }
 
         /// <summary>

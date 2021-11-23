@@ -2305,6 +2305,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Выделенный фрагмент не входит в тип.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Сортировать модификаторы доступности</target>
