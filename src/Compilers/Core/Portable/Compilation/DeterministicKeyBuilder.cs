@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis
     /// 
     ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
     /// 
-    /// Issue #8193 tracks filling this out to the full specification. 
-    /// 
-    ///     https://github.com/dotnet/roslyn/issues/8193
-    /// </summary>
-    /// <remarks>
     /// Options which can cause compilation failure, but doesn't impact the result of a successful
     /// compilation should be included. That is because it is interesting to describe error states
     /// not just success states. Think about caching build failures as well as build successes.
