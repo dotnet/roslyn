@@ -217,7 +217,9 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  $solution = "Roslyn.sln"
+  # <Caravela>
+  $solution = "Caravela.Compiler.slnf"
+  # </Caravela>
 
   Write-Host "$($solution):"
 
