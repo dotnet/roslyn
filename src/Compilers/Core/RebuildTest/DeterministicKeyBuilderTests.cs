@@ -484,5 +484,57 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }
+
+        [Fact]
+        public void MetadataReferenceMscorlibWithAlias()
+        {
+            var mscorlib = NetCoreApp.mscorlib.WithAliases(new[] { "alias1", "alias2" });
+            var obj = GetReferenceValue(mscorlib);
+
+            var mvid = DeterministicKeyBuilder.GetGuidValue(mscorlib.GetModuleVersionId());
+            var expected = $@"
+{{
+  ""name"": ""mscorlib"",
+  ""version"": ""4.0.0.0"",
+  ""publicKey"": ""0000000040000000"",
+  ""mvid"": ""{mvid}"",
+  ""properties"": {{
+    ""kind"": ""Assembly"",
+    ""embedInteropTypes"": false,
+    ""aliases"": [
+      ""alias1"",
+      ""alias2""
+    ]
+  }}
+}}
+";
+
+            AssertJsonCore(expected, obj.ToString(Formatting.Indented));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MetadataReferenceMscorlibEmbedInteropTypes(bool embedInteropTypes)
+        {
+            var mscorlib = NetCoreApp.mscorlib.WithEmbedInteropTypes(embedInteropTypes);
+            var obj = GetReferenceValue(mscorlib);
+
+            var mvid = DeterministicKeyBuilder.GetGuidValue(mscorlib.GetModuleVersionId());
+            var expected = $@"
+{{
+  ""name"": ""mscorlib"",
+  ""version"": ""4.0.0.0"",
+  ""publicKey"": ""0000000040000000"",
+  ""mvid"": ""{mvid}"",
+  ""properties"": {{
+    ""kind"": ""Assembly"",
+    ""embedInteropTypes"": {embedInteropTypes.ToString().ToLowerInvariant()},
+    ""aliases"": []
+  }}
+}}
+";
+
+            AssertJsonCore(expected, obj.ToString(Formatting.Indented));
+        }
     }
 }
