@@ -160,6 +160,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return (JObject)property.Value;
         }
 
+        protected JObject GetCompilationValue(Compilation compilation)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation");
+            return (JObject)property.Value;
+        }
+
         protected JObject GetParseOptionsValue(ParseOptions parseOptions)
         {
             var syntaxTree = ParseSyntaxTree("", fileName: "test", SourceHashAlgorithm.Sha256, (TParseOptions)parseOptions);

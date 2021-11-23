@@ -173,14 +173,7 @@ Determinism is hard
 
 ### TODO:
 
-X - path map: this should be handled at the compilation level so hopefully this will 
-  not apply to my change. By the time you get to the actual key part it should have 
-  been factored in. Need to verify this with testing though. The documentation of the 
-  API should also note this
-X - pdbfilepath in emit options needs to respect the options like ignoring the file path
 - think about the role of environment variables
-- CryptoKeyFile ... no way to really encode that. May want to highlight that as a 
-   corner case that isn't supported
 - test the other metadata reference corner cases
 
 

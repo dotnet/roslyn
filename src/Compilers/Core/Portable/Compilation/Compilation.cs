@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
         }
 
         internal string GetDeterministicKey(
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 CommonSyntaxTrees,
                 ExternalReferences.Concat(DirectiveReferences),
+                Assembly.Identity.PublicKey,
                 additionalTexts,
                 analyzers,
                 generators,

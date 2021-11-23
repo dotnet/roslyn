@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Threading;
 using System.Collections.Generic;
+using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -64,12 +65,11 @@ namespace Microsoft.CodeAnalysis
             writer.Write(propertyName, filePath);
         }
 
-        protected void WriteByteArrayValue(JsonWriter writer, string name, ImmutableArray<byte> value)
+        internal static string EncodeByteArrayValue(ReadOnlySpan<byte> value)
         {
-            if (!value.IsDefault)
-            {
-                WriteByteArrayValue(writer, name, value.AsSpan());
-            }
+            var builder = PooledStringBuilder.GetInstance();
+            EncodeByteArrayValue(value, builder.Builder);
+            return builder.ToStringAndFree();
         }
 
         internal static void EncodeByteArrayValue(ReadOnlySpan<byte> value, StringBuilder builder)
@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
 
             writer.WriteKey("compilation");
-            WriteCompilation(writer, compilationOptions, syntaxTrees, references, pathMap, options, cancellationToken);
+            WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
             writer.WriteKey("analyzers");
@@ -198,6 +199,7 @@ namespace Microsoft.CodeAnalysis
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
@@ -205,6 +207,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
             writeToolsVersions();
 
+            WriteByteArrayValue(writer, "publicKey", publicKey.AsSpan());
             writer.WriteKey("options");
             WriteCompilationOptions(writer, compilationOptions);
 
@@ -274,7 +277,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             writer.WriteObjectStart();
-            WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum());
+            WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum().AsSpan());
             writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
             writer.Write("encoding", sourceText.Encoding?.EncodingName);
             writer.WriteObjectEnd();
@@ -347,6 +350,8 @@ namespace Microsoft.CodeAnalysis
                     compilation.Options,
                     compilation.SyntaxTrees.SelectAsArray(x => SyntaxTreeKey.Create(x)),
                     compilation.References.AsImmutable(),
+                    compilation.Assembly.Identity.PublicKey,
+                    // PROTOTYPE: path through path map here
                     default,
                     deterministicKeyOptions,
                     cancellationToken);
@@ -435,7 +440,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("moduleName", options.ModuleName);
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
-            WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey);
+            WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
             writer.Write("cryptoKeyFile", options.CryptoKeyFile);
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);

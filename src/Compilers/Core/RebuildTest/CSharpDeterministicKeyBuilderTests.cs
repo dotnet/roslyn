@@ -21,6 +21,8 @@ using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -400,6 +402,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }
 ]
 ", compiler);
+        }
+
+        [Fact]
+        public void CSharpPublicKey()
+        {
+            var keyFilePath = @"c:\windows\key.snk";
+            var publicKey = TestResources.General.snPublicKey;
+            var publicKeyStr = DeterministicKeyBuilder.EncodeByteArrayValue(publicKey);
+            var fileSystem = new TestStrongNameFileSystem();
+            fileSystem.ReadAllBytesFunc = _ => publicKey;
+            var options = Options
+                .WithCryptoKeyFile(keyFilePath)
+                .WithStrongNameProvider(new DesktopStrongNameProvider(default, fileSystem));
+            var compilation = CreateCompilation(new SyntaxTree[] { }, options: options);
+            var obj = GetCompilationValue(compilation);
+            Assert.Equal(publicKeyStr, obj.Value<string>("publicKey"));
         }
     }
 }
