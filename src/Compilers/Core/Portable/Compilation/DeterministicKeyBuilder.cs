@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteKey("generators");
             writeGenerators();
             writer.WriteKey("emitOptions");
-            WriteEmitOptions(writer, emitOptions);
+            WriteEmitOptions(writer, emitOptions, pathMap, options);
 
             writer.WriteObjectEnd();
 
@@ -192,13 +192,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static string GetGuidValue(in Guid guid) => guid.ToString("D");
-
-        internal string GetKey(EmitOptions? emitOptions)
-        {
-            var (writer, builder) = CreateWriter();
-            WriteEmitOptions(writer, emitOptions);
-            return builder.ToStringAndFree();
-        }
 
         private void WriteCompilation(
             JsonWriter writer,
@@ -380,7 +373,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteEmitOptions(JsonWriter writer, EmitOptions? options)
+        private void WriteEmitOptions(
+            JsonWriter writer,
+            EmitOptions? options,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            DeterministicKeyOptions deterministicKeyOptions)
         {
             writer.WriteObjectStart();
             if (options is null)
@@ -406,7 +403,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("baseAddress", options.BaseAddress.ToString());
             writer.Write("debugInformationFormat", options.DebugInformationFormat);
             writer.Write("outputNameOverride", options.OutputNameOverride);
-            writer.Write("pdbFilePath", options.PdbFilePath);
+            WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
             writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
             writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
             writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);

@@ -201,6 +201,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return (JArray)property.Value;
         }
 
+        protected JObject GetEmitOptionsValue(
+            EmitOptions emitOptions,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            DeterministicKeyOptions options = default)
+        {
+            var compilation = CreateCompilation(new SyntaxTree[] { });
+            var key = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                pathMap: pathMap,
+                options: options);
+            var property = GetJsonProperty(key, "emitOptions");
+            return (JObject)property.Value;
+        }
+
         protected static string GetChecksum(SourceText text)
         {
             var checksum = text.GetChecksum();
@@ -411,8 +425,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void EmitOptionsDefault()
         {
-            var builder = GetDeterministicKeyBuilder();
-            var key = builder.GetKey(EmitOptions.Default);
+            var obj = GetEmitOptionsValue(EmitOptions.Default);
             AssertJson(@"
 {
   ""emitMetadataOnly"": false,
@@ -435,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""defaultSourceFileEncoding"": null,
   ""fallbackSourceFileEncoding"": null
 }
-", key);
+", obj.ToString(Formatting.Indented));
         }
 
         [Theory]
@@ -449,9 +462,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 .WithDebugInformationFormat(debugInformationFormat)
                 .WithInstrumentationKinds(ImmutableArray.Create(kind));
 
-
-            var builder = GetDeterministicKeyBuilder();
-            var key = builder.GetKey(emitOptions);
+            var obj = GetEmitOptionsValue(emitOptions);
             AssertJson(@$"
 {{
   ""emitMetadataOnly"": false,
@@ -475,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""defaultSourceFileEncoding"": null,
   ""fallbackSourceFileEncoding"": null
 }}
-", key);
+", obj.ToString(Formatting.Indented));
         }
 
         [Theory]
@@ -484,14 +495,38 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void EmitOptionsSubsystemVersion(int major, int minor)
         {
             var emitOptions = EmitOptions.Default.WithSubsystemVersion(SubsystemVersion.Create(major, minor));
-            var builder = GetDeterministicKeyBuilder();
-            var key = builder.GetKey(emitOptions);
+            var obj = GetEmitOptionsValue(emitOptions);
             var expected = @$"
 ""subsystemVersion"": {{
   ""major"": {major},
   ""minor"": {minor}
 }}";
-            AssertJsonSection(expected, key, "subsystemVersion");
+            AssertJsonSection(expected, obj.ToString(Formatting.Indented), "subsystemVersion");
+        }
+
+        [Fact]
+        public void EmitOptionsPdbFilePathRespectsOptions()
+        {
+            var emitOptions = EmitOptions.Default.WithPdbFilePath(@"c:\temp\util.pdb");
+            var obj = GetEmitOptionsValue(emitOptions, options: DeterministicKeyOptions.IgnorePaths);
+            Assert.Equal(@"util.pdb", obj.Value<string>("pdbFilePath"));
+        }
+
+        [Theory]
+        [InlineData(@"c:\src\util.pdb", null, null)]
+        [InlineData(@"d:\src\util.pdb", @"d:\", @"c:\")]
+        [InlineData(@"d:\long\src\util.pdb", @"d:\long\", @"c:\")]
+        public void EmitOptionsPdbFilePathRespectsPathMap(string filePath, string? pathMapFrom, string? pathMapTo)
+        {
+            var pathMap = (pathMapFrom, pathMapTo) switch
+            {
+                (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
+                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                _ => throw new InvalidOperationException(),
+            };
+            var emitOptions = EmitOptions.Default.WithPdbFilePath(filePath);
+            var obj = GetEmitOptionsValue(emitOptions, pathMap);
+            Assert.Equal(@"c:\src\util.pdb", obj.Value<string>("pdbFilePath"));
         }
 
         [Fact]
