@@ -252,6 +252,11 @@
         <target state="translated">설명</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">빠른 작업을 비동기적으로 컴퓨팅(실험적, 다시 시작해야 함)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">포함하는 멤버</target>
@@ -1027,6 +1032,11 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">빠른 작업</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">리팩터링만</target>
@@ -1050,6 +1060,11 @@
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">사용하지 않는 참조 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1225,6 +1240,11 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">색 구성표의 일부 색이 [환경] &gt; [글꼴 및 색] 옵션 페이지에서 변경한 내용에 따라 재정의됩니다. 모든 사용자 지정을 되돌리려면 [글꼴 및 색] 페이지에서 '기본값 사용'을 선택하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
