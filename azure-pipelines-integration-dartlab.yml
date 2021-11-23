@@ -6,7 +6,7 @@ resources:
   pipelines:
   - pipeline: VisualStudioBuildUnderTest
     source: DD-CB-ReleaseVS
-    branch: rel/d17.1
+    branch: main
   - pipeline: DartLab
     source: DartLab
     branch: main
