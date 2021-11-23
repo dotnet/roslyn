@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfterOpt, StatementSyntax statement)
             => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
