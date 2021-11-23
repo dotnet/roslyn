@@ -5,9 +5,7 @@
         <TargetFramework>net5.0</TargetFramework>
         <AssemblyName>postsharp-eng</AssemblyName>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <PublishSingleFile>true</PublishSingleFile>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <PublishDir>$(MSBuildThisFileDirectory)..\..\..\..\tools\</PublishDir>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <!-- NU1701: Package 'Microsoft.Build 17.0.0' was restored using '.NETFramework,Version=v4.6.1 ...' instead of 

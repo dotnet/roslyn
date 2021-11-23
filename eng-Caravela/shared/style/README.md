@@ -21,9 +21,7 @@ This directory contains centralized code-style configuration and scripts.
 
 To install the common code style configuration:
 
-1. Execute `& eng\shared\style\LinkConfiguration.ps1 -Create -Check` in PowerShell from the repository root. This script will link the `.editorconfig` file to the repository root and the `sln.DotSettings` next to each `.sln` solution file in the repository with a name corresponding to the solution name.
-
-> Note: `LinkConfiguration.ps1` script needs to be executed every time a solution file name is created or its name changes.
+1. Execute `& eng\shared\style\Install.ps1 -Create -Check` in PowerShell from the repository root. This script will link the `.editorconfig` file to the repository root.
 
 2. Import the `CodeQuality.props` script to the `Directory.Build.props` script:
 
@@ -31,27 +29,19 @@ To install the common code style configuration:
   <Import Project="eng\shared\style\CodeQuality.props" />
 ```
 
+3. For each solution, in Rider, open Settings, choose "Manage Layers", select the team-shared layer, click on the `+` icon and then on "Open Settings File", then choose `eng/shared/style/CommonStyle.DotSettings`.
+  This step is required for code formatting using `Build.ps1 reformat`, even if you are otherwise not using Rider.
+
 ## Configuration
 
 The code quality configuration is configured in the following files:
 
 - `.editorconfig`
-- `sln.DotSettings`
+- `CommonStyle.DotSettings` (used by JetBrains tools)
 - `stylecop.json`
 - `CodeQuality.props`
 
 ## Code style cleanup
 
-### Installation
-
-Create `eng\Cleanup.ps1` file. The content should look like this:
-
-```
-eng/shared/style/Cleanup.ps1 'Caravela.sln'
-```
-
-The second parameter is optional and may contain any parameter applicable to the cleanup script.
-
-### Usage
-
-To get the source code cleaned, execute `& eng\Cleanup.ps1` in PowerShell from the repository root.
+1. Commit all your changes. You cannot reformat a repo with uncommitted changes.
+2. Do `.\Build.ps1 reformat` from the repo root.

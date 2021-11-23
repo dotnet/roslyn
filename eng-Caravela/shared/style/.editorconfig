@@ -99,7 +99,7 @@ csharp_style_conditional_delegate_call = true:warning
 
 # Modifier preferences
 csharp_prefer_static_local_function = true:warning
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:warning
 
 # Code-block preferences
 csharp_prefer_braces = true:warning
@@ -194,39 +194,39 @@ dotnet_naming_rule.private_field_should_be_begins_with_underscore.style = begins
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
 dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers = 
+dotnet_naming_symbols.interface.required_modifiers =
 
 dotnet_naming_symbols.public_or_protected_field.applicable_kinds = field
 dotnet_naming_symbols.public_or_protected_field.applicable_accessibilities = public, protected
-dotnet_naming_symbols.public_or_protected_field.required_modifiers = 
+dotnet_naming_symbols.public_or_protected_field.required_modifiers =
 
 dotnet_naming_symbols.private_field.applicable_kinds = field
 dotnet_naming_symbols.private_field.applicable_accessibilities = private, private_protected
-dotnet_naming_symbols.private_field.required_modifiers = 
+dotnet_naming_symbols.private_field.required_modifiers =
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
 dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers = 
+dotnet_naming_symbols.types.required_modifiers =
 
 dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
 dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers = 
+dotnet_naming_symbols.non_field_members.required_modifiers =
 
 # Naming styles
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
+dotnet_naming_style.pascal_case.required_prefix =
+dotnet_naming_style.pascal_case.required_suffix =
+dotnet_naming_style.pascal_case.word_separator =
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
 dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix = 
-dotnet_naming_style.begins_with_i.word_separator = 
+dotnet_naming_style.begins_with_i.required_suffix =
+dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 dotnet_naming_style.begins_with_underscore.required_prefix = _
-dotnet_naming_style.begins_with_underscore.required_suffix = 
-dotnet_naming_style.begins_with_underscore.word_separator = 
+dotnet_naming_style.begins_with_underscore.required_suffix =
+dotnet_naming_style.begins_with_underscore.word_separator =
 dotnet_naming_style.begins_with_underscore.capitalization = camel_case
 
 # IDE0021: Use expression body for constructors
@@ -567,16 +567,16 @@ dotnet_diagnostic.SA1028.severity = none
 
 # SA1024: Deference symbol '*' should not be followed by a space.
 dotnet_diagnostic.SA1023.severity = none
-dotnet_diagnostic.IDE0052.severity=warning
-dotnet_diagnostic.IDE0043.severity=warning
-dotnet_diagnostic.CA1507.severity=warning
-dotnet_diagnostic.CA1825.severity=warning
+dotnet_diagnostic.IDE0052.severity = warning
+dotnet_diagnostic.IDE0043.severity = warning
+dotnet_diagnostic.CA1507.severity = warning
+dotnet_diagnostic.CA1825.severity = warning
 
-dotnet_diagnostic.CA1018.severity=warning
-dotnet_diagnostic.CA1821.severity=warning
-dotnet_diagnostic.CA1827.severity=warning
-dotnet_diagnostic.CA1836.severity=warning
-dotnet_diagnostic.CA2011.severity=warning
+dotnet_diagnostic.CA1018.severity = warning
+dotnet_diagnostic.CA1821.severity = warning
+dotnet_diagnostic.CA1827.severity = warning
+dotnet_diagnostic.CA1836.severity = warning
+dotnet_diagnostic.CA2011.severity = warning
 
 # RS1024 Compare (Roslyn) symbols correctly. There is a bug in the analyzer and it has dozens of false positive.
-dotnet_diagnostic.RS1024.severity=none
+dotnet_diagnostic.RS1024.severity = none

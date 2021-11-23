@@ -30,16 +30,20 @@ This repository contains common development, build and publishing scripts and co
 
 ## Installation
 
-1. Enable symlinks in .git/config.
-2. Add the `eng\shared` subtree:
+1. Enable symlinks in `.git/config` of your working repo.
+2. Clone `Caravela.Engineering` in your `c:\src` (it must be the parent directory of the consuming repo).
 
-`git subtree add --prefix eng/shared https://postsharp@dev.azure.com/postsharp/Caravela/_git/Caravela.Engineering master --squash`
+    ```git clone https://postsharp@dev.azure.com/postsharp/Caravela/_git/Caravela.Engineering master --squash```
 
-3. Check `README.md` in each directory in the `eng\shared` subtree for further installation steps.
+3. Execute `& c:\src\Caravela.Engineering Install.ps1`. This copies the files into the `eng\shared` directory of your repo.
+4. Continue with the instructions in the following files:
+    1. [Style and Formatting](style/README.md)
+    1. [Build and Deployment](build/README.md)
 
 ## Updating
 
-1. From the repository root containing the `eng\shared` subtree, execute `& eng\shared\PullEngineering.ps1`.
+0. Commit all changes in the current repository.
+1. From the repository root containing the `eng\shared` subtree, execute `& Build.ps1 engineering pull`.
 2. Follow the steps described in [the changelog](CHANGELOG.md).
 3. Commit & push. (Even if there are no changes outside the `eng\shared` subtree.)
 
@@ -48,7 +52,6 @@ This repository contains common development, build and publishing scripts and co
 The features provided by this repository are grouped by categories in the top-level directories. Each directory contains a `README.md` file describing the features in that category.
 
 - [Build and Test](build/README.md)
-- [Deploy](deploy/README.md)
 - [Style and Formatting](style/README.md)
 - [Engineering Tools](tools/README.md)
 
@@ -59,8 +62,9 @@ To share modifications in the `eng\shared` GIT subtree:
 - Make sure that all documentation reflects your changes.
 - Add an entry to [the changelog](CHANGELOG.md) to let others know which changes have been introduced and which actions are required when updating the `eng\shared` GIT subtree in other repositories.
 - Commit your changes.
-- From the repository root containing the `eng\shared` subtree, execute `& eng\shared\PushEngineering.ps1`.
-- Follow the [Updating](#updating) section in the other repositories containing the `eng\shared` GIT subtree.
+- From the repository root containing the `eng\shared` subtree, execute `& Build.ps1 engineering push`. This will copy all changes to `c:\src\Caravela.Engineering`.
+- Review the changes in `c:\src\Caravela.Engineering` and commit them into a branch named `develop`. Push the branch.
+- For the `Caravela.Engineering` repository, create a pull request from `develop` to `master`.
 
 ## Cloning
 

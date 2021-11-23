@@ -30,7 +30,7 @@ function Restore( $Package, $Version ) {
         # 'dotnet tool install' fails when the package is already installed, so we need to check manually.
         if ( -Not ( Test-Path tools\.store\$Package\$Version ) ) {
              Write-Host "Installing $Package."
-            & dotnet tool install --tool-path tools $Package --version $Version --add-source $NuGetUrl
+            & dotnet tool install --tool-path tools $Package --version $Version --add-source $NuGetUrl --add-source "https://api.nuget.org/v3/index.json"
             if ($LASTEXITCODE -ne 0 ) { throw "Tools installation failed." }
         } else {
             Write-Host "$Package was already installed."

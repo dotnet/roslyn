@@ -1,4 +1,7 @@
-﻿using Spectre.Console;
+﻿// Copyright (c) SharpCrafters s.r.o. All rights reserved.
+// This project is not open source. Please see the LICENSE.md file in the repository root for details.
+
+using Spectre.Console;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,21 +13,46 @@ using System.Threading;
 
 namespace PostSharp.Engineering.BuildTools.Utilities
 {
-    internal static class ToolInvocationHelper
+    public static class ToolInvocationHelper
     {
-        public static bool InvokePowershell( ConsoleHelper console, string fileName, string commandLine,
-            string workingDirectory )
+        private static readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        
+        static ToolInvocationHelper()
         {
-            return InvokeTool( console, "powershell", $"-NonInteractive -File {fileName} {commandLine}",
-                workingDirectory, CancellationToken.None );
+            Console.CancelKeyPress += OnCancel;
         }
 
-        public static bool InvokeTool( ConsoleHelper console, string fileName, string commandLine,
+        private static void OnCancel( object? sender, ConsoleCancelEventArgs e )
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
+        public static bool InvokePowershell(
+            ConsoleHelper console,
+            string fileName,
+            string commandLine,
+            string workingDirectory )
+        {
+            return InvokeTool(
+                console,
+                "powershell",
+                $"-NonInteractive -File {fileName} {commandLine}",
+                workingDirectory );
+        }
+
+        public static bool InvokeTool(
+            ConsoleHelper console,
+            string fileName,
+            string commandLine,
             string workingDirectory,
-            CancellationToken cancellationToken = default,
             params (string key, string value)[] environmentVariables )
         {
-            if ( !InvokeTool( console, fileName, commandLine, workingDirectory, cancellationToken, out var exitCode,
+            if ( !InvokeTool(
+                console,
+                fileName,
+                commandLine,
+                workingDirectory,
+                out var exitCode,
                 environmentVariables ) )
             {
                 return false;
@@ -32,6 +60,7 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             else if ( exitCode != 0 )
             {
                 console.WriteError( "The process \"{0}\" failed with exit code {1}.", fileName, exitCode );
+
                 return false;
             }
             else
@@ -40,13 +69,22 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             }
         }
 
-        public static bool InvokeTool( ConsoleHelper console, string fileName, string commandLine,
+        public static bool InvokeTool(
+            ConsoleHelper console,
+            string fileName,
+            string commandLine,
             string workingDirectory,
-            CancellationToken cancellationToken,
-            out int exitCode, params (string key, string value)[] environmentVariables )
+            out int exitCode,
+            params (string key, string value)[] environmentVariables )
         {
             return
-                InvokeTool( console, fileName, commandLine, workingDirectory, cancellationToken, out exitCode,
+                InvokeTool(
+                    console,
+                    fileName,
+                    commandLine,
+                    workingDirectory,
+                    _cancellationTokenSource.Token,
+                    out exitCode,
                     s =>
                     {
                         if ( !string.IsNullOrWhiteSpace( s ) )
@@ -58,19 +96,19 @@ namespace PostSharp.Engineering.BuildTools.Utilities
                     {
                         if ( !string.IsNullOrWhiteSpace( s ) )
                         {
-                            if ( s.Contains( ": warning " ) )
+                            if ( s.Contains( ": warning ", StringComparison.Ordinal ) )
                             {
                                 console.WriteWarning( s );
                             }
-                            else if ( s.Contains( ": error " ) )
+                            else if ( s.Contains( ": error ", StringComparison.Ordinal ) )
                             {
                                 console.WriteError( s );
                             }
-                            else if ( s.StartsWith( "Passed! " ) )
+                            else if ( s.StartsWith( "Passed! ", StringComparison.Ordinal ) )
                             {
                                 console.WriteSuccess( s );
                             }
-                            else if ( s.StartsWith( "Test run for " ) )
+                            else if ( s.StartsWith( "Test run for ", StringComparison.Ordinal ) )
                             {
                                 console.WriteImportantMessage( s );
                             }
@@ -85,15 +123,25 @@ namespace PostSharp.Engineering.BuildTools.Utilities
 
         // #16205 We don't allow cancellation here because there's no other working way to wait for a process exit
         // than Process.WaitForExit() on .NET Core when capturing process output.
-        public static bool InvokeTool( ConsoleHelper console, string fileName, string commandLine,
+        public static bool InvokeTool(
+            ConsoleHelper console,
+            string fileName,
+            string commandLine,
             string workingDirectory,
-            out int exitCode, out string output,
+            out int exitCode,
+            out string output,
             params (string key, string value)[] environmentVariables )
         {
             StringBuilder stringBuilder = new();
 
             var success =
-                InvokeTool( console, fileName, commandLine, workingDirectory, null, out exitCode,
+                InvokeTool(
+                    console,
+                    fileName,
+                    commandLine,
+                    workingDirectory,
+                    null,
+                    out exitCode,
                     s =>
                     {
                         lock ( stringBuilder )
@@ -117,10 +165,16 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             return success && exitCode == 0;
         }
 
-        private static bool InvokeTool( ConsoleHelper console, string fileName, string commandLine,
+        private static bool InvokeTool(
+            ConsoleHelper console,
+            string fileName,
+            string commandLine,
             string workingDirectory,
-            CancellationToken? cancellationToken, out int exitCode, Action<string> handleErrorData,
-            Action<string> handleOutputData, params (string key, string value)[] environmentVariables )
+            CancellationToken? cancellationToken,
+            out int exitCode,
+            Action<string> handleErrorData,
+            Action<string> handleOutputData,
+            params (string key, string value)[] environmentVariables )
         {
             exitCode = 0;
 
@@ -128,14 +182,14 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             if ( fileName.Contains( new string( Path.DirectorySeparatorChar, 1 ) ) && !File.Exists( fileName ) )
             {
                 console.WriteError( "Cannot execute \"{0}\": file not found.", fileName );
+
                 return false;
             }
 #pragma warning restore CA1307
 
             const int restartLimit = 3;
             var restartCount = 0;
-            start:
-
+        start:
 
             ProcessStartInfo startInfo =
                 new()
@@ -158,8 +212,8 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             Path.GetFileName( fileName );
             Process process = new() { StartInfo = startInfo };
 
-            using ( ManualResetEvent stdErrorClosed = new(false) )
-            using ( ManualResetEvent stdOutClosed = new(false) )
+            using ( ManualResetEvent stdErrorClosed = new( false ) )
+            using ( ManualResetEvent stdOutClosed = new( false ) )
             {
                 process.ErrorDataReceived += ( _, args ) =>
                 {
@@ -214,8 +268,10 @@ namespace PostSharp.Engineering.BuildTools.Utilities
                         {
                             console.WriteWarning(
                                 "Access denied when starting a process. This might be caused by an anti virus software. Waiting 1000 ms and restarting." );
+
                             Thread.Sleep( 1000 );
                             restartCount++;
+
                             goto start;
                         }
 
@@ -230,8 +286,8 @@ namespace PostSharp.Engineering.BuildTools.Utilities
                     }
                     else
                     {
-                        using ( ManualResetEvent cancelledEvent = new(false) )
-                        using ( ManualResetEvent exitedEvent = new(false) )
+                        using ( ManualResetEvent cancelledEvent = new( false ) )
+                        using ( ManualResetEvent exitedEvent = new( false ) )
                         {
                             process.EnableRaisingEvents = true;
                             process.Exited += ( _, _ ) => exitedEvent.Set();
@@ -262,6 +318,7 @@ namespace PostSharp.Engineering.BuildTools.Utilities
                     else
                     {
                         var i = 0;
+
                         while ( !WaitHandle.WaitAll( new WaitHandle[] { stdErrorClosed, stdOutClosed }, 100 ) &&
                                 i++ < 100 )
                         {
@@ -270,6 +327,7 @@ namespace PostSharp.Engineering.BuildTools.Utilities
                     }
 
                     exitCode = process.ExitCode;
+
                     return true;
                 }
             }

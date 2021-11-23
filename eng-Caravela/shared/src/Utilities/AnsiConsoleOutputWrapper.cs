@@ -1,4 +1,7 @@
-﻿using Spectre.Console;
+﻿// Copyright (c) SharpCrafters s.r.o. All rights reserved.
+// This project is not open source. Please see the LICENSE.md file in the repository root for details.
+
+using Spectre.Console;
 using System;
 using System.IO;
 using System.Text;
@@ -12,7 +15,7 @@ namespace PostSharp.Engineering.BuildTools.Utilities
         public AnsiConsoleOutputWrapper( TextWriter underlying )
         {
             this._underlying = underlying;
-            
+
             try
             {
                 this.Width = Console.WindowWidth;
@@ -21,7 +24,7 @@ namespace PostSharp.Engineering.BuildTools.Utilities
             catch ( IOException )
             {
                 this.Width = 16 * 1024;
-                this.Height = 256;    
+                this.Height = 256;
             }
         }
 

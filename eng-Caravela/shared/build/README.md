@@ -135,20 +135,12 @@ Create `eng\Versions.props` file. The content should look like:
 ```xml
 <Project>
 
-    <!-- Normally you should call build.ps1 -local -prepare before opening the project in an IDE, and it creates [Product]Version.props. -->
-    <Import Project="[Product]Version.props" Condition="Exists('[Product]Version.props')" />
-
-    <!-- However, if you don't, default values are used. -->
+    <!-- Version of [Product]. -->
     <Import Project="MainVersion.props" Condition="!Exists('[Product]Version.props')" />
     
-    <PropertyGroup Condition="!Exists('[Product]Version.props')">
+    <PropertyGroup>
         <[Product]Version>$(MainVersion)$(PackageVersionSuffix)</[Product]Version>
         <[Product]AssemblyVersion>$(MainVersion)</[Product]AssemblyVersion>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <AssemblyVersion>$([Product]AssemblyVersion)</AssemblyVersion>
-        <Version>$([Product]Version)</Version>
     </PropertyGroup>
 
     <!-- Versions of dependencies -->
@@ -157,6 +149,17 @@ Create `eng\Versions.props` file. The content should look like:
         <CaravelaCompilerVersion>3.8.12-preview</CaravelaCompilerVersion>
         <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     </PropertyGroup>
+
+    <!-- Overrides by local settings -->
+    <Import Project="../artifacts/private/[Product]Version.props" Condition="Exists('../artifacts/private/[Product]Version.props')" />
+    <Import Project="Dependencies.props" Condition="Exists('Dependencies.props')" />
+
+    <!-- Other properties depending on the versions set above -->
+    <PropertyGroup>
+        <AssemblyVersion>$([Product]AssemblyVersion)</AssemblyVersion>
+        <Version>$([Product]Version)</Version>
+    </PropertyGroup>
+    
 
 </Project>
 ```
@@ -285,38 +288,11 @@ For details, do `Build.ps1` in PowerShell.
 
 #### Referencing a package in another repository
 
-Local NuGet packages created using the `shared\src\PostSharp.Engineering.BuildTools.csproj` project can be referenced in other repositories in such a way that it is easy to switch between published packages and locally-built packages. 
+Dependencies must be checked out under the same root directory (typically `c:\src`) under their canonic name.
 
-By convention, a file named `[ReferencedProduct].local`, if present, indicates that the local packages should be used. Otherwise, the published packages will be used. The `[ReferencedProduct].local` file should not be committed in the source control.
+Then, use `Build.ps1 dependencies local` to specify which dependencies should be run locally.
 
-Follow these steps:
-
-1. Add the following import to `Directory.Build.props`.
-
-```xml
-<Import Project="[PathToReferencedRepo]\[ReferencedProduct]Version.props" Condition="Exists('[ReferencedProduct].local')"/>
-```
-
-These imports need to be placed before the `eng\Version.props` project is imported.
-
-2. In the dependencies version, set the default version of the referenced package (that is, the one to be used when the local build is _not_ used):
-
-```xml
-<[ReferencedProduct]Version Condition="'$([ReferencedProduct]Version)'==''">0.3.6-preview</[ReferencedProduct]Version>
-```
-
-This version will be used instead of the local build by default.
-
-3. Add package references to projects where required:
-
-```xml
-<PackageReference Include="[ReferencedPackage]" Version="$([ReferencedProduct]Version)" />
-```
-
-To build:
-
-* To use the __local build__, create an empty file `[ReferencedProduct].local`. Add this file to `.gitignore`.
-* To use the __published build__, remove the `[ReferencedProduct].local` file.
+This will generate `eng/Dependencies.props`, which you should have imported in `eng/Versions.props`.
 
 ## Continuous integration
 
