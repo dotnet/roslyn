@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers
 #pragma warning restore RS1004 // Recommend adding language support to diagnostic analyzer
     public class DefaultableTypeShouldHaveDefaultableFieldsAnalyzer : DiagnosticAnalyzer
     {
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.DefaultableTypeShouldHaveDefaultableFieldsRuleId,
             CreateLocalizableResourceString(nameof(DefaultableTypeShouldHaveDefaultableFieldsTitle)),
             CreateLocalizableResourceString(nameof(DefaultableTypeShouldHaveDefaultableFieldsMessage)),
