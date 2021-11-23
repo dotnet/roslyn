@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal sealed class CancellationSeries : IDisposable
     {
-        private CancellationTokenSource? _cts = new();
+        private CancellationTokenSource? _cts;
 
         private readonly CancellationToken _superToken;
 
@@ -37,6 +37,10 @@ namespace Roslyn.Utilities
         /// issued token and causes any subsequent tokens to be issued in a cancelled state.</param>
         public CancellationSeries(CancellationToken token = default)
         {
+            // Initialize with a pre-cancelled source to ensure HasActiveToken has the correct state
+            _cts = new CancellationTokenSource();
+            _cts.Cancel();
+
             _superToken = token;
 
 #if DEBUG
@@ -54,6 +58,12 @@ namespace Roslyn.Utilities
                 $"Instance of CancellationSeries not disposed before being finalized{Environment.NewLine}Stack at construction:{Environment.NewLine}{_ctorStack}");
         }
 #endif
+
+        /// <summary>
+        /// Determines if the cancellation series has an active token which has not been cancelled.
+        /// </summary>
+        public bool HasActiveToken
+            => _cts is { IsCancellationRequested: false };
 
         /// <summary>
         /// Creates the next <see cref="CancellationToken"/> in the series, ensuring the last issued
