@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
+
         private partial void Validate()
         {
             Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
         }
+
         private partial void Validate()
         {
             Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);

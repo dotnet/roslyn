@@ -1424,6 +1424,146 @@ class X
     }
 
     [Fact]
+    public void ListPattern_MemberLookup_StaticDefaultIndexer()
+    {
+        var ilSource = @"
+.class public sequential ansi sealed System.Index
+    extends [mscorlib]System.ValueType
+{
+    .method public specialname rtspecialname instance void .ctor ( int32 'value', [opt] bool fromEnd ) cil managed
+    {
+        .param [2] = bool(false)
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: initobj System.Index
+        IL_0008: ret
+    }
+
+    .method public specialname static valuetype System.Index op_Implicit ( int32 i ) cil managed
+    {
+        .locals init (
+            [0] valuetype System.Index
+        )
+
+        IL_0000: nop
+        IL_0001: ldloca.s 0
+        IL_0003: initobj System.Index
+        IL_0009: br.s IL_000b
+
+        IL_000b: ldloc.0
+        IL_000c: ret
+    }
+}
+
+.class public auto ansi Test1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .field private int32 _Length
+
+    .method public specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ldarg.0
+        IL_0008: ldc.i4.0
+        IL_0009: call instance void Test1::set_Length(int32)
+        IL_000e: nop
+        IL_000f: ret
+    }
+
+    .method public specialname static int32 get_Item ( valuetype System.Index i ) cil managed
+    {
+        .locals init (
+            [0] int32 Item
+        )
+
+        IL_0000: nop
+        IL_0001: ldc.i4.0
+        IL_0002: stloc.0
+        IL_0003: br.s IL_0005
+
+        IL_0005: ldloc.0
+        IL_0006: ret
+    }
+
+    .method public specialname instance int32 get_Length () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Test1::_Length
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname instance void set_Length ( int32 AutoPropertyValue ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Test1::_Length
+        IL_0007: ret
+    }
+
+    .property int32 Item( valuetype System.Index i )
+    {
+        .get int32 Test1::get_Item(valuetype System.Index)
+    }
+    .property instance int32 Length()
+    {
+        .get instance int32 Test1::get_Length()
+        .set instance void Test1::set_Length(int32)
+    }
+}
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var csCompilation = CreateCompilationWithIL(csSource, ilSource);
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "[42]").WithArguments("Test1.this[System.Index]").WithLocation(2, 38),
+            // (2,44): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Test1()[0]").WithArguments("Test1.this[System.Index]").WithLocation(2, 44)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_DefaultIndexerWithDifferentName()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public Default ReadOnly Property Name(i As System.Index) As Integer
+        Get
+            Return 42
+        End Get
+    End Property
+    Public Property Length As Integer = 1
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        CompileAndVerify(csCompilation, expectedOutput: "(True, 42)").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ListPattern_MemberLookup_Index_ErrorCases_1()
     {
         var source = @"
