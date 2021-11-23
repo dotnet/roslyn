@@ -1564,6 +1564,43 @@ System.Console.Write((new Test1() is [42], new Test1()[0]));
     }
 
     [Fact]
+    public void ListPattern_MemberLookup_NonDefaultIndexerNamedItem()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public ReadOnly Property Item(i As System.Index) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public Property Length As Integer = 0
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[42]").WithArguments("Test1").WithLocation(2, 38),
+            // (2,44): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(2, 44)
+            );
+    }
+
+    [Fact]
     public void ListPattern_MemberLookup_Index_ErrorCases_1()
     {
         var source = @"
