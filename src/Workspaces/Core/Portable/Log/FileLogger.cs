@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         private static string GetLogFileName()
-            => DateTime.Now.ToString().Replace(' ', '_').Replace('/', '_').Replace(':', '_') + ".log";
+            => DateTime.Now.ToString(CultureInfo.InvariantCulture).Replace(' ', '_').Replace('/', '_').Replace(':', '_') + ".log";
 
         private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
         {
