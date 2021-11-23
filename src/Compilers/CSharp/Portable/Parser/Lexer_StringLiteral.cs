@@ -222,8 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out bool closeQuoteMissing)
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
-            subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+            subScanner.ScanInterpolatedStringLiteralTop(interpolations, out closeQuoteMissing);
             error = subScanner.Error;
+            info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = TextWindow.GetText(intern: false);
         }
 
@@ -300,8 +301,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // is a recoverable error.
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, ref TokenInfo info, out bool closeQuoteMissing)
+            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, out bool closeQuoteMissing)
             {
+                ScanInterpolatedStringLiteralStart();
+                ScanInterpolatedStringLiteralContents(interpolations);
+                ScanInterpolatedStringLiteralEnd(out closeQuoteMissing);
+            }
+
+            private readonly void ScanInterpolatedStringLiteralStart()
+            {
+                // Handles reading the start of the interpolated string literal (up to where the content begins)
+
                 if (_isVerbatim)
                 {
                     Debug.Assert(
@@ -320,7 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Assert(_lexer.TextWindow.PeekChar() == '"');
                 _lexer.TextWindow.AdvanceChar(); // "
-                ScanInterpolatedStringLiteralContents(interpolations);
+            }
+
+            private void ScanInterpolatedStringLiteralEnd(out bool closeQuoteMissing)
+            {
+                // Handles reading the end of the interpolated string literal (after where the content ends)
+
                 if (_lexer.TextWindow.PeekChar() != '"')
                 {
                     Debug.Assert(IsAtEnd());
@@ -335,8 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     _lexer.TextWindow.AdvanceChar(); // "
                     closeQuoteMissing = false;
                 }
-
-                info.Kind = SyntaxKind.InterpolatedStringToken;
             }
 
             private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation>? interpolations)
