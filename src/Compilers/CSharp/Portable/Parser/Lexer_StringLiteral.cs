@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(
-                interpolations: null, isVerbatim, ref info, out var error, closeQuoteMissing: out _);
+            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, out var error, closeQuoteMissing: out _);
             this.AddError(error);
         }
 
