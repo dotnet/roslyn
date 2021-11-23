@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -245,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 interpolatedString.GetLastToken().GetTrailingTrivia());
         }
 
+        [NonCopyable]
         private struct InterpolatedStringScanner
         {
             private readonly Lexer _lexer;
