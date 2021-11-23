@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -19,13 +20,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
     internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
+        private readonly ISourceLinkService? _sourceLinkService;
+
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentLoaderService()
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+        public PdbSourceDocumentLoaderService([Import(AllowDefault = true)] ISourceLinkService? sourceLinkService)
         {
+            _sourceLinkService = sourceLinkService;
         }
 
-        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding? defaultEncoding, CancellationToken cancellationToken)
+        public async Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding? defaultEncoding, CancellationToken cancellationToken)
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             var stream = TryGetEmbeddedSourceStream(sourceDocument) ??
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         {
                             var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
                             var textLoader = TextLoader.From(textAndVersion);
-                            return Task.FromResult<TextLoader?>(textLoader);
+                            return textLoader;
                         }
                     }
                     catch (IOException)
@@ -55,11 +59,18 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
             }
 
-            // TODO: Call the debugger to download the file
-            // Maybe they'll download to a temp file, in which case this method could return a string
-            // or maybe they'll return a stream, in which case we could create a new StreamTextLoader
+            if (_sourceLinkService is not null && sourceDocument.SourceLinkUrl is not null)
+            {
+                var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, cancellationToken).ConfigureAwait(false);
+                // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
 
-            return Task.FromResult<TextLoader?>(null);
+                if (sourceFile is not null)
+                {
+                    return IOUtilities.PerformIO(() => new FileTextLoader(sourceFile.SourceFilePath, defaultEncoding));
+                }
+            }
+
+            return null;
         }
 
         private static Stream? TryGetEmbeddedSourceStream(SourceDocument sourceDocument)
