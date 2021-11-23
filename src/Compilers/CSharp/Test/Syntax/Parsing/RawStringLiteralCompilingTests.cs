@@ -200,7 +200,7 @@ class C
         }
 
         [Fact]
-        public void TestMultiLineRawLiteralInSingleLineInterpolatedString()
+        public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp9()
         {
             CreateCompilation(
 @"class C
@@ -211,12 +211,30 @@ class C
 
 """"""}"";
     }
-}").VerifyDiagnostics(
-                // (5,20): error CS9105: Multi-line raw string literals are only allowed in verbatim interpolated strings
+}", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,20): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var v = $"{"""
-                Diagnostic(ErrorCode.ERR_RawStringInVerbatimInterpolatedStrings, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
 
-""""""").WithLocation(5, 20));
+""""""").WithArguments("raw string literals").WithLocation(5, 20),
+                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version preview or greater.
+                // """}";
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "preview").WithLocation(7, 4));
+        }
+
+        [Fact]
+        public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp10()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $""{""""""
+
+""""""}"";
+    }
+}").VerifyDiagnostics();
         }
 
         [Fact]
