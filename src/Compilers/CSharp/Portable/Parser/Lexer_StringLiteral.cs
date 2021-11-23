@@ -594,19 +594,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
                                 case '/':
-                                    _lexer.TextWindow.AdvanceChar(); // skip /
-                                    _lexer.TextWindow.AdvanceChar(); // skip /
-
-                                    // read up to the end of the line.
-                                    while (!IsAtEnd(allowNewline: false))
-                                    {
-                                        _lexer.TextWindow.AdvanceChar(); // skip // comment character
-                                    }
-
+                                    _lexer.ScanToEndOfLine();
                                     continue;
                                 case '*':
-                                    // check for and scan /* comment */
-                                    ScanInterpolatedStringLiteralNestedComment();
+                                    _lexer.ScanMultiLineComment(out _);
                                     continue;
                                 default:
                                     _lexer.TextWindow.AdvanceChar();
@@ -638,32 +629,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// not make us think we're in runaway lexing.
             /// </summary>
             private bool RecoveringFromRunawayLexing() => this.EncounteredUnrecoverableError;
-
-            private void ScanInterpolatedStringLiteralNestedComment()
-            {
-                Debug.Assert(_lexer.TextWindow.PeekChar() == '/');
-                _lexer.TextWindow.AdvanceChar();
-                Debug.Assert(_lexer.TextWindow.PeekChar() == '*');
-                _lexer.TextWindow.AdvanceChar();
-                while (true)
-                {
-                    // Note: if we reach the end of the file without hitting */ just bail out.  It's not necessary for
-                    // us to report any issues, as this code is just being used to find the end of the interpolation hole.
-                    // When the full parse happens, the lexer will grab the string inside the interpolation hole and 
-                    // pass it to the regular parser.  This parser will then see the unterminated /* and will report the
-                    // error for it.
-                    if (IsAtEnd(allowNewline: true))
-                        return;
-
-                    var ch = _lexer.TextWindow.PeekChar();
-                    _lexer.TextWindow.AdvanceChar();
-                    if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
-                    {
-                        _lexer.TextWindow.AdvanceChar();
-                        return;
-                    }
-                }
-            }
 
             private void ScanInterpolatedStringLiteralNestedString()
             {
