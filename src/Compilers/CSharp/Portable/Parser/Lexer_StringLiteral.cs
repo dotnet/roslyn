@@ -716,7 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private void ScanInterpolatedStringLiteralNestedString()
             {
                 var info = default(TokenInfo);
-                var position = _lexer.TextWindow.Position;
                 _lexer.ScanStringLiteral(ref info, inDirective: false);
             }
 
