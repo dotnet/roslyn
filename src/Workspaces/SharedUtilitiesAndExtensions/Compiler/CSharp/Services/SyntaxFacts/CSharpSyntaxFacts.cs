@@ -25,10 +25,8 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-#if !LIGHTWEIGHT
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
@@ -50,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
-#if !LIGHTWEIGHT
         public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         protected override IDocumentationCommentService DocumentationCommentService
@@ -1780,7 +1777,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
-#endif
         public override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())
@@ -2075,7 +2071,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         internal static bool ParentIsLocalDeclarationStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
 
-#if !LIGHTWEIGHT
         public bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsPatternExpression);
 
@@ -2195,6 +2190,5 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
-#endif
     }
 }

@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
-#if !LIGHTWEIGHT
         public static SyntaxNode GetRequiredParent(this SyntaxNode node)
             => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
 
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 current = current.GetParent(ascendOutOfTrivia: true);
             }
         }
-#endif
 
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
@@ -53,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-#if !LIGHTWEIGHT
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
@@ -742,8 +739,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return token;
         }
-#endif
-
         public static T WithPrependedLeadingTrivia<T>(
             this T node,
             params SyntaxTrivia[] trivia) where T : SyntaxNode
@@ -812,7 +807,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.WithAppendedTrailingTrivia(list);
         }
 
-#if !LIGHTWEIGHT
         public static T With<T>(
             this T node,
             IEnumerable<SyntaxTrivia> leadingTrivia,
@@ -828,7 +822,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return token.WithLeadingTrivia(default(SyntaxTriviaList));
         }
-#endif
 
         /// <summary>
         /// Creates a new token with the trailing trivia removed.
@@ -853,7 +846,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return parent;
         }
 
-#if !LIGHTWEIGHT
         public static TNode? FirstAncestorOrSelfUntil<TNode>(this SyntaxNode? node, Func<SyntaxNode, bool> predicate)
             where TNode : SyntaxNode
         {
@@ -914,6 +906,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
-#endif
     }
 }

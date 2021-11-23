@@ -13,12 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <inheritdoc cref="CodeStyleOption2{T}"/>
     public sealed class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-#if !LIGHTWEIGHT
         static CodeStyleOption()
         {
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption<T>), ReadFrom);
         }
-#endif
 
         private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
         public static CodeStyleOption<T> Default => new(default, NotificationOption.Silent);
@@ -39,9 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => throw new InvalidOperationException();
         }
 
-#if !LIGHTWEIGHT
         bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
-#endif
         object ICodeStyleOption.Value => this.Value;
         NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
@@ -65,13 +61,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static CodeStyleOption<T> FromXElement(XElement element)
             => new(CodeStyleOption2<T>.FromXElement(element));
 
-#if !LIGHTWEIGHT
         void IObjectWritable.WriteTo(ObjectWriter writer)
             => _codeStyleOptionImpl.WriteTo(writer);
 
         internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
             => new(CodeStyleOption2<T>.ReadFrom(reader));
-#endif
 
         public bool Equals(CodeStyleOption<T> other)
             => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);

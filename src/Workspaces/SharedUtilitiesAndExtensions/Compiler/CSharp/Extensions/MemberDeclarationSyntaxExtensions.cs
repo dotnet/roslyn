@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class MemberDeclarationSyntaxExtensions
     {
-#if !LIGHTWEIGHT
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache =
             new();
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>.CreateValueCallback s_createLocalDeclarationMap = CreateLocalDeclarationMap;
@@ -142,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return null;
         }
-#endif
 
         public static MemberDeclarationSyntax WithParameterList(
             this MemberDeclarationSyntax member,
@@ -170,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-#if !LIGHTWEIGHT
         public static MemberDeclarationSyntax AddAttributeLists(
             this MemberDeclarationSyntax member,
             params AttributeListSyntax[] attributeLists)
@@ -340,6 +337,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return null;
         }
-#endif
     }
 }

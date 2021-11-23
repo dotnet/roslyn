@@ -10,10 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal interface ICodeStyleOption
-#if !LIGHTWEIGHT
-        : IObjectWritable
-#endif
+    internal interface ICodeStyleOption : IObjectWritable
     {
         XElement ToXElement();
         object? Value { get; }
@@ -42,12 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
-#if !LIGHTWEIGHT
         static CodeStyleOption2()
         {
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
-#endif
 
         public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
 
@@ -166,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public bool ShouldReuseInSerialization => false;
 
-#if !LIGHTWEIGHT
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteValue(GetValueForSerialization());
@@ -186,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     var v => throw ExceptionUtilities.UnexpectedValue(v),
                 });
         }
-#endif
 
         private static Func<string, T> GetParser(string type)
             => type switch
