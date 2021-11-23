@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
         /// <summary>

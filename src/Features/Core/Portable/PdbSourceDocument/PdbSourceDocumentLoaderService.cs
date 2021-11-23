@@ -5,10 +5,14 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -21,20 +25,34 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
         }
 
-        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, CancellationToken cancellationToken)
+        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding? defaultEncoding, CancellationToken cancellationToken)
         {
-            // If we already have the embedded text then use that directly
-            if (sourceDocument.EmbeddedText is not null)
-            {
-                var textAndVersion = TextAndVersion.Create(sourceDocument.EmbeddedText, VersionStamp.Default, sourceDocument.FilePath);
-                return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
-            }
+            // First we try getting "local" files, either from embedded source or a local file on disk
+            var stream = TryGetEmbeddedSourceStream(sourceDocument) ??
+                TryGetFileStream(sourceDocument);
 
-            // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
-            if (File.Exists(sourceDocument.FilePath))
+            if (stream is not null)
             {
-                // TODO: Make sure the hash of the file is correct: https://github.com/dotnet/roslyn/issues/57351
-                return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
+                using (stream)
+                {
+                    var encoding = defaultEncoding ?? Encoding.UTF8;
+                    try
+                    {
+                        var sourceText = EncodedStringText.Create(stream, defaultEncoding: encoding, checksumAlgorithm: sourceDocument.HashAlgorithm);
+
+                        var fileChecksum = sourceText.GetChecksum();
+                        if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                        {
+                            var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
+                            var textLoader = TextLoader.From(textAndVersion);
+                            return Task.FromResult<TextLoader?>(textLoader);
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        // TODO: Log message to inform the user what went wrong: https://github.com/dotnet/roslyn/issues/57352
+                    }
+                }
             }
 
             // TODO: Call the debugger to download the file
@@ -42,6 +60,45 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // or maybe they'll return a stream, in which case we could create a new StreamTextLoader
 
             return Task.FromResult<TextLoader?>(null);
+        }
+
+        private static Stream? TryGetEmbeddedSourceStream(SourceDocument sourceDocument)
+        {
+            if (sourceDocument.EmbeddedTextBytes is null)
+                return null;
+
+            var embeddedTextBytes = sourceDocument.EmbeddedTextBytes;
+            var uncompressedSize = BitConverter.ToInt32(embeddedTextBytes, 0);
+            var stream = new MemoryStream(embeddedTextBytes, sizeof(int), embeddedTextBytes.Length - sizeof(int));
+
+            if (uncompressedSize != 0)
+            {
+                var decompressed = new MemoryStream(uncompressedSize);
+
+                using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
+                {
+                    deflater.CopyTo(decompressed);
+                }
+
+                if (decompressed.Length != uncompressedSize)
+                {
+                    return null;
+                }
+
+                stream = decompressed;
+            }
+
+            return stream;
+        }
+
+        private static Stream? TryGetFileStream(SourceDocument sourceDocument)
+        {
+            if (File.Exists(sourceDocument.FilePath))
+            {
+                return IOUtilities.PerformIO(() => new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
+            }
+
+            return null;
         }
     }
 }

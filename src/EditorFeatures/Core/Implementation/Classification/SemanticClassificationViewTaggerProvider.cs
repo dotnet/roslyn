@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
-        private readonly IGlobalOptionService _globalOptionsService;
+        private readonly IGlobalOptionService _globalOptions;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptionsService)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
-            _globalOptionsService = globalOptionsService;
+            _globalOptions = globalOptions;
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return Task.CompletedTask;
 
             // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-            var isLspSemanticTokensEnabled = _globalOptionsService.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
                 return Task.CompletedTask;
