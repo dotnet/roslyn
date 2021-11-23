@@ -9661,7 +9661,7 @@ public class C
     public static void Target1() { }
 }";
 
-            var compilation0 = CreateStandardCompilation(source0, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll, targetFramework: TargetFramework.Standard);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2a = compilation1.WithSource(source2a);
             var compilation2b = compilation1.WithSource(source2b);
@@ -9703,7 +9703,7 @@ public class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify();
             diff1.VerifyIL("C.F", @"
@@ -9735,7 +9735,7 @@ public class C
             var diff2a = compilation2a.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2a, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2a, preserveLocalVariables: true)));
 
             diff2a.EmitResult.Diagnostics.Verify();
             diff2a.VerifyIL("C.F", @"
@@ -9778,8 +9778,8 @@ public class C
             var diff2b = compilation2b.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2b, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Insert, null, t1)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2b, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, t1)));
 
             diff2b.EmitResult.Diagnostics.Verify();
             diff2b.VerifyIL("C.F", @"
@@ -9822,7 +9822,7 @@ public class C
             var diff3 = compilation3.EmitDifference(
                 diff2b.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Insert, null, g)));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g)));
 
             diff3.EmitResult.Diagnostics.Verify();
             diff3.VerifyIL("C.G", @"
