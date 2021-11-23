@@ -325,6 +325,28 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
         }
 
+        public async Task SetFileContentsAsync(string projectName, string relativeFilePath, string content, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            File.WriteAllText(filePath, content);
+        }
+
+        public async Task<string> GetFileContentsAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            return File.ReadAllText(filePath);
+        }
+
         private static string ConvertLanguageName(string languageName)
         {
             return languageName switch

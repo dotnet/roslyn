@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor;
@@ -29,6 +30,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -73,6 +75,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var textSnapshot = view.TextSnapshot;
             var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
             view.TextBuffer.Replace(replacementSpan, text);
+        }
+
+        public async Task<string> GetTextAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            return bufferPosition.Snapshot.GetText();
         }
 
         public async Task<string> GetCurrentLineTextAsync(CancellationToken cancellationToken)
@@ -121,6 +132,90 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
             view.Caret.MoveTo(point);
+        }
+
+        public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
+        {
+            await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
+            await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
+        }
+
+        public async Task<ClassificationSpan[]> GetLightBulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
+            var classifierAggregatorService = await GetComponentModelServiceAsync<IViewClassifierAggregatorService>(cancellationToken);
+
+            await LightBulbHelper.WaitForLightBulbSessionAsync(TestServices, broker, view, cancellationToken).ConfigureAwait(true);
+
+            var bufferType = view.TextBuffer.ContentType.DisplayName;
+            if (!broker.IsLightBulbSessionActive(view))
+            {
+                throw new Exception($"No Active Smart Tags in View!  Buffer content type='{bufferType}'");
+            }
+
+            var activeSession = broker.GetSession(view);
+            if (activeSession == null || !activeSession.IsExpanded)
+            {
+                throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type='{bufferType}'");
+            }
+
+            if (!string.IsNullOrEmpty(menuText))
+            {
+                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+                {
+                    actionSets = Array.Empty<SuggestedActionSet>();
+                }
+
+                var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
+                if (set == null)
+                {
+                    throw new InvalidOperationException(
+                        $"ISuggestionAction '{menuText}' not found.  Buffer content type='{bufferType}'");
+                }
+
+                IWpfTextView? preview = null;
+                var pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+                if (pane is UserControl control)
+                {
+                    var container = control.FindName("PreviewDockPanel") as DockPanel;
+                    var host = FindDescendants<UIElement>(container).OfType<IWpfTextViewHost>().LastOrDefault();
+                    preview = host?.TextView;
+                }
+
+                if (preview == null)
+                {
+                    throw new InvalidOperationException(string.Format("Could not find light bulb preview.  Buffer content type={0}", bufferType));
+                }
+
+                activeSession.Collapse();
+                var classifier = classifierAggregatorService.GetClassifier(preview);
+                var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
+                return classifiedSpans.ToArray();
+            }
+
+            activeSession.Collapse();
+            return Array.Empty<ClassificationSpan>();
+
+            static IEnumerable<T> FindDescendants<T>(DependencyObject? rootObject)
+                where T : DependencyObject
+            {
+                if (rootObject != null)
+                {
+                    for (var i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
+                    {
+                        var child = VisualTreeHelper.GetChild(rootObject, i);
+
+                        if (child is not null and T)
+                            yield return (T)child;
+
+                        foreach (var descendant in FindDescendants<T>(child))
+                            yield return descendant;
+                    }
+                }
+            }
         }
 
         public async Task ActivateAsync(CancellationToken cancellationToken)
@@ -417,6 +512,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
 
+            await InvokeCodeActionListWithoutWaitingAsync(cancellationToken);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
+        }
+
+        public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
+        {
             if (Version.Parse("17.1.31916.450") > await TestServices.Shell.GetVersionAsync(cancellationToken))
             {
                 // Workaround for extremely unstable async lightbulb prior to:
@@ -429,7 +531,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
 
             await ShowLightBulbAsync(cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
         }
 
         public async Task<bool> IsLightBulbSessionExpandedAsync(CancellationToken cancellationToken)

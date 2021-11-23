@@ -6,9 +6,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -17,6 +20,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
+    [Trait(Traits.Feature, Traits.Features.FindReferences)]
     public class CSharpFindReferences : AbstractEditorTest
     {
         public CSharpFindReferences()
@@ -26,7 +30,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [IdeFact]
         public async Task FindReferencesToCtor()
         {
             await SetUpEditorAsync(@"
@@ -79,6 +83,102 @@ class SomeOtherClass
             // Assert we are in the right file now
             Assert.Equal("Class1.cs*", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        public async Task FindReferencesToLocals()
+        {
+            await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
+            await SetUpEditorAsync(@"
+class Program
+{
+    static void Main()
+    {
+        int local = 1;
+        Console.WriteLine(local$$);
+    }
+}
+", HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+
+            const string LocalReferencesCaption = "'local' references";
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(LocalReferencesCaption, HangMitigatingCancellationToken);
+
+            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
+            Assert.Equal(expected: LocalReferencesCaption, actual: activeWindowCaption);
+
+            Assert.Collection(
+                results,
+                new Action<ITableEntryHandle2>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "int local = 1;", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                        Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                        Assert.Equal(expected: 12, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                    },
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                        Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                        Assert.Equal(expected: 26, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                    }
+                });
+
+            await telemetry.VerifyFiredAsync(new[] { "vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference" }, HangMitigatingCancellationToken);
+        }
+
+        [IdeFact]
+        public async Task FindReferencesToString()
+        {
+            await SetUpEditorAsync(@"
+class Program
+{
+    static void Main()
+    {
+         string local = ""1""$$;
+    }
+}
+", HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+
+            const string FindReferencesCaption = "'\"1\"' references";
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(FindReferencesCaption, HangMitigatingCancellationToken);
+
+            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
+            Assert.Equal(expected: FindReferencesCaption, actual: activeWindowCaption);
+
+            Assert.Collection(
+                results,
+                new Action<ITableEntryHandle2>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "string local = \"1\";", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                        Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                        Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                    }
+                });
+        }
+
+        [IdeFact]
+        public async Task VerifyWorkingFolder()
+        {
+            await SetUpEditorAsync(@"class EmptyContent {$$}", HangMitigatingCancellationToken);
+
+            var visualStudioWorkspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+            var persistentStorageConfiguration = visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+
+            // verify working folder has set
+            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+
+            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+
+            // because the solution cache directory is stored in the user temp folder, 
+            // closing the solution has no effect on what is returned.
+            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
         }
 
         private async Task WaitForNavigateAsync(CancellationToken cancellationToken)

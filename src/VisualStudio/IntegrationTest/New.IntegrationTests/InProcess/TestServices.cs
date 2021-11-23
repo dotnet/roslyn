@@ -22,6 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             SolutionExplorer = new SolutionExplorerInProcess(this);
             SolutionVerifier = new SolutionVerifierInProcess(this);
             StateReset = new StateResetInProcess(this);
+            Telemetry = new TelemetryInProcess(this);
             Workspace = new WorkspaceInProcess(this);
         }
 
@@ -44,6 +45,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public SolutionVerifierInProcess SolutionVerifier { get; }
 
         public StateResetInProcess StateReset { get; }
+
+        public TelemetryInProcess Telemetry { get; }
 
         public WorkspaceInProcess Workspace { get; }
 

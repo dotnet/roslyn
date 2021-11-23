@@ -182,7 +182,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 if (blockUntilComplete)
                 {
                     // wait for action to complete
-                    await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
+                    await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                        new[]
+                        {
+                            FeatureAttribute.Workspace,
+                            FeatureAttribute.LightBulb,
+                        },
+                        cancellationToken);
                 }
 
                 return result;
