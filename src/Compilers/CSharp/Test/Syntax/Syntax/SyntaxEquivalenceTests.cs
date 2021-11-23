@@ -589,5 +589,78 @@ class C
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
+
+        [Fact]
+        public void TestRawStringLiteral1()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral2()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abcd"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral3()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
     }
 }

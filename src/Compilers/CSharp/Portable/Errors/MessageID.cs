@@ -238,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureGenericAttributes = MessageBase + 12812,
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
+        IDS_FeatureRawStringLiterals = MessageBase + 12814,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -345,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# preview features.
+                case MessageID.IDS_FeatureRawStringLiterals:
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check

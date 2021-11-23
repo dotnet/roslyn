@@ -6854,6 +6854,30 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
+  <data name="ERR_LineDoesNotStartWithSameWhitespace" xml:space="preserve">
+    <value>Line does not start with the same whitespace as the last line of the raw string literal</value>
+  </data>
+  <data name="ERR_RawStringNotInDirectives" xml:space="preserve">
+    <value>Raw string literals are not allowed in preprocessor directives</value>
+  </data>
+  <data name="ERR_RawStringDelimiterOnOwnLine" xml:space="preserve">
+    <value>Raw string literal delimiter must be on its own line</value>
+  </data>
+  <data name="ERR_TooManyQuotesForRawString" xml:space="preserve">
+    <value>Too many closing quotes for raw string literal</value>
+  </data>
+  <data name="ERR_UnterminatedRawString" xml:space="preserve">
+    <value>Unterminated raw string literal</value>
+  </data>
+  <data name="IDS_FeatureRawStringLiterals" xml:space="preserve">
+    <value>raw string literals</value>
+  </data>
+  <data name="ERR_RawStringInVerbatimInterpolatedStrings" xml:space="preserve">
+    <value>Multi-line raw string literals are only allowed in verbatim interpolated strings</value>
+  </data>
+  <data name="ERR_RawStringMustContainContent" xml:space="preserve">
+    <value>Multi-line raw string literals must contain at least one line of content</value>
+  </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
     <value>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</value>
   </data>

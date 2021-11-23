@@ -14,6 +14,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var quoteCharacter = TextWindow.PeekChar();
             Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
 
+            if (TextWindow.PeekChar() == '"' &&
+                TextWindow.PeekChar(1) == '"' &&
+                TextWindow.PeekChar(2) == '"')
+            {
+                ScanRawStringLiteral(ref info);
+                if (inDirective)
+                {
+                    // Reinterpret this as just a string literal so that the directive parser can consume this.  
+                    // But report this is illegal so that the user knows to fix this up to be a normal string.
+                    info.Kind = SyntaxKind.StringLiteralToken;
+                    info.StringValue = "";
+                    this.AddError(ErrorCode.ERR_RawStringNotInDirectives);
+                }
+                return;
+            }
+
             TextWindow.AdvanceChar();
             _builder.Length = 0;
 
@@ -699,8 +715,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanInterpolatedStringLiteralNestedString()
             {
-                var discarded = default(TokenInfo);
-                _lexer.ScanStringLiteral(ref discarded, inDirective: false);
+                var info = default(TokenInfo);
+                var position = _lexer.TextWindow.Position;
+                _lexer.ScanStringLiteral(ref info, inDirective: false);
+
+                if (!_allowNewlines && info.Kind == SyntaxKind.MultiLineRawStringLiteralToken)
+                    TrySetRecoverableError(_lexer.MakeError(position, _lexer.TextWindow.Position - position, ErrorCode.ERR_RawStringInVerbatimInterpolatedStrings));
             }
 
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)

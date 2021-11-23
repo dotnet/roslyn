@@ -2011,6 +2011,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotBeMadeNullable = 8978,
 
+        #region diagnostics introduced for C# 11.0
+
+        // PROTOTYPE(raw-string-literals): renumber these if necessary.
+        ERR_RawStringNotInDirectives = 9100,
+        ERR_UnterminatedRawString = 9101,
+        ERR_TooManyQuotesForRawString = 9102,
+        ERR_LineDoesNotStartWithSameWhitespace = 9103,
+        ERR_RawStringDelimiterOnOwnLine = 9104,
+        ERR_RawStringInVerbatimInterpolatedStrings = 9105,
+        ERR_RawStringMustContainContent = 9106,
+
+        #endregion
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
