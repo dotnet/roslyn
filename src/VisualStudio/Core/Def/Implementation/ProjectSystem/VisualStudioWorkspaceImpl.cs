@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         private readonly Lazy<VisualStudioProjectFactory> _projectFactory;
@@ -118,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            _globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -199,20 +201,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
+            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
+            // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
+            // semaphore is acquired; if the UI thread is blocked trying to acquire the semaphore, we could deadlock.
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
             {
                 _openFileTracker = openFileTracker;
-            }
-
-            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
-
-            // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
-            {
                 _memoryListener = memoryListener;
             }
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
         }
@@ -241,20 +241,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void AddDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            using (_gate.DisposableWait())
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            _documentsNotFromFiles = _documentsNotFromFiles.Add(documentId);
         }
 
-        internal void RemoveDocumentToDocumentsNotFromFiles(DocumentId documentId)
+        internal void RemoveDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
         {
-            using (_gate.DisposableWait())
-            {
-                _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            _documentsNotFromFiles = _documentsNotFromFiles.Remove(documentId);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -288,16 +285,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+                return GetProjectWithHierarchyAndName_NoLock(hierarchy, projectName);
+            }
+        }
+
+        private VisualStudioProject? GetProjectWithHierarchyAndName_NoLock(IVsHierarchy hierarchy, string projectName)
+        {
+            if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+            {
+                foreach (var project in projects)
                 {
-                    foreach (var project in projects)
+                    if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
                     {
-                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        if (projectHierarchy == hierarchy)
                         {
-                            if (projectHierarchy == hierarchy)
-                            {
-                                return project;
-                            }
+                            return project;
                         }
                     }
                 }
@@ -529,9 +531,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var compilationOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var originalProject = CurrentSolution.GetRequiredProject(projectId);
+            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
-            compilationOptionsService.Apply(options, storage);
+            compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
 
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
@@ -1166,7 +1169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            EnsureEditableDocuments(documentId);
             var containedDocument = TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
@@ -1327,61 +1329,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
             // IVsHierarchies will raise the appropriate events which we are subscribed to.
 
+            var hierarchy = GetHierarchy(documentId.ProjectId);
+            if (hierarchy == null)
+            {
+                // If we don't have a hierarchy then there's nothing we can do
+                return;
+            }
+
+            // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+            // don't necessarily let us read it first, so we have to fire-and-forget here.
+            string? projectSystemNameForProjectId = null;
+
             using (_gate.DisposableWait())
             {
-                var hierarchy = GetHierarchy(documentId.ProjectId);
-                if (hierarchy == null)
-                {
-                    // If we don't have a hierarchy then there's nothing we can do
-                    return;
-                }
-
-                // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
-                // don't necessarily let us read it first, so we have to fire-and-forget here.
                 foreach (var (projectSystemName, projects) in _projectSystemNameToProjectsMap)
                 {
                     if (projects.Any(p => p.Id == documentId.ProjectId))
                     {
-                        hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemName);
-
-                        // We've updated that property, but we still need to continue the rest of this process to ensure the Running Document Table is updated
-                        // and any shared asset projects are also updated.
-                        break;
+                        projectSystemNameForProjectId = projectSystemName;
                     }
                 }
-
-                var filePath = GetFilePath(documentId);
-                if (filePath == null)
-                {
-                    return;
-                }
-
-                var itemId = hierarchy.TryGetItemId(filePath);
-                if (itemId != VSConstants.VSITEMID_NIL)
-                {
-                    // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
-                    // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
-                    // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
-                    // above. Some project systems out there might still be supporting it, so we'll support it too.
-                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
-                           hierarchy != sharedHierarchy)
-                    {
-                        // Ensure the shared context is set correctly
-                        if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
-                        {
-                            ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
-                        }
-
-                        // We now need to ensure the outer project is also set up
-                        hierarchy = sharedHierarchy;
-                        itemId = sharedItemId;
-                    }
-                }
-
-                // Update the ownership of the file in the Running Document Table
-                var project = (IVsProject3)hierarchy;
-                project.TransferItem(filePath, filePath, punkWindowFrame: null);
             }
+
+            if (projectSystemNameForProjectId is null)
+            {
+                // Project must have been removed asynchronously
+                return;
+            }
+
+            // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+            // don't necessarily let us read it first, so we have to fire-and-forget here.
+            hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemNameForProjectId);
+
+            var filePath = GetFilePath(documentId);
+            if (filePath == null)
+            {
+                return;
+            }
+
+            var itemId = hierarchy.TryGetItemId(filePath);
+            if (itemId != VSConstants.VSITEMID_NIL)
+            {
+                // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
+                // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
+                // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
+                // above. Some project systems out there might still be supporting it, so we'll support it too.
+                while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
+                       hierarchy != sharedHierarchy)
+                {
+                    // Ensure the shared context is set correctly
+                    if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                    {
+                        ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
+                    }
+
+                    // We now need to ensure the outer project is also set up
+                    hierarchy = sharedHierarchy;
+                    itemId = sharedItemId;
+                }
+            }
+
+            // Update the ownership of the file in the Running Document Table
+            var project = (IVsProject3)hierarchy;
+            project.TransferItem(filePath, filePath, punkWindowFrame: null);
         }
 
         internal bool TryGetHierarchy(ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy)
@@ -1436,9 +1446,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception("A file was reloaded during the source control checkout.");
             }
         }
-
-        public void EnsureEditableDocuments(params DocumentId[] documents)
-            => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
@@ -1587,7 +1594,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
@@ -1596,7 +1603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             string? languageName;
 
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             languageName = CurrentSolution.GetRequiredProject(projectId).Language;
 
@@ -1714,7 +1721,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1754,7 +1761,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
             // we do want to throw exceptions.
@@ -1805,7 +1812,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var modifiedSolution = this.CurrentSolution;
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
@@ -1851,7 +1858,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             if (_projectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
             {
@@ -1883,7 +1890,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Any conversion to or from project references must be done under the global workspace lock,
             // since that needs to be coordinated with updating all projects simultaneously.
-            Debug.Assert(_gate.CurrentCount == 0);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             var projectReferenceInformation = GetReferenceInfo_NoLock(referencingProject);
             foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)

@@ -71,11 +71,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _asyncListener,
                 new LSPNavigateToCallback(context, progress),
                 request.Query,
-                searchCurrentDocument: false,
                 s_supportedKinds,
                 _threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
             return progress.GetValues();
         }
 

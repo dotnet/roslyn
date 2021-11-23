@@ -7188,6 +7188,46 @@ public class C
         }
 
         [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_05()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public ref struct R
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+    public static implicit operator R(Span<int> span) => throw null;
+}
+public struct S
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+}
+public class C
+{
+    public void M1(ref R r, ref S s)
+    {
+        R outer = stackalloc int[100];
+        if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+        if (outer is { SProp.RProp: var sr0 }) r = sr0; // OK
+        if (outer is { SProp.SProp: var ss0 }) s = ss0; // OK
+        if (outer is { RProp.SProp: var rs0 }) s = rs0; // OK
+        if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+        if (outer is { SProp: { RProp: var sr1 }}) r = sr1; // OK
+        if (outer is { SProp: { SProp: var ss1 }}) s = ss1; // OK
+        if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
+    }
+}").VerifyDiagnostics(
+                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
+        }
+
+        [Fact]
         [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
         public void EscapeScopeInSubpatternOfNonRefType()
         {

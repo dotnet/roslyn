@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '@':
                     if (TextWindow.PeekChar(1) == '"')
                     {
-                        var errorCode = this.ScanVerbatimStringLiteral(ref info, allowNewlines: true);
+                        var errorCode = this.ScanVerbatimStringLiteral(ref info);
                         if (errorCode is ErrorCode code)
                             this.AddError(code);
                     }

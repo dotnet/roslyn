@@ -959,5 +959,100 @@ class Test
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestIndex(TestHost testHost)
+        {
+            var code =
+@"
+class Test
+{
+    public int this[string $$key] => 0;
+
+    public int M(Test localTest)
+    {
+        var assignedVariable = this[""test""];
+        System.Console.WriteLine(this[""test""]);
+        
+        return localTest[""test""];
+    }
+}";
+
+            //
+            //  |> public int this[string [|key|]] => 0; [Code.cs:4]
+            //    |> return [|localTest|][[|"test"|]]; [Code.cs:10]
+            //    |> System.Console.WriteLine(this[[|"test"|]]); [Code.cs:8]
+            //    |> var [|assignedVariable = this["test"]|]; [Code.cs:7]
+            using var workspace = CreateWorkspace(code, testHost);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (3, "string key") // |>public int this[[|string key|]] => 0; [Code.cs:4]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (10, "localTest"), // return [|localTest|]["test"]; [Code.cs:10] (This is included because it is part of a return statement, and follows same logic as other references for if it is tracked)
+                    (10, "\"test\""),  // return localTest[[|"test"|]]; [Code.cs:10]
+                    (8, "\"test\""),   // System.Console.WriteLine(this[[|"test"|]]); [Code.cs:8]
+                    (7, "\"test\""),   // var assignedVariable = this[[|"test"|]]; [Code.cs:7]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items[0]);
+            await ValidateChildrenEmptyAsync(workspace, items[1]);
+            await ValidateChildrenEmptyAsync(workspace, items[2]);
+            await ValidateChildrenEmptyAsync(workspace, items[3]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestPropertyValue(TestHost testHost)
+        {
+            var code =
+@"
+class Test
+{
+    private int _i;
+    public int I 
+    {
+        get => _i;
+        set 
+        {
+            _i = $$value;
+        }
+    }
+
+    public int M(Test localTest)
+    {
+        localTest.I = 5;
+    }
+}";
+            //  _i = [|value|]; [Code.cs:9]
+            //    |> localTest.I = [|5|]; [Code.cs:15]
+            using var workspace = CreateWorkspace(code, testHost);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (9, "value") // _i = [|value|]; [Code.cs:9]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (15, "5") // localTest.I = [|5|]; [Code.cs:15]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
+        }
     }
 }

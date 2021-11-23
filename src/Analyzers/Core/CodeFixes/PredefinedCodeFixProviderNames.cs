@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
         public const string AddExplicitCast = nameof(AddExplicitCast);
+        public const string AddInheritdoc = nameof(AddInheritdoc);
         public const string AddImport = nameof(AddImport);
         public const string AddMissingReference = nameof(AddMissingReference);
         public const string AddNew = nameof(AddNew);

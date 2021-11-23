@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public override string DisplayName => ServicesVSResources.Severity;
         public override bool IsFilterable => false;
         public override bool IsSortable => false;
-        public override double MinWidth => 120;
+        public override double MinWidth => 150;
 
         public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
         {
@@ -57,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
                 return false;
             }
 
-            var control = new SeverityControl(severity);
+            var viewModel = new SeverityViewModel(severity);
+            var control = new SeverityControl(viewModel);
             content = control;
             return true;
         }

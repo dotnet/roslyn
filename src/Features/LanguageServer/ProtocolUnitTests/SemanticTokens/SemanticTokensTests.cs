@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 @"{|caret:|}// Comment
 static class C { }";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -58,8 +58,8 @@ static class C { }";
 static class C { }
 ";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var caretLocation = locations["caret"].First();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var caretLocation = testLspServer.GetLocations("caret").First();
 
             // 1. Range handler
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
@@ -111,7 +111,7 @@ static class C { }
 static class C { }
 ";
 
-            UpdateDocumentText(newMarkup, testLspServer.TestWorkspace);
+            await UpdateDocumentTextAsync(newMarkup, testLspServer.TestWorkspace);
             var editResults = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "2");
 
             var expectedEdit = new LSP.SemanticTokensEdit { Start = 0, DeleteCount = 1, Data = new int[] { 1 } };
@@ -157,8 +157,8 @@ two
 three */ }
 ";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -196,8 +196,8 @@ three"";
 }
 ";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var results = await RunGetSemanticTokensAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             var expectedResults = new LSP.SemanticTokens
             {

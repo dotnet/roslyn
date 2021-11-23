@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
         private readonly ICodeDefinitionWindowService _codeDefinitionWindowService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         private CancellationTokenSource? _currentUpdateCancellationToken;
 
@@ -53,11 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ICodeDefinitionWindowService codeDefinitionWindowService,
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _codeDefinitionWindowService = codeDefinitionWindowService;
             _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
         }
 
@@ -123,6 +127,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             try
             {
                 await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+
+                // If it's not open, don't do anything, since if we are going to show locations in metadata that might
+                // be expensive. This doesn't cause a functional issue, since opening the window clears whatever was previously there
+                // so the user won't notice we weren't doing anything when it was open.
+                if (!await _codeDefinitionWindowService.IsWindowOpenAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
 
                 var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
@@ -197,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             }
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                var allowDecompilation = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }

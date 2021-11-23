@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,9 +33,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class SolutionState
     {
-        // branch id for this solution
-        private readonly BranchId _branchId;
-
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
 
@@ -73,7 +71,6 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
-            BranchId branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
@@ -88,7 +85,6 @@ namespace Microsoft.CodeAnalysis
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
-            _branchId = branchId;
             _workspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
@@ -115,13 +111,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            BranchId primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
-                primaryBranchId,
                 workspaceVersion: 0,
                 solutionServices,
                 solutionAttributes,
@@ -146,7 +140,7 @@ namespace Microsoft.CodeAnalysis
 
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: services);
+            return CreatePrimarySolution(workspaceVersion: workspaceVersion, services: services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -162,19 +156,6 @@ namespace Microsoft.CodeAnalysis
         public SolutionServices Services => _solutionServices;
 
         public SerializableOptionSet Options { get; }
-
-        /// <summary>
-        /// branch id of this solution
-        ///
-        /// currently, it only supports one level of branching. there is a primary branch of a workspace and all other
-        /// branches that are branched from the primary branch.
-        ///
-        /// one still can create multiple forked solutions from an already branched solution, but versions among those
-        /// can't be reliably used and compared.
-        ///
-        /// version only has a meaning between primary solution and branched one or between solutions from same branch.
-        /// </summary>
-        public BranchId BranchId => _branchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -235,8 +216,6 @@ namespace Microsoft.CodeAnalysis
             ProjectDependencyGraph? dependencyGraph = null,
             Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
         {
-            var branchId = GetBranchId();
-
             if (idToProjectStateMap is not null)
             {
                 Contract.ThrowIfNull(remoteSupportedProjectLanguages);
@@ -256,8 +235,7 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
-            if (branchId == _branchId &&
-                solutionAttributes == _solutionAttributes &&
+            if (solutionAttributes == _solutionAttributes &&
                 projectIds == ProjectIds &&
                 options == Options &&
                 analyzerReferencesEqual &&
@@ -271,7 +249,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
-                branchId,
                 _workspaceVersion,
                 _solutionServices,
                 solutionAttributes,
@@ -288,19 +265,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState CreatePrimarySolution(
-            BranchId branchId,
             int workspaceVersion,
             SolutionServices services)
         {
-            if (branchId == _branchId &&
-                workspaceVersion == _workspaceVersion &&
+            if (workspaceVersion == _workspaceVersion &&
                 services == _solutionServices)
             {
                 return this;
             }
 
             return new SolutionState(
-                branchId,
                 workspaceVersion,
                 services,
                 _solutionAttributes,
@@ -314,15 +288,6 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers,
                 frozenSourceGeneratedDocument: null);
-        }
-
-        private BranchId GetBranchId()
-        {
-            // currently we only support one level branching.
-            // my reasonings are
-            // 1. it seems there is no-one who needs sub branches.
-            // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
@@ -434,6 +399,9 @@ namespace Microsoft.CodeAnalysis
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
             => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
+
+        public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+            => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
 
         public ProjectState? GetProjectState(ProjectId projectId)
         {
@@ -1901,16 +1869,51 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
 
         /// <summary>
-        /// Get a metadata reference for the project's compilation
+        /// Get a metadata reference for the project's compilation.  Returns <see langword="null"/> upon failure, which 
+        /// can happen when trying to build a skeleton reference that fails to build.
         /// </summary>
-        public Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
+        public Task<MetadataReference?> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
         {
             try
             {
                 // Get the compilation state for this project.  If it's not already created, then this
                 // will create it.  Then force that state to completion and get a metadata reference to it.
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-                return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
+                return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Get a metadata reference to this compilation info's compilation with respect to
+        /// another project. For cross language references produce a skeletal assembly. If the
+        /// compilation is not available, it is built. If a skeletal assembly reference is
+        /// needed and does not exist, it is also built.
+        /// </summary>
+        private async Task<MetadataReference?> GetMetadataReferenceAsync(
+            ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // If same language then we can wrap the other project's compilation into a compilation reference
+                if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
+                {
+                    // otherwise, base it off the compilation by building it first.
+                    var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
+                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                }
+
+                // otherwise get a metadata only image reference that is built by emitting the metadata from the
+                // referenced project's compilation and re-importing it.
+                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
+                {
+                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                    return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
+                        tracker, this, properties, cancellationToken).ConfigureAwait(false);
+                }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

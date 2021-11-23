@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddDebuggerDisplay = "CodeActions.AddDebuggerDisplay";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddExplicitCast = "CodeActions.AddExplicitCast";
+            public const string CodeActionsAddInheritdoc = "CodeActions.AddInheritdoc";
             public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";

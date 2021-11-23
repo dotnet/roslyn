@@ -255,5 +255,19 @@ namespace Microsoft.CodeAnalysis
         RelationalPattern = 0x70,
         /// <summary>Indicates an <see cref="IWithOperation"/>.</summary>
         With = 0x71,
+        /// <summary>Indicates an <see cref="IInterpolatedStringHandlerCreationOperation"/>.</summary>
+        InterpolatedStringHandlerCreation = 0x72,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAdditionOperation"/>.</summary>
+        InterpolatedStringAddition = 0x73,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is of a literal component</summary>
+        InterpolatedStringAppendLiteral = 0x74,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is of an interpolation component</summary>
+        InterpolatedStringAppendFormatted = 0x75,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is invalid</summary>
+        InterpolatedStringAppendInvalid = 0x76,
+        /// <summary>Indicates an <see cref="IInterpolatedStringHandlerArgumentPlaceholderOperation"/>.</summary>
+        InterpolatedStringHandlerArgumentPlaceholder = 0x77,
+        /// <summary>Indicates an <see cref="IFunctionPointerInvocationOperation"/>.</summary>
+        FunctionPointerInvocation = 0x78,
     }
 }

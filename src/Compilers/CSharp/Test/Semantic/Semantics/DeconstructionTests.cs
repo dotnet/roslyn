@@ -908,8 +908,8 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
       NaturalType: (System.Int32, System.String)
       Elements(2):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
+          IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -6375,6 +6375,74 @@ class C
                 // (6,22): error CS1525: Invalid expression term ';'
                 //         (int i, i) = ;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_01()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)").WithLocation(4, 1),
+                // (5,14): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(5, 14),
+                // (6,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_02()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(4, 1),
+                // (5,14): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 14),
+                // (6,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 1)
                 );
         }
     }

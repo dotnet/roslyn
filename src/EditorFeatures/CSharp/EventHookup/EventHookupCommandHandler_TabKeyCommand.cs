@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
                 return;

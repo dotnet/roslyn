@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
         {
             var optionServices = services.GetRequiredService<IOptionService>();
-            return optionServices.GetOption(RemoteHostOptions.OOPCoreClr) || optionServices.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag);
+            return optionServices.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag);
         }
 
         public UnitTestingRemoteServiceConnectionWrapper<TService> CreateConnection<TService>(object? callbackTarget) where TService : class

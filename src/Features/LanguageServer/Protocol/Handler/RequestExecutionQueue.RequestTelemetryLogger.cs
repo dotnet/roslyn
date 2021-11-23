@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     m["server"] = _serverTypeName;
                     foreach (var kvp in _findDocumentResults)
                     {
-                        var info = kvp.Key.ToString();
+                        var info = kvp.Key.ToString()!;
                         m[info] = kvp.Value.GetCount();
                     }
                 }));
