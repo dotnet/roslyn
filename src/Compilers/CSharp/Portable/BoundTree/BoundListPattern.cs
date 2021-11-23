@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(LengthAccess is BoundPropertyAccess or BoundBadExpression);
+            Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
         }
     }
