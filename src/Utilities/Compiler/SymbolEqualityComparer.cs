@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis
     {
         private SymbolEqualityComparer()
         {
-
         }
 
         public bool Equals(ISymbol? x, ISymbol? y)
