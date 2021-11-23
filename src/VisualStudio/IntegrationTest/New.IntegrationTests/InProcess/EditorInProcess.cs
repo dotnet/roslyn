@@ -409,7 +409,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var view = await GetActiveTextViewAsync(cancellationToken);
             var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view, cancellationToken);
+            await LightBulbHelper.WaitForLightBulbSessionAsync(TestServices, broker, view, cancellationToken);
         }
 
         public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
@@ -589,7 +589,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 throw new InvalidOperationException($"No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={bufferType}");
             }
 
-            var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view, cancellationToken);
+            var actionSets = await LightBulbHelper.WaitForItemsAsync(TestServices, broker, view, cancellationToken);
             return await SelectActionsAsync(actionSets, cancellationToken);
         }
 
