@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -10,25 +11,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly struct Interpolation
         {
-            public readonly TextSpan OpenBraceSpan;
+            public readonly Range OpenBraceRange;
 
             /// <summary>
-            /// Span of the format colon in the interpolation.  Empty if there is no colon.
+            /// Range of the format colon in the interpolation.  Empty if there is no colon.
             /// </summary>
-            public readonly TextSpan ColonSpan;
+            public readonly Range ColonRange;
 
             /// <summary>
-            /// Span of the close brace.  Empty if there was no close brace (an error condition).
+            /// Range of the close brace.  Empty if there was no close brace (an error condition).
             /// </summary>
-            public readonly TextSpan CloseBraceSpan;
+            public readonly Range CloseBraceRange;
 
-            public bool HasColon => !ColonSpan.IsEmpty;
+            public bool HasColon => ColonRange.Start.Value != ColonRange.End.Value;
 
-            public Interpolation(TextSpan openBraceSpan, TextSpan colonSpan, TextSpan closeBraceSpan)
+            public Interpolation(Range openBraceRange, Range colonRange, Range closeBraceRange)
             {
-                OpenBraceSpan = openBraceSpan;
-                ColonSpan = colonSpan;
-                CloseBraceSpan = closeBraceSpan;
+                OpenBraceRange = openBraceRange;
+                ColonRange = colonRange;
+                CloseBraceRange = closeBraceRange;
             }
         }
     }

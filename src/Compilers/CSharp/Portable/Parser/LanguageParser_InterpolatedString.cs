@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -12,9 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
-        private static string Substring(string str, TextSpan span)
-            => str.Substring(span.Start, span.Length);
-
         private ExpressionSyntax ParseInterpolatedStringToken()
         {
             // We don't want to make the scanner stateful (between tokens) if we can possibly avoid it.
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // In the special case when there are no interpolations, we just construct a format string
                 // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
                 // so we still treat it as a composite format string.
-                var text = Substring(originalText, TextSpan.FromBounds(openQuoteIndex + 1, closeQuoteIndex));
+                var text = originalText[new Range(openQuoteIndex + 1, closeQuoteIndex)];
                 if (text.Length > 0)
                 {
                     var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -99,10 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var interpolation = interpolations[i];
 
                     // Add a token for text preceding the interpolation
-                    var text = Substring(originalText,
-                        TextSpan.FromBounds(
-                            i == 0 ? openQuoteIndex + 1 : interpolations[i - 1].CloseBraceSpan.End,
-                            interpolation.OpenBraceSpan.Start));
+                    var text = originalText[new Range(
+                        i == 0 ? openQuoteIndex + 1 : interpolations[i - 1].CloseBraceRange.End,
+                        interpolation.OpenBraceRange.Start)];
                     if (text.Length > 0)
                     {
                         var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // Add a token for text following the last interpolation
-                var lastText = Substring(originalText, TextSpan.FromBounds(interpolations[^1].CloseBraceSpan.End, closeQuoteIndex));
+                var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteIndex)];
                 if (lastText.Length > 0)
                 {
                     var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -138,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // Grab from before the { all the way to the start of the }.  The parsing of the close curly is specially
             // handled in ParseInterpolation below.
-            var parsedText = Substring(text, TextSpan.FromBounds(
-                interpolation.OpenBraceSpan.Start,
-                interpolation.HasColon ? interpolation.ColonSpan.Start : interpolation.CloseBraceSpan.Start));
+            var parsedText = text[new Range(
+                interpolation.OpenBraceRange.Start,
+                interpolation.HasColon ? interpolation.ColonRange.Start : interpolation.CloseBraceRange.Start)];
 
             // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
             using var tempLexer = new Lexer(SourceText.From(parsedText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
 #if DEBUG
-            Debug.Assert(Substring(text, TextSpan.FromBounds(interpolation.OpenBraceSpan.Start, interpolation.CloseBraceSpan.End)) == result.ToFullString()); // yield from text equals yield from node
+            Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
 #endif
             return result;
 
@@ -181,9 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var leading = this.CurrentToken.GetLeadingTrivia();
                 if (interpolation.HasColon)
                 {
-                    var colonText = Substring(text, interpolation.ColonSpan);
+                    var colonText = text[interpolation.ColonRange];
                     var colonToken = SyntaxFactory.Token(leading, SyntaxKind.ColonToken, colonText, colonText, trailing: null);
-                    var formatText = Substring(text, TextSpan.FromBounds(interpolation.ColonSpan.End, interpolation.CloseBraceSpan.Start));
+                    var formatText = text[new Range(interpolation.ColonRange.End, interpolation.CloseBraceRange.Start)];
                     var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
                     var format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
                     var closeBraceToken = getInterpolationCloseBraceToken(leading: null);
@@ -198,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxToken getInterpolationCloseBraceToken(GreenNode leading)
             {
-                if (interpolation.CloseBraceSpan.IsEmpty)
+                var tokenText = text[interpolation.CloseBraceRange];
+                if (tokenText == "")
                     return SyntaxFactory.MissingToken(leading, SyntaxKind.CloseBraceToken, trailing: null);
 
-                var tokenText = Substring(text, interpolation.CloseBraceSpan);
                 return SyntaxFactory.Token(leading, SyntaxKind.CloseBraceToken, tokenText, tokenText, trailing: null);
             }
         }

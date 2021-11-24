@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
+using System.Net;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 int openBracePosition = _lexer.TextWindow.Position;
                                 _lexer.TextWindow.AdvanceChar();
-                                ScanInterpolatedStringLiteralHoleBalancedText('}', isHole: true, out var colonSpan);
+                                ScanInterpolatedStringLiteralHoleBalancedText('}', isHole: true, out var colonRange);
                                 int closeBracePosition = _lexer.TextWindow.Position;
                                 if (_lexer.TextWindow.PeekChar() == '}')
                                 {
@@ -415,9 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 }
 
                                 interpolations?.Add(new Interpolation(
-                                    new TextSpan(openBracePosition, length: 1),
-                                    colonSpan,
-                                    TextSpan.FromBounds(closeBracePosition, _lexer.TextWindow.Position)));
+                                    new Range(openBracePosition, openBracePosition + 1),
+                                    colonRange,
+                                    new Range(closeBracePosition, _lexer.TextWindow.Position)));
                             }
                             continue;
                         case '\\':
@@ -511,9 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// <summary>
             /// Scan past the hole inside an interpolated string literal, leaving the current character on the '}' (if any)
             /// </summary>
-            private void ScanInterpolatedStringLiteralHoleBalancedText(char endingChar, bool isHole, out TextSpan colonSpan)
+            private void ScanInterpolatedStringLiteralHoleBalancedText(char endingChar, bool isHole, out Range colonRange)
             {
-                colonSpan = default;
+                colonRange = default;
                 while (true)
                 {
                     char ch = _lexer.TextWindow.PeekChar();
@@ -548,8 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // the first colon not nested within matching delimiters is the start of the format string
                             if (isHole)
                             {
-                                Debug.Assert(colonSpan == default);
-                                colonSpan = new TextSpan(_lexer.TextWindow.Position, length: 1);
+                                Debug.Assert(colonRange.Equals(default(Range)));
+                                colonRange = new Range(_lexer.TextWindow.Position, _lexer.TextWindow.Position + 1);
                                 ScanFormatSpecifier();
                                 return;
                             }
