@@ -111,9 +111,9 @@ class My
             End Using
         End Function
 
-        <WpfFact, CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SelectFirstMatchingDefaultOverCaseSensitiveEquallyGoodMatch1() As Task
+        Public Async Function TestCaseInsensitiveMatchingDefault(isAggressive As Boolean) As Task
             Using state = CreateTestState(
                               <Document>
 using NS1;
@@ -125,19 +125,27 @@ class C
     }
 }
                               </Document>)
+                If isAggressive Then
+                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
+                End If
 
                 state.SendInvokeCompletionList()
 
-                Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                Await state.AssertCompletionItemsContain("my", displayTextSuffix:="")
-                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
-
+                If isAggressive Then
+                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                    Await state.AssertCompletionItemsContain("my", displayTextSuffix:="")
+                    Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
+                Else
+                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                    Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
+                    Await state.AssertSelectedCompletionItem("my", isHardSelected:=True)
+                End If
             End Using
         End Function
 
-        <WpfFact, CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SelectFirstMatchingDefaultOverCaseSensitiveEquallyGoodMatch2() As Task
+        Public Async Function TestCaseInsensitiveMatchingDefault2(isAggressive As Boolean) As Task
             Using state = CreateTestState(
                               <Document>
 using NS1;
@@ -149,13 +157,21 @@ class C
     }
 }
                               </Document>)
+                If isAggressive Then
+                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
+                End If
 
                 state.SendInvokeCompletionList()
 
-                Await state.AssertCompletionItemsContain("myA", displayTextSuffix:="")
-                Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
-                Await state.AssertSelectedCompletionItem("MyA", isHardSelected:=True)
-
+                If isAggressive Then
+                    Await state.AssertCompletionItemsContain("myA", displayTextSuffix:="")
+                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                    Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
+                Else
+                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                    Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
+                    Await state.AssertSelectedCompletionItem("myA", isHardSelected:=True)
+                End If
             End Using
         End Function
 

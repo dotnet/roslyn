@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -686,12 +686,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     || c == '_';
             }
 
+            // The aggressive mode exist to make it easier for IntelliCode to experiment with default matching algorithm, so this is
+            // not the default matching behavior we'd use.
             private ItemSelection GetAggressiveDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection)
             {
                 foreach (var defaultText in Data.Defaults)
                 {
                     for (var i = 0; i < items.Count; ++i)
                     {
+                        // Currently in aggressive mode, the first item matches a default will be selected
+                        // as long as the filter text is its prefix (case-insensitive).
+                        // e.g. a default "Console" would be a match for filter text "c" and therefore to be selected,
+                        // even if the CompletionService returns item "char" which is a case-sensitive prefix match.
                         var itemWithMatch = items[i];
                         if (itemWithMatch.RoslynCompletionItem.DisplayText != defaultText)
                             continue;
@@ -729,12 +735,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     inferiorItemIndex = intialSelection.SelectedItemIndex;
                     while (++inferiorItemIndex < items.Count)
                     {
-                        // Ignore the case when trying to match the filter text with defaults.
-                        // e.g. a default "Console" would be a match for filter text "c" and therefore to be selected,
-                        // even if the CompletionService returns item "char" which is a case-sensitive prefix match.
                         var itemMatch = items[inferiorItemIndex].PatternMatch;
-                        if (!itemMatch.HasValue || itemMatch.Value.Kind != selectedItemMatch.Value.Kind)
+                        if (!itemMatch.HasValue
+                            || itemMatch.Value.Kind != selectedItemMatch.Value.Kind
+                            || itemMatch.Value.IsCaseSensitive != selectedItemMatch.Value.IsCaseSensitive)
+                        {
                             break;
+                        }
                     }
                 }
 
