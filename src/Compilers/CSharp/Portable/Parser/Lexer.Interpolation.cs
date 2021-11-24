@@ -11,19 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             public readonly int OpenBracePosition;
             public readonly int ColonPosition;
             public readonly int CloseBracePosition;
-            public readonly bool CloseBraceMissing;
 
             public bool ColonMissing => ColonPosition <= 0;
             public bool HasColon => ColonPosition > 0;
-            public int LastPosition => CloseBraceMissing ? CloseBracePosition - 1 : CloseBracePosition;
-            public int FormatEndPosition => CloseBracePosition - 1;
 
-            public Interpolation(int openBracePosition, int colonPosition, int closeBracePosition, bool closeBraceMissing)
+            public Interpolation(int openBracePosition, int colonPosition, int closeBracePosition)
             {
                 this.OpenBracePosition = openBracePosition;
                 this.ColonPosition = colonPosition;
                 this.CloseBracePosition = closeBracePosition;
-                this.CloseBraceMissing = closeBraceMissing;
             }
         }
     }

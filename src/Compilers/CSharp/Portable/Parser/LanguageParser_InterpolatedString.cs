@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     // Add an interpolation
-                    var interp = ParseInterpolation(originalText, interpolation, isVerbatim);
-                    builder.Add(interp);
+                    builder.Add(ParseInterpolation(originalText, interpolation, isVerbatim));
                 }
 
                 // Add a token for text following the last interpolation
@@ -153,7 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ExpressionSyntax expression;
             InterpolationAlignmentClauseSyntax alignment = null;
             InterpolationFormatClauseSyntax format = null;
-            var closeBraceToken = interpolation.CloseBraceMissing
+
+            var closeBraceMissing = interpolation.CloseBracePosition >= text.Length || text[interpolation.CloseBracePosition] != '}';
+
+            var closeBraceToken = closeBraceMissing
                 ? SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)
                 : SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
 
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (interpolation.HasColon)
                 {
                     var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
-                    var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
+                    var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.CloseBracePosition - 1);
                     var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
                     format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
                 }
@@ -185,7 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var result = SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
-            Debug.Assert(Substring(text, interpolation.OpenBracePosition, interpolation.LastPosition) == result.ToFullString()); // yield from text equals yield from node
+#if DEBUG
+            var lastPosition = closeBraceMissing ? interpolation.CloseBracePosition - 1 : interpolation.CloseBracePosition;
+            Debug.Assert(Substring(text, interpolation.OpenBracePosition, lastPosition) == result.ToFullString()); // yield from text equals yield from node
+#endif
             return result;
         }
 

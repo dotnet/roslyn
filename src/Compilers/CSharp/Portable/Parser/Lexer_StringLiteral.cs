@@ -405,18 +405,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 int colonPosition = 0;
                                 ScanInterpolatedStringLiteralHoleBalancedText('}', isHole: true, ref colonPosition);
                                 int closeBracePosition = _lexer.TextWindow.Position;
-                                bool closeBraceMissing = false;
                                 if (_lexer.TextWindow.PeekChar() == '}')
                                 {
                                     _lexer.TextWindow.AdvanceChar();
                                 }
                                 else
                                 {
-                                    closeBraceMissing = true;
                                     TrySetUnrecoverableError(_lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole));
                                 }
 
-                                interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition, closeBraceMissing));
+                                interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition));
                             }
                             continue;
                         case '\\':
