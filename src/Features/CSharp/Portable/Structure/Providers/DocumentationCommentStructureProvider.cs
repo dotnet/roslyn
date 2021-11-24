@@ -20,6 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
+            // In metadata as source we want to treat documentation comments slightly differently, and collapse them
+            // to just "..." in front of the decalaration they're attached to. That happens in CSharpStructureHelper.CollectCommentBlockSpans
+            // so we don't need to do anything here
+            if (options.IsMetadataAsSource)
+            {
+                return;
+            }
+
             var startPos = documentationComment.FullSpan.Start;
 
             // The trailing newline is included in XmlDocCommentSyntax, so we need to strip it.
