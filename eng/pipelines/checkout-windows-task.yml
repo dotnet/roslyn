@@ -6,6 +6,6 @@ steps:
       @echo on
       git init
       git remote add origin "$(Build.Repository.Uri)"
-      git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
-      git checkout "$(Build.SourceVersion)"
+      git fetch --no-auto-gc --no-recurse-submodules --no-show-forced-updates --no-tags --depth=1 origin "$(Build.SourceVersion)"
+      git -c advice.detachedHead=false checkout --no-progress "$(Build.SourceVersion)"
     displayName: Shallow Checkout
