@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, out var error, closeQuoteMissing: out _);
+            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, out var error, closeQuoteRange: out _);
             this.AddError(error);
         }
 
@@ -222,10 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isVerbatim,
             ref TokenInfo info,
             out SyntaxDiagnosticInfo? error,
-            out bool closeQuoteMissing)
+            out Range closeQuoteRange)
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
-            subScanner.ScanInterpolatedStringLiteralTop(interpolations, out closeQuoteMissing);
+            subScanner.ScanInterpolatedStringLiteralTop(interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = TextWindow.GetText(intern: false);
@@ -304,11 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // is a recoverable error.
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, out bool closeQuoteMissing)
+            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, out Range closeQuoteRange)
             {
                 ScanInterpolatedStringLiteralStart();
                 ScanInterpolatedStringLiteralContents(interpolations);
-                ScanInterpolatedStringLiteralEnd(out closeQuoteMissing);
+                ScanInterpolatedStringLiteralEnd(out closeQuoteRange);
             }
 
             private readonly void ScanInterpolatedStringLiteralStart()
@@ -335,24 +335,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.TextWindow.AdvanceChar(); // "
             }
 
-            private void ScanInterpolatedStringLiteralEnd(out bool closeQuoteMissing)
+            private void ScanInterpolatedStringLiteralEnd(out Range closeQuoteRange)
             {
                 // Handles reading the end of the interpolated string literal (after where the content ends)
 
+                var closeQuotePosition = _lexer.TextWindow.Position;
                 if (_lexer.TextWindow.PeekChar() != '"')
                 {
                     Debug.Assert(IsAtEnd());
                     int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
                     TrySetUnrecoverableError(_lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst));
-
-                    closeQuoteMissing = true;
                 }
                 else
                 {
                     // found the closing quote
                     _lexer.TextWindow.AdvanceChar(); // "
-                    closeQuoteMissing = false;
                 }
+
+                closeQuoteRange = new Range(closeQuotePosition, _lexer.TextWindow.Position);
             }
 
             private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation>? interpolations)

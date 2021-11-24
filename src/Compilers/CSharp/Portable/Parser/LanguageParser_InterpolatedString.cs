@@ -46,40 +46,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
             SyntaxDiagnosticInfo error;
-            bool closeQuoteMissing;
+            Range closeQuoteRange;
             using (var tempLexer = new Lexer(Text.SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false))
             {
                 // compute the positions of the interpolations in the original string literal, and also compute/preserve
                 // lexical errors
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteMissing);
+                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteRange);
             }
 
             // Make a token for the open quote $" or $@" or @$"
             var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
             Debug.Assert(originalText[openQuoteRange.End.Value - 1] == '"');
 
-            var openQuoteKind = isVerbatim
-                ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
-                : SyntaxKind.InterpolatedStringStartToken; // $
-
             var openQuoteText = originalText[openQuoteRange];
-            var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
+            var openQuote = SyntaxFactory.Token(
+                originalToken.GetLeadingTrivia(),
+                isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
+                openQuoteText,
+                openQuoteText,
+                trailing: null);
 
             // Make a token for the close quote " (even if it was missing)
-            var closeQuoteIndex = closeQuoteMissing ? originalText.Length : originalText.Length - 1;
-            Debug.Assert(closeQuoteMissing || originalText[closeQuoteIndex] == '"');
-            var closeQuote = closeQuoteMissing
+            var closeQuoteText = originalText[closeQuoteRange];
+            var closeQuote = closeQuoteText == ""
                 ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
-                : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, originalToken.GetTrailingTrivia());
-            var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
+                : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
 
+            var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
             if (interpolations.Count == 0)
             {
                 // In the special case when there are no interpolations, we just construct a format string
                 // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
                 // so we still treat it as a composite format string.
-                var text = originalText[new Range(openQuoteRange.End, closeQuoteIndex)];
+                var text = originalText[new Range(openQuoteRange.End, closeQuoteRange.Start)];
                 if (text.Length > 0)
                 {
                     var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         interpolation.OpenBraceRange.Start)];
                     if (text.Length > 0)
                     {
-                        var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
-                        builder.Add(SyntaxFactory.InterpolatedStringText(token));
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken)));
                     }
 
                     // Add an interpolation
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // Add a token for text following the last interpolation
-                var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteIndex)];
+                var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
                 if (lastText.Length > 0)
                 {
                     var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
