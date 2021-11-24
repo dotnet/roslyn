@@ -40,12 +40,10 @@ static class C { }
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },
-                ResultId = "1"
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
-            Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
 
         [Fact]
@@ -71,12 +69,10 @@ static class C { }
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },
-                ResultId = "1"
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
-            Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
 
         [Fact]
@@ -104,12 +100,10 @@ three */ }
                        1,     0,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'three */'
                        0,     9,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },
-                ResultId = "1"
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
-            Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
 
         [Fact]
@@ -155,7 +149,6 @@ three"";
                        1,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
                        1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '}'
                 },
-                ResultId = "1"
             };
 
             await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
