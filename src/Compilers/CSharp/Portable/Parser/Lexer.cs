@@ -927,6 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ScanAtSignToken(ref TokenInfo info)
         {
+            Debug.Assert(TextWindow.PeekChar() == '@');
+
             if (TextWindow.PeekChar(1) == '"')
             {
                 var errorCode = this.ScanVerbatimStringLiteral(ref info);
