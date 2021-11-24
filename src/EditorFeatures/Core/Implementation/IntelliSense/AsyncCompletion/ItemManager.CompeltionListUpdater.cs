@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal partial class ItemManager
     {
-        private sealed class CompletionListUpdater : IDisposable
+        private sealed class CompletionListUpdater
         {
             private IAsyncCompletionSession Session { get; }
             private AsyncCompletionSessionDataSnapshot Data { get; }
@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private CompletionHelper CompletionHelper { get; }
             private bool HighlightMatchingPortions { get; }
 
-            private List<MatchResult<VSCompletionItem>> ItemsToBeIncluded { get; }
-
             private CompletionTriggerReason TriggerReason => Data.Trigger.Reason;
             private CompletionFilterReason FilterReason => Helpers.GetFilterReason(Data.Trigger);
 
@@ -56,14 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // For telemetry
             private readonly object _targetTypeCompletionFilterChosenMarker = new();
-
-            // We might need to handle large amount of items with import completion enabled,
-            // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
-            // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
-            // called concurrently, which essentially makes the pooled list a singleton,
-            // but we still use ObjectPool for concurrency handling just to be robust.
-            private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool
-                    = new(factory: () => new(), size: 1);
 
             // PERF: Create a singleton to avoid lambda allocation on hot path
             private static readonly Func<TextSpan, RoslynCompletionItem, Span> s_highlightSpanGetter
@@ -112,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 HighlightMatchingPortions = FilterText.Length > 0
                     && GlobalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, Document?.Project.Language);
 
-                ItemsToBeIncluded = s_listOfMatchResultPool.Allocate();
             }
 
             public FilteredCompletionModel? UpdateCompletionList()
@@ -120,24 +109,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (ShouldDismissCompletionListImmediately())
                     return null;
 
-                ComputeItemsToBeIncluded();
+                using var _ = ComputeItemsToBeIncluded(out var itemsToBeIncluded);
 
-                if (ItemsToBeIncluded.Count == 0)
+                if (itemsToBeIncluded.Count == 0)
                     return HandleAllItemsFilteredOut();
 
                 var initialSelection = InitialRoslynTriggerKind == CompletionTriggerKind.Deletion
-                    ? HandleDeletionTrigger()
-                    : HandleNormalFiltering();
+                    ? HandleDeletionTrigger(itemsToBeIncluded)
+                    : HandleNormalFiltering(itemsToBeIncluded);
 
                 if (!initialSelection.HasValue)
                     return null;
 
-                var finalSelection = UpdateSelectionWithSuggestedDefaults(initialSelection.Value);
+                var finalSelection = UpdateSelectionWithSuggestedDefaults(itemsToBeIncluded, initialSelection.Value);
 
                 return new FilteredCompletionModel(
-                    items: GetHighlightedList(),
+                    items: GetHighlightedList(itemsToBeIncluded),
                     finalSelection.SelectedItemIndex,
-                    filters: GetUpdatedFilters(),
+                    filters: GetUpdatedFilters(itemsToBeIncluded),
                     finalSelection.SelectionHint,
                     centerSelection: true,
                     finalSelection.UniqueItem);
@@ -182,8 +171,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            private void ComputeItemsToBeIncluded()
+            private IDisposable ComputeItemsToBeIncluded(out IReadOnlyList<MatchResult<VSCompletionItem>> itemsToBeIncluded)
             {
+                var disposer = PooledListForMatchResult.CreateInstance(out var list);
+
                 // We need to filter if 
                 // 1. a non-empty strict subset of filters are selected
                 // 2. a non-empty set of expanders are unselected
@@ -232,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         InitialRoslynTriggerKind, FilterReason, RecentItemsManager.RecentItems, HighlightMatchingPortions, currentIndex,
                         out var matchResult))
                     {
-                        ItemsToBeIncluded.Add(matchResult);
+                        list.Add(matchResult);
                         currentIndex++;
                     }
                 }
@@ -241,7 +232,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Note that we want to preserve the original alphabetical order for items with same pattern match score,
                 // but `List<T>.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
                 // to `MatchResult` to achieve this.
-                ItemsToBeIncluded.Sort(MatchResult<VSCompletionItem>.SortingComparer);
+                list.Sort(MatchResult<VSCompletionItem>.SortingComparer);
+
+                itemsToBeIncluded = list;
+                return disposer;
 
                 static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
                     => !item.Filters.Any(filter => activeNonExpanderFilters.Contains(filter));
@@ -270,14 +264,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            private ItemSelection UpdateSelectionWithSuggestedDefaults(ItemSelection itemSelection)
+            private ItemSelection UpdateSelectionWithSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection)
             {
                 // Editor doesn't provide us a list of "default" items.
                 if (Data.Defaults.IsDefaultOrEmpty)
                     return itemSelection;
 
                 // "Preselect" is only used when we have high confidence with the selection, so don't override it.
-                var selectedItem = ItemsToBeIncluded[itemSelection.SelectedItemIndex].RoslynCompletionItem;
+                var selectedItem = items[itemSelection.SelectedItemIndex].RoslynCompletionItem;
                 if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
                     return itemSelection;
 
@@ -285,20 +279,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var useAggressiveDefaultsMatching = Session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
                 var finalSelection = useAggressiveDefaultsMatching
-                    ? GetAggressiveDefaultsMatch(itemSelection)
-                    : GetDefaultsMatch(itemSelection);
+                    ? GetAggressiveDefaultsMatch(items, itemSelection)
+                    : GetDefaultsMatch(items, itemSelection);
 
                 AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
                 return finalSelection;
             }
 
-            private ItemSelection? HandleNormalFiltering()
+            private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
                 // Not deletion.  Defer to the language to decide which item it thinks best
                 // matches the text typed so far.
 
                 // Ask the language to determine which of the *matched* items it wants to select.
-                var matchingItems = ItemsToBeIncluded.Where(r => r.MatchedFilterText)
+                var matchingItems = items.Where(r => r.MatchedFilterText)
                                                .SelectAsArray(t => (t.RoslynCompletionItem, t.PatternMatch));
 
                 var chosenItems = FilterMethod(matchingItems, FilterText);
@@ -311,13 +305,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // We do not have matches: pick the one with longest common prefix or the first item from the list.
                     selectedItemIndex = 0;
-                    bestOrFirstMatchResult = ItemsToBeIncluded[0];
+                    bestOrFirstMatchResult = items[0];
 
                     var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(FilterText);
 
-                    for (var i = 1; i < ItemsToBeIncluded.Count; ++i)
+                    for (var i = 1; i < items.Count; ++i)
                     {
-                        var item = ItemsToBeIncluded[i];
+                        var item = items[i];
                         var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(FilterText);
 
                         if (commonPrefixLength > longestCommonPrefixLength)
@@ -342,13 +336,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // typed.  i.e.  if we have "Console.$$" we don't want to commit something
                     // like "WriteLine" since no filter text has actually been provided.  However,
                     // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
-                    selectedItemIndex = ItemsToBeIncluded.IndexOf(i => Equals(i.RoslynCompletionItem, bestItem));
-                    bestOrFirstMatchResult = ItemsToBeIncluded[selectedItemIndex];
+                    for (selectedItemIndex = 0; selectedItemIndex < items.Count; ++selectedItemIndex)
+                    {
+                        if (Equals(items[selectedItemIndex].RoslynCompletionItem, bestItem))
+                            break;
+                    }
+
+                    Debug.Assert(selectedItemIndex < items.Count);
+
+                    bestOrFirstMatchResult = items[selectedItemIndex];
                     var deduplicatedListCount = matchingItems.Count(r => !r.RoslynCompletionItem.IsPreferredItem());
                     if (deduplicatedListCount == 1 &&
                         FilterText.Length > 0)
                     {
-                        uniqueItem = ItemsToBeIncluded[selectedItemIndex].EditorCompletionItem;
+                        uniqueItem = items[selectedItemIndex].EditorCompletionItem;
                     }
                 }
 
@@ -376,9 +377,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new(selectedItemIndex, updateSelectionHint, uniqueItem);
             }
 
-            private ItemSelection? HandleDeletionTrigger()
+            private ItemSelection? HandleDeletionTrigger(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                var matchingItems = ItemsToBeIncluded.Where(r => r.MatchedFilterText);
+                var matchingItems = items.Where(r => r.MatchedFilterText);
                 if (TriggerReason == CompletionTriggerReason.Insertion &&
                     !matchingItems.Any())
                 {
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
                     hardSelect = !HasSuggestedItemOptions && bestMatchResult.Value.EditorCompletionItem.FilterText.StartsWith(FilterText, StringComparison.CurrentCultureIgnoreCase);
-                    index = ItemsToBeIncluded.IndexOf(bestMatchResult.Value);
+                    index = items.IndexOf(bestMatchResult.Value);
                 }
                 else
                 {
@@ -444,9 +445,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
             }
 
-            private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList()
+            private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                return ItemsToBeIncluded.SelectAsArray(matchResult =>
+                return items.SelectAsArray(matchResult =>
                 {
                     var highlightedSpans = GetHighlightedSpans(matchResult, CompletionHelper, FilterText, HighlightMatchingPortions);
                     return new CompletionItemWithHighlight(matchResult.EditorCompletionItem, highlightedSpans);
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     Data.SelectedFilters, selection, centerSelection: true, uniqueItem: null);
             }
 
-            private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters()
+            private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
                 var showCompletionItemFilters = GlobalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, Document?.Project.Language);
                 if (!showCompletionItemFilters)
@@ -520,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // See which filters might be enabled based on the typed code
                 using var _ = PooledHashSet<CompletionFilter>.GetInstance(out var textFilteredFilters);
-                textFilteredFilters.AddRange(ItemsToBeIncluded.SelectMany(n => n.EditorCompletionItem.Filters));
+                textFilteredFilters.AddRange(items.SelectMany(n => n.EditorCompletionItem.Filters));
 
                 // When no items are available for a given filter, it becomes unavailable.
                 // Expanders always appear available as long as it's presented.
@@ -685,13 +686,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     || c == '_';
             }
 
-            private ItemSelection GetAggressiveDefaultsMatch(ItemSelection intialSelection)
+            private ItemSelection GetAggressiveDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection)
             {
                 foreach (var defaultText in Data.Defaults)
                 {
-                    for (var i = 0; (i < ItemsToBeIncluded.Count); ++i)
+                    for (var i = 0; i < items.Count; ++i)
                     {
-                        var itemWithMatch = ItemsToBeIncluded[i];
+                        var itemWithMatch = items[i];
                         if (itemWithMatch.RoslynCompletionItem.FilterText != defaultText)
                             continue;
 
@@ -707,31 +708,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return intialSelection;
             }
 
-            private ItemSelection GetDefaultsMatch(ItemSelection intialSelection)
+            private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection)
             {
                 int inferiorItemIndex;
                 if (FilterText.Length == 0)
                 {
                     // Without filterText, all items are eually good match, so we have to consider all of them.
-                    inferiorItemIndex = ItemsToBeIncluded.Count;
+                    inferiorItemIndex = items.Count;
                 }
                 else
                 {
                     // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
                     // -- as far as the pattern matcher is concerned -- equivalent items. Find the last items in the range and use that
                     // to limit the items searched for from the defaults list.          
-                    var selectedItemMatch = ItemsToBeIncluded[intialSelection.SelectedItemIndex].PatternMatch;
+                    var selectedItemMatch = items[intialSelection.SelectedItemIndex].PatternMatch;
 
                     if (!selectedItemMatch.HasValue)
                         return intialSelection;
 
                     inferiorItemIndex = intialSelection.SelectedItemIndex;
-                    while (++inferiorItemIndex < ItemsToBeIncluded.Count)
+                    while (++inferiorItemIndex < items.Count)
                     {
                         // Ignore the case when trying to match the filter text with defaults.
                         // e.g. a default "Console" would be a match for filter text "c" and therefore to be selected,
                         // even if the CompletionService returns item "char" which is a case-sensitive prefix match.
-                        var itemMatch = ItemsToBeIncluded[inferiorItemIndex].PatternMatch;
+                        var itemMatch = items[inferiorItemIndex].PatternMatch;
                         if (!itemMatch.HasValue || itemMatch.Value.Kind != selectedItemMatch.Value.Kind)
                             break;
                     }
@@ -741,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
-                        if (ItemsToBeIncluded[i].RoslynCompletionItem.FilterText == defaultText)
+                        if (items[i].RoslynCompletionItem.FilterText == defaultText)
                             return intialSelection with { SelectedItemIndex = i };
                     }
                 }
@@ -749,11 +750,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return intialSelection;
             }
 
-            public void Dispose()
+            private sealed class PooledListForMatchResult : IDisposable
             {
-                // Don't call ClearAndFree, which resets the capacity to a default value.
-                ItemsToBeIncluded.Clear();
-                s_listOfMatchResultPool.Free(ItemsToBeIncluded);
+                // We might need to handle large amount of items with import completion enabled,
+                // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
+                // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
+                // called concurrently, which essentially makes the pooled list a singleton,
+                // but we still use ObjectPool for concurrency handling just to be robust.
+                private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool
+                        = new(factory: () => new(), size: 1);
+
+                private List<MatchResult<VSCompletionItem>>? _list;
+
+                public static IDisposable CreateInstance(out List<MatchResult<VSCompletionItem>> list)
+                {
+                    list = s_listOfMatchResultPool.Allocate();
+                    return new PooledListForMatchResult(list);
+                }
+
+                private PooledListForMatchResult(List<MatchResult<VSCompletionItem>> list)
+                {
+                    _list = list;
+                }
+
+                public void Dispose()
+                {
+                    if (_list is not null)
+                    {
+                        // Don't call ClearAndFree, which resets the capacity to a default value.
+                        _list.Clear();
+                        s_listOfMatchResultPool.Free(_list);
+                        _list = null;
+                    }
+                }
             }
 
             private readonly record struct ItemSelection(int SelectedItemIndex, UpdateSelectionHint SelectionHint, VSCompletionItem? UniqueItem);

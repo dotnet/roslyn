@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            using var updater = new CompletionListUpdater(session, data, _recentItemsManager, _globalOptions, cancellationToken);
+            var updater = new CompletionListUpdater(session, data, _recentItemsManager, _globalOptions, cancellationToken);
             return Task.FromResult(updater.UpdateCompletionList());
         }
 
