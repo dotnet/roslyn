@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 ref rewrittenReceiver,
                 out ArrayBuilder<LocalSymbol>? temps);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
 
