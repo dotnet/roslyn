@@ -34,18 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // 
             // The substitution will end up being invisible to external APIs and clients such as the IDE, as
             // they have no way to ask for the stream of tokens before parsing.
-            //
 
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.InterpolatedStringToken);
             var originalToken = this.EatToken();
+
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
             var isVerbatim = (originalText[0] == '$' && originalText[1] == '@') ||
                              (originalText[0] == '@' && originalText[1] == '$');
-
-            Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
-
-            using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
 
             // Determine the range of the open quote.  Either $" or $@" or @$"
             var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
@@ -53,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the close quote can be found.
-            var info = default(Lexer.TokenInfo);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
-            tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out var error, out var closeQuoteRange);
+
+            rescanInterpolation(out var error, out var closeQuoteRange);
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
 
@@ -67,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
+
+            void rescanInterpolation(out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
+            {
+                using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
+                var info = default(Lexer.TokenInfo);
+                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteRange);
+            }
 
             SyntaxToken getOpenQuote()
             {
