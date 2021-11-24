@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
-                Full = new SemanticTokensFullOptions { Delta = true },
+                Full = false,
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {

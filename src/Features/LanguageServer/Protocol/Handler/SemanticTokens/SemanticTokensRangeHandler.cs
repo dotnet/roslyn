@@ -9,6 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
+    // TO-DO: Update comment
     /// <summary>
     /// Computes the semantic tokens for a given range.
     /// </summary>

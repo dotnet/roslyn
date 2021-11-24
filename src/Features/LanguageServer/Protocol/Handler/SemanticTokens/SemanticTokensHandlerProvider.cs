@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var semanticTokensCache = new SemanticTokensCache();
             return ImmutableArray.Create<IRequestHandler>(
-                new SemanticTokensHandler(semanticTokensCache),
-                new SemanticTokensEditsHandler(semanticTokensCache),
                 new SemanticTokensRangeHandler(semanticTokensCache));
         }
     }
