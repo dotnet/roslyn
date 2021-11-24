@@ -1080,7 +1080,7 @@ class C
 ");
         }
 
-        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.TestConditionalOperatorMethodGroup" />
+        // For method group conversion <see cref="CodeGenMethodGroupConversionTests.TestConditionalOperatorMethodGroup" />
         [Fact]
         public void TestConditionalOperatorMethodGroup()
         {

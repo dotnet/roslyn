@@ -521,7 +521,7 @@ class Test
 ");
         }
 
-        /// For method group conversion <see cref="CodeGenMethodGroupConversionTests.LockDelegate" />
+        // For method group conversion <see cref="CodeGenMethodGroupConversionTests.LockDelegate" />
         [Fact]
         public void LockDelegate()
         {
