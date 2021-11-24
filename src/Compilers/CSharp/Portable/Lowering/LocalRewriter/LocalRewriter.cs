@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
 
-        private readonly int _methodOrdinal;
+        private readonly int _containingMethodOrdinal;
+        private LoweredDelegateCachingFactory? _lazyDelegateCachingFactory;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _diagnostics = diagnostics;
-            _methodOrdinal = containingMethodOrdinal;
+            _containingMethodOrdinal = containingMethodOrdinal;
 
             Debug.Assert(instrumenter != null);
 #if DEBUG

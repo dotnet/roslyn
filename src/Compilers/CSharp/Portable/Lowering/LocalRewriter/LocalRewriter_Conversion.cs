@@ -397,34 +397,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     {
                         Debug.Assert(oldNodeOpt is { });
-                        var targetMethod = oldNodeOpt.SymbolOpt;
-                        Debug.Assert(targetMethod is { });
-
-                        var boundedAsExtensionMethod = oldNodeOpt.IsExtensionMethod;
-
                         var mg = (BoundMethodGroup)rewrittenOperand;
+                        var method = oldNodeOpt.SymbolOpt;
+                        Debug.Assert(method is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!targetMethod.RequiresInstanceReceiver && !boundedAsExtensionMethod && !targetMethod.IsAbstract) ? _factory.Type(targetMethod.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        // Try to see if we can cache the delegate
-                        if (!targetMethod.IsStatic     // We're only looking for static methods for caching,
-                            || boundedAsExtensionMethod    // and it cannot be bounded as extension method.
-                            || targetMethod.MethodKind == MethodKind.LocalFunction // TODO: Can we do cache for non-capturing local functions?
-                            || _factory.CurrentFunction?.MethodKind == MethodKind.LocalFunction // TODO: How to do cache when the current method or up involves generics?
+                        // Try to see if we cannot cache the delegate
+                        if (!method.IsStatic     // We're only looking for static methods for caching,
+                            || oldNodeOpt.IsExtensionMethod    // and it cannot be bounded as extension method.
                             || _inExpressionLambda  // The tree structure / meaning for expression trees should not be touched.
-                            || _factory.TopLevelMethod?.MethodKind == MethodKind.StaticConstructor   // Avoid caching twice if people do it manually.
+                            || _factory.TopLevelMethod is { MethodKind: MethodKind.StaticConstructor }   // Avoid caching twice if people do it manually.
                             )
                         {
                             // we eliminate the method group conversion entirely from the bound nodes following local lowering
-                            return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, boundedAsExtensionMethod, rewrittenType);
+                            return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                                                                       isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
                         }
                         else
                         {
                             // Rewriting this to use a cached delegate
-                            return RewriteStaticMethodGroupConversion(syntax, receiver, targetMethod, (NamedTypeSymbol)rewrittenType);
+                            var cachingFactory = _lazyDelegateCachingFactory ??= new(_factory, _containingMethodOrdinal);
+                            return cachingFactory.RewriteStaticMethodGroupConversion(syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
                         }
                     }
 
@@ -1434,119 +1431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(TypeSymbol.Equals(method.ReturnType, toType, TypeCompareKind.ConsiderEverything2));
                 return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand);
-            }
-        }
-
-        private BoundExpression RewriteStaticMethodGroupConversion(SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
-        {
-            Debug.Assert(delegateType.IsDelegateType());
-            Debug.Assert((object)targetMethod != null);
-
-            return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, false, delegateType);
-            //var orgSyntax = _factory.Syntax;
-            //_factory.Syntax = syntax;
-
-            //var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
-            //var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
-
-            //var boundCacheField = _factory.Field(null, cacheField);
-            //var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType)
-            //{
-            //    WasCompilerGenerated = true
-            //};
-
-            //var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
-
-            //_factory.Syntax = orgSyntax;
-
-            //return rewrittenNode;
-        }
-
-        //private DelegateCacheContainer GetOrAddCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
-        //{
-        //    Debug.Assert(_factory is { TopLevelMethod: { }, ModuleBuilderOpt: { } });
-
-        //    switch (ChooseDelegateCacheContainerKind(_factory.TopLevelMethod, delegateType, targetMethod))
-        //    {
-        //        case DelegateCacheContainerKind.ModuleScopedConcrete:
-        //            return _factory.ModuleBuilderOpt.GetOrAddContainer(delegateType);
-        //        case DelegateCacheContainerKind.TypeScopedConcrete:
-        //            return _factory.CompilationState.TypeScopedDelegateCacheContainer;
-        //        case DelegateCacheContainerKind.MethodScopedGeneric:
-        //            return MethodScopedGenericDelegateCacheContainer;
-        //        default:
-        //            throw ExceptionUtilities.Unreachable;
-        //    }
-        //}
-
-        private static DelegateCacheContainerKind ChooseDelegateCacheContainerKind(MethodSymbol currentMethod, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
-        {
-            // First, if delegateType and targetMethod are both concrete to the teeth, consider a module scoped cache container, because
-            // a. targetMethod could be somewhere outside of currentMethod.ContainingType, there might be another method somewhere else want to use this cache
-            // b. currentMethod.ContainingType or/and its ancestors could be generic, making the container type scoped could possibly cause multiple instances at runtime
-
-            // However, there are cases when targetMethod or/and delegateType being private or only visible inside currentMethod.ContainingType by code.
-            // It's not a problem that targetMethod being not visible, but delegateType could. Even it seems to work, it's not worth the risk.
-            if (Symbol.IsSymbolAccessible(delegateType, currentMethod.ContainingAssembly))
-            {
-                // If the currentMethod and it's containing type and it's ancestors all the way up are not generic types,
-                // then the delegate type and target method should be fully concrete.
-                if (currentMethod.Arity == 0 && !currentMethod.ContainingType.IsGenericType)
-                {
-                    return DelegateCacheContainerKind.ModuleScopedConcrete;
-                }
-
-                // Although the currentMethod or it's containing types may be generic, the delegateType and targetMethod may not. Let's find out.
-                if (!delegateType.ContainsTypeParameter() && !containsTypeParameter(targetMethod))
-                {
-                    return DelegateCacheContainerKind.ModuleScopedConcrete;
-                }
-            }
-
-            // Now the conversion could involve generics. All the possible type parameters that act as type arguments
-            // needed to construct the delegateType or targetMethod come from either the current method or it's containing types
-
-            // So obviously,
-            if (currentMethod.Arity == 0)
-            {
-                return DelegateCacheContainerKind.TypeScopedConcrete;
-            }
-
-            // Then we need to really check if currentMethod.TypeParameters are involved.
-            var typeParams = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            try
-            {
-                typeParams.AddAll(currentMethod.TypeParameters);
-                if (delegateType.ContainsTypeParameters(typeParams) || containsTypeParameters(targetMethod, typeParams))
-                {
-                    // If so, we have to "mock" the type parameters of the currentMethod as type parameters of the cache container.
-                    // So we can later use them to define the delegate type of the fields of the cache container.
-                    // In conclusion, we need a generic container here.
-                    return DelegateCacheContainerKind.MethodScopedGeneric;
-                }
-            }
-            finally
-            {
-                typeParams.Free();
-            }
-
-            // If not, we can just use the delegateType for the cache field of the container as is.
-            return DelegateCacheContainerKind.TypeScopedConcrete;
-
-            static bool containsTypeParameter(MethodSymbol method)
-            {
-                return method.ContainingType.ContainsTypeParameter() ||
-                    method.TypeArgumentsWithAnnotations.Any(static (typeArg, _) =>
-                        typeArg.Type.ContainsTypeParameter() ||
-                        typeArg.CustomModifiers.Any(static (cm, unused) => ((TypeSymbol)cm.Modifier).ContainsTypeParameter(), 0), 0);
-            }
-
-            static bool containsTypeParameters(MethodSymbol method, System.Collections.Generic.HashSet<TypeParameterSymbol> typeParams)
-            {
-                return method.ContainingType.ContainsTypeParameters(typeParams) ||
-                    method.TypeArgumentsWithAnnotations.Any(static (typeArg, typeParams) =>
-                        typeArg.Type.ContainsTypeParameters(typeParams) ||
-                        typeArg.CustomModifiers.Any(static (cm, typeParams) => ((TypeSymbol)cm.Modifier).ContainsTypeParameters(typeParams), typeParams), typeParams);
             }
         }
 
