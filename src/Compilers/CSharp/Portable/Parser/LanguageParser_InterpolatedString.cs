@@ -6,29 +6,14 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
-        /// <summary>
-        /// "Safe" substring using start and end positions rather than start and length.
-        /// If things are out of bounds just returns the empty string. That should only
-        /// be used by clients to assist in error recovery.
-        /// <param name="s">original string</param>
-        /// <param name="first">index of first character to be included</param>
-        /// <param name="last">index of last character to be included</param>
-        /// </summary>
-        private static string Substring(string s, int first, int last)
-        {
-            if (last >= s.Length)
-            {
-                last = s.Length - 1;
-            }
-
-            int len = last - first + 1;
-            return (last > s.Length || len <= 0) ? string.Empty : s.Substring(first, len);
-        }
+        private static string Substring(string str, TextSpan span)
+            => str.Substring(span.Start, span.Length);
 
         private ExpressionSyntax ParseInterpolatedStringToken()
         {
@@ -100,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // In the special case when there are no interpolations, we just construct a format string
                 // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
                 // so we still treat it as a composite format string.
-                var text = Substring(originalText, openQuoteIndex + 1, closeQuoteIndex - 1);
+                var text = Substring(originalText, TextSpan.FromBounds(openQuoteIndex + 1, closeQuoteIndex));
                 if (text.Length > 0)
                 {
                     var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -114,7 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var interpolation = interpolations[i];
 
                     // Add a token for text preceding the interpolation
-                    var text = Substring(originalText, (i == 0) ? (openQuoteIndex + 1) : (interpolations[i - 1].CloseBracePosition + 1), interpolation.OpenBracePosition - 1);
+                    var text = Substring(originalText,
+                        TextSpan.FromBounds(
+                            i == 0 ? openQuoteIndex + 1 : interpolations[i - 1].CloseBraceSpan.End,
+                            interpolation.OpenBraceSpan.Start));
                     if (text.Length > 0)
                     {
                         var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -122,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     // Add an interpolation
-                    builder.Add(ParseInterpolation(originalText, interpolation, isVerbatim));
+                    builder.Add(ParseInterpolation(this.Options, originalText, interpolation, isVerbatim));
                 }
 
                 // Add a token for text following the last interpolation
-                var lastText = Substring(originalText, interpolations[^1].CloseBracePosition + 1, closeQuoteIndex - 1);
+                var lastText = Substring(originalText, TextSpan.FromBounds(interpolations[^1].CloseBraceSpan.End, closeQuoteIndex));
                 if (lastText.Length > 0)
                 {
                     var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -146,52 +134,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
         }
 
+        private static InterpolationSyntax ParseInterpolation(CSharpParseOptions options, string text, Lexer.Interpolation interpolation, bool isVerbatim)
+        {
+            // Grab from before the { all the way to the start of the }.  The parsing of the close curly is specially
+            // handled in ParseInterpolation below.
+            var parsedText = Substring(text, TextSpan.FromBounds(
+                interpolation.OpenBraceSpan.Start,
+                interpolation.HasColon ? interpolation.ColonSpan.Start : interpolation.CloseBraceSpan.Start));
+
+            // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
+            using var tempLexer = new Lexer(SourceText.From(parsedText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
+            using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
+
+            return tempParser.ParseInterpolation(text, interpolation, isVerbatim);
+        }
+
         private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
         {
-            SyntaxToken openBraceToken;
-            ExpressionSyntax expression;
-            InterpolationAlignmentClauseSyntax alignment = null;
-            InterpolationFormatClauseSyntax format = null;
-
-            var closeBraceMissing = interpolation.CloseBracePosition >= text.Length || text[interpolation.CloseBracePosition] != '}';
-
-            var closeBraceToken = closeBraceMissing
-                ? SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)
-                : SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
-
-            var parsedText = Substring(text, interpolation.OpenBracePosition, interpolation.HasColon ? interpolation.ColonPosition - 1 : interpolation.CloseBracePosition - 1);
-            using (var tempLexer = new Lexer(Text.SourceText.From(parsedText), this.Options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon))
-            {
-                // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
-                using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
-
-                tempParser.ParseInterpolationStart(out openBraceToken, out expression, out var commaToken, out var alignmentExpression);
-                if (alignmentExpression != null)
-                {
-                    alignment = SyntaxFactory.InterpolationAlignmentClause(commaToken, alignmentExpression);
-                }
-
-                var extraTrivia = tempParser.CurrentToken.GetLeadingTrivia();
-                if (interpolation.HasColon)
-                {
-                    var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
-                    var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.CloseBracePosition - 1);
-                    var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
-                    format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
-                }
-                else
-                {
-                    // Move the leading trivia from the insertion's EOF token to the following token.
-                    closeBraceToken = closeBraceToken.TokenWithLeadingTrivia(extraTrivia);
-                }
-            }
+            var openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
+            var (expression, alignment) = getExpressionAndAlignment();
+            var (format, closeBraceToken) = getFormatAndCloseBrace();
 
             var result = SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
 #if DEBUG
-            var lastPosition = closeBraceMissing ? interpolation.CloseBracePosition - 1 : interpolation.CloseBracePosition;
-            Debug.Assert(Substring(text, interpolation.OpenBracePosition, lastPosition) == result.ToFullString()); // yield from text equals yield from node
+            Debug.Assert(Substring(text, TextSpan.FromBounds(interpolation.OpenBraceSpan.Start, interpolation.CloseBraceSpan.End)) == result.ToFullString()); // yield from text equals yield from node
 #endif
             return result;
+
+            (ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignment) getExpressionAndAlignment()
+            {
+                var expression = this.ParseExpressionCore();
+
+                if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                {
+                    return (this.ConsumeUnexpectedTokens(expression), alignment: null);
+                }
+
+                var alignment = SyntaxFactory.InterpolationAlignmentClause(
+                    this.EatToken(SyntaxKind.CommaToken),
+                    this.ConsumeUnexpectedTokens(this.ParseExpressionCore()));
+                return (expression, alignment);
+            }
+
+            (InterpolationFormatClauseSyntax format, SyntaxToken closeBraceToken) getFormatAndCloseBrace()
+            {
+                var leading = this.CurrentToken.GetLeadingTrivia();
+                if (interpolation.HasColon)
+                {
+                    var colonText = Substring(text, interpolation.ColonSpan);
+                    var colonToken = SyntaxFactory.Token(leading, SyntaxKind.ColonToken, colonText, colonText, trailing: null);
+                    var formatText = Substring(text, TextSpan.FromBounds(interpolation.ColonSpan.End, interpolation.CloseBraceSpan.Start));
+                    var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                    var format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
+                    var closeBraceToken = getInterpolationCloseBraceToken(leading: null);
+                    return (format, closeBraceToken);
+                }
+                else
+                {
+                    var closeBraceToken = getInterpolationCloseBraceToken(leading);
+                    return (format: null, closeBraceToken);
+                }
+            }
+
+            SyntaxToken getInterpolationCloseBraceToken(GreenNode leading)
+            {
+                if (interpolation.CloseBraceSpan.IsEmpty)
+                    return SyntaxFactory.MissingToken(leading, SyntaxKind.CloseBraceToken, trailing: null);
+
+                var tokenText = Substring(text, interpolation.CloseBraceSpan);
+                return SyntaxFactory.Token(leading, SyntaxKind.CloseBraceToken, tokenText, tokenText, trailing: null);
+            }
         }
 
         /// <summary>
@@ -230,23 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return builder.ToArrayAndFree();
-        }
-
-        private void ParseInterpolationStart(out SyntaxToken openBraceToken, out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)
-        {
-            openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
-            expr = this.ParseExpressionCore();
-            if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-            {
-                commaToken = this.EatToken(SyntaxKind.CommaToken);
-                alignmentExpression = ConsumeUnexpectedTokens(this.ParseExpressionCore());
-            }
-            else
-            {
-                commaToken = null;
-                alignmentExpression = null;
-                expr = ConsumeUnexpectedTokens(expr);
-            }
         }
     }
 }
