@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.HoverProvider = true;
 
+            // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
+            // especially for larger files.
             capabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
                 Full = false,

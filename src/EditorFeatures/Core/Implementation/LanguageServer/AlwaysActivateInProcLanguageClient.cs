@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
+                // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
+                // especially for larger files.
                 serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
                 {
                     Full = false,
