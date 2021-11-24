@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // paramName!!
-            if (currentToken.Kind() == SyntaxKind.ExclamationExclamationToken &&
+            if (currentToken.IsKind(SyntaxKind.ExclamationExclamationToken) &&
                 currentToken.Parent.IsKind(SyntaxKind.Parameter))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);

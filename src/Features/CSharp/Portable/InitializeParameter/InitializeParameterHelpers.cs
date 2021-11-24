@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode? TryGetLastStatement(IBlockOperation blockStatementOpt)
-            => blockStatementOpt?.Syntax is BlockSyntax block
+        public static SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement)
+            => blockStatement?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
-                : blockStatementOpt?.Syntax;
+                : blockStatement?.Syntax;
 
         public static void InsertStatement(
             SyntaxEditor editor,

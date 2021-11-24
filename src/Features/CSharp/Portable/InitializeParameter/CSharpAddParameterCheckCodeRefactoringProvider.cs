@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
@@ -93,20 +94,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 @else: null);
         }
 
-        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, IParameterSymbol parameter, CancellationToken cancellationToken)
+        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, ParameterSyntax parameterSyntax, IParameterSymbol parameter, CancellationToken cancellationToken)
         {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = parameterSyntax.SyntaxTree;
             var options = (CSharpParseOptions)tree.Options;
-            if (options.LanguageVersion < LanguageVersion.Preview)
+            if (options.LanguageVersion < LanguageVersionExtensions.CSharpNext)
             {
                 return null;
             }
 
             var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntax = (ParameterSyntax)await parameter.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             syntaxRoot = syntaxRoot.ReplaceNode(
-                syntax,
-                syntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));
+                parameterSyntax,
+                parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));
             return document.WithSyntaxRoot(syntaxRoot);
         }
     }

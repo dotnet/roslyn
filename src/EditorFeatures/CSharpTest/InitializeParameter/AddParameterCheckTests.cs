@@ -56,6 +56,52 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked1()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s!!)
+    {
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                OffersEmptyRefactoring = false,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                OffersEmptyRefactoring = false,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
