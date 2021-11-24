@@ -549,8 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             [NotNull] ref ArrayBuilder<LocalSymbol>? temps,
-            bool invokedAsExtensionMethod = false,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            bool invokedAsExtensionMethod = false)
         {
 
             // We need to do a fancy rewrite under the following circumstances:

@@ -78,6 +78,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitSlicePattern(BoundSlicePattern node)
+        {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitListPattern(BoundListPattern node)
+        {
+            VisitAndUnsplitAll(node.Subpatterns);
+            Visit(node.VariableAccess);
+            return null;
+        }
+
         public override BoundNode VisitTypePattern(BoundTypePattern node)
         {
             Visit(node.DeclaredType);
@@ -141,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
                 case BoundRelationalPattern _:
+                case BoundSlicePattern _:
+                case BoundListPattern lp:
                     break; // nothing to learn
                 case BoundTypePattern tp:
                     if (tp.IsExplicitNotNullTest)
@@ -335,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
             originalInputMap.Add(originalInputSlot, expression);
 
+            // Note we customize equality in BoundDagTemp
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
             Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
@@ -478,14 +494,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                     }
                                 case BoundDagIndexEvaluation e:
+                                    addTemp(e, e.Property.Type);
+                                    break;
+                                case BoundDagIndexerEvaluation e:
                                     {
-                                        var type = TypeWithAnnotations.Create(e.Property.Type, NullableAnnotation.Annotated);
+                                        Debug.Assert(inputSlot > 0);
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: false);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
+                                        var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
+                                case BoundDagSliceEvaluation e:
+                                    {
+                                        Debug.Assert(inputSlot > 0);
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: true);
+                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
+                                        var outputSlot = makeDagTempSlot(type, output);
+                                        Debug.Assert(outputSlot > 0);
+                                        addToTempMap(output, outputSlot, type.Type);
+                                        break;
+                                    }
+                                case BoundDagAssignmentEvaluation e:
+                                    break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }
@@ -739,6 +771,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 object slotKey = (node, temp);
                 return GetOrCreatePlaceholderSlot(slotKey, type);
+            }
+
+            void addTemp(BoundDagEvaluation e, TypeSymbol t, int index = 0)
+            {
+                var type = TypeWithAnnotations.Create(t, NullableAnnotation.Annotated);
+                var output = new BoundDagTemp(e.Syntax, type.Type, e, index: index);
+                int outputSlot = makeDagTempSlot(type, output);
+                Debug.Assert(outputSlot > 0);
+                addToTempMap(output, outputSlot, type.Type);
+            }
+
+            static TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
+            {
+                return e switch
+                {
+                    BoundIndexerAccess indexerAccess => AsMemberOfType(inputType, indexerAccess.Indexer).GetTypeOrReturnType(),
+                    BoundCall call => AsMemberOfType(inputType, call.Method).GetTypeOrReturnType(),
+
+                    BoundArrayAccess arrayAccess => isSlice
+                        ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
+                        : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations,
+
+                    BoundImplicitIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerOrSliceAccess, isSlice),
+                    _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
+                };
             }
         }
 

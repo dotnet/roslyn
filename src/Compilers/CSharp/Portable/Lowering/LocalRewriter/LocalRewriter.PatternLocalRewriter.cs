@@ -245,8 +245,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
                         }
 
+                    case BoundDagIndexerEvaluation e:
+                        {
+                            // this[Index]
+                            // this[int]
+                            // array[Index]
+
+                            var indexerAccess = e.IndexerAccess;
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
+                            {
+                                indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
+                            }
+
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredIndexArgument(e.Index));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
+                            var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation e:
+                        {
+                            // this[Range]
+                            // Slice(int, int)
+                            // string.Substring(int, int)
+                            // array[Range]
+
+                            var indexerAccess = e.IndexerAccess;
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
+                            {
+                                indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
+                            }
+
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredRangeArgument(e));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
+                            var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
+                }
+
+                BoundExpression makeUnloweredIndexArgument(int index)
+                {
+                    // LocalRewriter.MakePatternIndexOffsetExpression understands this format
+                    if (index < 0)
+                    {
+                        var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+                        return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
+                            methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
+                    }
+
+                    return _factory.Convert(_factory.WellKnownType(WellKnownType.System_Index), _factory.Literal(index));
+                }
+
+                BoundExpression makeUnloweredRangeArgument(BoundDagSliceEvaluation e)
+                {
+                    // LocalRewriter.VisitRangeImplicitIndexerAccess understands this format
+                    var indexCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+                    var end = new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-e.EndIndex),
+                        methodOpt: indexCtor, _factory.WellKnownType(WellKnownType.System_Index));
+
+                    var rangeCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Range__ctor);
+                    return new BoundRangeExpression(e.Syntax, makeUnloweredIndexArgument(e.StartIndex), end,
+                        methodOpt: rangeCtor, _factory.WellKnownType(WellKnownType.System_Range));
                 }
             }
 

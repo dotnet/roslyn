@@ -53,6 +53,14 @@ try {
     }
   }
 
+  # Verify no TODO2 marker left
+  $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'TODO2' -CaseSensitive -SimpleMatch
+  if ($prototypes) {
+    Write-Host "Found TODO2 markers in source:"
+    Write-Host $prototypes
+    throw "TODO2 markers disallowed in compiler source"
+  }
+
   Write-Host "Building Roslyn"
   Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 

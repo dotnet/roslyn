@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false
+                IsExpandedCompletion = false,
+                TargetTypedCompletionFilter = false
             };
 
             var (completionList, _) = await service.GetCompletionsInternalAsync(
