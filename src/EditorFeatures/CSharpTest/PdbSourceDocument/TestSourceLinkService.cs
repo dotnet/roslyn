@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             {
                 return Task.FromResult<PdbFilePathResult?>(null);
             }
+
             return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath, "status", Log: null, _isPortablePdb));
         }
 
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             {
                 return Task.FromResult<SourceFilePathResult?>(null);
             }
+
             return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath, Log: null));
         }
     }
