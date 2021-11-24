@@ -44,16 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                              (originalText[0] == '@' && originalText[1] == '$');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
+
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
-            SyntaxDiagnosticInfo error;
-            Range closeQuoteRange;
-            using (var tempLexer = new Lexer(Text.SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false))
-            {
-                // compute the positions of the interpolations in the original string literal, and also compute/preserve
-                // lexical errors
-                var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteRange);
-            }
+            using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
+
+            // compute the positions of the interpolations in the original string literal, and also compute/preserve
+            // lexical errors
+            var info = default(Lexer.TokenInfo);
+            tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out var error, out var closeQuoteRange);
 
             // Make a token for the open quote $" or $@" or @$"
             var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
@@ -63,15 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openQuote = SyntaxFactory.Token(
                 originalToken.GetLeadingTrivia(),
                 isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
-                openQuoteText,
-                openQuoteText,
-                trailing: null);
-
-            // Make a token for the close quote " (even if it was missing)
-            var closeQuoteText = originalText[closeQuoteRange];
-            var closeQuote = closeQuoteText == ""
-                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
-                : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
+                openQuoteText, openQuoteText, trailing: null);
 
             var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
             if (interpolations.Count == 0)
@@ -115,6 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             interpolations.Free();
+
+            // Make a token for the close quote " (even if it was missing)
+            var closeQuoteText = originalText[closeQuoteRange];
+            var closeQuote = closeQuoteText == ""
+                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
+                : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
+
             var result = SyntaxFactory.InterpolatedStringExpression(openQuote, builder, closeQuote);
             _pool.Free(builder);
             if (error != null)
