@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Caravela>
-        private IServiceProvider CreateServices(DiagnosticBag diagnostics)
+        private IServiceProvider CreateServices(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
         {
             var services = new BackstageServiceProvider();
 
@@ -425,30 +425,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .AddStandardLicenseFilesLocations()
                 .AddFirstRunEvaluationLicenseActivator();
 
-            ILicenseSource[] licenseSources;
-            // ReSharper disable once VirtualMemberCallInConstructor (Used for testing.)
-            var singleLicenseSource = GetSingleLicenseSource();
-
-            if (singleLicenseSource == null)
-            {
-                licenseSources = new ILicenseSource[]
-                {
-                    FileLicenseSource.CreateUserLicenseFileLicenseSource(services),
-                    new BuildOptionsLicenseSource()
-                };
-            }
-            else
-            {
-                licenseSources = new[] { singleLicenseSource };
-            }
-
+            LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, services);
+            ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
+            
             services.AddLicenseConsumption(licenseSources);
 
             return services;
         }
-
-        // When a value is returned, all other license sources are ignored. Used for testing.
-        protected virtual ILicenseSource? GetSingleLicenseSource() => null;
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
@@ -460,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation);
             }
 
-            var services = CreateServices(diagnostics);
+            var services = CreateServices(analyzerConfigProvider, diagnostics);
             var license = new CaravelaCompilerLicenseConsumptionManager(services);
 
             license.ConsumeFeatures(LicensedFeatures.Community);

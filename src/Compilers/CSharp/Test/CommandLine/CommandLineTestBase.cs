@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             // </Caravela>
         }
 
-        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseSource singleLicenseSource = null)
+        internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
             // <Caravela>
-            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader, singleLicenseSource);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader);
             // </Caravela>
         }
     }

@@ -8,11 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Caravela.Compiler;
-using PostSharp.Backstage.Licensing.Consumption.Sources;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -22,20 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private readonly ImmutableArray<ISourceGenerator> _generators;
         // <Caravela>
         private readonly ImmutableArray<ISourceTransformer> _transformers;
-        private readonly ILicenseSource _singleLicenseSource = null;
         // </Caravela>
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseSource singleLicenseSource = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, singleLicenseSource)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader)
         // </Caravela>
         {
         }
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseSource singleLicenseSource = null)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
         // </Caravela>
         {
@@ -43,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _generators = generators.NullToEmpty();
             // <Caravela>
             _transformers = transformers.NullToEmpty();
-            _singleLicenseSource = singleLicenseSource;
             // </Caravela>
         }
 
@@ -82,13 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
             // </Caravela>
         }
-        
-        // <Caravela>
-        protected override ILicenseSource GetSingleLicenseSource()
-        {
-            return _singleLicenseSource;
-        }
-        // </Caravela>
 
         public Compilation CreateCompilation(
             TextWriter consoleOutput,

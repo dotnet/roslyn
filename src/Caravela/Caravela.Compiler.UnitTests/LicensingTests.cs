@@ -8,12 +8,12 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 using PostSharp.Backstage.Licensing.Licenses;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using License = System.ComponentModel.License;
 
 namespace Caravela.Compiler.UnitTests
 {
@@ -21,15 +21,31 @@ namespace Caravela.Compiler.UnitTests
     {
         private TempFile? _src;
 
+        private MockCSharpCompiler CreateCompiler(ISourceTransformer? transformer = null, bool debugTransformedCode = false)
+        {
+            var dir = Temp.CreateDirectory();
+            var fileNameWithoutExtension = "temp";
+            _src = dir.CreateFile($"{fileNameWithoutExtension}.cs").WriteAllText("class C { }");
+            var license = dir.CreateFile($"{fileNameWithoutExtension}.lic");
+            var config = dir.CreateFile($"{fileNameWithoutExtension}.editorconfig").WriteAllText(
+                $@"is_global = true
+build_property.CaravelaLicenseSources = File
+build_property.CaravavelaLicenseFile = {license.Path}
+build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
+");
+            var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
+            var csc = CreateCSharpCompiler(null, dir.Path, args,
+                transformers: transformer == null
+                    ? ImmutableArray<ISourceTransformer>.Empty
+                    : new[] { transformer }.ToImmutableArray());
+
+            return csc;
+        }
+        
         [Fact]
         public void LicenseNotRequiredWithoutTransformers()
         {
-            var dir = Temp.CreateDirectory();
-            _src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
-
-            var args = new[] { "/nologo", "/t:library", _src.Path };
-
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: ImmutableArray<ISourceTransformer>.Empty, singleLicenseSource: new EmptyLicenseSource());
+            var csc = CreateCompiler();
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -42,12 +58,7 @@ namespace Caravela.Compiler.UnitTests
         [Fact]
         public void CustomTransformersRequireCommunityLicense()
         {
-            var dir = Temp.CreateDirectory();
-            _src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
-
-            var args = new[] { "/nologo", "/t:library", _src.Path };
-
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: new ISourceTransformer[] { new DummyTransformer() }.ToImmutableArray(), singleLicenseSource: new EmptyLicenseSource());
+            var csc = CreateCompiler(new DummyTransformer());
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -60,17 +71,7 @@ namespace Caravela.Compiler.UnitTests
         [Fact]
         public void TransformedCodeDebuggingRequiresCaravelaLicense()
         {
-            var dir = Temp.CreateDirectory();
-            var fileNameWithoutExtension = "temp";
-            _src = dir.CreateFile($"{fileNameWithoutExtension}.cs").WriteAllText("class C { }");
-            var config = dir.CreateFile($"{fileNameWithoutExtension}.editorconfig").WriteAllText(
-                @"is_global = true
-build_property.CaravelaDebugTransformedCode = True
-");
-
-            var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
-
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: new ISourceTransformer[] { new DummyTransformer() }.ToImmutableArray(), singleLicenseSource: new EmptyLicenseSource());
+            var csc = CreateCompiler(new DummyTransformer(), debugTransformedCode: true);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);

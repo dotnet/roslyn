@@ -12,6 +12,13 @@
 
     <!-- CaravelaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
     <CaravelaSourceOnlyAnalyzers>$(CaravelaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</CaravelaSourceOnlyAnalyzers>
+    <CaravelaLicenseSources Condition="'$(CaravelaLicenseSources)'==''">User,File,Property</CaravelaLicenseSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CaravelaLicenseFile)'==''">
+    <CaravelaLicenseFileName Condition="'$(CaravelaLicenseFileName)'==''">Caravela.lic</CaravelaLicenseFileName>
+    <CaravelaLicenseFileDirectory Condition="'$(CaravelaLicenseFileDirectory)'==''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), '$(CaravelaLicenseFileName)'))</CaravelaLicenseFileDirectory>
+    <CaravelaLicenseFile Condition="'$(CaravelaLicenseFileDirectory)'!=''">$([System.IO.Path]::Combine('$(CaravelaLicenseFileDirectory)', '$(CaravelaLicenseFileName)'))</CaravelaLicenseFile>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
@@ -24,5 +31,8 @@
     <CompilerVisibleProperty Include="CaravelaCompilerTransformedFilesOutputPath" />
     <CompilerVisibleProperty Include="CaravelaDebugCompiler" />
     <CompilerVisibleProperty Include="CaravelaSourceOnlyAnalyzers" />
+    <CompilerVisibleProperty Include="CaravelaLicense" />
+    <CompilerVisibleProperty Include="CaravelaLicenseFile" />
+    <CompilerVisibleProperty Include="CaravelaLicenseSources" />
   </ItemGroup>
 </Project>
