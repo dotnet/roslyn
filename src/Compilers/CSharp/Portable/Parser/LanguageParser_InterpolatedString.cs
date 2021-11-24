@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static InterpolationSyntax ParseInterpolation(CSharpParseOptions options, string text, Lexer.Interpolation interpolation, bool isVerbatim)
         {
             // Grab from before the { all the way to the start of the } (or the start of the : if present).  The parsing
-            // of the close curly is specially handled in ParseInterpolation below.
+            // of the colon and/or close curly is specially handled in ParseInterpolation below.
             var parsedText = text[new Range(
                 interpolation.OpenBraceRange.Start,
                 interpolation.HasColon ? interpolation.ColonRange.Start : interpolation.CloseBraceRange.Start)];
