@@ -762,7 +762,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '@':
-                    this.ScanAtSignToken(ref info);
+                    if (!this.TryScanAtStringToken(ref info) &&
+                        !this.ScanIdentifierOrKeyword(ref info))
+                    {
+                        TextWindow.AdvanceChar();
+                        info.Text = TextWindow.GetText(intern: true);
+                        this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
+                    }
                     break;
 
                 case '$':
@@ -925,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ScanAtSignToken(ref TokenInfo info)
+        private bool TryScanAtStringToken(ref TokenInfo info)
         {
             Debug.Assert(TextWindow.PeekChar() == '@');
 
@@ -934,17 +940,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var errorCode = this.ScanVerbatimStringLiteral(ref info);
                 if (errorCode is ErrorCode code)
                     this.AddError(code);
+
+                return true;
             }
             else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
             {
                 this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+                return true;
             }
-            else if (!this.ScanIdentifierOrKeyword(ref info))
-            {
-                TextWindow.AdvanceChar();
-                info.Text = TextWindow.GetText(intern: true);
-                this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
-            }
+
+            return false;
         }
 
 #nullable enable

@@ -577,8 +577,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case '@':
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanAtSignToken(ref discarded);
-                                continue;
+                                if (_lexer.TryScanAtStringToken(ref discarded))
+                                    continue;
+
+                                // Wasn't an @"" or @$"" string.  Just consume this as normal code.
+                                goto default;
                             }
                         case '/':
                             switch (_lexer.TextWindow.PeekChar(1))
