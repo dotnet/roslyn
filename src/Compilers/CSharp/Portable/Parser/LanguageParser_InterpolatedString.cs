@@ -45,75 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
 
-            var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
             using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
 
-            // compute the positions of the interpolations in the original string literal, and also compute/preserve
-            // lexical errors
-            var info = default(Lexer.TokenInfo);
-            tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out var error, out var closeQuoteRange);
-
-            // Make a token for the open quote $" or $@" or @$"
+            // Determine the range of the open quote.  Either $" or $@" or @$"
             var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
             Debug.Assert(originalText[openQuoteRange.End.Value - 1] == '"');
 
-            var openQuoteText = originalText[openQuoteRange];
-            var openQuote = SyntaxFactory.Token(
-                originalToken.GetLeadingTrivia(),
-                isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
-                openQuoteText, openQuoteText, trailing: null);
+            // compute the positions of the interpolations in the original string literal, if there was an error or not,
+            // and where the close quote can be found.
+            var info = default(Lexer.TokenInfo);
+            var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
+            tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out var error, out var closeQuoteRange);
 
-            var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
-            if (interpolations.Count == 0)
-            {
-                // In the special case when there are no interpolations, we just construct a format string
-                // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
-                // so we still treat it as a composite format string.
-                var text = originalText[new Range(openQuoteRange.End, closeQuoteRange.Start)];
-                if (text.Length > 0)
-                {
-                    var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
-                    builder.Add(SyntaxFactory.InterpolatedStringText(token));
-                }
-            }
-            else
-            {
-                for (int i = 0; i < interpolations.Count; i++)
-                {
-                    var interpolation = interpolations[i];
-
-                    // Add a token for text preceding the interpolation
-                    var text = originalText[new Range(
-                        i == 0 ? openQuoteRange.End : interpolations[i - 1].CloseBraceRange.End,
-                        interpolation.OpenBraceRange.Start)];
-                    if (text.Length > 0)
-                    {
-                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken)));
-                    }
-
-                    // Add an interpolation
-                    builder.Add(ParseInterpolation(this.Options, originalText, interpolation, isVerbatim));
-                }
-
-                // Add a token for text following the last interpolation
-                var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
-                if (lastText.Length > 0)
-                {
-                    var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
-                    builder.Add(SyntaxFactory.InterpolatedStringText(token));
-                }
-            }
+            var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
 
             interpolations.Free();
-
-            // Make a token for the close quote " (even if it was missing)
-            var closeQuoteText = originalText[closeQuoteRange];
-            var closeQuote = closeQuoteText == ""
-                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
-                : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
-
-            var result = SyntaxFactory.InterpolatedStringExpression(openQuote, builder, closeQuote);
-            _pool.Free(builder);
             if (error != null)
             {
                 result = result.WithDiagnosticsGreen(new[] { error });
@@ -121,6 +67,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
+
+            SyntaxToken getOpenQuote()
+            {
+                var openQuoteText = originalText[openQuoteRange];
+                var openQuote = SyntaxFactory.Token(
+                    originalToken.GetLeadingTrivia(),
+                    isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
+                    openQuoteText, openQuoteText, trailing: null);
+                return openQuote;
+            }
+
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent()
+            {
+                var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
+
+                if (interpolations.Count == 0)
+                {
+                    // In the special case when there are no interpolations, we just construct a format string
+                    // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
+                    // so we still treat it as a composite format string.
+                    var text = originalText[new Range(openQuoteRange.End, closeQuoteRange.Start)];
+                    if (text.Length > 0)
+                    {
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken)));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < interpolations.Count; i++)
+                    {
+                        var interpolation = interpolations[i];
+
+                        // Add a token for text preceding the interpolation
+                        var text = originalText[new Range(
+                            i == 0 ? openQuoteRange.End : interpolations[i - 1].CloseBraceRange.End,
+                            interpolation.OpenBraceRange.Start)];
+                        if (text.Length > 0)
+                        {
+                            builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken)));
+                        }
+
+                        builder.Add(ParseInterpolation(this.Options, originalText, interpolation, isVerbatim));
+                    }
+
+                    // Add a token for text following the last interpolation
+                    var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
+                    if (lastText.Length > 0)
+                    {
+                        var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                        builder.Add(SyntaxFactory.InterpolatedStringText(token));
+                    }
+                }
+
+                CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
+                _pool.Free(builder);
+                return result;
+            }
+
+            SyntaxToken getCloseQuote()
+            {
+                // Make a token for the close quote " (even if it was missing)
+                var closeQuoteText = originalText[closeQuoteRange];
+                var closeQuote = closeQuoteText == ""
+                    ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
+                    : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
+                return closeQuote;
+            }
         }
 
         private static InterpolationSyntax ParseInterpolation(CSharpParseOptions options, string text, Lexer.Interpolation interpolation, bool isVerbatim)
