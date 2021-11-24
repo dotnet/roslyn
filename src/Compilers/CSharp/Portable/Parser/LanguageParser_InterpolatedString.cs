@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
-            var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @$
-            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 && originalText[1] == '@');
+            var isVerbatim = (originalText[0] == '$' && originalText[1] == '@') ||
+                             (originalText[0] == '@' && originalText[1] == '$');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -56,18 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Make a token for the open quote $" or $@" or @$"
-            var openQuoteIndex = isVerbatim ? 2 : 1;
-            Debug.Assert(originalText[openQuoteIndex] == '"');
+            var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
+            Debug.Assert(originalText[openQuoteRange.End.Value - 1] == '"');
 
             var openQuoteKind = isVerbatim
                 ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
                 : SyntaxKind.InterpolatedStringStartToken; // $
 
-            var openQuoteText = isAltInterpolatedVerbatim
-                ? "@$\""
-                : isVerbatim
-                    ? "$@\""
-                    : "$\"";
+            var openQuoteText = originalText[openQuoteRange];
             var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
 
             // Make a token for the close quote " (even if it was missing)
@@ -83,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // In the special case when there are no interpolations, we just construct a format string
                 // with no inserts. We must still use String.Format to get its handling of escapes such as {{,
                 // so we still treat it as a composite format string.
-                var text = originalText[new Range(openQuoteIndex + 1, closeQuoteIndex)];
+                var text = originalText[new Range(openQuoteRange.End, closeQuoteIndex)];
                 if (text.Length > 0)
                 {
                     var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
@@ -98,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Add a token for text preceding the interpolation
                     var text = originalText[new Range(
-                        i == 0 ? openQuoteIndex + 1 : interpolations[i - 1].CloseBraceRange.End,
+                        i == 0 ? openQuoteRange.End : interpolations[i - 1].CloseBraceRange.End,
                         interpolation.OpenBraceRange.Start)];
                     if (text.Length > 0)
                     {
