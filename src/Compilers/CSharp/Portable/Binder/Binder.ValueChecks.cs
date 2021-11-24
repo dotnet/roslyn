@@ -2739,6 +2739,7 @@ moreArguments:
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
+                case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
