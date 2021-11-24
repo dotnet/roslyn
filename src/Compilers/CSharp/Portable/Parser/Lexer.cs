@@ -937,6 +937,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool TryScanInterpolatedString(ref TokenInfo info)
         {
+            Debug.Assert(TextWindow.PeekChar() == '$');
+
             if (TextWindow.PeekChar(1) == '"')
             {
                 this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
