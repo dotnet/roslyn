@@ -151,8 +151,16 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    // We have no compilation, but we might have information about generated docs.
-                    var newState = new NoCompilationState(state.GeneratorInfo.WithDocumentsAreFinal(false));
+                    // We may still have a cached generator; we'll have to remember to run generators again since we are making some
+                    // change here. We'll also need to update the other state of the driver if appropriate.
+                    var generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(false);
+
+                    if (generatorInfo.Driver != null && translate != null)
+                    {
+                        generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
+                    }
+
+                    var newState = new NoCompilationState(generatorInfo);
                     return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
             }
@@ -805,6 +813,24 @@ namespace Microsoft.CodeAnalysis
                                         ProjectState.SourceGenerators,
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
+                            }
+                            else
+                            {
+#if DEBUG
+
+                                // Assert that the generator driver is in sync with our additional document states; there's not a public
+                                // API to get this, but we'll reflect in DEBUG-only.
+                                var driverType = generatorInfo.Driver.GetType();
+                                var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                Contract.ThrowIfNull(stateMember);
+                                var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                Contract.ThrowIfNull(additionalTextsMember);
+                                var state = stateMember.GetValue(generatorInfo.Driver);
+                                var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
+
+                                Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
+
+#endif
                             }
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationWithoutGenerators, cancellationToken));
