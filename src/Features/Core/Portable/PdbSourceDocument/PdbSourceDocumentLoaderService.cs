@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,54 +28,29 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _sourceLinkService = sourceLinkService;
         }
 
-        public async Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding? defaultEncoding, CancellationToken cancellationToken)
+        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, CancellationToken cancellationToken)
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
-            var stream = TryGetEmbeddedSourceStream(sourceDocument) ??
-                TryGetFileStream(sourceDocument);
-
-            if (stream is not null)
-            {
-                using (stream)
-                {
-                    var encoding = defaultEncoding ?? Encoding.UTF8;
-                    try
-                    {
-                        var sourceText = EncodedStringText.Create(stream, defaultEncoding: encoding, checksumAlgorithm: sourceDocument.HashAlgorithm);
-
-                        var fileChecksum = sourceText.GetChecksum();
-                        if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
-                        {
-                            var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, sourceDocument.FilePath);
-                            var textLoader = TextLoader.From(textAndVersion);
-                            return textLoader;
-                        }
-                    }
-                    catch (IOException)
-                    {
-                        // TODO: Log message to inform the user what went wrong: https://github.com/dotnet/roslyn/issues/57352
-                    }
-                }
-            }
-
-            if (_sourceLinkService is not null && sourceDocument.SourceLinkUrl is not null)
-            {
-                var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, cancellationToken).ConfigureAwait(false);
-                // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
-
-                if (sourceFile is not null)
-                {
-                    return IOUtilities.PerformIO(() => new FileTextLoader(sourceFile.SourceFilePath, defaultEncoding));
-                }
-            }
-
-            return null;
+            // and if they don't work we call the debugger to download a file from SourceLink info
+            return TryGetEmbeddedSourceStream(tempFilePath, sourceDocument, encoding) ??
+                TryGetFileStream(sourceDocument, encoding) ??
+                await TryGetSourceLinkStreamAsync(sourceDocument, encoding, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Stream? TryGetEmbeddedSourceStream(SourceDocument sourceDocument)
+        private static SourceFileInfo? TryGetEmbeddedSourceStream(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
         {
             if (sourceDocument.EmbeddedTextBytes is null)
                 return null;
+
+            var filePath = Path.Combine(tempFilePath, Path.GetFileName(sourceDocument.FilePath));
+
+            // We might have already navigated to this file before, so it might exist, but
+            // we still need to re-validate the checksum and make sure its not the wrong file
+            if (File.Exists(filePath) &&
+                LoadSourceFile(filePath, sourceDocument, encoding) is { } existing)
+            {
+                return existing;
+            }
 
             var embeddedTextBytes = sourceDocument.EmbeddedTextBytes;
             var uncompressedSize = BitConverter.ToInt32(embeddedTextBytes, 0);
@@ -99,17 +73,79 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 stream = decompressed;
             }
 
-            return stream;
-        }
-
-        private static Stream? TryGetFileStream(SourceDocument sourceDocument)
-        {
-            if (File.Exists(sourceDocument.FilePath))
+            if (stream is not null)
             {
-                return IOUtilities.PerformIO(() => new FileStream(sourceDocument.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete));
+                // Even though Roslyn supports loading SourceTexts from a stream, Visual Studio requires
+                // a file to exist on disk so we have to write embedded source to a temp file.
+                using (stream)
+                {
+                    try
+                    {
+                        stream.Position = 0;
+                        using (var file = File.OpenWrite(filePath))
+                        {
+                            stream.CopyTo(file);
+                        }
+
+                        new FileInfo(filePath).IsReadOnly = true;
+                    }
+                    catch (IOException)
+                    {
+                        // TODO: Log message to inform the user what went wrong: https://github.com/dotnet/roslyn/issues/57352
+                        return null;
+                    }
+                }
+
+                return LoadSourceFile(filePath, sourceDocument, encoding);
             }
 
             return null;
+        }
+
+        private async Task<SourceFileInfo?> TryGetSourceLinkStreamAsync(SourceDocument sourceDocument, Encoding encoding, CancellationToken cancellationToken)
+        {
+            if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
+                return null;
+
+            var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, cancellationToken).ConfigureAwait(false);
+            // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
+
+            if (sourceFile is not null)
+            {
+                return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding);
+            }
+
+            return null;
+        }
+
+        private static SourceFileInfo? TryGetFileStream(SourceDocument sourceDocument, Encoding encoding)
+        {
+            if (File.Exists(sourceDocument.FilePath))
+            {
+                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding);
+            }
+
+            return null;
+        }
+
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding)
+        {
+            return IOUtilities.PerformIO(() =>
+            {
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+                var sourceText = SourceText.From(stream, encoding, sourceDocument.HashAlgorithm, throwIfBinaryDetected: true);
+
+                var fileChecksum = sourceText.GetChecksum();
+                if (fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                {
+                    var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
+                    var textLoader = TextLoader.From(textAndVersion);
+                    return new SourceFileInfo(filePath, textLoader);
+                }
+
+                return null;
+            });
         }
     }
 }

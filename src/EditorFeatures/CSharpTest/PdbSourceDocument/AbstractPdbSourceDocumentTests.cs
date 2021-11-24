@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
 
+                Assert.Equal(document.FilePath, file.FilePath);
+
                 var actual = await document.GetTextAsync();
                 var actualSpan = file!.IdentifierLocation.SourceSpan;
 

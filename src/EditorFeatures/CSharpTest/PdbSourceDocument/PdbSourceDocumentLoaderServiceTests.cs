@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -36,10 +39,14 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(sourceFilePath: sourceFilePath);
                 var service = new PdbSourceDocumentLoaderService(sourceLinkService);
 
-                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, "https://sourcelink");
-                var result = await service.LoadSourceDocumentAsync(sourceDocument, defaultEncoding: null, CancellationToken.None);
+                using var hash = SHA256.Create();
+                var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
+
+                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.Sha256, fileHash.ToImmutableArray(), null, "https://sourcelink");
+                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, CancellationToken.None);
 
                 Assert.NotNull(result);
+                Assert.Equal(sourceFilePath, result!.FilePath);
             });
         }
 
@@ -66,7 +73,7 @@ public class C
                 var service = new PdbSourceDocumentLoaderService(sourceLinkService);
 
                 var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
-                var result = await service.LoadSourceDocumentAsync(sourceDocument, defaultEncoding: null, CancellationToken.None);
+                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, CancellationToken.None);
 
                 Assert.Null(result);
             });
