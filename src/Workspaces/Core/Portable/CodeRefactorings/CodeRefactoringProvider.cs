@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             get
             {
                 var priority = ComputeRequestPriority();
-                // Note: CodeActionRequestPriority.Low is reserved for IConfigurationFixProvider.
-                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
+                // Note: CodeActionRequestPriority.Lowest is reserved for IConfigurationFixProvider.
+                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
                 return priority;
             }
         }

@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(
             Document document,
             TextSpan range,
-            bool includeConfigurationFixes,
             CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
@@ -174,11 +173,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // order diagnostics by span.
             SortedDictionary<TextSpan, List<DiagnosticData>>? aggregatedDiagnostics = null;
 
-            // Only execute analyzers with fixable diagnostics for 'CodeActionPriorityRequest.Normal'
-            var shouldIncludeDiagnostic = priority == CodeActionRequestPriority.Normal ? GetFixableDiagnosticFilter(document) : null;
+            // For 'CodeActionPriorityRequest.Normal' or 'CodeActionPriorityRequest.Low', we do not compute suppression/configuration fixes,
+            // those fixes have a dedicated request priority 'CodeActionPriorityRequest.Lowest'.
+            // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one fixable diagnostic
+            // that can have a non-suppression/configuration fix.
+            var shouldIncludeDiagnostic = priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low
+                ? GetFixableDiagnosticFilter(document)
+                : null;
+
+            // We only need to compute suppression/configurationofixes when request priority is
+            // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
+            var includeSuppressionFixes = priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, shouldIncludeDiagnostic, includeConfigurationFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
+                document, range, shouldIncludeDiagnostic, includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.IsSuppressed)
@@ -202,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // append fixes for all diagnostics with the same diagnostics span
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
 
-            // 'CodeActionRequestPriority.Low' is used when the client only wants suppression/configuration fixes.
-            if (priority != CodeActionRequestPriority.Low)
+            // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
+            if (priority != CodeActionRequestPriority.Lowest)
             {
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeConfigurationFixes)
+            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // Ensure that we do not register duplicate configuration fixes.
                 using var _ = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
@@ -246,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
                 var projectFixersMap = GetProjectFixers(document.Project);
 
-                return id => hasWorkspaceFixers && workspaceFixersMap!.Value.ContainsKey(id) || projectFixersMap.ContainsKey(id);
+                return id => (hasWorkspaceFixers && workspaceFixersMap!.Value.ContainsKey(id))
+                    || projectFixersMap.ContainsKey(id);
             }
         }
 

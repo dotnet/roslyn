@@ -106,20 +106,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         {
                             VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
                             VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
-                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Low,
+                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
                             _ => (CodeActionRequestPriority?)null,
                         };
 
                         if (priority != null)
                         {
-                            // Only request suppression fixes if we're in the lowest priority group.  The other groups
-                            // should not show suppressions them as that would cause them to not appear at the end.
-
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Low,
                                 priority.Value,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
@@ -165,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -175,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);

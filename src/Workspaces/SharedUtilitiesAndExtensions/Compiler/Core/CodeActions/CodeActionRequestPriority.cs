@@ -11,15 +11,23 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         /// <summary>
         /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
-        /// to <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
+        /// to <see cref="Lowest"/>, <see cref="Low"/>, <see cref="Normal"/> and <see cref="High"/> combined.
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// Only low priority suppression and configuration fix providers should be run.  Specifically,
+        /// Only lowest priority suppression and configuration fix providers should be run.  Specifically,
         /// <see cref="T:IConfigurationFixProvider"/> providers will be run.
         /// </summary>
-        Low = 1,
+        Lowest = 1,
+
+        /// <summary>
+        /// Only low priority refactoring, code fix providers should be run.  Specifically,
+        /// providers will be run when <see cref="T:CodeRefactoringProvider.RequestPriority"/> or
+        /// <see cref="T:CodeFixProvider.RequestPriority"/> is <see cref="Low"/>.  <see cref="DiagnosticAnalyzer"/>s
+        /// which can report at least one fixable diagnostic will be run.
+        /// </summary>
+        Low = 2,
 
         /// <summary>
         /// Only normal priority refactoring, code fix providers should be run.  Specifically,
@@ -27,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <see cref="T:CodeFixProvider.RequestPriority"/> is <see cref="Normal"/>.  <see cref="DiagnosticAnalyzer"/>s
         /// which can report at least one fixable diagnostic will be run.
         /// </summary>
-        Normal = 2,
+        Normal = 3,
 
         /// <summary>
         /// Only high priority refactoring, code fix providers should be run.  Specifically,
@@ -36,6 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The <see cref="DiagnosticAnalyzerExtensions.IsCompilerAnalyzer"/> <see cref="DiagnosticAnalyzer"/>
         /// will be run.
         /// </summary>
-        High = 3,
+        High = 4,
     }
 }

@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private sealed class LatestDiagnosticsForSpanGetter
         {
+            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
+
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly Document _document;
 
@@ -68,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Func<string, IDisposable?>? _addOperationScope;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
-
-            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationsWithAnalyzers = new(null);
 
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CancellationToken cancellationToken)
             {
-                if (_lastProjectAndCompilationsWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
+                if (_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
                     projectAndCompilationWithAnalyzers?.Project == project)
                 {
                     return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
                 }
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                _lastProjectAndCompilationsWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
+                _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
             }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var stateSet in _stateSets)
                     {
                         if (_shouldIncludeDiagnostic != null &&
-                            !_owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).Any(d => _shouldIncludeDiagnostic(d.Id)))
+                            !_owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).Any(a => _shouldIncludeDiagnostic(a.Id)))
                         {
                             continue;
                         }
@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_priority == CodeActionRequestPriority.None)
                     return true;
 
-                // 'CodeActionRequestPriority.Low' is used for suppression/configuration fixes,
+                // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
                 // which requires all analyzer diagnostics.
-                if (_priority == CodeActionRequestPriority.Low)
+                if (_priority == CodeActionRequestPriority.Lowest)
                     return true;
 
                 // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
@@ -284,18 +284,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
-            }
-        }
-
-        private sealed class ProjectAndCompilationWithAnalyzers
-        {
-            public Project Project { get; }
-            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
-
-            public ProjectAndCompilationWithAnalyzers(Project project, CompilationWithAnalyzers? compilationWithAnalyzers)
-            {
-                Project = project;
-                CompilationWithAnalyzers = compilationWithAnalyzers;
             }
         }
     }

@@ -80,20 +80,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             Document document,
             TextSpan? range,
-            string? diagnosticId,
-            bool includeSuppressedDiagnostics,
-            CodeActionRequestPriority priority,
-            Func<string, IDisposable?>? addOperationScope,
-            CancellationToken cancellationToken)
-        {
-            Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
-            return GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-                includeSuppressedDiagnostics, priority, addOperationScope, cancellationToken);
-        }
-
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document,
-            TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
