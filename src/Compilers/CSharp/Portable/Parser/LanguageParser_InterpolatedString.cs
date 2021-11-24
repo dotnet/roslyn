@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             rescanInterpolation(out var openQuoteRange, out var error, out var closeQuoteRange);
 
-            var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
+            var result = SyntaxFactory.InterpolatedStringExpression(
+                getOpenQuote(openQuoteRange), getContent(interpolations), getCloseQuote(closeQuoteRange));
 
             interpolations.Free();
             if (error != null)
@@ -68,17 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
-            SyntaxToken getOpenQuote()
+            SyntaxToken getOpenQuote(Range openQuoteRange)
             {
                 var openQuoteText = originalText[openQuoteRange];
-                var openQuote = SyntaxFactory.Token(
+                return SyntaxFactory.Token(
                     originalToken.GetLeadingTrivia(),
                     isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
                     openQuoteText, openQuoteText, trailing: null);
-                return openQuote;
             }
 
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent()
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent(ArrayBuilder<Lexer.Interpolation> interpolations)
             {
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
@@ -125,14 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return result;
             }
 
-            SyntaxToken getCloseQuote()
+            SyntaxToken getCloseQuote(Range openQuoteRange)
             {
                 // Make a token for the close quote " (even if it was missing)
                 var closeQuoteText = originalText[closeQuoteRange];
-                var closeQuote = closeQuoteText == ""
+                return closeQuoteText == ""
                     ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
                     : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
-                return closeQuote;
             }
         }
 
