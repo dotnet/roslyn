@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal partial class CSharpCodeCleanUpFixer
+    internal static class CSharpCodeCleanUpFixerDiagnosticIds
     {
         [Export]
         [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Export]
         [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
         [Name(IDEDiagnosticIds.AddBracesDiagnosticId)]
-        [Order(After = SortImportsFixId)]
+        [Order(After = AbstractCodeCleanUpFixer.SortImportsFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
