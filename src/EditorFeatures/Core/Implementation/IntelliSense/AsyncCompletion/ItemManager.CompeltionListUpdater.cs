@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     for (var i = 0; i < items.Count; ++i)
                     {
                         var itemWithMatch = items[i];
-                        if (itemWithMatch.RoslynCompletionItem.FilterText != defaultText)
+                        if (itemWithMatch.RoslynCompletionItem.DisplayText != defaultText)
                             continue;
 
                         if (itemWithMatch.PatternMatch != null && itemWithMatch.PatternMatch.Value.Kind > PatternMatchKind.Prefix)
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
-                        if (items[i].RoslynCompletionItem.FilterText == defaultText)
+                        if (items[i].RoslynCompletionItem.DisplayText == defaultText)
                             return intialSelection with { SelectedItemIndex = i };
                     }
                 }
