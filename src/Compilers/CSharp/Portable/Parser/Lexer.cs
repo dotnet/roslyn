@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
                     {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+                        this.ScanInterpolatedStringLiteral(ref info);
                         break;
                     }
                     else if (!this.ScanIdentifierOrKeyword(ref info))
@@ -783,15 +783,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '$':
-                    if (TextWindow.PeekChar(1) == '"')
+                    if (TextWindow.PeekChar(1) == '"' || (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"'))
                     {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
-                        break;
-                    }
-                    else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+                        this.ScanInterpolatedStringLiteral(ref info);
                         CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }

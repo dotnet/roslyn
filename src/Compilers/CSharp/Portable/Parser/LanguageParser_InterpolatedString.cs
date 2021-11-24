@@ -44,15 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var isVerbatim = (originalText[0] == '$' && originalText[1] == '@') ||
                              (originalText[0] == '@' && originalText[1] == '$');
 
-            // Determine the range of the open quote.  Either $" or $@" or @$"
-            var openQuoteRange = new Range(0, isVerbatim ? 3 : 2);
-            Debug.Assert(originalText[openQuoteRange.End.Value - 1] == '"');
-
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the close quote can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
-            rescanInterpolation(out var error, out var closeQuoteRange);
+            rescanInterpolation(out var openQuoteRange, out var error, out var closeQuoteRange);
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
 
@@ -65,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
 
-            void rescanInterpolation(out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
+            void rescanInterpolation(out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteRange);
+                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
             SyntaxToken getOpenQuote()

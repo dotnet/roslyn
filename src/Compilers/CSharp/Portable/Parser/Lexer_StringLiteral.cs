@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return error;
         }
 
-        private void ScanInterpolatedStringLiteral(bool isVerbatim, ref TokenInfo info)
+        private void ScanInterpolatedStringLiteral(ref TokenInfo info)
         {
             // We have a string of the form
             //                $" ... "
@@ -213,19 +213,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, out var error, closeQuoteRange: out _);
+            ScanInterpolatedStringLiteralTop(ref info, out var error, openQuoteRange: out _, interpolations: null, closeQuoteRange: out _);
             this.AddError(error);
         }
 
         internal void ScanInterpolatedStringLiteralTop(
-            ArrayBuilder<Interpolation>? interpolations,
-            bool isVerbatim,
             ref TokenInfo info,
             out SyntaxDiagnosticInfo? error,
+            out Range openQuoteRange,
+            ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
-            var subScanner = new InterpolatedStringScanner(this, isVerbatim);
-            subScanner.ScanInterpolatedStringLiteralTop(interpolations, out closeQuoteRange);
+            var subScanner = new InterpolatedStringScanner(this);
+            subScanner.ScanInterpolatedStringLiteralTop(out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = TextWindow.GetText(intern: false);
@@ -253,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private struct InterpolatedStringScanner
         {
             private readonly Lexer _lexer;
-            private readonly bool _isVerbatim;
+
+            private bool _isVerbatim = false;
 
             /// <summary>
             /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
@@ -266,10 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             public SyntaxDiagnosticInfo? Error = null;
             private bool EncounteredUnrecoverableError = false;
 
-            public InterpolatedStringScanner(Lexer lexer, bool isVerbatim)
+            public InterpolatedStringScanner(Lexer lexer)
             {
                 _lexer = lexer;
-                _isVerbatim = isVerbatim;
             }
 
             private bool IsAtEnd()
@@ -284,6 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     (!allowNewline && SyntaxFacts.IsNewLine(ch)) ||
                     (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
             }
+
+            private char PeekChar(int n)
+                => _lexer.TextWindow.PeekChar(n);
 
             private void TrySetUnrecoverableError(SyntaxDiagnosticInfo error)
             {
@@ -304,35 +307,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // is a recoverable error.
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, out Range closeQuoteRange)
+            internal void ScanInterpolatedStringLiteralTop(
+                out Range openQuoteRange,
+                ArrayBuilder<Interpolation>? interpolations,
+                out Range closeQuoteRange)
             {
-                ScanInterpolatedStringLiteralStart();
+                ScanInterpolatedStringLiteralStart(out openQuoteRange);
                 ScanInterpolatedStringLiteralContents(interpolations);
                 ScanInterpolatedStringLiteralEnd(out closeQuoteRange);
             }
 
-            private readonly void ScanInterpolatedStringLiteralStart()
+            private void ScanInterpolatedStringLiteralStart(out Range openQuoteRange)
             {
                 // Handles reading the start of the interpolated string literal (up to where the content begins)
-
-                if (_isVerbatim)
+                var start = _lexer.TextWindow.Position;
+                if ((PeekChar(0) == '$' && PeekChar(1) == '@') ||
+                    (PeekChar(0) == '@' && PeekChar(1) == '$'))
                 {
-                    Debug.Assert(
-                        (_lexer.TextWindow.PeekChar() == '@' && _lexer.TextWindow.PeekChar(1) == '$') ||
-                        (_lexer.TextWindow.PeekChar() == '$' && _lexer.TextWindow.PeekChar(1) == '@'));
-
-                    // @$ or $@
+                    _isVerbatim = true;
                     _lexer.TextWindow.AdvanceChar();
                     _lexer.TextWindow.AdvanceChar();
                 }
                 else
                 {
-                    Debug.Assert(_lexer.TextWindow.PeekChar() == '$');
-                    _lexer.TextWindow.AdvanceChar(); // $
+                    Debug.Assert(PeekChar(0) == '$');
+                    _lexer.TextWindow.AdvanceChar();
                 }
 
-                Debug.Assert(_lexer.TextWindow.PeekChar() == '"');
-                _lexer.TextWindow.AdvanceChar(); // "
+                Debug.Assert(_lexer.TextWindow.PeekChar(0) == '"');
+                _lexer.TextWindow.AdvanceChar();
+
+                openQuoteRange = new Range(start, _lexer.TextWindow.Position);
             }
 
             private void ScanInterpolatedStringLiteralEnd(out Range closeQuoteRange)
@@ -536,12 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
-                            if (_lexer.TextWindow.PeekChar(1) == '"' || _lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"')
+                            if (_lexer.TextWindow.PeekChar(1) == '"' || (_lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"'))
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(
-                                    isVerbatim: _lexer.TextWindow.PeekChar(1) == '@',
-                                    ref discarded);
+                                _lexer.ScanInterpolatedStringLiteral(ref discarded);
                                 continue;
                             }
 
@@ -601,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(isVerbatim: true, ref discarded);
+                                _lexer.ScanInterpolatedStringLiteral(ref discarded);
                                 continue;
                             }
 
