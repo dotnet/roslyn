@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             private readonly IVsBuildPropertyStorage _propertyStorage;
 
             public BuildPropertyStorage(IVsBuildPropertyStorage propertyStorage)
-                => this._propertyStorage = propertyStorage;
+                => _propertyStorage = propertyStorage;
 
             public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
                 => _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             private readonly ConfigurationManager _configurationManager;
 
             public PerConfigurationPropertyStorage(ConfigurationManager configurationManager)
-                => this._configurationManager = configurationManager;
+                => _configurationManager = configurationManager;
 
             public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
             {

@@ -320,17 +320,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
-            if (type.IsAnonymousType)
-            {
+            if (type.IsAnonymousType || type.IsAnonymousDelegateType())
                 return true;
-            }
 
             foreach (var typeArg in type.GetAllTypeArguments())
             {
                 if (ContainsAnonymousType(typeArg))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -691,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (!(member is IFieldSymbol fieldSymbol))
+                if (member is not IFieldSymbol fieldSymbol)
                 {
                     continue;
                 }

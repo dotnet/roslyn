@@ -10,10 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -112,9 +114,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,
+            StorageDatabase database,
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
@@ -130,15 +133,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                services, priorityDocumentKeys, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                services, lowPriDocs, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<DocumentKey> documentKeys,
+            StorageDatabase database,
             string patternName,
             string patternContainer,
             DeclaredSymbolInfoKindSet kinds,
@@ -153,7 +157,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 tasks.Add(Task.Run(async () =>
                 {
                     var index = await SyntaxTreeIndex.LoadAsync(
-                        workspace, documentKey, checksum: null, stringTable, cancellationToken).ConfigureAwait(false);
+                        services, documentKey, checksum: null, database, stringTable, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -179,17 +183,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
             using var _1 = containerMatcher;
-            using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
-            using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
 
             foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
+                // Namespaces are never returned in nav-to as they're too common and have too many locations.
+                if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                    continue;
+
                 await AddResultIfMatchAsync(
                     documentId, document,
                     declaredSymbolInfo,
                     nameMatcher, containerMatcher,
                     kinds,
-                    nameMatches, containerMatches,
                     onResultFound, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -199,30 +204,40 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
-            nameMatches.Clear();
-            containerMatches.Clear();
+            using var nameMatches = TemporaryArray<PatternMatch>.Empty;
+            using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
             cancellationToken.ThrowIfCancellationRequested();
             if (kinds.Contains(declaredSymbolInfo.Kind) &&
-                nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
-                containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
+                containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
             {
-                var result = await ConvertResultAsync(
-                    documentId, document, declaredSymbolInfo, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                // See if we have a match in a linked file.  If so, see if we have the same match in
+                // other projects that this file is linked in.  If so, include the full set of projects
+                // the match is in so we can display that well in the UI.
+                //
+                // We can only do this in the case where the solution is loaded and thus we can examine
+                // the relationship between this document and the other documents linked to it.  In the
+                // case where the solution isn't fully loaded and we're just reading in cached data, we
+                // don't know what other files we're linked to and can't merge results in this fashion.
+                var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
+                    document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
+
+                var result = ConvertResult(
+                    documentId, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
 
-        private static async Task<RoslynNavigateToItem> ConvertResultAsync(
+        private static RoslynNavigateToItem ConvertResult(
             DocumentId documentId,
             Document? document,
             DeclaredSymbolInfo declaredSymbolInfo,
-            ArrayBuilder<PatternMatch> nameMatches,
-            ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
+            in TemporaryArray<PatternMatch> nameMatches,
+            in TemporaryArray<PatternMatch> containerMatches,
+            ImmutableArray<ProjectId> additionalMatchingProjects)
         {
             var matchKind = GetNavigateToMatchKind(nameMatches);
 
@@ -231,21 +246,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
+            using var matchedSpans = TemporaryArray<TextSpan>.Empty;
             foreach (var match in nameMatches)
                 matchedSpans.AddRange(match.MatchedSpans);
-
-            // See if we have a match in a linked file.  If so, see if we have the same match in
-            // other projects that this file is linked in.  If so, include the full set of projects
-            // the match is in so we can display that well in the UI.
-            //
-            // We can only do this in the case where the solution is loaded and thus we can examine
-            // the relationship between this document and the other documents linked to it.  In the
-            // case where the solution isn't fully loaded and we're just reading in cached data, we
-            // don't know what other files we're linked to and can't merge results in this fashion.
-            var additionalMatchingProjects = document == null
-                ? ImmutableArray<ProjectId>.Empty
-                : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
             // If we were not given a Document instance, then we're finding matches in cached data
             // and thus could be 'stale'.
@@ -257,12 +260,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 kind,
                 matchKind,
                 isCaseSensitive,
-                matchedSpans.ToImmutable());
+                matchedSpans.ToImmutableAndClear());
         }
 
-        private static async Task<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(
-            Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+        private static async ValueTask<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(
+            Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
         {
+            if (document == null)
+                return ImmutableArray<ProjectId>.Empty;
+
             using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 
             var solution = document.Project.Solution;
@@ -321,7 +327,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
+        private static NavigateToMatchKind GetNavigateToMatchKind(in TemporaryArray<PatternMatch> nameMatches)
         {
             // work backwards through the match kinds.  That way our result is as bad as our worst match part.  For
             // example, say the user searches for `Console.Write` and we find `Console.Write` (exact, exact), and

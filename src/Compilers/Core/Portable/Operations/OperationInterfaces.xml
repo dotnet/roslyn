@@ -2780,6 +2780,11 @@
         <summary>Arms of the switch expression.</summary>
       </Comments>
     </Property>
+    <Property Name="IsExhaustive" Type="bool">
+        <Comments>
+            <summary>True if the switch expressions arms cover every possible input value.</summary>
+        </Comments>
+    </Property>
   </Node>
   <Node Name="ISwitchExpressionArmOperation" Base="IOperation" ChildrenOrder="Pattern,Guard,Value">
     <Comments>

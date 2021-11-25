@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             lock (_gate)
             {
                 // We should not have an existing computation active
-                Contract.ThrowIfNull(_cancellationTokenSource == null);
+                Contract.ThrowIfTrue(_cancellationTokenSource is not null);
 
                 _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;

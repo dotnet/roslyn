@@ -102,6 +102,11 @@
         <target state="translated">El desplazamiento y la longitud estaban fuera de los límites para esta matriz o el recuento es superior al número de elementos desde el índice al final de la colección de origen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">No se puede encontrar el valor antiguo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Las operaciones que cambian las colecciones no simultáneas deben tener acceso exclusivo. Se realizó una actualización simultánea en esta colección y se dañó su estado. El estado de la colección ya no es correcto.</target>

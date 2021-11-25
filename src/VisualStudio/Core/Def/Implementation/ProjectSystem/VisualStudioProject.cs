@@ -85,6 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
         private bool _runAnalyzers = true;
 
+        /// <summary>
+        /// The full list of all metadata references this project has. References that have internally been converted to project references
+        /// will still be in this.
+        /// </summary>
         private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new();
 
         /// <summary>
@@ -116,7 +120,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
         /// original dynamic file path (the key).
         /// </summary>
-        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new();
+        /// <remarks>
+        /// We use the same string comparer as in the <see cref="BatchingDocumentCollection"/> used by _sourceFiles, below, as these
+        /// files are added to that collection too.
+        /// </remarks>
+        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
@@ -234,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
             var projectState = solutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
-            foreach (var documentState in projectState.DocumentStates.States)
+            foreach (var (_, documentState) in projectState.DocumentStates.States)
             {
                 if (documentState.TryGetSyntaxTree(out _))
                 {

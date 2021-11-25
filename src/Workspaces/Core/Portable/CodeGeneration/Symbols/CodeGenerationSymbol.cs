@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public int MetadataToken => 0;
+
         public bool HasUnsupportedMetadata => false;
 
         public bool Equals(ISymbol other)

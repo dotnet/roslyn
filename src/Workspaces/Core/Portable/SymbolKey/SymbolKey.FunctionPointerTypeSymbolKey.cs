@@ -66,9 +66,15 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                if (!(returnType.GetAnySymbol() is ITypeSymbol returnTypeSymbol))
+                if (returnType.GetAnySymbol() is not ITypeSymbol returnTypeSymbol)
                 {
                     failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} no return type)";
+                    return default;
+                }
+
+                if (reader.Compilation.Language == LanguageNames.VisualBasic)
+                {
+                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} is not supported in {LanguageNames.VisualBasic})";
                     return default;
                 }
 

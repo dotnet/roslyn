@@ -45,8 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = nameof(HTML);
         private const string HTMLX = nameof(HTMLX);
+        private const string LegacyRazor = nameof(LegacyRazor);
         private const string Razor = nameof(Razor);
         private const string XOML = nameof(XOML);
+        private const string WebForms = nameof(WebForms);
 
         private const char RazorExplicit = '@';
 
@@ -148,7 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 // RazorCSharp has an HTMLX base type but should not be associated with
                 // the HTML host type, so we check for it first.
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor) ||
+                    b.ContentType.IsOfType(LegacyRazor)))
                 {
                     return HostType.Razor;
                 }
@@ -156,6 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // For TypeScript hosted in HTML the source buffers will have type names
                 // HTMLX and TypeScript.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    b.ContentType.IsOfType(WebForms) ||
                     b.ContentType.IsOfType(HTMLX)))
                 {
                     return HostType.HTML;
@@ -834,7 +838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (current.Span.Start < visibleSpan.Start)
                     {
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
-                        if (blockType == RazorCodeBlockType.Block || blockType == RazorCodeBlockType.Helper)
+                        if (blockType is RazorCodeBlockType.Block or RazorCodeBlockType.Helper)
                         {
                             var baseIndentation = GetBaseIndentation(root, text, visibleSpan);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);

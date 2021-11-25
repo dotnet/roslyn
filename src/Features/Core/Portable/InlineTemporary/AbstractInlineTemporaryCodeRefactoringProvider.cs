@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
             TVariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var local = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
 
             if (local != null)

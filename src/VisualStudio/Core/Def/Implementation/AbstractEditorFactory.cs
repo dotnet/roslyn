@@ -4,17 +4,19 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Contexts;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +24,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -44,9 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
-        protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -117,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     var loaderName = GetWinFormsLoaderName(vsHierarchy);
-                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
+                    var designerService = (IVSMDDesignerService)Microsoft.VisualStudio.Shell.PackageUtilities.QueryService<SVSMDDesignerService>(_oleServiceProvider);
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
                     if (designerLoader is null)
                     {
@@ -275,12 +273,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Is this being added from a template?
             if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
             {
-                var waitIndicator = _componentModel.GetService<IWaitIndicator>();
+                var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
                 // TODO(cyrusn): Can this be cancellable?
-                waitIndicator.Wait(
+                uiThreadOperationExecutor.Execute(
                     "Intellisense",
-                    allowCancel: false,
-                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
+                    defaultDescription: "",
+                    allowCancellation: false,
+                    showProgress: false,
+                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.UserCancellationToken));
             }
 
             return VSConstants.S_OK;
@@ -289,10 +289,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
-        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
-            => Formatter.OrganizeImportsAsync(document, cancellationToken);
-
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        {
+            Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
+        }
+
+        private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
@@ -327,36 +329,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
-            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
-            Contract.ThrowIfNull(rootToFormat);
-            var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
-
-            // Apply file header preferences
-            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
-            if (!string.IsNullOrEmpty(fileHeaderTemplate))
+            // Call out to various new document formatters to tweak what they want
+            var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
             {
-                var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
-                {
-                    var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                    var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
-                    return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                        SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
-                        newLineTrivia,
-                        addedDocument,
-                        cancellationToken);
-                });
-
-                addedDocument = addedDocument.WithSyntaxRoot(documentWithFileHeader);
-                rootToFormat = documentWithFileHeader;
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
             }
 
-            // Organize using directives
-            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
-            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).AsTask());
+            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
 
             // Format document
-            var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
+            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
             var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 

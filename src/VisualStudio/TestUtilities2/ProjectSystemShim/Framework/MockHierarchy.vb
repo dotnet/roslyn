@@ -128,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf propid = __VSHPROPID.VSHPROPID_ExtObject Then
                 Dim projectItemMock As Mock(Of EnvDTE.ProjectItem) = New Mock(Of EnvDTE.ProjectItem)(MockBehavior.Strict)
                 projectItemMock.SetupGet(Function(m) m.ContainingProject).Returns(_projectMock.Object)
-                projectItemMock.SetupGet(Function(m) m.FileNames(1)).Returns(_hierarchyItems(itemid))
+                projectItemMock.Setup(Function(m) m.FileNames(1)).Returns(_hierarchyItems(itemid))
 
                 pvar = projectItemMock.Object
                 Return VSConstants.S_OK
