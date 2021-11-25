@@ -2898,6 +2898,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ExpressionColon(expression, colonToken);
                 var annotations = GetAnnotations();
+                // <Caravela> This change is generated. See Modifications.md for details.
+                Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Caravela>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
@@ -9804,6 +9807,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, semicolonToken, externs, usings, members);
                 var annotations = GetAnnotations();
+                // <Caravela> This change is generated. See Modifications.md for details.
+                Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Caravela>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
@@ -16092,6 +16098,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LineDirectivePosition(openParenToken, line, commaToken, character, closeParenToken);
                 var annotations = GetAnnotations();
+                // <Caravela> This change is generated. See Modifications.md for details.
+                Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Caravela>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
@@ -16171,6 +16180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LineSpanDirectiveTrivia(hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
+                // <Caravela> This change is generated. See Modifications.md for details.
+                Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Caravela>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 

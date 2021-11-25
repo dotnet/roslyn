@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
                     // <Caravela> This code is used by Try.Caravela.
-                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents, state.TransformerDiagnostics));
+                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents, state.TransformerDiagnostics);
                     // </Caravela>
                 }
 
@@ -791,21 +791,20 @@ namespace Microsoft.CodeAnalysis
                     // We will finalize the compilation by adding full contents here.
                     Compilation compilationWithGenerators;
 
+                    var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
                     // <Caravela>
                     // Caravela TODO #29156: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
-                    generatorInfo.DocumentsAreFinal = false;
-                    var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                    // if (generatorInfo.DocumentsAreFinal)
+                    // {
+                    //     // We must have ran generators before, but for some reason had to remake the compilation from scratch.
+                    //     // This could happen if the trees were strongly held, but the compilation was entirely garbage collected.
+                    //     // Just add in the trees we already have. We don't want to rerun since the consumer of this Solution
+                    //     // snapshot has already seen the trees and thus needs to ensure identity of them.
+                    //     compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
+                    //         await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                    // }
+                    // else
                     // </Caravela>
-                    if (generatorInfo.DocumentsAreFinal)
-                    {
-                        // We must have ran generators before, but for some reason had to remake the compilation from scratch.
-                        // This could happen if the trees were strongly held, but the compilation was entirely garbage collected.
-                        // Just add in the trees we already have. We don't want to rerun since the consumer of this Solution
-                        // snapshot has already seen the trees and thus needs to ensure identity of them.
-                        compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
-                            await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
-                    }
-                    else
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
@@ -815,7 +814,7 @@ namespace Microsoft.CodeAnalysis
                             if (generatorInfo.Driver == null)
                             {
                                 var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                                var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                                // <Caravela /> The retrieval of the compilation factory has been moved outside of the block.
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
