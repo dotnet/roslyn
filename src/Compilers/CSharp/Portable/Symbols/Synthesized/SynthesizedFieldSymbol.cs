@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a compiler generated field.
+    /// Represents a compiler generated field of given type and name.
     /// </summary>
     internal sealed class SynthesizedFieldSymbol : SynthesizedFieldSymbolBase
     {
