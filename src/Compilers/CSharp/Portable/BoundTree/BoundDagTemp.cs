@@ -18,49 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool IsOriginalInput => this.Source is null;
 
-        public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, null, 0);
+        public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, source: null, 0);
 
         public override bool Equals(object? obj) => obj is BoundDagTemp other && this.Equals(other);
 
         public bool Equals(BoundDagTemp other)
         {
-            return other is { } &&
+            return
                 this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
-                object.Equals(this.Source, other.Source) && this.Index == other.Index;
+                object.Equals(this.Source, other.Source) &&
+                this.Index == other.Index;
         }
 
         /// <summary>
-        /// Determine if two <see cref="BoundDagTemp"/>s represent the same value for the purpose of a pattern evaluation.
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the source.
         /// </summary>
-        public bool IsSameValue(BoundDagTemp other)
+        public bool IsEquivalentTo(BoundDagTemp other)
         {
-            var current = originalInput(this);
-            other = originalInput(other);
-
-            if ((object)current == other)
-            {
-                return true;
-            }
-
-            return current.Index == other.Index &&
-                (current.Source, other.Source) switch
-                {
-                    (null, null) => true,
-                    ({ } s1, { } s2) => s1.IsSameValueEvaluation(s2),
-                    _ => false
-                };
-
-            static BoundDagTemp originalInput(BoundDagTemp input)
-            {
-                // Type evaluations do not change identity
-                while (input.Source is BoundDagTypeEvaluation source)
-                {
-                    Debug.Assert(input.Index == 0);
-                    input = source.Input;
-                }
-
-                return input;
-            }
+            return
+                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
+                this.Index == other.Index;
         }
 
         public override int GetHashCode()

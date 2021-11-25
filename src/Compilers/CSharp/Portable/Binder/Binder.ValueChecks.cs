@@ -398,17 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = ((BoundIndexOrRangePatternIndexerAccess)expr);
-                    if (patternIndexer.PatternSymbol.Kind == SymbolKind.Property)
-                    {
-                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
-                        // pattern indexer. If it's a Range access, it will be a method, pointing to a Slice method
-                        // and it's handled below as part of invocations.
-                        return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
-                    }
-                    Debug.Assert(patternIndexer.PatternSymbol.Kind == SymbolKind.Method);
-                    break;
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexer = (BoundImplicitIndexerAccess)expr;
+                    return CheckValueKind(node, implicitIndexer.IndexerOrSliceAccess, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
@@ -589,17 +581,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         diagnostics);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pattern indexer taking a Range,
-                    // meaning that the pattern symbol must be a method (either Slice or Substring)
-                    return CheckMethodReturnValueKind(
-                        (MethodSymbol)patternIndexer.PatternSymbol,
-                        patternIndexer.Syntax,
-                        node,
-                        valueKind,
-                        checkingReceiver,
-                        diagnostics);
+                case BoundKind.ImplicitIndexerAccess:
+                    throw ExceptionUtilities.Unreachable;
+
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    break;
+
+                case BoundKind.DeconstructValuePlaceholder:
+                    break;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -624,6 +613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
+
+                default:
+                    Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
+                    break;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -2347,43 +2340,10 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    RefKind refKind;
-                    ImmutableArray<ParameterSymbol> parameters;
-
-                    switch (patternIndexer.PatternSymbol)
-                    {
-                        case PropertySymbol p:
-                            refKind = p.RefKind;
-                            parameters = p.Parameters;
-                            break;
-                        case MethodSymbol m:
-                            refKind = m.RefKind;
-                            parameters = m.Parameters;
-                            break;
-                        default:
-                            throw ExceptionUtilities.Unreachable;
-                    }
-
-                    if (refKind == RefKind.None)
-                    {
-                        break;
-                    }
-
-                    return CheckInvocationEscape(
-                        patternIndexer.Syntax,
-                        patternIndexer.PatternSymbol,
-                        patternIndexer.Receiver,
-                        parameters,
-                        ImmutableArray.Create<BoundExpression>(patternIndexer.Argument),
-                        default,
-                        default,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: true);
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+                    // Note: the LengthOrCountAccess use is purely local
+                    return CheckRefEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.FunctionPointerInvocation:
                     var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
@@ -2618,24 +2578,19 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var parameters = patternIndexer.PatternSymbol switch
-                    {
-                        PropertySymbol p => p.Parameters,
-                        MethodSymbol m => m.Parameters,
-                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
-                    };
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    return ((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape;
 
-                    return GetInvocationEscapeScope(
-                        patternIndexer.PatternSymbol,
-                        patternIndexer.Receiver,
-                        parameters,
-                        default,
-                        default,
-                        default,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                case BoundKind.ListPatternReceiverPlaceholder:
+                    return ((BoundListPatternReceiverPlaceholder)expr).ValEscape;
+
+                case BoundKind.SlicePatternReceiverPlaceholder:
+                    return ((BoundSlicePatternReceiverPlaceholder)expr).ValEscape;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+                    // Note: the LengthOrCountAccess use is purely local
+                    return GetValEscape(implicitIndexerAccess.IndexerOrSliceAccess, scopeOfTheContainingExpression);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -3041,29 +2996,34 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var patternSymbol = patternIndexer.PatternSymbol;
-                    var parameters = patternSymbol switch
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        PropertySymbol p => p.Parameters,
-                        MethodSymbol m => m.Parameters,
-                        _ => throw ExceptionUtilities.Unreachable,
-                    };
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
 
-                    return CheckInvocationEscape(
-                        patternIndexer.Syntax,
-                        patternSymbol,
-                        patternIndexer.Receiver,
-                        parameters,
-                        ImmutableArray.Create(patternIndexer.Argument),
-                        default,
-                        default,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: false);
+                case BoundKind.ListPatternReceiverPlaceholder:
+                    if (((BoundListPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.SlicePatternReceiverPlaceholder:
+                    if (((BoundSlicePatternReceiverPlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+                    // Note: the LengthOrCountAccess use is purely local
+                    return CheckValEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;

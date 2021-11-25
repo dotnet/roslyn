@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors, out _topologicallySortedNodes);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(this.RootNode), Successors, out _topologicallySortedNodes);
 
                     // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
                     Debug.Assert(wasAcyclic);
@@ -188,9 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagRelationalTest d:
                             var f = ValueSetFactory.ForType(input.Type);
                             if (f is null) return null;
-                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
-                            var set = f.Related(d.Relation.Operator(), d.Value);
-                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
+                            return f.Related(d.Relation.Operator(), inputConstant, d.Value);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
