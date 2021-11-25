@@ -235,16 +235,6 @@ public class X
         var source = @"
 public class X
 {
-    static int Test0(int[][] a)
-    {
-        switch (a)
-        {
-            case [.., [.., 1, 2, 3]]:
-            case [[1, 2, 3, ..], ..]:
-                return 0;
-        }
-        return 1;
-    }
     static int Test1(int[] x)
     {
         switch (x)
@@ -288,103 +278,21 @@ public class X
 ";
         var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         AssertEx.Multiple(
-            () => verifier.VerifyIL("X.Test0", @"
-{
-  // Code size      100 (0x64)
-  .maxstack  3
-  .locals init (int[] V_0,
-                int[] V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0062
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_0062
-  IL_000c:  ldarg.0
-  IL_000d:  dup
-  IL_000e:  ldlen
-  IL_000f:  conv.i4
-  IL_0010:  ldc.i4.1
-  IL_0011:  sub
-  IL_0012:  ldelem.ref
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  brfalse.s  IL_003e
-  IL_0017:  ldloc.0
-  IL_0018:  callvirt   ""int System.Array.Length.get""
-  IL_001d:  ldc.i4.3
-  IL_001e:  blt.s      IL_003e
-  IL_0020:  ldloc.0
-  IL_0021:  dup
-  IL_0022:  ldlen
-  IL_0023:  conv.i4
-  IL_0024:  ldc.i4.3
-  IL_0025:  sub
-  IL_0026:  ldelem.i4
-  IL_0027:  ldc.i4.1
-  IL_0028:  bne.un.s   IL_003e
-  IL_002a:  ldloc.0
-  IL_002b:  dup
-  IL_002c:  ldlen
-  IL_002d:  conv.i4
-  IL_002e:  ldc.i4.2
-  IL_002f:  sub
-  IL_0030:  ldelem.i4
-  IL_0031:  ldc.i4.2
-  IL_0032:  bne.un.s   IL_003e
-  IL_0034:  ldloc.0
-  IL_0035:  dup
-  IL_0036:  ldlen
-  IL_0037:  conv.i4
-  IL_0038:  ldc.i4.1
-  IL_0039:  sub
-  IL_003a:  ldelem.i4
-  IL_003b:  ldc.i4.3
-  IL_003c:  beq.s      IL_0060
-  IL_003e:  ldarg.0
-  IL_003f:  ldc.i4.0
-  IL_0040:  ldelem.ref
-  IL_0041:  stloc.1
-  IL_0042:  ldloc.1
-  IL_0043:  brfalse.s  IL_0062
-  IL_0045:  ldloc.1
-  IL_0046:  callvirt   ""int System.Array.Length.get""
-  IL_004b:  ldc.i4.3
-  IL_004c:  blt.s      IL_0062
-  IL_004e:  ldloc.1
-  IL_004f:  ldc.i4.0
-  IL_0050:  ldelem.i4
-  IL_0051:  ldc.i4.1
-  IL_0052:  bne.un.s   IL_0062
-  IL_0054:  ldloc.1
-  IL_0055:  ldc.i4.1
-  IL_0056:  ldelem.i4
-  IL_0057:  ldc.i4.2
-  IL_0058:  bne.un.s   IL_0062
-  IL_005a:  ldloc.1
-  IL_005b:  ldc.i4.2
-  IL_005c:  ldelem.i4
-  IL_005d:  ldc.i4.3
-  IL_005e:  bne.un.s   IL_0062
-  IL_0060:  ldc.i4.0
-  IL_0061:  ret
-  IL_0062:  ldc.i4.1
-  IL_0063:  ret
-}"),
             () => verifier.VerifyIL("X.Test1", @"
 {
   // Code size       32 (0x20)
   .maxstack  3
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_001e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_001e
-  IL_000c:  ldarg.0
-  IL_000d:  dup
-  IL_000e:  ldlen
-  IL_000f:  conv.i4
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_001e
+  IL_000e:  ldarg.0
+  IL_000f:  ldloc.0
   IL_0010:  ldc.i4.1
   IL_0011:  sub
   IL_0012:  ldelem.i4
@@ -404,21 +312,22 @@ public class X
 {
   // Code size       32 (0x20)
   .maxstack  3
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_001e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_001e
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldelem.i4
-  IL_000f:  ldc.i4.2
-  IL_0010:  bne.un.s   IL_001e
-  IL_0012:  ldarg.0
-  IL_0013:  dup
-  IL_0014:  ldlen
-  IL_0015:  conv.i4
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_001e
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldelem.i4
+  IL_0011:  ldc.i4.2
+  IL_0012:  bne.un.s   IL_001e
+  IL_0014:  ldarg.0
+  IL_0015:  ldloc.0
   IL_0016:  ldc.i4.1
   IL_0017:  sub
   IL_0018:  ldelem.i4
@@ -433,21 +342,22 @@ public class X
 {
   // Code size       36 (0x24)
   .maxstack  3
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_0022
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_0022
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldelem.i4
-  IL_000f:  ldc.i4.2
-  IL_0010:  beq.s      IL_001e
-  IL_0012:  ldarg.0
-  IL_0013:  dup
-  IL_0014:  ldlen
-  IL_0015:  conv.i4
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0022
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldelem.i4
+  IL_0011:  ldc.i4.2
+  IL_0012:  beq.s      IL_001e
+  IL_0014:  ldarg.0
+  IL_0015:  ldloc.0
   IL_0016:  ldc.i4.1
   IL_0017:  sub
   IL_0018:  ldelem.i4
@@ -466,35 +376,36 @@ public class X
   // Code size       50 (0x32)
   .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_0030
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_0030
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldelem.i4
-  IL_000f:  stloc.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.2
-  IL_0012:  beq.s      IL_002a
-  IL_0014:  ldarg.0
-  IL_0015:  dup
-  IL_0016:  ldlen
-  IL_0017:  conv.i4
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0030
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldelem.i4
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  ldc.i4.2
+  IL_0014:  beq.s      IL_002a
+  IL_0016:  ldarg.0
+  IL_0017:  ldloc.0
   IL_0018:  ldc.i4.1
   IL_0019:  sub
   IL_001a:  ldelem.i4
-  IL_001b:  stloc.1
-  IL_001c:  ldloc.1
+  IL_001b:  stloc.2
+  IL_001c:  ldloc.2
   IL_001d:  ldc.i4.1
   IL_001e:  beq.s      IL_002c
-  IL_0020:  ldloc.0
+  IL_0020:  ldloc.1
   IL_0021:  ldc.i4.6
   IL_0022:  bne.un.s   IL_0030
-  IL_0024:  ldloc.1
+  IL_0024:  ldloc.2
   IL_0025:  ldc.i4.7
   IL_0026:  beq.s      IL_002e
   IL_0028:  br.s       IL_0030
