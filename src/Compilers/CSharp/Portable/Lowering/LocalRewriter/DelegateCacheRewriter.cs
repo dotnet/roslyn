@@ -11,17 +11,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal class LoweredDelegateCachingFactory
+internal class DelegateCacheRewriter
 {
-    public LoweredDelegateCachingFactory(SyntheticBoundNodeFactory factory, int methodOrdinal)
-    {
+    private readonly SyntheticBoundNodeFactory _factory;
+    private readonly int _topLevelMethodOrdinal;
 
+    public DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    {
+        _factory = factory;
+        _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    public BoundExpression RewriteStaticMethodGroupConversion(SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
+    public static bool CanRewrite(SyntheticBoundNodeFactory factory, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
+        => factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions)
+        && targetMethod.IsStatic && !boundConversion.IsExtensionMethod
+        && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
+        && factory.TopLevelMethod is not { MethodKind: MethodKind.StaticConstructor } // Avoid caching twice if people do it manually.
+        ;
+
+    public BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
-        Debug.Assert((object)targetMethod != null);
+        Debug.Assert(targetMethod is { });
 
         return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, false, delegateType);
         //var orgSyntax = _factory.Syntax;

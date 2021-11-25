@@ -406,22 +406,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        // Try to see if we cannot cache the delegate
-                        if (!method.IsStatic     // We're only looking for static methods for caching,
-                            || oldNodeOpt.IsExtensionMethod    // and it cannot be bounded as extension method.
-                            || _inExpressionLambda  // The tree structure / meaning for expression trees should not be touched.
-                            || _factory.TopLevelMethod is { MethodKind: MethodKind.StaticConstructor }   // Avoid caching twice if people do it manually.
-                            )
+                        if (DelegateCacheRewriter.CanRewrite(_factory, _inExpressionLambda, oldNodeOpt, method))
                         {
-                            // we eliminate the method group conversion entirely from the bound nodes following local lowering
-                            return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                       isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _containingMethodOrdinal);
+                            return cacheRewriter.Rewrite(_availableLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
                         }
                         else
                         {
-                            // Rewriting this to use a cached delegate
-                            var cachingFactory = _lazyDelegateCachingFactory ??= new(_factory, _containingMethodOrdinal);
-                            return cachingFactory.RewriteStaticMethodGroupConversion(syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
+                            return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                                                                       isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
                         }
                     }
 

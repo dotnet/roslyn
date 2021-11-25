@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class DelegateCacheContainer : SynthesizedContainer
+    internal sealed class DelegateCacheContainer : SynthesizedContainer
     {
         private readonly MethodSymbol _topLevelMethod;
 

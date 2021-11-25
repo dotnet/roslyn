@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
 
         private readonly int _containingMethodOrdinal;
-        private LoweredDelegateCachingFactory? _lazyDelegateCachingFactory;
+        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
 
         private LocalRewriter(
             CSharpCompilation compilation,
