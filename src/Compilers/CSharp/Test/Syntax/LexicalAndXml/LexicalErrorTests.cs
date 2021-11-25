@@ -1349,17 +1349,17 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,23): error CS1733: Expected expression
-                //       string s = $"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+                    // (7,23): error CS1733: Expected expression
+                    //                       } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,23): error CS1733: Expected expression
-                //       string s = $"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+                    // (7,23): error CS1733: Expected expression
+                    //                       } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
             CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (6,23): error CS1733: Expected expression
-                //       string s = $"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 23));
+                    // (7,23): error CS1733: Expected expression
+                    //                       } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
         }
 
         [Fact]
@@ -1377,17 +1377,17 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,24): error CS1733: Expected expression
-                //       string s = $@"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 24));
+                    // (7,24): error CS1733: Expected expression
+                    //                        } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 24));
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,24): error CS1733: Expected expression
-                //       string s = $@"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 24));
+                    // (7,24): error CS1733: Expected expression
+                    //                        } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 24));
             CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (6,24): error CS1733: Expected expression
-                //       string s = $@"x { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 24));
+                    // (7,24): error CS1733: Expected expression
+                    //                        } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 24));
         }
 
         [Fact]
@@ -1405,17 +1405,17 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,29): error CS1733: Expected expression
-                //       string s = $"x { $@" { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 29));
+                    // (7,30): error CS1733: Expected expression
+                    //                              } " } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 30));
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,29): error CS1733: Expected expression
-                //       string s = $"x { $@" { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 29));
+                    // (7,30): error CS1733: Expected expression
+                    //                              } " } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 30));
             CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (6,29): error CS1733: Expected expression
-                //       string s = $"x { $@" { // comment
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 29));
+                    // (7,30): error CS1733: Expected expression
+                    //                              } " } y";
+                    Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 30));
         }
 
         [Fact]
