@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (foundExplicitValueTest && d.WasCompilerGenerated && d is BoundDagValueTest v)
                             {
-                                // We're going to remove compiler-generated nodes from dag right after consturction.
+                                // We're going to remove compiler-generated nodes from dag right after construction.
                                 // If we have found an explicit value test we need to unset the flag to preserve it.
                                 state.SelectedTest = new BoundDagValueTest(v.Syntax, v.Value, v.Input, v.HasErrors);
                             }
