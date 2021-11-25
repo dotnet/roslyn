@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ScanInterpolatedStringLiteralTop(
                 ref info,
                 out var error,
-                isVerbatim: out _,
+                kind: out _,
                 openQuoteRange: out _,
                 interpolations: null,
                 closeQuoteRange: out _);
@@ -226,13 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal void ScanInterpolatedStringLiteralTop(
             ref TokenInfo info,
             out SyntaxDiagnosticInfo? error,
-            out bool isVerbatim,
+            out InterpolatedStringKind kind,
             out Range openQuoteRange,
             ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
             var subScanner = new InterpolatedStringScanner(this);
-            subScanner.ScanInterpolatedStringLiteralTop(out isVerbatim, out openQuoteRange, interpolations, out closeQuoteRange);
+            subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = TextWindow.GetText(intern: false);
@@ -256,11 +256,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 interpolatedString.GetLastToken().GetTrailingTrivia());
         }
 
+        internal enum InterpolatedStringKind
+        {
+            /// <summary>
+            /// Normal interpolated string that just starts with $"
+            /// </summary>
+            Normal,
+            /// <summary>
+            /// Verbatim interpolated string that starts with $@" or @$"
+            /// </summary>
+            Verbatim,
+        }
+
         [NonCopyable]
-        private struct InterpolatedStringScanner
+        private ref struct InterpolatedStringScanner
         {
             private readonly Lexer _lexer;
-            private readonly bool _isVerbatim;
+            private readonly InterpolatedStringKind _kind;
 
             /// <summary>
             /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
@@ -277,13 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 _lexer = lexer;
 
-                _isVerbatim = (lexer.TextWindow.PeekChar(0) == '$' && lexer.TextWindow.PeekChar(1) == '@') ||
-                              (lexer.TextWindow.PeekChar(0) == '@' && lexer.TextWindow.PeekChar(1) == '$');
+                _kind =
+                    (lexer.TextWindow.PeekChar(0) == '$' && lexer.TextWindow.PeekChar(1) == '@') ||
+                    (lexer.TextWindow.PeekChar(0) == '@' && lexer.TextWindow.PeekChar(1) == '$')
+                        ? InterpolatedStringKind.Verbatim
+                        : InterpolatedStringKind.Normal;
             }
 
             private bool IsAtEnd()
             {
-                return IsAtEnd(_isVerbatim);
+                return IsAtEnd(_kind is InterpolatedStringKind.Verbatim);
             }
 
             private bool IsAtEnd(bool allowNewline)
@@ -314,12 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             internal void ScanInterpolatedStringLiteralTop(
-                out bool isVerbatim,
+                out InterpolatedStringKind kind,
                 out Range openQuoteRange,
                 ArrayBuilder<Interpolation>? interpolations,
                 out Range closeQuoteRange)
             {
-                isVerbatim = _isVerbatim;
+                kind = _kind;
                 ScanInterpolatedStringLiteralStart(out openQuoteRange);
                 ScanInterpolatedStringLiteralContents(interpolations);
                 ScanInterpolatedStringLiteralEnd(out closeQuoteRange);
@@ -329,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Handles reading the start of the interpolated string literal (up to where the content begins)
                 var start = _lexer.TextWindow.Position;
-                if (_isVerbatim)
+                if (_kind is InterpolatedStringKind.Verbatim)
                 {
                     // skip past @$ or $!
                     _lexer.TextWindow.AdvanceChar(2);
@@ -355,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     Debug.Assert(IsAtEnd());
                     int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
-                    TrySetUnrecoverableError(_lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst));
+                    TrySetUnrecoverableError(_lexer.MakeError(position, 1, _kind is InterpolatedStringKind.Verbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst));
                 }
                 else
                 {
@@ -385,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // See, for example, https://github.com/dotnet/roslyn/issues/44789
                             return;
                         case '"':
-                            if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
+                            if (_kind is InterpolatedStringKind.Verbatim && _lexer.TextWindow.PeekChar(1) == '"')
                             {
                                 _lexer.TextWindow.AdvanceChar(2); // ""
                                 continue;
@@ -432,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             continue;
                         case '\\':
-                            if (_isVerbatim)
+                            if (_kind is InterpolatedStringKind.Verbatim)
                             {
                                 goto default;
                             }
@@ -460,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     char ch = _lexer.TextWindow.PeekChar();
-                    if (ch == '\\' && !_isVerbatim)
+                    if (ch == '\\' && _kind is InterpolatedStringKind.Normal)
                     {
                         // normal string & char constants can have escapes
                         var pos = _lexer.TextWindow.Position;
@@ -472,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (ch == '"')
                     {
-                        if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
+                        if (_kind is InterpolatedStringKind.Verbatim && _lexer.TextWindow.PeekChar(1) == '"')
                         {
                             _lexer.TextWindow.AdvanceChar(2); // ""
                         }
