@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
-            return TryGetEmbeddedSourceStream(tempFilePath, sourceDocument, encoding) ??
-                TryGetFileStream(sourceDocument, encoding) ??
-                await TryGetSourceLinkStreamAsync(sourceDocument, encoding, logger, cancellationToken).ConfigureAwait(false);
+            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding) ??
+                TryGetOriginalFile(sourceDocument, encoding) ??
+                await TryGetSourceLinkFileAsync(sourceDocument, encoding, logger, cancellationToken).ConfigureAwait(false);
         }
 
-        private static SourceFileInfo? TryGetEmbeddedSourceStream(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
+        private static SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
         {
             if (sourceDocument.EmbeddedTextBytes is null)
                 return null;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private async Task<SourceFileInfo?> TryGetSourceLinkStreamAsync(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
                 return null;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private static SourceFileInfo? TryGetFileStream(SourceDocument sourceDocument, Encoding encoding)
+        private static SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding)
         {
             if (File.Exists(sourceDocument.FilePath))
             {
