@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             OperationCollector collector,
             CancellationToken cancellationToken)
         {
-            var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
+            var containingSymbol = parameterSymbol.ContainingSymbol;
             var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
-                containingMethod,
+                containingSymbol,
                 collector.Solution,
                 findReferenceProgressCollector,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);

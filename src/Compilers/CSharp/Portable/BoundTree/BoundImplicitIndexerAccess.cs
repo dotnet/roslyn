@@ -23,11 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundIndexerAccess { ReceiverOpt: var r } => r,
                 BoundCall { ReceiverOpt: var r } => r,
+                BoundArrayAccess { Expression: var r } => r,
                 _ => throw ExceptionUtilities.UnexpectedValue(this.IndexerOrSliceAccess.Kind)
             };
 
             Debug.Assert(receiver is not null);
             return receiver;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(LengthOrCountAccess is BoundPropertyAccess or BoundArrayLength or BoundLocal or BoundBadExpression);
+            Debug.Assert(IndexerOrSliceAccess is BoundIndexerAccess or BoundCall or BoundArrayAccess);
         }
     }
 }

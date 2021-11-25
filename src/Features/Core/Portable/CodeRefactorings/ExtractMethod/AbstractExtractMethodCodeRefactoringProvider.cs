@@ -89,7 +89,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             return new MyCodeAction(
                 FeaturesResources.Extract_method,
-                c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c),
+                async c =>
+                {
+                    var (document, invocationNameToken) = await result.GetFormattedDocumentAsync(c).ConfigureAwait(false);
+                    return await AddRenameAnnotationAsync(document, invocationNameToken, c).ConfigureAwait(false);
+                },
                 nameof(FeaturesResources.Extract_method));
         }
 
@@ -111,7 +115,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)
             {
-                var codeAction = new MyCodeAction(FeaturesResources.Extract_local_function, c => AddRenameAnnotationAsync(localFunctionResult.Document, localFunctionResult.InvocationNameToken, c), nameof(FeaturesResources.Extract_local_function));
+                var codeAction = new MyCodeAction(
+                    FeaturesResources.Extract_local_function,
+                    async c =>
+                    {
+                        var (document, invocationNameToken) = await localFunctionResult.GetFormattedDocumentAsync(c).ConfigureAwait(false);
+                        return await AddRenameAnnotationAsync(document, invocationNameToken, c).ConfigureAwait(false);
+                    },
+                    nameof(FeaturesResources.Extract_local_function));
                 return codeAction;
             }
 

@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pattern = BindPattern(node.Pattern, sliceType, GetValEscape(sliceType, inputValEscape), permitDesignations, hasErrors, diagnostics);
             }
 
-            Debug.Assert(GetIndexerOrImplicitIndexerSymbol(indexerAccess) is var _);
             return new BoundSlicePattern(node, pattern, indexerAccess, receiverPlaceholder, argumentPlaceholder, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
@@ -317,7 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inputValEscape, permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
                 out Symbol? variableSymbol, out BoundExpression? variableAccess);
 
-            Debug.Assert(GetIndexerOrImplicitIndexerSymbol(indexerAccess) is var _);
             return new BoundListPattern(
                 syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
                 indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,

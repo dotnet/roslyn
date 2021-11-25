@@ -125,7 +125,7 @@ public class X
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       72 (0x48)
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (char V_0, //first
                 char[] V_1, //others
@@ -135,13 +135,13 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0046
+  IL_0003:  brfalse.s  IL_0045
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int System.Array.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
   IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0039
+  IL_0010:  ble.un.s   IL_0038
   IL_0012:  ldloc.3
   IL_0013:  ldc.i4.0
   IL_0014:  ldelem.u2
@@ -156,24 +156,22 @@ public class X
   IL_0029:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
   IL_002e:  stloc.1
   IL_002f:  ldloc.3
-  IL_0030:  dup
-  IL_0031:  ldlen
-  IL_0032:  conv.i4
-  IL_0033:  ldc.i4.1
-  IL_0034:  sub
-  IL_0035:  ldelem.u2
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldloc.0
-  IL_003c:  ldloc.2
-  IL_003d:  bne.un.s   IL_0046
-  IL_003f:  ldloc.1
-  IL_0040:  call       ""bool X.Test(char[])""
-  IL_0045:  ret
-  IL_0046:  ldc.i4.0
-  IL_0047:  ret
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  ldelem.u2
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.1
+  IL_0039:  ret
+  IL_003a:  ldloc.0
+  IL_003b:  ldloc.2
+  IL_003c:  bne.un.s   IL_0045
+  IL_003e:  ldloc.1
+  IL_003f:  call       ""bool X.Test(char[])""
+  IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(string)", @"
@@ -1668,6 +1666,11 @@ class X
         var vbSource = @"
 Namespace System
     Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
     End Structure
 End Namespace
 Public Class Test1
@@ -1690,21 +1693,192 @@ class X
 }
 ";
         var vbCompilation = CreateVisualBasicCompilation(vbSource);
-        var csCompilation = CreateCompilation(csSource, parseOptions: TestOptions.RegularWithListPatterns, references: new[] { vbCompilation.EmitToImageReference() });
-        // PROTOTYPE(list-patterns) Unsupported because the lookup fails not that the indexer is static
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        // Note: the VB indexer's name is "Item" but C# looks for "this[]", but we can't put Default on Shared indexer declaration
         csCompilation.VerifyEmitDiagnostics(
             // (6,28): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1() is [0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Test1").WithLocation(6, 28),
-            // (6,28): error CS0656: Missing compiler required member 'System.Index.op_Implicit'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", "op_Implicit").WithLocation(6, 28),
-            // (6,28): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", ".ctor").WithLocation(6, 28),
             // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1()[0];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_StaticDefaultIndexer()
+    {
+        var ilSource = @"
+.class public sequential ansi sealed System.Index
+    extends [mscorlib]System.ValueType
+{
+    .method public specialname rtspecialname instance void .ctor ( int32 'value', [opt] bool fromEnd ) cil managed
+    {
+        .param [2] = bool(false)
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: initobj System.Index
+        IL_0008: ret
+    }
+
+    .method public specialname static valuetype System.Index op_Implicit ( int32 i ) cil managed
+    {
+        .locals init (
+            [0] valuetype System.Index
+        )
+
+        IL_0000: nop
+        IL_0001: ldloca.s 0
+        IL_0003: initobj System.Index
+        IL_0009: br.s IL_000b
+
+        IL_000b: ldloc.0
+        IL_000c: ret
+    }
+}
+
+.class public auto ansi Test1
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .field private int32 _Length
+
+    .method public specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ldarg.0
+        IL_0008: ldc.i4.0
+        IL_0009: call instance void Test1::set_Length(int32)
+        IL_000e: nop
+        IL_000f: ret
+    }
+
+    .method public specialname static int32 get_Item ( valuetype System.Index i ) cil managed
+    {
+        .locals init (
+            [0] int32 Item
+        )
+
+        IL_0000: nop
+        IL_0001: ldc.i4.0
+        IL_0002: stloc.0
+        IL_0003: br.s IL_0005
+
+        IL_0005: ldloc.0
+        IL_0006: ret
+    }
+
+    .method public specialname instance int32 get_Length () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Test1::_Length
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname instance void set_Length ( int32 AutoPropertyValue ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Test1::_Length
+        IL_0007: ret
+    }
+
+    .property int32 Item( valuetype System.Index i )
+    {
+        .get int32 Test1::get_Item(valuetype System.Index)
+    }
+    .property instance int32 Length()
+    {
+        .get instance int32 Test1::get_Length()
+        .set instance void Test1::set_Length(int32)
+    }
+}
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var csCompilation = CreateCompilationWithIL(csSource, ilSource);
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "[42]").WithArguments("Test1.this[System.Index]").WithLocation(2, 38),
+            // (2,44): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Test1()[0]").WithArguments("Test1.this[System.Index]").WithLocation(2, 44)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_DefaultIndexerWithDifferentName()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public Default ReadOnly Property Name(i As System.Index) As Integer
+        Get
+            Return 42
+        End Get
+    End Property
+    Public Property Length As Integer = 1
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        CompileAndVerify(csCompilation, expectedOutput: "(True, 42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_NonDefaultIndexerNamedItem()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public ReadOnly Property Item(i As System.Index) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public Property Length As Integer = 0
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[42]").WithArguments("Test1").WithLocation(2, 38),
+            // (2,44): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(2, 44)
+            );
     }
 
     [Fact]
@@ -6979,6 +7153,7 @@ int[] a = null;
 _ = a is { Length: -1 };
 ";
         var comp = CreateCompilation(src);
+        comp.MakeTypeMissing(WellKnownType.System_Index);
         comp.VerifyDiagnostics();
     }
 
@@ -7924,5 +8099,162 @@ if (new[] {data} is {pattern})
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+    }
+
+    [Fact]
+    public void ArrayLengthAccess()
+    {
+        var source = @"
+class C
+{
+    public int M(int[] a)
+    {
+        switch (a)
+        {
+            case [.., var x]: return x;
+        }
+
+        return 3;
+    }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0014
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""int System.Array.Length.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0014
+  IL_000e:  ldarg.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  sub
+  IL_0012:  ldelem.i4
+  IL_0013:  ret
+  IL_0014:  ldc.i4.3
+  IL_0015:  ret
+}
+");
+    }
+
+    [Fact]
+    public void ListPattern_NotCountableInterface()
+    {
+        var source = @"
+_ = new C() is INotCountable and [var x, .. var y];
+
+interface INotCountable { }
+class C : INotCountable
+{
+    public int Length { get => 0; }
+    public int this[System.Index i] { get => 0; }
+    public int this[System.Range r] { get => 0; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics(
+            // (2,34): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("INotCountable").WithLocation(2, 34),
+            // (2,42): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("INotCountable").WithLocation(2, 42)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_ExplicitInterfaceImplementation()
+    {
+        var source = @"
+if (new C() is Interface and [var x, .. var y])
+{
+    System.Console.Write((x, y));
+}
+
+interface Interface
+{
+    int Length { get; }
+    int this[System.Index i] { get; }
+    int this[System.Range r] { get; }
+}
+class C : Interface
+{
+    int Interface.Length { get => 2; }
+    int Interface.this[System.Index i] { get => 42; }
+    int Interface.this[System.Range r] { get => 43; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_Tuples()
+    {
+        var source = @"
+_ = (1, 2) is [var x, .. var y];
+
+System.Runtime.CompilerServices.ITuple ituple = default;
+_ = ituple is [var x2];
+_ = ituple is [..var y2];
+
+_ = ituple switch
+{
+    [1, 2] => 0,
+    (1, 2) => 0,
+    _ => 0,
+};
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.ITuple });
+        comp.VerifyEmitDiagnostics(
+            // (2,15): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("(int, int)").WithLocation(2, 15),
+            // (2,23): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("(int, int)").WithLocation(2, 23),
+            // (6,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = ituple is [..var y2];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var y2").WithArguments("1", "System.Range", "int").WithLocation(6, 16)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_NullTestOnSlice()
+    {
+        var source = @"
+using System;
+Span<int> s = default;
+switch (s)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // error
+        break;
+}
+
+int[] a = default;
+switch (a)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // no error
+        break;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (7,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //     case [1,2,3]: // error
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(7, 10)
+            );
     }
 }
