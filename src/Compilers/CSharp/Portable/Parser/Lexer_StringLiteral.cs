@@ -213,19 +213,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            ScanInterpolatedStringLiteralTop(ref info, out var error, openQuoteRange: out _, interpolations: null, closeQuoteRange: out _);
+            ScanInterpolatedStringLiteralTop(
+                ref info,
+                out var error,
+                isVerbatim: out _,
+                openQuoteRange: out _,
+                interpolations: null,
+                closeQuoteRange: out _);
             this.AddError(error);
         }
 
         internal void ScanInterpolatedStringLiteralTop(
             ref TokenInfo info,
             out SyntaxDiagnosticInfo? error,
+            out bool isVerbatim,
             out Range openQuoteRange,
             ArrayBuilder<Interpolation>? interpolations,
             out Range closeQuoteRange)
         {
             var subScanner = new InterpolatedStringScanner(this);
-            subScanner.ScanInterpolatedStringLiteralTop(out openQuoteRange, interpolations, out closeQuoteRange);
+            subScanner.ScanInterpolatedStringLiteralTop(out isVerbatim, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
             info.Text = TextWindow.GetText(intern: false);
@@ -307,10 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             internal void ScanInterpolatedStringLiteralTop(
+                out bool isVerbatim,
                 out Range openQuoteRange,
                 ArrayBuilder<Interpolation>? interpolations,
                 out Range closeQuoteRange)
             {
+                isVerbatim = _isVerbatim;
                 ScanInterpolatedStringLiteralStart(out openQuoteRange);
                 ScanInterpolatedStringLiteralContents(interpolations);
                 ScanInterpolatedStringLiteralEnd(out closeQuoteRange);

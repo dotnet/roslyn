@@ -41,17 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
-            var isVerbatim = (originalText[0] == '$' && originalText[1] == '@') ||
-                             (originalText[0] == '@' && originalText[1] == '$');
-
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the close quote can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
-            rescanInterpolation(out var openQuoteRange, out var error, out var closeQuoteRange);
+            rescanInterpolation(out var isVerbatim, out var openQuoteRange, out var error, out var closeQuoteRange);
 
-            var result = SyntaxFactory.InterpolatedStringExpression(
-                getOpenQuote(openQuoteRange), getContent(interpolations), getCloseQuote(closeQuoteRange));
+            var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
 
             interpolations.Free();
             if (error != null)
@@ -62,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
 
-            void rescanInterpolation(out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
+            void rescanInterpolation(out bool isVerbatim, out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out openQuoteRange, interpolations, out closeQuoteRange);
+                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out isVerbatim, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
-            SyntaxToken getOpenQuote(Range openQuoteRange)
+            SyntaxToken getOpenQuote()
             {
                 var openQuoteText = originalText[openQuoteRange];
                 return SyntaxFactory.Token(
@@ -78,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     openQuoteText, openQuoteText, trailing: null);
             }
 
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent(ArrayBuilder<Lexer.Interpolation> interpolations)
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent()
             {
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
@@ -125,13 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return result;
             }
 
-            SyntaxToken getCloseQuote(Range openQuoteRange)
+            SyntaxToken getCloseQuote()
             {
                 // Make a token for the close quote " (even if it was missing)
                 var closeQuoteText = originalText[closeQuoteRange];
                 return closeQuoteText == ""
-                    ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
-                    : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
+                    ? SyntaxFactory.MissingToken(leading: null, SyntaxKind.InterpolatedStringEndToken, trailing: originalToken.GetTrailingTrivia())
+                    : SyntaxFactory.Token(leading: null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
             }
         }
 
