@@ -133,22 +133,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static InterpolationSyntax ParseInterpolation(CSharpParseOptions options, string text, Lexer.Interpolation interpolation, bool isVerbatim)
         {
-            // Grab from before the { all the way to the start of the } (or the start of the : if present).  The parsing
-            // of the colon and/or close curly is specially handled in ParseInterpolation below.
-            var parsedText = text[new Range(
-                interpolation.OpenBraceRange.Start,
+            // Grab the text from after the { all the way to the start of the } (or the start of the : if present). This
+            // will be used to parse out the expression of the interpolation.
+            //
+            // The parsing of the open brace, close brace and colon is specially handled in ParseInterpolation below.
+            var expressionText = text[new Range(
+                interpolation.OpenBraceRange.End,
                 interpolation.HasColon ? interpolation.ColonRange.Start : interpolation.CloseBraceRange.Start)];
 
-            // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
-            using var tempLexer = new Lexer(SourceText.From(parsedText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
+            using var tempLexer = new Lexer(SourceText.From(expressionText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
+
+            // First grab any trivia right after the {, it will be trailing trivia for the { token.
+            var openTokenTrailingTrivia = tempLexer.LexSyntaxTrailingTrivia().Node;
+            var openTokenText = text[interpolation.OpenBraceRange];
+
+            // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
-            return tempParser.ParseInterpolation(text, interpolation, isVerbatim);
+            return tempParser.ParseInterpolation(
+                text, interpolation, isVerbatim,
+                SyntaxFactory.Token(leading: null, SyntaxKind.OpenBraceToken, openTokenText, openTokenText, openTokenTrailingTrivia));
         }
 
-        private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
+        private InterpolationSyntax ParseInterpolation(
+            string text,
+            Lexer.Interpolation interpolation,
+            bool isVerbatim,
+            SyntaxToken openBraceToken)
         {
-            var openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
             var (expression, alignment) = getExpressionAndAlignment();
             var (format, closeBraceToken) = getFormatAndCloseBrace();
 
