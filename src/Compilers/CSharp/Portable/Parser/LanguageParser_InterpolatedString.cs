@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var text = Substring(originalText, openQuoteIndex + 1, closeQuoteIndex - 1);
                 if (text.Length > 0)
                 {
-                    var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                    var token = MakeInterpolatedStringTextToken(text, isVerbatim);
                     builder.Add(SyntaxFactory.InterpolatedStringText(token));
                 }
             }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var text = Substring(originalText, (i == 0) ? (openQuoteIndex + 1) : (interpolations[i - 1].CloseBracePosition + 1), interpolation.OpenBracePosition - 1);
                     if (text.Length > 0)
                     {
-                        var token = MakeStringToken(text, text, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                        var token = MakeInterpolatedStringTextToken(text, isVerbatim);
                         builder.Add(SyntaxFactory.InterpolatedStringText(token));
                     }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var lastText = Substring(originalText, interpolations[^1].CloseBracePosition + 1, closeQuoteIndex - 1);
                 if (lastText.Length > 0)
                 {
-                    var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                    var token = MakeInterpolatedStringTextToken(lastText, isVerbatim);
                     builder.Add(SyntaxFactory.InterpolatedStringText(token));
                 }
             }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
                     var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
-                    var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                    var formatString = MakeInterpolatedStringTextToken(formatText, isVerbatim);
                     format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
                 }
                 else
@@ -190,29 +190,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Take the given text and treat it as the contents of a string literal, returning a token for that.
+        /// Interpret the given raw text from source as an InterpolatedStringTextToken.
         /// </summary>
-        /// <param name="text">The text for the full string literal, including the quotes and contents</param>
-        /// <param name="bodyText">The text for the string literal's contents, excluding surrounding quotes</param>
+        /// <param name="text">The text for the string literal's contents</param>
         /// <param name="isVerbatim">True if the string contents should be scanned using the rules for verbatim strings</param>
-        /// <param name="kind">The token kind to be assigned to the resulting token</param>
-        private SyntaxToken MakeStringToken(string text, string bodyText, bool isVerbatim, SyntaxKind kind)
+        private SyntaxToken MakeInterpolatedStringTextToken(string text, bool isVerbatim)
         {
             var prefix = isVerbatim ? "@\"" : "\"";
-            var fakeString = prefix + bodyText + "\"";
-            using (var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false))
-            {
-                LexerMode mode = LexerMode.Syntax;
-                SyntaxToken token = tempLexer.Lex(ref mode);
-                Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
-                var result = SyntaxFactory.Literal(null, text, kind, token.ValueText, null);
-                if (token.ContainsDiagnostics)
-                {
-                    result = result.WithDiagnosticsGreen(MoveDiagnostics(token.GetDiagnostics(), -prefix.Length));
-                }
+            var fakeString = prefix + text + "\"";
+            using var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false);
 
-                return result;
+            var mode = LexerMode.Syntax;
+            var token = tempLexer.Lex(ref mode);
+            Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
+            var result = SyntaxFactory.Literal(leading: null, text, SyntaxKind.InterpolatedStringTextToken, token.ValueText, trailing: null);
+            if (token.ContainsDiagnostics)
+            {
+                result = result.WithDiagnosticsGreen(MoveDiagnostics(token.GetDiagnostics(), -prefix.Length));
             }
+
+            return result;
         }
 
         private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
