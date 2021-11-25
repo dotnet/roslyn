@@ -20,19 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private readonly ImmutableArray<ISourceGenerator> _generators;
         // <Caravela>
         private readonly ImmutableArray<ISourceTransformer> _transformers;
+        private readonly bool _isLicensingBypassed;
         // </Caravela>
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, bool isLicensingBypassed = true)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, isLicensingBypassed)
         // </Caravela>
         {
         }
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, bool isLicensingBypassed = true)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
         // </Caravela>
         {
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _generators = generators.NullToEmpty();
             // <Caravela>
             _transformers = transformers.NullToEmpty();
+            _isLicensingBypassed = isLicensingBypassed;
             // </Caravela>
         }
 
@@ -103,5 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
             return AnalyzerOptions;
         }
+
+        // <Caravela>
+        protected override bool IsLicensingBypassed() => _isLicensingBypassed;
+        // </Caravela>
     }
 }

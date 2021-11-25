@@ -410,10 +410,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(generatorDiagnostics);
             return compilationOut;
         }
-
+        
         // <Caravela>
+        protected virtual bool IsLicensingBypassed() => false;
+        
         private IServiceProvider CreateServices(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
         {
+            bool IsFirstRunLicenseActivatorEnabled()
+            {
+                if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                    "build_property.CaravelaFirstRunLicenseActivatorEnabled",
+                    out var firstRunLicenseActivatorEnabledString))
+                {
+                    throw new InvalidOperationException(
+                        "CaravelaFirstRunLicenseActivatorEnabled property is required.");
+                }
+
+                return bool.Parse(firstRunLicenseActivatorEnabledString);
+            }
+            
             var services = new BackstageServiceProvider();
 
             services
@@ -421,14 +436,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .AddFileSystem()
                 .AddStandardDirectories()
                 .AddSingleton<IDiagnosticsSink>(new DiagnosticBagSink(diagnostics))
-                .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo())
-                .AddStandardLicenseFilesLocations()
-                .AddFirstRunEvaluationLicenseActivator();
+                .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo());
 
-            LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, services);
-            ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
-            
-            services.AddLicenseConsumption(licenseSources);
+            if (IsLicensingBypassed())
+            {
+                services.AddSingleton<ILicenseConsumptionManager>(new TestLicenseConsumptionManager());
+            }
+            else
+            {
+                services.AddStandardLicenseFilesLocations();
+
+                if (IsFirstRunLicenseActivatorEnabled())
+                {
+                    // TODO: Replace with the AddFirstRunEvaluationLicenseActivator when licensing becomes usable.
+                    services.AddSingleton<IFirstRunLicenseActivator>(new TimeBombLicenseActivator(services));
+                    //services.AddFirstRunEvaluationLicenseActivator();
+                }
+
+                LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, services);
+                ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
+
+                services.AddLicenseConsumption(licenseSources);
+            }
 
             return services;
         }

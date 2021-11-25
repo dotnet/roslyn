@@ -32,7 +32,8 @@ namespace Caravela.Compiler.Licensing
                 "build_property.CaravelaLicenseSources",
                 out var sourcesConfig))
             {
-                yield break;
+                throw new InvalidOperationException(
+                    "CaravelaLicenseSources property is required.");
             }
 
             var sourceNames = sourcesConfig.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);

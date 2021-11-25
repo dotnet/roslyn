@@ -31,17 +31,19 @@ namespace Caravela.Compiler.UnitTests
                 $@"is_global = true
 build_property.CaravelaLicenseSources = File
 build_property.CaravavelaLicenseFile = {license.Path}
+build_property.CaravelaFirstRunLicenseActivatorEnabled = False
 build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
 ");
             var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
             var csc = CreateCSharpCompiler(null, dir.Path, args,
                 transformers: transformer == null
                     ? ImmutableArray<ISourceTransformer>.Empty
-                    : new[] { transformer }.ToImmutableArray());
+                    : new[] { transformer }.ToImmutableArray(),
+                isLicensingBypassed: false);
 
             return csc;
         }
-        
+
         [Fact]
         public void LicenseNotRequiredWithoutTransformers()
         {

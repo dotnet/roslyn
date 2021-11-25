@@ -13,6 +13,7 @@
     <!-- CaravelaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
     <CaravelaSourceOnlyAnalyzers>$(CaravelaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</CaravelaSourceOnlyAnalyzers>
     <CaravelaLicenseSources Condition="'$(CaravelaLicenseSources)'==''">User,File,Property</CaravelaLicenseSources>
+    <CaravelaFirstRunLicenseActivatorEnabled Condition="'$(CaravelaFirstRunLicenseActivatorEnabled)'==''">True</CaravelaFirstRunLicenseActivatorEnabled>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CaravelaLicenseFile)'==''">
@@ -34,5 +35,6 @@
     <CompilerVisibleProperty Include="CaravelaLicense" />
     <CompilerVisibleProperty Include="CaravelaLicenseFile" />
     <CompilerVisibleProperty Include="CaravelaLicenseSources" />
+    <CompilerVisibleProperty Include="CaravelaFirstRunLicenseActivatorEnabled" />
   </ItemGroup>
 </Project>
