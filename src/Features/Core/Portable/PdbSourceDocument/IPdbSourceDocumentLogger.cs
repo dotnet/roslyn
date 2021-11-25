@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
-    internal interface IPdbFileLocatorService
+    internal interface IPdbSourceDocumentLogger
     {
-        Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
+        void Clear();
+        void Log(string message);
     }
 }

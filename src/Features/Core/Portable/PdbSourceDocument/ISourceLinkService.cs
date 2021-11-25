@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface ISourceLinkService
     {
-        Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken);
+        Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
 
-        Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken);
+        Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
     }
 
     internal record PdbFilePathResult(string PdbFilePath, string Status, string? Log, bool IsPortablePdb);

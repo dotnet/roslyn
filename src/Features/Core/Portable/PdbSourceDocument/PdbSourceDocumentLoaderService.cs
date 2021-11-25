@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _sourceLinkService = sourceLinkService;
         }
 
-        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, CancellationToken cancellationToken)
+        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
             return TryGetEmbeddedSourceStream(tempFilePath, sourceDocument, encoding) ??
                 TryGetFileStream(sourceDocument, encoding) ??
-                await TryGetSourceLinkStreamAsync(sourceDocument, encoding, cancellationToken).ConfigureAwait(false);
+                await TryGetSourceLinkStreamAsync(sourceDocument, encoding, logger, cancellationToken).ConfigureAwait(false);
         }
 
         private static SourceFileInfo? TryGetEmbeddedSourceStream(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private async Task<SourceFileInfo?> TryGetSourceLinkStreamAsync(SourceDocument sourceDocument, Encoding encoding, CancellationToken cancellationToken)
+        private async Task<SourceFileInfo?> TryGetSourceLinkStreamAsync(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
                 return null;
 
-            var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, cancellationToken).ConfigureAwait(false);
+            var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, logger, cancellationToken).ConfigureAwait(false);
             // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
 
             if (sourceFile is not null)

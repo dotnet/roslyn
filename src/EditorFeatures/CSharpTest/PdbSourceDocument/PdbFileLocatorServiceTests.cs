@@ -36,7 +36,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
                 var service = new PdbFileLocatorService(sourceLinkService);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
 
                 Assert.NotNull(result);
             });
@@ -64,7 +64,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath, isPortablePdb: false);
                 var service = new PdbFileLocatorService(sourceLinkService);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
 
                 Assert.Null(result);
             });
@@ -92,7 +92,7 @@ public class C
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
                 var service = new PdbFileLocatorService(sourceLinkService);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
 
                 Assert.Null(result);
             });

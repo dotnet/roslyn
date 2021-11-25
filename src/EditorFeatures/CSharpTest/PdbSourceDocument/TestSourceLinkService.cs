@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             _isPortablePdb = isPortablePdb;
         }
 
-        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken)
+        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             if (_pdbFilePath is null)
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath, "status", Log: null, _isPortablePdb));
         }
 
-        public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
+        public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             if (_sourceFilePath is null)
             {

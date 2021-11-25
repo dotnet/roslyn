@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _sourceLinkService = sourceLinkService;
         }
 
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, CancellationToken cancellationToken)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Otherwise call the debugger to find the PDB from a symbol server etc.
                 if (result is null && _sourceLinkService is not null)
                 {
-                    var pdbResult = await _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, cancellationToken).ConfigureAwait(false);
+                    var pdbResult = await _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken).ConfigureAwait(false);
 
                     // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
                     // TODO: Log results from pdbResult.Log: https://github.com/dotnet/roslyn/issues/57352
