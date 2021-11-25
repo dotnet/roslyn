@@ -10,7 +10,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -42,47 +41,82 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             try
             {
                 // Try to load the pdb file from disk, or embedded
-                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out _))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out var pdbFilePath))
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
+
+                    if (pdbFilePath is null)
+                    {
+                        logger?.Log(FeaturesResources.Found_embedded_PDB_file);
+                    }
+                    else
+                    {
+                        logger?.Log(FeaturesResources.Found_PDB_file_at_0, pdbFilePath);
+                    }
 
                     result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
                 }
 
-                // Otherwise call the debugger to find the PDB from a symbol server etc.
-                if (result is null && _sourceLinkService is not null)
+                if (result is null)
                 {
-                    var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
-                    var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken);
-
-                    var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
-
-                    if (winner == pdbResultTask)
+                    if (_sourceLinkService is null)
                     {
-                        var pdbResult = await pdbResultTask.ConfigureAwait(false);
-
-                        // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
-                        // TODO: Log results from pdbResult.Log: https://github.com/dotnet/roslyn/issues/57352
-                        if (pdbResult is not null && pdbResult.IsPortablePdb)
-                        {
-                            pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
-                            if (pdbStream is not null)
-                            {
-                                var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-                                result = new DocumentDebugInfoReader(peReader, readerProvider);
-                            }
-                        }
+                        logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded);
                     }
                     else
                     {
-                        // TODO: Log the timeout: https://github.com/dotnet/roslyn/issues/57352
+                        var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
+                        // Call the debugger to find the PDB from a symbol server etc.
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken);
+
+                        var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
+
+                        if (winner == pdbResultTask)
+                        {
+                            var pdbResult = await pdbResultTask.ConfigureAwait(false);
+                            if (pdbResult is not null)
+                            {
+                                if (pdbResult.IsPortablePdb)
+                                {
+                                    pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
+                                    if (pdbStream is not null)
+                                    {
+                                        var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+                                        result = new DocumentDebugInfoReader(peReader, readerProvider);
+                                        logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
+                                    }
+                                    else
+                                    {
+                                        logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_could_not_read_file);
+                                    }
+                                }
+                                else
+                                {
+                                    // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
+                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_is_not_portable_PDB_format);
+                                }
+
+                                if (pdbResult.Log is not null)
+                                {
+                                    logger?.Log(pdbResult.Log);
+                                }
+                            }
+                            else
+                            {
+                                logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded_or_server);
+                            }
+                        }
+                        else
+                        {
+                            logger?.Log(FeaturesResources.Timeout_symbol_server);
+                        }
                     }
                 }
             }
-            catch (BadImageFormatException)
+            catch (BadImageFormatException ex)
             {
                 // If the PDB is corrupt in some way we can just ignore it, and let the system fall through to another provider
-                // TODO: Log this to the output window: https://github.com/dotnet/roslyn/issues/57352
+                logger?.Log(FeaturesResources.Error_reading_PDB_0, ex.Message);
                 result = null;
             }
             finally

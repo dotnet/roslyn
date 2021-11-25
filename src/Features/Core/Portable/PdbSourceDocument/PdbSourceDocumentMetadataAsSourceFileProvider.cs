@@ -54,21 +54,28 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (signaturesOnly)
                 return null;
 
+            var assemblyName = symbol.ContainingAssembly.Identity.Name;
+
+            _logger?.Clear();
+            _logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
+
             // If this is a reference assembly then we won't have the right information available, so bail out
             // TODO: find the implementation assembly for the reference assembly, and keep going: https://github.com/dotnet/roslyn/issues/55834
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
             if (isReferenceAssembly)
+            {
+                _logger?.Log("");
                 return null;
+            }
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
             {
+                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
                 return null;
             }
-
-            var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
@@ -86,7 +93,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Try to find some actual document information from the PDB
                 sourceDocuments = documentDebugInfoReader.FindSourceDocuments(symbol);
                 if (sourceDocuments.Length == 0)
+                {
+                    _logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
                     return null;
+                }
             }
 
             Encoding? defaultEncoding = null;
@@ -165,12 +175,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, navigateDocument.FilePath);
         }
 
-        private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)
+        private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)
         {
             // First we need the language name in order to get the services
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
             if (!pdbCompilationOptions.TryGetValue("language", out var languageName) || languageName is null)
+            {
+                _logger?.Log(FeaturesResources.Source_code_language_information_was_not_found_in_PDB);
                 return null;
+            }
 
             var languageServices = workspace.Services.GetLanguageServices(languageName);
 

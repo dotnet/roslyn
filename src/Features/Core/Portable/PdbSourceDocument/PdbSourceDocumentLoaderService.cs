@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
-            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding) ??
-                TryGetOriginalFile(sourceDocument, encoding) ??
+            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, logger) ??
+                TryGetOriginalFile(sourceDocument, encoding, logger) ??
                 await TryGetSourceLinkFileAsync(sourceDocument, encoding, logger, cancellationToken).ConfigureAwait(false);
         }
 
-        private static SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
+        private static SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger)
         {
             if (sourceDocument.EmbeddedTextBytes is null)
                 return null;
@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (File.Exists(filePath) &&
                 LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false) is { } existing)
             {
+                logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
                 return existing;
             }
 
@@ -90,14 +91,24 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                         new FileInfo(filePath).IsReadOnly = true;
                     }
-                    catch (IOException)
+                    catch (IOException ex)
                     {
-                        // TODO: Log message to inform the user what went wrong: https://github.com/dotnet/roslyn/issues/57352
+                        logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
                         return null;
                     }
                 }
 
-                return LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false);
+                var result = LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false);
+                if (result is not null)
+                {
+                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
+                }
+                else
+                {
+                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
+                }
+
+                return result;
             }
 
             return null;
@@ -121,24 +132,48 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var sourceFile = await sourceFileTask.ConfigureAwait(false);
                 if (sourceFile is not null)
                 {
-                    // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
                     // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
-                    return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, ignoreChecksum: true);
+                    var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, ignoreChecksum: true);
+                    if (result is not null)
+                    {
+                        logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
+                    }
+                    else
+                    {
+                        logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
+                    }
+
+                    if (sourceFile.Log is not null)
+                    {
+                        logger?.Log(sourceFile.Log);
+                    }
+
+                    return result;
                 }
                 else
                 {
-                    // TODO: Log the timeout: https://github.com/dotnet/roslyn/issues/57352
+                    logger?.Log(FeaturesResources.Timeout_SourceLink);
                 }
             }
 
             return null;
         }
 
-        private static SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding)
+        private static SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger)
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, ignoreChecksum: false);
+                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, ignoreChecksum: false);
+                if (result is not null)
+                {
+                    logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
+                }
+                else
+                {
+                    logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
+                }
+
+                return result;
             }
 
             return null;
