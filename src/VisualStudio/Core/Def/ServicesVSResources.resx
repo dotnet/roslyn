@@ -1893,4 +1893,7 @@ Additional information: {1}</value>
   <data name="Sort_usings" xml:space="preserve">
     <value>Sort usings</value>
   </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
 </root>
