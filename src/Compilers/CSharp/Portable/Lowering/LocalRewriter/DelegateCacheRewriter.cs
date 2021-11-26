@@ -23,16 +23,15 @@ internal class DelegateCacheRewriter
     }
 
     public static bool CanRewrite(SyntheticBoundNodeFactory factory, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
-        => factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions)
-        && targetMethod.IsStatic && !boundConversion.IsExtensionMethod
+        => targetMethod.IsStatic && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
         && factory.TopLevelMethod is not { MethodKind: MethodKind.StaticConstructor } // Avoid caching twice if people do it manually.
+        && factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions)
         ;
 
     public BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
-        Debug.Assert(targetMethod is { });
 
         return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, false, delegateType);
         //var orgSyntax = _factory.Syntax;
@@ -54,30 +53,34 @@ internal class DelegateCacheRewriter
         //return rewrittenNode;
     }
 
-    //private DelegateCacheContainer GetOrAddCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
-    //{
-    //    Debug.Assert(_factory is { TopLevelMethod: { }, ModuleBuilderOpt: { } });
-
-    //    switch (ChooseDelegateCacheContainerKind(_factory.TopLevelMethod, delegateType, targetMethod))
-    //    {
-    //        case DelegateCacheContainerKind.ModuleScopedConcrete:
-    //            return _factory.ModuleBuilderOpt.GetOrAddContainer(delegateType);
-    //        case DelegateCacheContainerKind.TypeScopedConcrete:
-    //            return _factory.CompilationState.TypeScopedDelegateCacheContainer;
-    //        case DelegateCacheContainerKind.MethodScopedGeneric:
-    //            return MethodScopedGenericDelegateCacheContainer;
-    //        default:
-    //            throw ExceptionUtilities.Unreachable;
-    //    }
-    //}
-
-    private static bool AConcreteContainerIsOK(MethodSymbol currentMethod, MethodSymbol currentFunction, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    private DelegateCacheContainer GetOrAddCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
-        // All the possible type parameters that act as type arguments needed to construct the delegateType or targetMethod
-        // come from either the current method or local functions.
+        Debug.Assert(_factory is { TopLevelMethod: { }, ModuleBuilderOpt: { } });
+
+        if (AConcreteContainerIsEnough(delegateType, targetMethod))
+        {
+            //return _factory.CompilationState.TypeScopedDelegateCacheContainer;
+        }
+        else
+        {
+            //return MethodScopedGenericDelegateCacheContainer;
+        }
+
+        throw new NotImplementedException();
+    }
+
+    private bool AConcreteContainerIsEnough(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    {
+        // Possible places for type parameters that can act as type arguments to construct the delegateType or targetMethod:
+        //   1. containing types
+        //   2. current method
+        //   3. local functions
+        // Our containers are created within the same enclosing type, so we can ignore type parameters from it.
+
+        Debug.Assert(_factory.TopLevelMethod is { });
 
         // So obviously,
-        if (currentMethod.Arity == 0)
+        if (_factory is { CurrentFunction: null, TopLevelMethod.Arity: 0 })
         {
             return true;
         }
@@ -85,7 +88,17 @@ internal class DelegateCacheRewriter
         var typeParams = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            typeParams.AddAll(currentMethod.TypeParameters);
+            typeParams.AddAll(_factory.TopLevelMethod.TypeParameters);
+
+            for (Symbol? s = _factory.CurrentFunction; s is MethodSymbol m; s = s.ContainingSymbol)
+            {
+                typeParams.AddAll(m.TypeParameters);
+            }
+
+            if (typeParams.Count == 0)
+            {
+                return true;
+            }
 
             if (delegateType.ContainsTypeParameters(typeParams) || containsTypeParameters(targetMethod, typeParams))
             {
@@ -97,23 +110,16 @@ internal class DelegateCacheRewriter
             typeParams.Free();
         }
 
-        // If not, we can just use the delegateType for the cache field of the container as is.
         return true;
 
-        static bool containsTypeParameter(MethodSymbol method)
-        {
-            return method.ContainingType.ContainsTypeParameter() ||
-                method.TypeArgumentsWithAnnotations.Any(static (typeArg, _) =>
-                    typeArg.Type.ContainsTypeParameter() ||
-                    typeArg.CustomModifiers.Any(static (cm, unused) => ((TypeSymbol)cm.Modifier).ContainsTypeParameter(), 0), 0);
-        }
-
-        static bool containsTypeParameters(MethodSymbol method, System.Collections.Generic.HashSet<TypeParameterSymbol> typeParams)
+        static bool containsTypeParameters(MethodSymbol method, PooledHashSet<TypeParameterSymbol> typeParams)
         {
             return method.ContainingType.ContainsTypeParameters(typeParams) ||
-                method.TypeArgumentsWithAnnotations.Any(static (typeArg, typeParams) =>
-                    typeArg.Type.ContainsTypeParameters(typeParams) ||
-                    typeArg.CustomModifiers.Any(static (cm, typeParams) => ((TypeSymbol)cm.Modifier).ContainsTypeParameters(typeParams), typeParams), typeParams);
+                method.TypeArgumentsWithAnnotations.Any(
+                    static (typeArg, typeParams) =>
+                        typeArg.Type.ContainsTypeParameters(typeParams) ||
+                        typeArg.CustomModifiers.Any(static (cm, typeParams) => ((TypeSymbol)cm.Modifier).ContainsTypeParameters(typeParams), typeParams),
+                    typeParams);
         }
     }
 }

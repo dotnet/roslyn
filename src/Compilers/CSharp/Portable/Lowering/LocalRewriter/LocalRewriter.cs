@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
+        private int _currentLocalFunctionOrdinal;
+        private readonly int _topLevelMethodOrdinal;
+        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -37,9 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BoundStatement _rootStatement;
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
-
-        private readonly int _containingMethodOrdinal;
-        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -60,8 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _topLevelMethodOrdinal = containingMethodOrdinal;
+            _currentLocalFunctionOrdinal = -1;
             _diagnostics = diagnostics;
-            _containingMethodOrdinal = containingMethodOrdinal;
 
             Debug.Assert(instrumenter != null);
 #if DEBUG
@@ -275,7 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            int localFunctionOrdinal = _availableLocalFunctionOrdinal++;
+            var oldLocalFunctionOrdinal = _currentLocalFunctionOrdinal;
+            _currentLocalFunctionOrdinal = _availableLocalFunctionOrdinal++;
 
             var localFunction = node.Symbol;
             CheckRefReadOnlySymbols(localFunction);
@@ -325,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Each generic local function gets its own dynamic factory because it 
                     // needs its own container to cache dynamic call-sites. That type (the container) "inherits"
                     // local function's type parameters as well as type parameters of all containing methods.
-                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
+                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, _currentLocalFunctionOrdinal);
                 }
 
                 return base.VisitLocalFunctionStatement(node)!;
@@ -335,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 _instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
+                _currentLocalFunctionOrdinal = oldLocalFunctionOrdinal;
             }
         }
 

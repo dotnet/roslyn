@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (DelegateCacheRewriter.CanRewrite(_factory, _inExpressionLambda, oldNodeOpt, method))
                         {
-                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _containingMethodOrdinal);
-                            return cacheRewriter.Rewrite(_availableLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
+                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _topLevelMethodOrdinal);
+                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
                         }
                         else
                         {
