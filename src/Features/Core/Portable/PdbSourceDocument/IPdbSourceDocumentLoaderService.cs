@@ -13,5 +13,5 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
     }
 
-    internal sealed record SourceFileInfo(string FilePath, TextLoader Loader);
+    internal sealed record SourceFileInfo(string FilePath, string SourceDescription, TextLoader Loader);
 }

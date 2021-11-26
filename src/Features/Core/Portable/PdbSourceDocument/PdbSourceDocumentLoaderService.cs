@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // We might have already navigated to this file before, so it might exist, but
             // we still need to re-validate the checksum and make sure its not the wrong file
             if (File.Exists(filePath) &&
-                LoadSourceFile(filePath, sourceDocument, encoding) is { } existing)
+                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded) is { } existing)
             {
                 return existing;
             }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                return LoadSourceFile(filePath, sourceDocument, encoding);
+                return LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded);
             }
 
             return null;
@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             if (sourceFile is not null)
             {
-                return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding);
+                // Since "SourceLink" is the name of the technology it is deliberately not localized
+                return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink");
             }
 
             return null;
@@ -122,13 +123,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding);
+                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external);
             }
 
             return null;
         }
 
-        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding)
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription)
         {
             return IOUtilities.PerformIO(() =>
             {
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, textLoader);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader);
                 }
 
                 return null;
