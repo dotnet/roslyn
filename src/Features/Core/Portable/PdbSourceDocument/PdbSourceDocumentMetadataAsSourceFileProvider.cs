@@ -156,13 +156,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
 
-            // TODO: "from metadata" is technically correct, but could be confusing. From PDB? From Source? https://github.com/dotnet/roslyn/issues/55834
             var documentName = string.Format(
                 "{0} [{1}]",
                 navigateDocument!.Name,
-                FeaturesResources.from_metadata);
+                sourceFileInfos[0]!.SourceDescription);
 
-            return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, navigateDocument.FilePath);
+            return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
         }
 
         private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)

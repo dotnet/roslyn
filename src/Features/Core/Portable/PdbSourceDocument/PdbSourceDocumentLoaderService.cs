@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // We might have already navigated to this file before, so it might exist, but
             // we still need to re-validate the checksum and make sure its not the wrong file
             if (File.Exists(filePath) &&
-                LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false) is { } existing)
+                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false) is { } existing)
             {
                 return existing;
             }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                return LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false);
+                return LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false);
             }
 
             return null;
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
                     // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
-                    return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, ignoreChecksum: true);
+                    return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", ignoreChecksum: true);
                 }
                 else
                 {
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, ignoreChecksum: false);
+                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false);
             }
 
             return null;
         }
 
-        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, bool ignoreChecksum)
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, bool ignoreChecksum)
         {
             return IOUtilities.PerformIO(() =>
             {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, textLoader);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader);
                 }
 
                 return null;
