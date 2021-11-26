@@ -37,7 +37,7 @@ class C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ class C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ static class E
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ static class E
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ class C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -163,7 +163,7 @@ class C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -181,7 +181,7 @@ class C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ struct C
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     #endregion
@@ -229,7 +229,7 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -271,7 +271,7 @@ class D<T>
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -314,7 +314,7 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -358,7 +358,7 @@ class E<V>
     public static void Target(V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -403,7 +403,7 @@ class E<V>
     public static void Target<K>(V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -448,7 +448,7 @@ class E<V>
     public static V Target<K>(V v) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -492,7 +492,7 @@ class D<T>
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -534,7 +534,7 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -576,7 +576,7 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -620,7 +620,7 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -664,7 +664,7 @@ class E<V>
     public static void Target<N>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -708,7 +708,7 @@ class E<V>
     public static N Target<N>() { Console.WriteLine(""PASS""); return default(N); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -753,7 +753,7 @@ class E<K>
     public static V Target<V>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -798,7 +798,7 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -845,7 +845,7 @@ class D
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -889,7 +889,7 @@ class E<K>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -933,7 +933,7 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -982,7 +982,7 @@ class E<K>
     public static void Target<V>(K k, V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<M>.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<M>.Test<T>", @"
 {
   // Code size       51 (0x33)
   .maxstack  3
@@ -1026,7 +1026,7 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1063,7 +1063,7 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1106,7 +1106,7 @@ class D<T>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1149,7 +1149,7 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -1192,7 +1192,7 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1238,7 +1238,7 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1284,7 +1284,7 @@ class E<V>
     public static void Target<N>() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1330,7 +1330,7 @@ class E<K>
     public static V Target<V, K>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1377,7 +1377,7 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -1428,7 +1428,7 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T, M>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T, M>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -1470,7 +1470,7 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1514,7 +1514,7 @@ class D
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1558,7 +1558,7 @@ class D<V>
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -1606,7 +1606,7 @@ class D<V>
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
 {
   // Code size       52 (0x34)
   .maxstack  3
@@ -1661,7 +1661,7 @@ class E<V>
     public static void Target<N>(N n) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -1724,7 +1724,7 @@ class E<V>
             Assert.Equal(1, m.ConstraintTypes().Length);
             Assert.Equal(testClass.TypeParameters[0], m.ConstraintTypes()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D<T>.Test<M>", @"
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D<T>.Test<M>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1785,7 +1785,7 @@ class E<V>
             Assert.Equal(1, m.ConstraintTypes().Length);
             Assert.Equal(mainClass, m.ConstraintTypes()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1842,7 +1842,7 @@ class E
             Assert.NotNull(m); Debug.Assert(m is { });
             Assert.True(m.MustBeValueType);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1880,7 +1880,7 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1918,7 +1918,7 @@ static class E
     public static void Target<T>(this T t) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -1953,7 +1953,7 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        var compilation = CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test", @"
+        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -1993,7 +1993,7 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<T>.Test", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -2041,7 +2041,7 @@ static class E
     public static void Target<T>(this T t) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<K>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<K>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -2079,7 +2079,7 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        var compilation = CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.F<T>.Test", @"
+        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.F<T>.Test", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -2117,7 +2117,7 @@ static class E
     public static void Target<M>(this M m) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -2160,7 +2160,7 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -2198,7 +2198,7 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        var compilation = CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test<T>", @"
+        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test<T>", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -2231,7 +2231,7 @@ class C
     static void Target() => Console.WriteLine(""PASS"");
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -2268,7 +2268,7 @@ class D
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -2313,7 +2313,7 @@ class D<T>
     static T Target() { Console.WriteLine(""PASS""); return default(T); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__0_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__0_0", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -2359,7 +2359,7 @@ class E
     public static V Target<V>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__1_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__1_0", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -2403,7 +2403,7 @@ class D<T>
     static T Target<K>() { Console.WriteLine(""PASS""); return default(T); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c__0<G>.<Test>b__0_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c__0<G>.<Test>b__0_0", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -2448,7 +2448,7 @@ class E<V>
     public static V Target() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.<>c__0<G>.<Test>b__0_0", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.<>c__0<G>.<Test>b__0_0", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -2504,7 +2504,7 @@ class C
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
     [Fact]
@@ -2546,7 +2546,7 @@ static class E
             Assert.Equal(1, fieldType.Arity);
             Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -2584,7 +2584,7 @@ class D
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2620,7 +2620,7 @@ class C<T>
             Assert.Equal(1, fieldType.Arity);
             Assert.Equal(module.GlobalNamespace.GetTypeMember("C").TypeParameters[0], fieldType.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2652,7 +2652,7 @@ class C<T, V>
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2693,7 +2693,7 @@ class D
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2737,7 +2737,7 @@ class D<B>
             Assert.Equal(testClass.TypeParameters[0], fieldType.TypeArguments()[0]);
             Assert.Equal(container.TypeParameters[0], fieldType.TypeArguments()[1]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2778,7 +2778,7 @@ static class D
             Assert.True(fieldType.IsDelegateType());
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -2843,7 +2843,7 @@ class D
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -2901,7 +2901,7 @@ static class E
             Assert.Equal(1, fieldType.Arity);
             Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -2980,7 +2980,7 @@ static class E
             Assert.Equal(1, fieldType1.Arity);
             Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType1.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef).VerifyIL("C.Main", @"
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef).VerifyIL("C.Main", @"
 {
   // Code size       97 (0x61)
   .maxstack  2
@@ -3179,7 +3179,7 @@ static class E
             Assert.Equal(1, fieldType6.Arity);
             Assert.Equal(V, fieldType6.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -3269,7 +3269,7 @@ static class E
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(testClass, fieldType3.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -3360,7 +3360,7 @@ static class E
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(C, fieldType3.TypeArguments()[0]);
         };
-        var compilation = CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -3379,7 +3379,7 @@ class C
     static Assembly Target(object sender, ResolveEventArgs e) => null;
 }
 ";
-        var compilation = CompileAndVerify(source).VerifyIL("C.Test", @"
+        CompileAndVerify(source).VerifyIL("C.Test", @"
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -3421,7 +3421,7 @@ class D
     public static void Target(object sender, MyEventArgs e) { }
 }
 ";
-        var compilation = CompileAndVerify(source).VerifyIL("C<TEventArgs>.Test", @"
+        CompileAndVerify(source).VerifyIL("C<TEventArgs>.Test", @"
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -3458,7 +3458,7 @@ class C<TEventArgs> where TEventArgs : EventArgs
     static void Target(object sender, TEventArgs e) { }
 }
 ";
-        var compilation = CompileAndVerify(source).VerifyIL("C<TEventArgs>.Test", @"
+        CompileAndVerify(source).VerifyIL("C<TEventArgs>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  3
@@ -3498,7 +3498,7 @@ class D<TEventArgs> where TEventArgs : EventArgs
     public event EventHandler<TEventArgs> SomethingHappened;
 }
 ";
-        var compilation = CompileAndVerify(source).VerifyIL("C.Test<TEventArgs>", @"
+        CompileAndVerify(source).VerifyIL("C.Test<TEventArgs>", @"
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -3532,7 +3532,7 @@ class C
     static void Target<T>(T t) => Console.WriteLine(t);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("C.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3571,7 +3571,7 @@ class D<G>
     static void Target<T>(T t) => Console.WriteLine(t);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3612,7 +3612,7 @@ class E
     public static void Target<T>(T t) => Console.WriteLine(t);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3653,7 +3653,7 @@ class D<G>
     static void Target<T>(T t) => Console.WriteLine(t);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D<G>.Test", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3692,7 +3692,7 @@ class D
     static void Target<T>(T t) => Console.WriteLine(t);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D.Test<T>", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -3731,7 +3731,7 @@ class D
     static void Target<T, V>(T t, V v) => Console.WriteLine(v);
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: "{ x = 0 }").VerifyIL("D.Test<T>", @"
 {
   // Code size       40 (0x28)
   .maxstack  4
@@ -3769,7 +3769,7 @@ class C
     unsafe static int*[] Target() => default(int*[]);
 }
 ";
-        var compilation = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.Test", @"
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -3805,7 +3805,7 @@ class C<T>
     unsafe static int*[] Target(T t) => default(int*[]);
 }
 ";
-        var compilation = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C<T>.Test", @"
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -3845,7 +3845,7 @@ class C
     unsafe static int*[] Target<G>(G g) => default(int*[]);
 }
 ";
-        var compilation = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.Test<T>", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -3882,7 +3882,7 @@ class C
     static dynamic Target() => 0;
 }
 ";
-        var compilation = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test", @"
+        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -3918,7 +3918,7 @@ class C<T>
     static dynamic Target(T t) => 0;
 }
 ";
-        var compilation = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C<T>.Test", @"
+        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -3958,7 +3958,7 @@ class C
     static dynamic Target<G>(G g) => 0;
 }
 ";
-        var compilation = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test<T>", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
