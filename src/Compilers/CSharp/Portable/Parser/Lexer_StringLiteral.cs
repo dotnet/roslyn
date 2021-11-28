@@ -480,27 +480,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
                         {
-                            _lexer.TextWindow.AdvanceChar();
-                            _lexer.TextWindow.AdvanceChar();
+                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, "\""));
                         }
                         else
                         {
                             return; // premature end of string! let caller complain about unclosed interpolation
                         }
                     }
-                    else if (ch == '{')
+                    else if (ch is '{' or ':')
                     {
-                        var pos = _lexer.TextWindow.Position;
-                        _lexer.TextWindow.AdvanceChar();
-                        // ensure any { characters are doubled up
-                        if (_lexer.TextWindow.PeekChar() == '{')
-                        {
-                            _lexer.TextWindow.AdvanceChar(); // {
-                        }
-                        else
-                        {
-                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{"));
-                        }
+                        TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
                     }
                     else if (ch == '}')
                     {
