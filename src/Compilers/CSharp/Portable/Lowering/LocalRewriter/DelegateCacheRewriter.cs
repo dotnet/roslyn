@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,13 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp;
 internal sealed class DelegateCacheRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;
+    private readonly MethodSymbol _topLevelMethod;
     private readonly int _topLevelMethodOrdinal;
 
     private Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>? _genericCacheContainers;
 
     internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
+        Debug.Assert(factory.TopLevelMethod is { });
+
         _factory = factory;
+        _topLevelMethod = factory.TopLevelMethod;
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
@@ -57,11 +59,10 @@ internal sealed class DelegateCacheRewriter
 
     private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
-        Debug.Assert(_factory.TopLevelMethod is { });
         Debug.Assert(_factory.ModuleBuilderOpt is { });
 
         var typeCompilationState = _factory.CompilationState;
-        var moduleBuilder = _factory.ModuleBuilderOpt;
+        var generation = _factory.ModuleBuilderOpt.CurrentGenerationOrdinal;
 
         DelegateCacheContainer? container;
 
@@ -74,7 +75,7 @@ internal sealed class DelegateCacheRewriter
                 return container;
             }
 
-            container = new(typeCompilationState.Type, moduleBuilder.CurrentGenerationOrdinal);
+            container = new(typeCompilationState.Type, generation);
             typeCompilationState.ConcreteDelegateCacheContainer = container;
         }
         else
@@ -94,7 +95,7 @@ internal sealed class DelegateCacheRewriter
                 return containersStack.Peek().CacheContainer;
             }
 
-            container = new(_factory.CurrentFunction ?? _factory.TopLevelMethod, _topLevelMethodOrdinal, localFunctionOrdinal, moduleBuilder.CurrentGenerationOrdinal);
+            container = new(_factory.CurrentFunction ?? _topLevelMethod, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
             containersStack.Push((localFunctionOrdinal, container));
         }
 
@@ -111,9 +112,7 @@ internal sealed class DelegateCacheRewriter
         //   3. local functions
         // Since our containers are created within the same enclosing type, we can ignore type parameters from it.
 
-        Debug.Assert(_factory.TopLevelMethod is { });
-
-        // So obviously,
+        // Obviously,
         if (_factory is { CurrentFunction: null, TopLevelMethod.Arity: 0 })
         {
             return true;
@@ -122,7 +121,7 @@ internal sealed class DelegateCacheRewriter
         var methodTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            methodTypeParameters.AddAll(_factory.TopLevelMethod.TypeParameters);
+            methodTypeParameters.AddAll(_topLevelMethod.TypeParameters);
 
             for (Symbol? s = _factory.CurrentFunction; s is MethodSymbol m; s = s.ContainingSymbol)
             {
