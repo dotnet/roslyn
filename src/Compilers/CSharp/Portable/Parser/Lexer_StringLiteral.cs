@@ -485,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, "\""));
                             _lexer.TextWindow.AdvanceChar();
+                            _lexer.TextWindow.AdvanceChar();
                         }
                         else
                         {
