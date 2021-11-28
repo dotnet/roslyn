@@ -474,6 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch));
                         }
+                        else if (ch is '"' or ':')
+                        {
+                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
+                        }
                     }
                     else if (ch == '"')
                     {
