@@ -480,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
                         {
                             TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, "\""));
+                            _lexer.TextWindow.AdvanceChar();
                         }
                         else
                         {
@@ -489,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else if (ch is '{' or ':')
                     {
                         TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
+                        _lexer.TextWindow.AdvanceChar();
                     }
                     else if (ch == '}')
                     {
