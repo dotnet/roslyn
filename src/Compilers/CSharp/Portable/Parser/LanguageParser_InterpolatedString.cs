@@ -4,12 +4,7 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -24,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <param name="first">index of first character to be included</param>
         /// <param name="last">index of last character to be included</param>
         /// </summary>
-        private string Substring(string s, int first, int last)
+        private static string Substring(string s, int first, int last)
         {
             if (last >= s.Length)
             {
@@ -67,14 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
-            SyntaxDiagnosticInfo error = null;
+            SyntaxDiagnosticInfo error;
             bool closeQuoteMissing;
             using (var tempLexer = new Lexer(Text.SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false))
             {
                 // compute the positions of the interpolations in the original string literal, and also compute/preserve
                 // lexical errors
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, ref error, out closeQuoteMissing);
+                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, out error, out closeQuoteMissing);
             }
 
             // Make a token for the open quote $" or $@" or @$"
@@ -82,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalText[openQuoteIndex] == '"');
 
             var openQuoteKind = isVerbatim
-                    ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
-                    : SyntaxKind.InterpolatedStringStartToken; // $
+                ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
+                : SyntaxKind.InterpolatedStringStartToken; // $
 
             var openQuoteText = isAltInterpolatedVerbatim
                 ? "@$\""

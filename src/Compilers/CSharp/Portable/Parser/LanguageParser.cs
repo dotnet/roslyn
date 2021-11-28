@@ -7124,11 +7124,11 @@ done:
                             var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
                             try
                             {
-                                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                                do
                                 {
-                                    var rank = this.ParseArrayRankSpecifier(out _);
-                                    ranks.Add(rank);
+                                    ranks.Add(this.ParseArrayRankSpecifier(out _));
                                 }
+                                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
 
                                 type = _syntaxFactory.ArrayType(type, ranks);
                             }

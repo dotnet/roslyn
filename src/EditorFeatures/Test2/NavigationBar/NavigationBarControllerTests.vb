@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
@@ -105,11 +106,7 @@ class C
 
                 Dim mockPresenter As New MockNavigationBarPresenter(
                     baseDocument.GetTextView(),
-                    Sub(projects As IList(Of NavigationBarProjectItem),
-                            selectedProject As NavigationBarProjectItem,
-                            typesWithMembers As IList(Of NavigationBarItem),
-                            selectedType As NavigationBarItem,
-                            selectedMember As NavigationBarItem)
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
                         memberName = typesWithMembers.Single().ChildItems.Single().Text
                         projectGlyph = selectedProject.Glyph
                     End Sub)
@@ -168,11 +165,7 @@ End Class
 
                 Dim mockPresenter As New MockNavigationBarPresenter(
                     baseDocument.GetTextView(),
-                    Sub(projects As IList(Of NavigationBarProjectItem),
-                            selectedProject As NavigationBarProjectItem,
-                            typesWithMembers As IList(Of NavigationBarItem),
-                            selectedType As NavigationBarItem,
-                            selectedMember As NavigationBarItem)
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
                         memberNames = typesWithMembers.Single().ChildItems.Select(Function(c) c.Text)
                         projectGlyph = selectedProject.Glyph
                     End Sub)
@@ -226,14 +219,8 @@ class C
 
                 Dim mockPresenter As New MockNavigationBarPresenter(
                     baseDocument.GetTextView(),
-                    Sub(projects As IList(Of NavigationBarProjectItem),
-                            selectedProject As NavigationBarProjectItem,
-                            typesWithMembers As IList(Of NavigationBarItem),
-                            selectedType As NavigationBarItem,
-                            selectedMember As NavigationBarItem)
-                        actualProjectNames = projects.Select(Function(item)
-                                                                 Return item.Text
-                                                             End Function).ToList()
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
+                        actualProjectNames = projects.Select(Function(item) item.Text).ToList()
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
@@ -265,14 +252,8 @@ End Class
 
                 Dim mockPresenter As New MockNavigationBarPresenter(
                     baseDocument.GetTextView(),
-                    Sub(projects As IList(Of NavigationBarProjectItem),
-                            selectedProject As NavigationBarProjectItem,
-                            typesWithMembers As IList(Of NavigationBarItem),
-                            selectedType As NavigationBarItem,
-                            selectedMember As NavigationBarItem)
-                        actualProjectNames = projects.Select(Function(item)
-                                                                 Return item.Text
-                                                             End Function).ToList()
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
+                        actualProjectNames = projects.Select(Function(item) item.Text).ToList()
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
@@ -302,12 +283,8 @@ End Class
 
                 Dim mockPresenter As New MockNavigationBarPresenter(
                     document.GetTextView(),
-                    Sub(projects As IList(Of NavigationBarProjectItem),
-                            selectedProject As NavigationBarProjectItem,
-                            typesWithMembers As IList(Of NavigationBarItem),
-                            selectedType As NavigationBarItem,
-                            selectedMember As NavigationBarItem)
-                        projectName = If(selectedProject IsNot Nothing, selectedProject.Text, Nothing)
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
+                        projectName = selectedProject?.Text
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
@@ -328,6 +305,37 @@ End Class
                 Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.Equal("VBProj2", projectName)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(1116665, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1116665")>
+        Public Async Function TestNoCompilationLanguage() As Task
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService))
+
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="NoCompilation" CommonReferences="true" AssemblyName="Test">
+                        <Document FilePath="C.js">
+                        </Document>
+                    </Project>
+                </Workspace>, composition:=composition)
+
+                Dim document = workspace.Documents.Single()
+
+                Dim mockPresenter As New MockNavigationBarPresenter(
+                    document.GetTextView(),
+                    Sub(projects, selectedProject, typesWithMembers, selectedType, selectedMember)
+                    End Sub)
+
+                Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
+                Dim controller = DirectCast(controllerFactory.CreateController(mockPresenter, document.GetTextBuffer()), NavigationBarController)
+                Dim accessor = controller.GetTestAccessor()
+
+                ' Ensure we don't crash computing the model for a language that isn't available.
+                Await accessor.GetModelAsync()
             End Using
         End Function
     End Class
