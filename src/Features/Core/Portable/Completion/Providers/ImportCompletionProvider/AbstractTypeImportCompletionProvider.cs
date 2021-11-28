@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var telemetryCounter = new TelemetryCounter();
+                var telemetryCounter = new TelemetryCounter(isExpandedCompletion);
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
                 var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
@@ -164,13 +164,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class TelemetryCounter
         {
-            protected int Tick { get; }
+            private readonly int _tick;
+            private readonly bool _isExpandedCompletion;
+
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
             public bool CacheMiss { get; set; }
 
-            public TelemetryCounter()
-                => Tick = Environment.TickCount;
+            public TelemetryCounter(bool isExpandedCompletion)
+            {
+                _tick = Environment.TickCount;
+                _isExpandedCompletion = isExpandedCompletion;
+            }
 
             public void Report()
             {
@@ -178,13 +183,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
                 }
-                else
-                {
-                    var delta = Environment.TickCount - Tick;
-                    CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
-                    CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
-                    CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
-                }
+
+                // cache miss still count towards the cost of completion, so we need to log regardless of it.
+                var delta = Environment.TickCount - _tick;
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta, _isExpandedCompletion);
+                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }
         }
     }

@@ -192,6 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>? _awaitablePlaceholdersOpt;
 
+        // Note: at the moment, we have two kinds of placeholders. Those that we visit first (and store the result from and substitute later)
+        // and those that we visit after subsitution.
+        // Ideally, we should be able to align on the first kind of design, then we could remove the second kind.
+        // Removing this map is tracked as part of https://github.com/dotnet/roslyn/issues/57855
+        private PooledDictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholdersToUnvisitedExpressionOpt;
+
         /// <summary>
         /// Variables instances for each lambda or local function defined within the analyzed region.
         /// </summary>
@@ -368,8 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            AssertNoPlaceholderReplacements();
+
             _nestedFunctionVariables?.Free();
             _awaitablePlaceholdersOpt?.Free();
+            _placeholdersToUnvisitedExpressionOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
@@ -452,6 +461,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int AddVariable(VariableIdentifier identifier)
         {
             return _variables.Add(identifier);
+        }
+
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
+        private void AddPlaceholder(BoundValuePlaceholderBase placeholder, BoundExpression unvisited)
+        {
+            _placeholdersToUnvisitedExpressionOpt ??= PooledDictionary<BoundValuePlaceholderBase, BoundExpression>.GetInstance();
+            _placeholdersToUnvisitedExpressionOpt.Add(placeholder, unvisited);
+        }
+
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
+        private void RemovePlaceholder(BoundValuePlaceholderBase placeholder)
+        {
+            Debug.Assert(_placeholdersToUnvisitedExpressionOpt is not null);
+            _placeholdersToUnvisitedExpressionOpt.Remove(placeholder);
+        }
+
+        /// <summary>
+        /// This is for placeholders to unvisited expressions
+        /// </summary>
+        private bool TryReplacePlaceholder(BoundValuePlaceholderBase placeholder, [NotNullWhen(true)] out BoundExpression? unvisited)
+        {
+            if (_placeholdersToUnvisitedExpressionOpt is not null &&
+                _placeholdersToUnvisitedExpressionOpt.TryGetValue(placeholder, out unvisited))
+            {
+                return true;
+            }
+
+            unvisited = null;
+            return false;
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertNoPlaceholderReplacements()
+        {
+            if (_awaitablePlaceholdersOpt is not null)
+            {
+                Debug.Assert(_awaitablePlaceholdersOpt.Count == 0);
+            }
+            if (_placeholdersToUnvisitedExpressionOpt is not null)
+            {
+                Debug.Assert(_placeholdersToUnvisitedExpressionOpt.Count == 0);
+            }
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
@@ -3457,7 +3512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.HasErrors)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo);
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _);
                 }
 
                 TypeWithAnnotations inferredType = (bestType is null)
@@ -3517,7 +3572,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
             Binder binder,
             BoundNode node,
-            Conversions conversions)
+            Conversions conversions,
+            out bool inferredFromFunctionType)
         {
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
@@ -3545,7 +3601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo);
+            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo, out inferredFromFunctionType);
 
             TypeWithAnnotations inferredType;
             if (bestType is { })
@@ -8695,23 +8751,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode? VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            BoundExpression receiver = node.Receiver;
-            var receiverType = VisitRvalueWithState(receiver).Type;
-            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
-            // after indices have been visited, and only if the receiver has not changed.
-            _ = CheckPossibleNullReceiver(receiver);
+            // The argument will be visited as part of VisitImplicitIndexerValuePlaceholder (for the first argument)
+            // to maintain proper order of evaluation
+            AddPlaceholder(node.ArgumentPlaceholders[0], node.Argument);
+            VisitRvalue(node.IndexerOrSliceAccess);
+            RemovePlaceholder(node.ArgumentPlaceholders[0]);
 
-            VisitRvalue(node.Argument);
-            var patternSymbol = node.PatternSymbol;
-            if (receiverType is object)
+            SetResult(node, ResultType, LvalueResultType);
+            return null;
+        }
+
+        public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
+        {
+            // We use this placeholder as trigger to visit the Argument of implicit indexer access (after its Receiver)
+            if (TryReplacePlaceholder(node, out var unvisited))
             {
-                patternSymbol = AsMemberOfType(receiverType, patternSymbol);
+                VisitRvalue(unvisited);
             }
 
-            SetLvalueResultType(node, patternSymbol.GetTypeOrReturnType());
-            SetUpdatedSymbol(node, node.PatternSymbol, patternSymbol);
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
+        {
+            SetNotNullResult(node);
             return null;
         }
 

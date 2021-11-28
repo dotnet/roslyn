@@ -71,6 +71,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_imports_on_paste}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="QuickActionsBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
+                <StackPanel>
+                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>

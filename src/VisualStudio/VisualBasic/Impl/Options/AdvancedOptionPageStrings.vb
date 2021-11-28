@@ -93,6 +93,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_EnableHighlightReferences As String =
             BasicVSResources.Highlight_references_to_symbol_under_cursor
 
+        Public ReadOnly Property Option_Quick_Actions As String =
+            ServicesVSResources.Quick_Actions
+
+        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
+            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
+
         Public ReadOnly Property Option_EnableLineCommit As String
             Get
                 Return BasicVSResources.Pretty_listing_reformatting_of_code

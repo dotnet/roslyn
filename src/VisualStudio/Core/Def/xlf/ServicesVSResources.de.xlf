@@ -252,6 +252,11 @@
         <target state="translated">Kommentare</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Schnelle Aktionen asynchron berechnen (experimentell, Neustart erforderlich)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Enthaltender Member</target>
@@ -1027,6 +1032,11 @@
         <target state="translated">Member nach oben ziehen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Schnelle Aktionen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Nur Refactoring</target>
@@ -1050,6 +1060,11 @@
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">Nicht verwendete Verweise entfernen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1225,6 +1240,11 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Einige Farbschemafarben werden durch Änderungen überschrieben, die auf der Optionsseite "Umgebung" &gt; "Schriftarten und Farben" vorgenommen wurden. Wählen Sie auf der Seite "Schriftarten und Farben" die Option "Standardwerte verwenden" aus, um alle Anpassungen rückgängig zu machen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
