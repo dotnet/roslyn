@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -11,62 +12,95 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal class DelegateCacheRewriter
+internal sealed class DelegateCacheRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
-    public DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    private Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>? _genericCacheContainers;
+
+    internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
         _factory = factory;
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    public static bool CanRewrite(SyntheticBoundNodeFactory factory, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
+    internal static bool CanRewrite(SyntheticBoundNodeFactory factory, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
         => targetMethod.IsStatic && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
         && factory.TopLevelMethod is not { MethodKind: MethodKind.StaticConstructor } // Avoid caching twice if people do it manually.
-        && factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions)
+        && factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions) // Compatibility reasons.
         ;
 
-    public BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
+    internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
 
-        return new BoundDelegateCreationExpression(syntax, receiver, targetMethod, false, delegateType);
-        //var orgSyntax = _factory.Syntax;
-        //_factory.Syntax = syntax;
+        var oldSyntax = _factory.Syntax;
+        _factory.Syntax = syntax;
 
-        //var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
-        //var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
+        var cacheContainer = GetOrAddCacheContainer(localFunctionOrdinal, delegateType, targetMethod);
+        var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
 
-        //var boundCacheField = _factory.Field(null, cacheField);
-        //var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType)
-        //{
-        //    WasCompilerGenerated = true
-        //};
+        var boundCacheField = _factory.Field(null, cacheField);
+        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType)
+        {
+            WasCompilerGenerated = true
+        };
 
-        //var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
+        var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
 
-        //_factory.Syntax = orgSyntax;
+        _factory.Syntax = oldSyntax;
 
-        //return rewrittenNode;
+        return rewrittenNode;
     }
 
-    private DelegateCacheContainer GetOrAddCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
-        Debug.Assert(_factory is { TopLevelMethod: { }, ModuleBuilderOpt: { } });
+        Debug.Assert(_factory.TopLevelMethod is { });
+        Debug.Assert(_factory.ModuleBuilderOpt is { });
+
+        var typeCompilationState = _factory.CompilationState;
+        var moduleBuilder = _factory.ModuleBuilderOpt;
+
+        DelegateCacheContainer? container;
 
         if (AConcreteContainerIsEnough(delegateType, targetMethod))
         {
-            //return _factory.CompilationState.TypeScopedDelegateCacheContainer;
+            container = typeCompilationState.ConcreteDelegateCacheContainer;
+
+            if (container is { })
+            {
+                return container;
+            }
+
+            container = new(typeCompilationState.Type, moduleBuilder.CurrentGenerationOrdinal);
+            typeCompilationState.ConcreteDelegateCacheContainer = container;
         }
         else
         {
-            //return MethodScopedGenericDelegateCacheContainer;
+            var containersStack = _genericCacheContainers ??= new();
+
+            while (containersStack.Count > 0)
+            {
+                if (containersStack.Peek().LocalFunctionOrdinal > localFunctionOrdinal)
+                {
+                    containersStack.Pop();
+                }
+            }
+
+            if (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal == localFunctionOrdinal)
+            {
+                return containersStack.Peek().CacheContainer;
+            }
+
+            container = new(_factory.CurrentFunction ?? _factory.TopLevelMethod, _topLevelMethodOrdinal, localFunctionOrdinal, moduleBuilder.CurrentGenerationOrdinal);
+            containersStack.Push((localFunctionOrdinal, container));
         }
 
-        throw new NotImplementedException();
+        _factory.AddNestedType(container);
+
+        return container;
     }
 
     private bool AConcreteContainerIsEnough(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
@@ -75,7 +109,7 @@ internal class DelegateCacheRewriter
         //   1. containing types
         //   2. current method
         //   3. local functions
-        // Our containers are created within the same enclosing type, so we can ignore type parameters from it.
+        // Since our containers are created within the same enclosing type, we can ignore type parameters from it.
 
         Debug.Assert(_factory.TopLevelMethod is { });
 
@@ -85,29 +119,29 @@ internal class DelegateCacheRewriter
             return true;
         }
 
-        var typeParams = PooledHashSet<TypeParameterSymbol>.GetInstance();
+        var methodTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            typeParams.AddAll(_factory.TopLevelMethod.TypeParameters);
+            methodTypeParameters.AddAll(_factory.TopLevelMethod.TypeParameters);
 
             for (Symbol? s = _factory.CurrentFunction; s is MethodSymbol m; s = s.ContainingSymbol)
             {
-                typeParams.AddAll(m.TypeParameters);
+                methodTypeParameters.AddAll(m.TypeParameters);
             }
 
-            if (typeParams.Count == 0)
+            if (methodTypeParameters.Count == 0)
             {
                 return true;
             }
 
-            if (delegateType.ContainsTypeParameters(typeParams) || containsTypeParameters(targetMethod, typeParams))
+            if (delegateType.ContainsTypeParameters(methodTypeParameters) || containsTypeParameters(targetMethod, methodTypeParameters))
             {
                 return false;
             }
         }
         finally
         {
-            typeParams.Free();
+            methodTypeParameters.Free();
         }
 
         return true;
