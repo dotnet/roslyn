@@ -462,9 +462,9 @@
         <target state="translated">運算式樹狀架構不可包含差補字串處理常式轉換。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">運算式樹狀架構不可包含 System.Index 或 System.Range 索引子存取模式</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -769,7 +769,7 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="translated">具有屬性的 Lambda 運算式，不可轉換成運算式樹狀架構</target>
+        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -785,6 +785,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">'{0}' 沒有任何多載符合函式指標 '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1227,6 +1232,16 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">應存在類似泛型工作的傳回型別，但在 'AsyncMethodBuilder' 屬性中找到的類型 '{0}' 不適用。它必須是 arity one 的未綁定泛型型別，並且其包含類型 (如果有) 必須是非泛型。</target>
@@ -1302,9 +1317,19 @@
         <target state="translated">lambda 傳回型別</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLengthPattern">
+        <source>length pattern</source>
+        <target state="new">length pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">line span 指示詞</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="new">list pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -1434,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">作業在執行階段可能會溢位 '{0}' (請使用 'unchecked' 語法覆寫)</target>
+        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">作業在執行階段可能會溢位 (請使用 'unchecked' 語法覆寫)</target>
+        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1464,12 +1489,12 @@
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="translated">將方法群組 '{0}' 轉換成非委派類型 '{1}'。原本希望叫用該方法嗎?</target>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="translated">將方法群組轉換為非委派類型</target>
+        <target state="new">Converting method group to non-delegate type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

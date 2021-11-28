@@ -1537,8 +1537,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
-        private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
+        internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
+            if (expr is null)
+            {
+                receiver = null;
+                propertySyntax = null;
+                return null;
+            }
+
             PropertySymbol propertySymbol;
             switch (expr.Kind)
             {
@@ -1556,16 +1563,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
                     {
-                        var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                        receiver = patternIndexer.Receiver;
-                        propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
+                        var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerOrSliceAccess, out receiver, out propertySyntax);
                     }
                     break;
                 default:
                     receiver = null;
-                    propertySymbol = null;
                     propertySyntax = null;
                     return null;
             }
@@ -1592,6 +1597,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return propertySymbol;
         }
+
+#nullable enable
+        internal static Symbol? GetIndexerOrImplicitIndexerSymbol(BoundExpression? e)
+        {
+            return e switch
+            {
+                null => null,
+                // this[Index], this[Range]
+                BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
+                // Slice(int, int), Substring(int, int)
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundCall call } => call.Method,
+                // this[int]
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
+                // array[Index]
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess } => null,
+                // array[int or Range]
+                BoundArrayAccess => null,
+                BoundDynamicIndexerAccess => null,
+                BoundBadExpression => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
+            };
+        }
+#nullable disable
 
         private static SyntaxNode GetEventName(BoundEventAccess expr)
         {

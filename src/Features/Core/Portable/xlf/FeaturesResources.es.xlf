@@ -2305,6 +2305,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">La selección no está contenida dentro de un tipo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordenar modificadores de accesibilidad</target>
