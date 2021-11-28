@@ -51,17 +51,8 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
             return field;
         }
 
+        var fieldType = TypeParameters.IsEmpty ? delegateType : TypeMap.SubstituteType(delegateType).Type;
         var fieldName = GeneratedNames.DelegateCacheContainerFieldName(_delegateFields.Count, targetMethod.Name);
-
-        TypeSymbol fieldType;
-        if (TypeParameters.IsEmpty)
-        {
-            fieldType = delegateType;
-        }
-        else
-        {
-            fieldType = TypeMap.SubstituteType(delegateType).Type;
-        }
 
         field = new SynthesizedFieldSymbol(this, fieldType, fieldName, isPublic: true, isStatic: true);
         factory.AddField(this, field);
