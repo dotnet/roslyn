@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var start = _lexer.TextWindow.Position;
                 if (_isVerbatim)
                 {
-                    // skip past @$ or $!
+                    // skip past @$ or $@
                     _lexer.TextWindow.AdvanceChar(2);
                 }
                 else
