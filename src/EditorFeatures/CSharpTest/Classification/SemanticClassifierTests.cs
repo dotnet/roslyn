@@ -2605,7 +2605,7 @@ struct Type<T>
             using var workspace = TestWorkspace.CreateCSharp("");
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
             var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
