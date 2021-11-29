@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return; // premature end of string! let caller complain about unclosed interpolation
                         }
                     }
-                    else if (ch = '{')
+                    else if (ch == '{')
                     {
                         TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
                         _lexer.TextWindow.AdvanceChar();
