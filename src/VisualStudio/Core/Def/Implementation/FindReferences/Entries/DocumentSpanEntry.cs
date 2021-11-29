@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
 
@@ -309,7 +309,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
-                    solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                    solution.Options
+                        .WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)
+                        .WithChangedOption(NavigationOptions.ActivateTab, shouldActivate),
                     cancellationToken);
             }
         }
