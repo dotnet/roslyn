@@ -19,14 +19,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
@@ -80,15 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var edit = args.SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
             edit.Replace(new Span(0, args.SubjectBuffer.CurrentSnapshot.Length), convertedRoot.ToFullString());
 
-            //var originalText = root.SyntaxTree.GetText(cancellationToken);
-            //var finalText = formattedRoot.SyntaxTree.GetText(cancellationToken);
-
-            //var changes = finalText.GetTextChanges(originalText);
-
-            //foreach (var change in changes)
-            //    edit.Replace(change.Span.ToSpan(), change.NewText);
-
             edit.Apply();
+
+            var annotatedToken = convertedRoot.GetAnnotatedTokens(s_annotation).FirstOrDefault();
+            if (annotatedToken != default)
+                args.TextView.Caret.MoveTo(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, annotatedToken.Span.End));
 
             transaction?.Complete();
         }
