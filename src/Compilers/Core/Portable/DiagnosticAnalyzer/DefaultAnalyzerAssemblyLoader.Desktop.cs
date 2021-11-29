@@ -149,7 +149,9 @@ namespace Microsoft.CodeAnalysis
             string? bestPath = null;
             Version? bestIdentityVersion = null;
 
-            foreach (var candidatePath in candidatePaths)
+            // Sort the candidate paths by ordinal, to ensure determinism with the same inputs if you were to have multiple assemblies
+            // providing the same version.
+            foreach (var candidatePath in candidatePaths.OrderBy(StringComparer.Ordinal))
             {
                 var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
 
