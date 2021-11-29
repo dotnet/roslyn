@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -310,6 +311,24 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
                 return GetCompilationOptionsValue(options);
             }
+        }
+
+        /// <summary>
+        /// Disabling determinism should mean all calls to GetDeteriministicKey return different values.
+        /// </summary>
+        [Fact]
+        public void CompilationOptionsDeterministicOff()
+        {
+            var options = GetCompilationOptions();
+            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, options: options);
+            var key = compilation.GetDeterministicKey();
+
+            Assert.Equal(key, compilation.GetDeterministicKey());
+
+            options = (TCompilationOptions)options.WithDeterministic(false);
+            compilation = (TCompilation)compilation.WithOptions(options);
+            key = compilation.GetDeterministicKey();
+            Assert.NotEqual(key, compilation.GetDeterministicKey());
         }
 
         /// <summary>

@@ -7,7 +7,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicDeterministicKeyBuilder
         Inherits DeterministicKeyBuilder
 
-        Public Sub New()
+        Friend Shared ReadOnly Instance As New VisualBasicDeterministicKeyBuilder()
+
+        Private Sub New()
 
         End Sub
 

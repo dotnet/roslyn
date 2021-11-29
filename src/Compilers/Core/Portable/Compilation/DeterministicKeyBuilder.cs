@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
     /// When an option is omitted, say if there is no value for a public crypto key, we should emit
     /// the property with a null value vs. omitting the property. Either approach would produce 
     /// correct results the preference is to be declarative that an option is omitted.
-    /// </remarks>
+    /// </summary>
     internal abstract class DeterministicKeyBuilder
     {
         protected DeterministicKeyBuilder()
@@ -377,35 +377,31 @@ namespace Microsoft.CodeAnalysis
             DeterministicKeyOptions deterministicKeyOptions)
         {
             writer.WriteObjectStart();
-            if (options is null)
+            if (options is not null)
             {
-                writer.WriteObjectEnd();
-                return;
+                writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
+                writer.Write("tolerateErrors", options.TolerateErrors);
+                writer.Write("includePrivateMembers", options.IncludePrivateMembers);
+                writer.WriteKey("instrumentationKinds");
+                writer.WriteArrayStart();
+                foreach (var kind in options.InstrumentationKinds)
+                {
+                    writer.Write(kind);
+                }
+                writer.WriteArrayEnd();
+
+                writeSubsystemVersion(writer, options.SubsystemVersion);
+                writer.Write("fileAlignment", options.FileAlignment);
+                writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
+                writer.Write("baseAddress", options.BaseAddress.ToString("G"));
+                writer.Write("debugInformationFormat", options.DebugInformationFormat);
+                writer.Write("outputNameOverride", options.OutputNameOverride);
+                WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
+                writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
+                writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
+                writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
+                writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
             }
-
-            writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
-            writer.Write("tolerateErrors", options.TolerateErrors);
-            writer.Write("includePrivateMembers", options.IncludePrivateMembers);
-            writer.WriteKey("instrumentationKinds");
-            writer.WriteArrayStart();
-            foreach (var kind in options.InstrumentationKinds)
-            {
-                writer.Write(kind);
-            }
-            writer.WriteArrayEnd();
-
-            writeSubsystemVersion(writer, options.SubsystemVersion);
-            writer.Write("fileAlignment", options.FileAlignment);
-            writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-            writer.Write("baseAddress", options.BaseAddress.ToString("G"));
-            writer.Write("debugInformationFormat", options.DebugInformationFormat);
-            writer.Write("outputNameOverride", options.OutputNameOverride);
-            WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
-            writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
-            writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
-            writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
-            writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
-
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
@@ -466,6 +462,12 @@ namespace Microsoft.CodeAnalysis
             {
                 writer.Write("deterministic", false);
                 writer.Write("localtime", options.CurrentLocalTime.ToString(CultureInfo.InvariantCulture));
+
+                // When using /deterministic- the compiler will *always* emit different binaries hence the 
+                // key we generate here also must be different. We cannot depend on the `localtime` property
+                // to provide this as the same compilation can occur on different machines at the same 
+                // time. Force the issue here.
+                writer.Write("nondeterministicMvid", GetGuidValue(Guid.NewGuid()));
             }
 
             // Values which do not impact build success / failure

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         protected override VisualBasicParseOptions GetParseOptions() => VisualBasicParseOptions.Default;
 
-        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new VisualBasicDeterministicKeyBuilder();
+        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => VisualBasicDeterministicKeyBuilder.Instance;
 
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types

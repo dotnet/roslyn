@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 references ?? NetCoreApp.References.ToArray(),
                 options ?? Options);
 
-        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => new CSharpDeterministicKeyBuilder();
+        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => CSharpDeterministicKeyBuilder.Instance;
 
         protected override CSharpCompilationOptions GetCompilationOptions() => Options;
 
@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
   ""compilation"": {
     ""toolsVersions"": {},
+    ""publicKey"": """",
     ""options"": {
       ""outputKind"": ""ConsoleApplication"",
       ""moduleName"": null,
@@ -235,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""framework"": ""{RuntimeInformation.FrameworkDescription}"",
       ""os"": ""{RuntimeInformation.OSDescription}""
     }},
+    ""publicKey"": """",
     ""options"": {{
       ""outputKind"": ""ConsoleApplication"",
       ""moduleName"": null,
