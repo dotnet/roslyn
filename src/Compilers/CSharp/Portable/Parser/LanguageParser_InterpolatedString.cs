@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
+            return result;
 
             void rescanInterpolation(out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
             {
