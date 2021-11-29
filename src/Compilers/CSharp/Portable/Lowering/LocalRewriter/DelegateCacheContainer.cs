@@ -43,7 +43,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     internal override bool HasPossibleWellKnownCloneMethod() => false;
 
-    public FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
         if (_delegateFields.TryGetValue((delegateType, targetMethod), out var field))
         {
