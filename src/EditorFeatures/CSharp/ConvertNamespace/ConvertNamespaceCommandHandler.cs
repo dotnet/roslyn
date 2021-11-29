@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // Attempt to convert the block-namespace to a file-scoped namespace if we're at the right location.
-            var convertedRoot = ConvertNamespace(args, executionContext);
+            var convertedRoot = ConvertNamespaceCommandHandler.ConvertNamespace(args, executionContext);
 
             // No matter if we succeeded or not, insert the semicolon.  This way, when we convert, the user can still
             // hit ctrl-z to get back to the code with just the semicolon inserted.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <summary>
         /// Returns true if semicolon is typed after a namespace name that should be converted.
         /// </summary>
-        private CompilationUnitSyntax? ConvertNamespace(
+        private static CompilationUnitSyntax? ConvertNamespace(
             TypeCharCommandArgs args,
             CommandExecutionContext executionContext)
         {
