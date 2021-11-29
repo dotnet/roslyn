@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal partial class ItemManager
     {
+        /// <summary>
+        /// Handles the filtering, sorting and selection of the completion items based on user inputs 
+        /// (e.g. typed characters, selected filters, etc.)
+        /// </summary>
         private sealed class CompletionListUpdater
         {
             private readonly IAsyncCompletionSession _session;
@@ -109,11 +113,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (ShouldDismissCompletionListImmediately())
                     return null;
 
+                // Determine the list of items to be included in the completion list.
+                // This is computed based on the filter text as well as the current
+                // selection of filters and expander.
                 using var _ = ComputeItemsToBeIncluded(out var itemsToBeIncluded);
 
                 if (itemsToBeIncluded.Count == 0)
                     return HandleAllItemsFilteredOut();
 
+                // Decide the item to be selection for this completion session.
+                // This is mostly based on how well the item matches with the filter text, but we also need to
+                // take into consideration for things like CompletionTrigger, MatchPriority, MRU, etc. 
                 var initialSelection = _initialRoslynTriggerKind == CompletionTriggerKind.Deletion
                     ? HandleDeletionTrigger(itemsToBeIncluded)
                     : HandleNormalFiltering(itemsToBeIncluded);
@@ -121,7 +131,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (!initialSelection.HasValue)
                     return null;
 
-                var finalSelection = UpdateSelectionWithSuggestedDefaults(itemsToBeIncluded, initialSelection.Value);
+                // Editor might provide a list of items to us as a suggestion to what to select for this session
+                // (via IAsyncCompletionDefaultsSource), where the "default" means the "default selection".
+                // The main scenario for this is to keep the selected item in completion list in sync with the
+                // suggestion of "Whole-Line Completion" feature, where the default is usually set to the first token
+                // of the WLC suggetion.
+                var finalSelection = UpdateSelectionBasedOnSuggestedDefaults(itemsToBeIncluded, initialSelection.Value);
 
                 return new FilteredCompletionModel(
                     items: GetHighlightedList(itemsToBeIncluded),
@@ -186,19 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var unselectedExpanders = _data.SelectedFilters.SelectAsArray(f => !f.IsSelected && f.Filter is CompletionExpander, f => f.Filter);
                 var needToFilterExpanded = unselectedExpanders.Length > 0;
 
-                if (_session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
-                {
-                    // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
-                    if (needToFilter &&
-                        !_session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
-                        selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                    {
-                        AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
-
-                        // Make sure we only record one enabling of the filter per session
-                        _session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
-                    }
-                }
+                LogTargetTypeFilterTelemetry(selectedNonExpanderFilters, needToFilter);
 
                 // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
                 var currentIndex = 0;
@@ -262,28 +265,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // 2. or, all associated expanders are unselected, therefore should be excluded
                     return associatedWithUnselectedExpander;
                 }
-            }
 
-            private ItemSelection UpdateSelectionWithSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection)
-            {
-                // Editor doesn't provide us a list of "default" items.
-                if (_data.Defaults.IsDefaultOrEmpty)
-                    return itemSelection;
+                void LogTargetTypeFilterTelemetry(ImmutableArray<CompletionFilter> selectedNonExpanderFilters, bool needToFilter)
+                {
+                    if (_session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+                    {
+                        // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
+                        if (needToFilter &&
+                            !_session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
+                            selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                        {
+                            AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
 
-                // "Preselect" is only used when we have high confidence with the selection, so don't override it.
-                var selectedItem = items[itemSelection.SelectedItemIndex].RoslynCompletionItem;
-                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
-                    return itemSelection;
-
-                var tick = Environment.TickCount;
-
-                var useAggressiveDefaultsMatching = _session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
-                var finalSelection = useAggressiveDefaultsMatching
-                    ? GetAggressiveDefaultsMatch(items, itemSelection)
-                    : GetDefaultsMatch(items, itemSelection);
-
-                AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
-                return finalSelection;
+                            // Make sure we only record one enabling of the filter per session
+                            _session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
+                        }
+                    }
+                }
             }
 
             private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult<VSCompletionItem>> items)
@@ -356,9 +354,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var typedChar = _data.Trigger.Character;
 
                 // Check that it is a filter symbol. We can be called for a non-filter symbol.
-                // If inserting a non-filter character (neither
-                // , nor Helpers.IsFilterCharacter), we should dismiss completion  
-                // except cases where this is the first symbol typed for the completion session (string.IsNullOrEmpty(filterText) or string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase)).
+                // If inserting a non-filter character (neither IsPotentialFilterCharacter, nor Helpers.IsFilterCharacter),
+                // we should dismiss completion except cases where this is the first symbol typed for the completion session
+                // (string.IsNullOrEmpty(filterText) or string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase)).
                 // In the latter case, we should keep the completion because it was confirmed just before in InitializeCompletion.
                 if (FilterReason == CompletionFilterReason.Insertion &&
                     !string.IsNullOrEmpty(_filterText) &&
@@ -686,8 +684,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     || c == '_';
             }
 
-            // The aggressive mode exist to make it easier for IntelliCode to experiment with default matching algorithm, so this is
-            // not the default matching behavior we'd use.
+            private ItemSelection UpdateSelectionBasedOnSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection)
+            {
+                // Editor doesn't provide us a list of "default" items.
+                if (_data.Defaults.IsDefaultOrEmpty)
+                    return itemSelection;
+
+                // "Preselect" is only used when we have high confidence with the selection, so don't override it.
+                var selectedItem = items[itemSelection.SelectedItemIndex].RoslynCompletionItem;
+                if (selectedItem.Rules.MatchPriority >= MatchPriority.Preselect)
+                    return itemSelection;
+
+                var tick = Environment.TickCount;
+
+                var useAggressiveDefaultsMatching = _session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
+
+                var finalSelection = useAggressiveDefaultsMatching
+                    ? GetAggressiveDefaultsMatch(items, itemSelection)
+                    : GetDefaultsMatch(items, itemSelection);
+
+                AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
+                return finalSelection;
+            }
+
+            /// <summary>
+            /// With aggressive matching turned on, the default was use as long as what the user typed in the applicable to span
+            /// was a case-insensitive prefix of the item.
+            /// The aggressive mode exist to make it easier for IntelliCode to experiment with default matching algorithm, so this is
+            /// not the default matching behavior we'd use and subject to further adjustment.
+            /// </summary>
             private ItemSelection GetAggressiveDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection)
             {
                 foreach (var defaultText in _data.Defaults)
@@ -696,8 +721,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         // Currently in aggressive mode, the first item matches a default will be selected
                         // as long as the filter text is its prefix (case-insensitive).
-                        // e.g. a default "Console" would be a match for filter text "c" and therefore to be selected,
-                        // even if the CompletionService returns item "char" which is a case-sensitive prefix match.
+                        // e.g. a default "TaskCanceledException" would be a match for filter text "task" and therefore to be selected,
+                        // even if the CompletionService returns item for a local variable "task" which is an exact match.
                         var itemWithMatch = items[i];
                         if (itemWithMatch.RoslynCompletionItem.DisplayText != defaultText)
                             continue;
@@ -705,6 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         if (itemWithMatch.PatternMatch != null && itemWithMatch.PatternMatch.Value.Kind > PatternMatchKind.Prefix)
                             break;
 
+                        // Always hard-select except in suggestion mode.
                         return _hasSuggestedItemOptions
                             ? intialSelection with { SelectedItemIndex = i }
                             : intialSelection with { SelectedItemIndex = i, SelectionHint = UpdateSelectionHint.Selected };
@@ -714,19 +740,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return intialSelection;
             }
 
+            /// <summary>
+            /// Compare the pattern matching result of the current selection with the pattern matching result of the suggested defaults (both w.r.t. the filter text.)
+            /// If the suggested default is no worse than current selected item (in a case-sensitive manner,) use the suggested default. Otherwise use the original selection.
+            /// For example, if user typed "C", roslyn might select "CancellationToken", but with suggested default "Console" we will end up selecting "Console" instead.
+            /// </summary>
             private ItemSelection GetDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection)
             {
+                // Because the items are already sorted based on pattern-matching score, try to limit the range for the items we compare default with
+                // by searching for the first "inferior" item, so we can avoid always going through the entire list.
                 int inferiorItemIndex;
                 if (_filterText.Length == 0)
                 {
-                    // Without filterText, all items are eually good match, so we have to consider all of them.
+                    // Without filterText, all items are equally good match (w.r.t to the empty filterText), so we have to consider all of them.
                     inferiorItemIndex = items.Count;
                 }
                 else
                 {
                     // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
-                    // -- as far as the pattern matcher is concerned -- equivalent items. Find the last items in the range and use that
-                    // to limit the items searched for from the defaults list.          
+                    // -- as far as the pattern matcher is concerned -- equivalent items (items with identical PatternMatch.Kind and IsCaseSensitive).
+                    // Find the last items in the range and use that to limit the items searched for from the defaults list.          
                     var selectedItemMatch = items[intialSelection.SelectedItemIndex].PatternMatch;
 
                     if (!selectedItemMatch.HasValue)
@@ -747,6 +780,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 foreach (var defaultText in _data.Defaults)
                 {
+                    // The range includes all items that are as good of a match as what we intially selected (and in descending order of matching score)
+                    // so we just need to search for the first item that matches the suggested default.
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
                         if (items[i].RoslynCompletionItem.DisplayText == defaultText)
@@ -764,8 +799,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
                 // called concurrently, which essentially makes the pooled list a singleton,
                 // but we still use ObjectPool for concurrency handling just to be robust.
-                private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool
-                        = new(factory: () => new(), size: 1);
+                private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool = new(factory: () => new(), size: 1);
 
                 private List<MatchResult<VSCompletionItem>>? _list;
 
