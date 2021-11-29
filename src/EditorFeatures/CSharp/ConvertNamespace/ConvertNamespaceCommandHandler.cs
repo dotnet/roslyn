@@ -38,7 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class ConvertNamespaceCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
+        /// <summary>
+        /// Annotation used so we can find the semicolon after formatting so that we can properly place the caret.
+        /// </summary>
         private static readonly SyntaxAnnotation s_annotation = new();
+
+        /// <summary>
+        /// A fake option set where the 'use file scoped' namespace option is on.  That way we can call into the helpers
+        /// and have the results come back positive for converting to file-scoped regardless of the current option
+        /// value.
+        /// </summary>
         private static readonly OptionSet s_optionSet = new OptionValueSet(
             ImmutableDictionary<OptionKey, object?>.Empty.Add(
                 new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations.ToPublicOption()),
