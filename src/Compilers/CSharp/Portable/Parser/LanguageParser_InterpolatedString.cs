@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var result = tempParser.ParseInterpolation(text, interpolation, isVerbatim);
 
-            Debug.Assert(text == result.ToFullString()); // yield from text equals yield from node
+            Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
             return result;
         }
 
