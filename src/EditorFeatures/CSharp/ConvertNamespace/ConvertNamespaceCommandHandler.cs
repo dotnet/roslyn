@@ -75,12 +75,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            // Attempt to convert the block-namespace to a file-scoped namespace if we're at the right location.
             var convertedRoot = ConvertNamespace(args, executionContext);
+
+            // No matter if we succeeded or not, insert the semicolon.  This way, when we convert, the user can still
+            // hit ctrl-z to get back to the code with just the semicolon inserted.
             nextCommandHandler();
 
+            // If we weren't on a block namespace (or couldn't convert it for some reason), then bail out after
+            // inserting the semicolon.
             if (convertedRoot == null)
                 return;
 
+            // Otherwise, make a transaction for the edit and replace the buffer with the final text.
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 this.DisplayName, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
@@ -89,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             edit.Apply();
 
+            // Attempt to place the caret right after the semicolon of the file-scoped namespace.
             var annotatedToken = convertedRoot.GetAnnotatedTokens(s_annotation).FirstOrDefault();
             if (annotatedToken != default)
                 args.TextView.Caret.MoveTo(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, annotatedToken.Span.End));
@@ -119,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
             var root = (CompilationUnitSyntax)document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
+            // User has to be *after* an identifier token.
             var token = root.FindToken(caret);
             if (token.Kind() != SyntaxKind.IdentifierToken)
                 return null;
@@ -133,13 +142,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (namespaceDecl == null)
                 return null;
 
+            // That identifier token has to be the last part of a namespace name.
             if (namespaceDecl.Name.GetLastToken() != token)
                 return null;
 
+            // Pass in our special options, and C#10 so that if we can convert this to file-scoped, we will.
             if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_optionSet, root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return null;
 
             var fileScopedNamespace = (FileScopedNamespaceDeclarationSyntax)ConvertNamespaceTransform.Convert(namespaceDecl);
+
+            // Place an annotation on the semicolon so that we can find it post-formatting to place the caret.
             fileScopedNamespace = fileScopedNamespace.WithSemicolonToken(
                 fileScopedNamespace.SemicolonToken.WithAdditionalAnnotations(s_annotation));
 
@@ -150,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 options: null, rules: null, cancellationToken);
 
             return formattedRoot;
-            // var finalSemicolonLocation = formattedTextChanges.GetFormattedRoot(cancellationToken).GetAnnotatedTokens(s_annotation).Single();
         }
     }
 }
