@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
         private readonly IGlobalOptionService _globalOptions;
+        private readonly string _hintTextSuffix;
 
         protected enum HintKind
         {
@@ -27,9 +28,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Other
         }
 
-        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
+        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions, string hintTextSuffix)
         {
             _globalOptions = globalOptions;
+            _hintTextSuffix = hintTextSuffix;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -40,7 +42,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
-        protected abstract string HintText(string parameterName);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, HintText(parameter.Name))),
+                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + _hintTextSuffix)),
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

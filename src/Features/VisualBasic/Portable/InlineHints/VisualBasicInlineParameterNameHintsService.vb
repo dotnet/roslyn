@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(globalOptions As IGlobalOptionService)
-            MyBase.New(globalOptions)
+            MyBase.New(globalOptions, hintTextSuffix:=":= ")
         End Sub
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
@@ -95,10 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         Protected Overrides Function IsIndexer(node As SyntaxNode, parameter As IParameterSymbol) As Boolean
             Dim propertySymbol = TryCast(parameter.ContainingSymbol, IPropertySymbol)
             Return propertySymbol IsNot Nothing AndAlso propertySymbol.IsDefault
-        End Function
-
-        Protected Overrides Function HintText(parameterName As String) As String
-            Return parameterName & ":= "
         End Function
     End Class
 End Namespace

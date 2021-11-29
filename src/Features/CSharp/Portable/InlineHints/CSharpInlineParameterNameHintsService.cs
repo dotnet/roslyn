@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInlineParameterNameHintsService(IGlobalOptionService globalOptions)
-            : base(globalOptions)
+            : base(globalOptions, hintTextSuffix: ": ")
         {
         }
 
@@ -99,11 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         protected override bool IsIndexer(SyntaxNode node, IParameterSymbol parameter)
         {
             return node is BracketedArgumentListSyntax;
-        }
-
-        protected override string HintText(string parameterName)
-        {
-            return parameterName + ": ";
         }
     }
 }
