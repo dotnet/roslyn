@@ -8727,7 +8727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
         {
-            VisitplaceholderWithReplacement(node);
+            VisitPlaceholderWithReplacement(node);
             return null;
         }
 
@@ -10003,11 +10003,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
-            VisitplaceholderWithReplacement(node);
+            VisitPlaceholderWithReplacement(node);
             return null;
         }
 
-        private void VisitplaceholderWithReplacement(BoundValuePlaceholderBase node)
+        private void VisitPlaceholderWithReplacement(BoundValuePlaceholderBase node)
         {
             if (_resultForPlaceholdersOpt != null && _resultForPlaceholdersOpt.TryGetValue(node, out var value))
             {
