@@ -26,7 +26,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, containingMethod.Name, topLevelMethodOrdinal, localFunctionOrdinal), containingMethod)
     {
         Debug.Assert(containingMethod.IsDefinition);
-        _containingSymbol = containingMethod;
+        _containingSymbol = containingMethod.ContainingType;
     }
 
     public override Symbol ContainingSymbol => _containingSymbol;

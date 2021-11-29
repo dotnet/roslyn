@@ -79,12 +79,9 @@ internal sealed class DelegateCacheRewriter
         {
             var containersStack = _genericCacheContainers ??= new();
 
-            while (containersStack.Count > 0)
+            while (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal > localFunctionOrdinal)
             {
-                if (containersStack.Peek().LocalFunctionOrdinal > localFunctionOrdinal)
-                {
-                    containersStack.Pop();
-                }
+                containersStack.Pop();
             }
 
             if (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal == localFunctionOrdinal)
