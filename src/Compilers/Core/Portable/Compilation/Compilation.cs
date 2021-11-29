@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This API can throw exceptions in a few cases like invalid file paths.
         /// </remarks>
-        public static string GetDeterministicKey(
+        internal static string GetDeterministicKey(
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> references,
