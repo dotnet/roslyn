@@ -78,6 +78,9 @@ namespace Microsoft.CodeAnalysis
 
         private Assembly? CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
+            // In the .NET Framework, if a handler to AssemblyResolve throws an exception, other handlers
+            // are not called. To avoid any bug in our handler breaking other handlers running in the same process
+            // we catch exceptions here. We do not expect exceptions to be thrown though.
             try
             {
                 return GetOrLoad(AppDomain.CurrentDomain.ApplyPolicy(args.Name));
