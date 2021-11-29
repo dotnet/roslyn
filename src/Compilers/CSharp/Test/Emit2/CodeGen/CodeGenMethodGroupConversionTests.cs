@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 public class CodeGenMethodGroupConversionTests : CSharpTestBase
 {
     const string PASS = "PASS";
-    static readonly MetadataReference[] s_SystemCoreRef = new[] { SystemCoreRef };
 
     #region Not caching
 
@@ -35,7 +34,7 @@ class C
 }";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
@@ -59,7 +58,7 @@ class C
 }";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
@@ -87,9 +86,9 @@ static class E
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
     [Fact]
@@ -115,9 +114,9 @@ static class E
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
     [Fact]
@@ -138,9 +137,9 @@ class C
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -161,9 +160,9 @@ class C
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -179,7 +178,7 @@ class C
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
@@ -202,7 +201,7 @@ struct C
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>x"));
+            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
         };
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
@@ -229,11 +228,12 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -241,7 +241,7 @@ class C
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action C.<>O.<0>__Target""
   IL_001b:  call       ""void C.Test(System.Action)""
   IL_0020:  ret
 }
@@ -271,11 +271,12 @@ class D<T>
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -283,7 +284,7 @@ class D<T>
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  ret
 }
 ");
@@ -314,11 +315,12 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -326,7 +328,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<int>.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -358,11 +360,12 @@ class E<V>
     public static void Target(V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -370,7 +373,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<int>.Target(int)""
   IL_0010:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<int> D<T>.<>O.<0>__Target""
   IL_001b:  ldc.i4.0
   IL_001c:  callvirt   ""void System.Action<int>.Invoke(int)""
   IL_0021:  ret
@@ -403,11 +406,12 @@ class E<V>
     public static void Target<K>(V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -415,7 +419,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<int>.Target<double>(int)""
   IL_0010:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<int> D<T>.<>O.<0>__Target""
   IL_001b:  ldc.i4.0
   IL_001c:  callvirt   ""void System.Action<int>.Invoke(int)""
   IL_0021:  ret
@@ -448,11 +452,12 @@ class E<V>
     public static V Target<K>(V v) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int, int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<int, int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -460,7 +465,7 @@ class E<V>
   IL_000a:  ldftn      ""int E<int>.Target<double>(int)""
   IL_0010:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<int, int> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<int, int> D<T>.<>O.<0>__Target""
   IL_001b:  ldc.i4.0
   IL_001c:  callvirt   ""int System.Func<int, int>.Invoke(int)""
   IL_0021:  pop
@@ -492,11 +497,12 @@ class D<T>
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -504,7 +510,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -534,11 +540,12 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -546,7 +553,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target<int>()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -576,11 +583,12 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -588,7 +596,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target<T>()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -620,11 +628,12 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -632,7 +641,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<T>.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -664,11 +673,12 @@ class E<V>
     public static void Target<N>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -676,7 +686,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<T>.Target<double>()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -708,11 +718,12 @@ class E<V>
     public static N Target<N>() { Console.WriteLine(""PASS""); return default(N); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<T> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -720,7 +731,7 @@ class E<V>
   IL_000a:  ldftn      ""T E<int>.Target<T>()""
   IL_0010:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -753,11 +764,12 @@ class E<K>
     public static V Target<V>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -765,7 +777,7 @@ class E<K>
   IL_000a:  ldftn      ""int E<T>.Target<int>()""
   IL_0010:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<int> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<int> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""int System.Func<int>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -798,12 +810,13 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Func<T, int> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -811,7 +824,7 @@ class E<K>
   IL_000a:  ldftn      ""int E<T>.Target<int>(T)""
   IL_0010:  newobj     ""System.Func<T, int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, int> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, int> D<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -845,11 +858,12 @@ class D
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -857,7 +871,7 @@ class D
   IL_000a:  ldftn      ""void C.Target<T>()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Action D.<Test>O__0<T>.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -889,11 +903,12 @@ class E<K>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action D.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action D.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -901,7 +916,7 @@ class E<K>
   IL_000a:  ldftn      ""void E<T>.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action D.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Action D.<Test>O__0<T>.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -933,12 +948,13 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D.Test<T>", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Func<T, int> D.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, int> D.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -946,7 +962,7 @@ class E<K>
   IL_000a:  ldftn      ""int E<T>.Target<int>(T)""
   IL_0010:  newobj     ""System.Func<T, int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, int> D.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, int> D.<Test>O__0<T>.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -982,13 +998,14 @@ class E<K>
     public static void Target<V>(K k, V v) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<M>.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<M>.Test<T>", @"
 {
   // Code size       51 (0x33)
   .maxstack  3
   .locals init (M V_0,
                 T V_1)
-  IL_0000:  ldsfld     ""System.Action<M, T> D<M>.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<M, T> D<M>.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -996,7 +1013,7 @@ class E<K>
   IL_000a:  ldftn      ""void E<M>.Target<T>(M, T)""
   IL_0010:  newobj     ""System.Action<M, T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<M, T> D<M>.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Action<M, T> D<M>.<Test>O__0<T>.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""M""
   IL_0023:  ldloc.0
@@ -1026,11 +1043,12 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""MyAction<int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""MyAction<int> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1038,7 +1056,7 @@ class C
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""MyAction<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""MyAction<int> <>x.<Target>w""
+  IL_0016:  stsfld     ""MyAction<int> C.<>O.<0>__Target""
   IL_001b:  callvirt   ""void MyAction<int>.Invoke()""
   IL_0020:  ret
 }
@@ -1063,11 +1081,12 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""C.MyAction<int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""C.MyAction<int> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1075,7 +1094,7 @@ class C
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""C.MyAction<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""C.MyAction<int> <>x.<Target>w""
+  IL_0016:  stsfld     ""C.MyAction<int> C.<>O.<0>__Target""
   IL_001b:  callvirt   ""void C.MyAction<int>.Invoke()""
   IL_0020:  ret
 }
@@ -1106,11 +1125,12 @@ class D<T>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""MyAction D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""MyAction D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1118,7 +1138,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target()""
   IL_0010:  newobj     ""MyAction..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""MyAction D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""MyAction D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void MyAction.Invoke()""
   IL_0020:  ret
 }
@@ -1149,11 +1169,12 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyAction D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyAction D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1161,7 +1182,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target<int>()""
   IL_0010:  newobj     ""D<T>.MyAction..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyAction D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyAction D<T>.<>O.<0>__Target""
   IL_001b:  ret
 }
 ");
@@ -1192,11 +1213,12 @@ class D<T>
     static void Target<K>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyAction<int> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyAction<int> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1204,7 +1226,7 @@ class D<T>
   IL_000a:  ldftn      ""void D<T>.Target<T>()""
   IL_0010:  newobj     ""D<T>.MyAction<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyAction<int> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyAction<int> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void D<T>.MyAction<int>.Invoke()""
   IL_0020:  ret
 }
@@ -1238,11 +1260,12 @@ class E<V>
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyAction<T> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyAction<T> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1250,7 +1273,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<T>.Target()""
   IL_0010:  newobj     ""D<T>.MyAction<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyAction<T> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyAction<T> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void D<T>.MyAction<T>.Invoke()""
   IL_0020:  ret
 }
@@ -1284,11 +1307,12 @@ class E<V>
     public static void Target<N>() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyAction<T> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyAction<T> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1296,7 +1320,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<T>.Target<int>()""
   IL_0010:  newobj     ""D<T>.MyAction<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyAction<T> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyAction<T> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""void D<T>.MyAction<T>.Invoke()""
   IL_0020:  ret
 }
@@ -1330,11 +1354,12 @@ class E<K>
     public static V Target<V, K>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1342,7 +1367,7 @@ class E<K>
   IL_000a:  ldftn      ""T E<T>.Target<T, int>()""
   IL_0010:  newobj     ""D<T>.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""T D<T>.MyFunc.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -1377,12 +1402,13 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1390,7 +1416,7 @@ class E<K>
   IL_000a:  ldftn      ""int E<T>.Target<int>(T)""
   IL_0010:  newobj     ""D<T>.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -1428,12 +1454,13 @@ class E<K>
     public static V Target<V>(K k) { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T, M>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T, M>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (M V_0)
-  IL_0000:  ldsfld     ""D<T, M>.MyFunc D<T, M>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T, M>.MyFunc D<T, M>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1441,7 +1468,7 @@ class E<K>
   IL_000a:  ldftn      ""T E<M>.Target<T>(M)""
   IL_0010:  newobj     ""D<T, M>.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T, M>.MyFunc D<T, M>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T, M>.MyFunc D<T, M>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""M""
   IL_0023:  ldloc.0
@@ -1470,11 +1497,12 @@ class C
     static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""C.MyAction<int> C.<>x.<Target>w""
+  IL_0000:  ldsfld     ""C.MyAction<int> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1482,7 +1510,7 @@ class C
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""C.MyAction<int>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""C.MyAction<int> C.<>x.<Target>w""
+  IL_0016:  stsfld     ""C.MyAction<int> C.<>O.<0>__Target""
   IL_001b:  callvirt   ""void C.MyAction<int>.Invoke()""
   IL_0020:  ret
 }
@@ -1514,11 +1542,12 @@ class D
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D.Test<T>", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""D.MyAction D.<Test>x__1<T>.<Target>w""
+  IL_0000:  ldsfld     ""D.MyAction D.<Test>O__1<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1526,7 +1555,7 @@ class D
   IL_000a:  ldftn      ""void C.Target<T>()""
   IL_0010:  newobj     ""D.MyAction..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D.MyAction D.<Test>x__1<T>.<Target>w""
+  IL_0016:  stsfld     ""D.MyAction D.<Test>O__1<T>.<0>__Target""
   IL_001b:  callvirt   ""void D.MyAction.Invoke()""
   IL_0020:  ret
 }
@@ -1558,12 +1587,13 @@ class D<V>
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<V>.Test<T>", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (V V_0)
-  IL_0000:  ldsfld     ""D<V>.MyAction<V> D<V>.<Test>x__1<T>.<Target>w""
+  IL_0000:  ldsfld     ""D<V>.MyAction<V> D<V>.<Test>O__1<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1571,7 +1601,7 @@ class D<V>
   IL_000a:  ldftn      ""void C.Target<V, T>(V)""
   IL_0010:  newobj     ""D<V>.MyAction<V>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<V>.MyAction<V> D<V>.<Test>x__1<T>.<Target>w""
+  IL_0016:  stsfld     ""D<V>.MyAction<V> D<V>.<Test>O__1<T>.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""V""
   IL_0023:  ldloc.0
@@ -1606,13 +1636,14 @@ class D<V>
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<V>.Test<T>", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<V>.Test<T>", @"
 {
   // Code size       52 (0x34)
   .maxstack  3
   .locals init (T V_0,
                 V V_1)
-  IL_0000:  ldsfld     ""D<V>.MyFunc<T> D<V>.<Test>x__1<T>.<Target>w""
+  IL_0000:  ldsfld     ""D<V>.MyFunc<T> D<V>.<Test>O__1<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1620,7 +1651,7 @@ class D<V>
   IL_000a:  ldftn      ""V C.Target<T, V>(T, V)""
   IL_0010:  newobj     ""D<V>.MyFunc<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<V>.MyFunc<T> D<V>.<Test>x__1<T>.<Target>w""
+  IL_0016:  stsfld     ""D<V>.MyFunc<T> D<V>.<Test>O__1<T>.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -1661,12 +1692,13 @@ class E<V>
     public static void Target<N>(N n) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.Test", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""D<T>.MyAction D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyAction D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1674,7 +1706,7 @@ class E<V>
   IL_000a:  ldftn      ""void E<int>.Target<C>(C)""
   IL_0010:  newobj     ""D<T>.MyAction..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyAction D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyAction D<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -1714,7 +1746,7 @@ class E<V>
         Action<ModuleSymbol> containerValidator = module =>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("D");
-            var container = testClass.GetTypeMember("<Test>x__1");
+            var container = testClass.GetTypeMember("<Test>O__1");
             Assert.NotNull(container); Debug.Assert(container is { });
 
             var typeParameters = container.TypeParameters;
@@ -1728,7 +1760,7 @@ class E<V>
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<Test>x__1<M>.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<Test>O__1<M>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1736,7 +1768,7 @@ class E<V>
   IL_000a:  ldftn      ""M E<int>.Target<M>()""
   IL_0010:  newobj     ""D<T>.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<Test>x__1<M>.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<Test>O__1<M>.<0>__Target""
   IL_001b:  callvirt   ""T D<T>.MyFunc.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -1775,7 +1807,7 @@ class E<V>
         {
             var globalNs = module.GlobalNamespace;
             var mainClass = globalNs.GetTypeMember("C");
-            var container = globalNs.GetMember<NamedTypeSymbol>("D.<Test>x__1");
+            var container = globalNs.GetMember<NamedTypeSymbol>("D.<Test>O__1");
             Assert.NotNull(container); Debug.Assert(container is { });
 
             var typeParameters = container.TypeParameters;
@@ -1789,7 +1821,7 @@ class E<V>
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""D.MyFunc D.<Test>x__1<M>.<Target>w""
+  IL_0000:  ldsfld     ""D.MyFunc D.<Test>O__1<M>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1797,7 +1829,7 @@ class E<V>
   IL_000a:  ldftn      ""M E<int>.Target<M>()""
   IL_0010:  newobj     ""D.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D.MyFunc D.<Test>x__1<M>.<Target>w""
+  IL_0016:  stsfld     ""D.MyFunc D.<Test>O__1<M>.<0>__Target""
   IL_001b:  callvirt   ""C D.MyFunc.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -1832,21 +1864,21 @@ class E
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D.<Test>x");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D.<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
 
-            var m = typeParameters[0] as Cci.IGenericParameter;
+            var m = typeParameters[0];
             Assert.NotNull(m); Debug.Assert(m is { });
-            Assert.True(m.MustBeValueType);
+            Assert.True(m.IsValueType);
         };
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<M?> D.<Test>x<M>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<M?> D.<Test>O__0<M>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1854,7 +1886,7 @@ class E
   IL_000a:  ldftn      ""M? E.Target<M?>()""
   IL_0010:  newobj     ""System.Func<M?>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<M?> D.<Test>x<M>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<M?> D.<Test>O__0<M>.<0>__Target""
   IL_001b:  callvirt   ""M? System.Func<M?>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -1880,11 +1912,11 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<C> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<C> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1892,7 +1924,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target(C)""
   IL_0010:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<C> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<C> C.<>O.<0>__Target""
   IL_001b:  ldnull
   IL_001c:  callvirt   ""void System.Action<C>.Invoke(C)""
   IL_0021:  ret
@@ -1918,11 +1950,11 @@ static class E
     public static void Target<T>(this T t) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<C> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<C> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -1930,7 +1962,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target<C>(C)""
   IL_0010:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<C> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<C> C.<>O.<0>__Target""
   IL_001b:  ldnull
   IL_001c:  callvirt   ""void System.Action<C>.Invoke(C)""
   IL_0021:  ret
@@ -1953,16 +1985,16 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test", @"
+        CompileAndVerify(source).VerifyIL("E.Test", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<int> E.<>O.<0>__Target""
   IL_0005:  brtrue.s   IL_0018
   IL_0007:  ldnull
   IL_0008:  ldftn      ""void E.Target<int>(int)""
   IL_000e:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
-  IL_0013:  stsfld     ""System.Action<int> <>x.<Target>w""
+  IL_0013:  stsfld     ""System.Action<int> E.<>O.<0>__Target""
   IL_0018:  ret
 }
 ");
@@ -1993,12 +2025,12 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<T>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.Test", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Action<T> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<T> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2006,7 +2038,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target(C)""
   IL_0010:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<T> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<T> D<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -2041,11 +2073,11 @@ static class E
     public static void Target<T>(this T t) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("D<K>.Test", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<K>.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<K> D<K>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<K> D<K>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2053,7 +2085,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target<K>(K)""
   IL_0010:  newobj     ""System.Action<K>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<K> D<K>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action<K> D<K>.<>O.<0>__Target""
   IL_001b:  ldarg.0
   IL_001c:  callvirt   ""void System.Action<K>.Invoke(K)""
   IL_0021:  ret
@@ -2079,16 +2111,16 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.F<T>.Test", @"
+        CompileAndVerify(source).VerifyIL("E.F<T>.Test", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<T> E.F<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<T> E.F<T>.<>O.<0>__Target""
   IL_0005:  brtrue.s   IL_0018
   IL_0007:  ldnull
   IL_0008:  ldftn      ""void E.Target<T>(T)""
   IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
-  IL_0013:  stsfld     ""System.Action<T> E.F<T>.<>x.<Target>w""
+  IL_0013:  stsfld     ""System.Action<T> E.F<T>.<>O.<0>__Target""
   IL_0018:  ret
 }
 ");
@@ -2117,11 +2149,11 @@ static class E
     public static void Target<M>(this M m) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Test<T>", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<T> C.<Test>x__1<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<T> C.<Test>O__1<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2129,7 +2161,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target<T>(T)""
   IL_0010:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<T> C.<Test>x__1<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Action<T> C.<Test>O__1<T>.<0>__Target""
   IL_001b:  ldarg.0
   IL_001c:  callvirt   ""void System.Action<T>.Invoke(T)""
   IL_0021:  ret
@@ -2160,12 +2192,12 @@ static class E
     public static void Target(this C c) { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS, references: s_SystemCoreRef).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.Test<T>", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Action<T> C.<Test>x__1<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<T> C.<Test>O__1<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2173,7 +2205,7 @@ static class E
   IL_000a:  ldftn      ""void E.Target(C)""
   IL_0010:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<T> C.<Test>x__1<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Action<T> C.<Test>O__1<T>.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -2198,16 +2230,16 @@ static class E
     public static void Target<T>(this T t) { }
 }
 ";
-        CompileAndVerify(source, references: s_SystemCoreRef).VerifyIL("E.Test<T>", @"
+        CompileAndVerify(source).VerifyIL("E.Test<T>", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<T> E.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Action<T> E.<Test>O__0<T>.<0>__Target""
   IL_0005:  brtrue.s   IL_0018
   IL_0007:  ldnull
   IL_0008:  ldftn      ""void E.Target<T>(T)""
   IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
-  IL_0013:  stsfld     ""System.Action<T> E.<Test>x<T>.<Target>w""
+  IL_0013:  stsfld     ""System.Action<T> E.<Test>O__0<T>.<0>__Target""
   IL_0018:  ret
 }
 ");
@@ -2231,11 +2263,12 @@ class C
     static void Target() => Console.WriteLine(""PASS"");
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2243,7 +2276,7 @@ class C
   IL_000a:  ldftn      ""void C.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action C.<>O.<0>__Target""
   IL_001b:  call       ""void C.Invoke(System.Action)""
   IL_0020:  ret
 }
@@ -2268,11 +2301,12 @@ class D
     public static void Target() { Console.WriteLine(""PASS""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("C.<>c.<Main>b__0_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Action C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2280,7 +2314,7 @@ class D
   IL_000a:  ldftn      ""void D.Target()""
   IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Action C.<>O.<0>__Target""
   IL_001b:  callvirt   ""void System.Action.Invoke()""
   IL_0020:  ret
 }
@@ -2313,11 +2347,12 @@ class D<T>
     static T Target() { Console.WriteLine(""PASS""); return default(T); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__0_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.<>c.<Test>b__0_0", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<T> D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T> D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2325,7 +2360,7 @@ class D<T>
   IL_000a:  ldftn      ""T D<T>.Target()""
   IL_0010:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T> D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T> D<T>.<>O.<0>__Target""
   IL_001b:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -2359,11 +2394,12 @@ class E
     public static V Target<V>() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c.<Test>b__1_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.<>c.<Test>b__1_0", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2371,7 +2407,7 @@ class E
   IL_000a:  ldftn      ""T E.Target<T>()""
   IL_0010:  newobj     ""D<T>.MyFunc..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""D<T>.MyFunc D<T>.<>O.<0>__Target""
   IL_001b:  ret
 }
 ");
@@ -2403,11 +2439,12 @@ class D<T>
     static T Target<K>() { Console.WriteLine(""PASS""); return default(T); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D<T>.<>c__0<G>.<Test>b__0_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D<T>.<>c__0<G>.<Test>b__0_0", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<T> D<T>.<Test>x<G>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T> D<T>.<>O__0<G>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2415,7 +2452,7 @@ class D<T>
   IL_000a:  ldftn      ""T D<T>.Target<G>()""
   IL_0010:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T> D<T>.<Test>x<G>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T> D<T>.<>O__0<G>.<0>__Target""
   IL_001b:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -2448,11 +2485,12 @@ class E<V>
     public static V Target() { Console.WriteLine(""PASS""); return default(V); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: PASS).VerifyIL("D.<>c__0<G>.<Test>b__0_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        verifier.VerifyIL("D.<>c__0<G>.<Test>b__0_0", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<G> D.<Test>x<G>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<G> D.<>O__0<G>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -2460,93 +2498,10 @@ class E<V>
   IL_000a:  ldftn      ""G E<G>.Target()""
   IL_0010:  newobj     ""System.Func<G>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<G> D.<Test>x<G>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<G> D.<>O__0<G>.<0>__Target""
   IL_001b:  ret
 }
 ");
-    }
-
-    [Fact]
-    public void SameTypeAndSymbolResultsSameField_ModuleScoped0()
-    {
-        var source = @"
-using System;
-class C
-{
-    public static void Main(string[] args)
-    {
-        Action t0 = Target;
-        var t1 = (Action)Target;
-
-        if ( t0 == t1 ) t0();
-    }
-
-    static void Target() { Console.WriteLine(""PASS""); }
-}
-";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            var container = module.GlobalNamespace.GetTypeMember("<>x");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(0, fieldType.Arity);
-        };
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
-    }
-
-    [Fact]
-    public void SameTypeAndSymbolResultsSameField_ModuleScoped1()
-    {
-        var source = @"
-using System;
-class C
-{
-    void M() { Action<C> t0 = E.Target; }
-}
-class D
-{
-    void M() { var t1 = (Action<C>)E.Target; }
-}
-static class E
-{
-    public static void Target(this C c) { Console.WriteLine(""PASS""); }
-}
-";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            var container = module.GlobalNamespace.GetTypeMember("<>x");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(1, fieldType.Arity);
-            Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType.TypeArguments()[0]);
-        };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
     }
 
     [Fact]
@@ -2566,7 +2521,7 @@ class D
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>x");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(0, container.Arity);
 
@@ -2575,7 +2530,7 @@ class D
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
@@ -2601,7 +2556,7 @@ class C<T>
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>x");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(0, container.Arity);
 
@@ -2610,7 +2565,7 @@ class C<T>
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
@@ -2638,7 +2593,7 @@ class C<T, V>
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>x");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(0, container.Arity);
 
@@ -2647,7 +2602,7 @@ class C<T, V>
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
@@ -2675,7 +2630,7 @@ class D
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>x");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.True(container.IsGenericType);
 
@@ -2684,7 +2639,7 @@ class D
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
@@ -2717,7 +2672,7 @@ class D<B>
         Action<ModuleSymbol> containerValidator = module =>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("C");
-            var container = testClass.GetTypeMember("<Test>x");
+            var container = testClass.GetTypeMember("<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(1, container.Arity);
 
@@ -2726,7 +2681,7 @@ class D<B>
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
@@ -2762,7 +2717,7 @@ static class D
 ";
         Action<ModuleSymbol> containerValidator = module =>
         {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>x__2");
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__2");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(1, container.Arity);
 
@@ -2771,246 +2726,14 @@ static class D
 
             var field = members[0] as FieldSymbol;
             Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<Target>w", field.Name);
+            Assert.Equal("<0>__Target", field.Name);
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
             Assert.True(fieldType.IsDelegateType());
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
-    }
-
-    [Fact]
-    public void ContainersCanBeShared_ModuleScoped0()
-    {
-        var source = @"
-using System;
-class C
-{
-    void Test0()
-    {
-        Action t = Target0;
-    }
-
-    public static void Target0() { }
-    public static void Target1() { }
-}
-class D
-{
-    void Test0()
-    {
-        var t = (Action)C.Target1;
-    }
-
-    void Test1()
-    {
-        Action t = Target2;
-    }
-
-    static void Target2() { }
-}
-";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            var container = module.GlobalNamespace.GetTypeMember("<>x");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(3, members.Length);
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<Target0>w", field0.Name);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<Target1>w__1", field1.Name);
-
-            var field2 = members[2] as FieldSymbol;
-            Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<Target2>w__2", field2.Name);
-
-            Assert.True(TypeSymbol.Equals(field0.Type, field1.Type, TypeCompareKind.ConsiderEverything));
-            Assert.True(TypeSymbol.Equals(field0.Type, field2.Type, TypeCompareKind.ConsiderEverything));
-            Assert.True(TypeSymbol.Equals(field1.Type, field2.Type, TypeCompareKind.ConsiderEverything));
-
-            var fieldType = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(0, fieldType.Arity);
-        };
         CompileAndVerify(source, symbolValidator: containerValidator);
-    }
-
-    [Fact]
-    public void ContainersCanBeShared_ModuleScoped1()
-    {
-        var source = @"
-using System;
-class C
-{
-    static void Test0()
-    {
-        Action<C> t = E.Target0;
-    }
-
-    void Test1()
-    {
-        var t = (Action<C>)E.Target1;
-    }
-}
-static class E
-{
-    public static void Target0(this C c) { }
-    public static void Target1(this C c) { }
-
-    static void Test2()
-    {
-        Action<C> t = Target0;
-    }
-}
-";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            var container = module.GlobalNamespace.GetTypeMember("<>x");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(2, members.Length);
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<Target0>w", field0.Name);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<Target1>w__1", field1.Name);
-
-            Assert.True(TypeSymbol.Equals(field0.Type, field1.Type, TypeCompareKind.ConsiderEverything));
-
-            var fieldType = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(1, fieldType.Arity);
-            Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType.TypeArguments()[0]);
-        };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
-    }
-
-    [Fact]
-    public void ContainersCanBeShared_ModuleScoped_GroupByDelegateType()
-    {
-        var source = @"
-using System;
-class C
-{
-    public static void Main(string[] args)
-    {
-        Action a = Target0;
-        var b = (Action)Target1;
-
-        Action<C> c = E.Target0;
-        var d = (Action<C>)E.Target1;
-    }
-
-    static void Target0() { }
-    static void Target1() { }
-}
-static class E
-{
-    public static void Target0(this C c) { }
-    public static void Target1(this C c) { }
-}
-";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            var container0 = module.GlobalNamespace.GetTypeMember("<>x");
-            Assert.NotNull(container0); Debug.Assert(container0 is { });
-            Assert.Equal(0, container0.Arity);
-
-            var members0 = container0.GetMembers();
-            Assert.Equal(2, members0.Length);
-
-            var field00 = members0[0] as FieldSymbol;
-            Assert.NotNull(field00); Debug.Assert(field00 is { });
-            Assert.Equal("<Target0>w", field00.Name);
-
-            var field01 = members0[1] as FieldSymbol;
-            Assert.NotNull(field01); Debug.Assert(field01 is { });
-            Assert.Equal("<Target1>w__1", field01.Name);
-
-            Assert.True(TypeSymbol.Equals(field00.Type, field01.Type, TypeCompareKind.ConsiderEverything));
-
-            var fieldType0 = field00.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(0, fieldType0.Arity);
-
-            var container1 = module.GlobalNamespace.GetTypeMember("<>x__1");
-            Assert.NotNull(container1); Debug.Assert(container1 is { });
-            Assert.Equal(0, container1.Arity);
-
-            var members1 = container1.GetMembers();
-            Assert.Equal(2, members1.Length);
-
-            var field10 = members1[0] as FieldSymbol;
-            Assert.NotNull(field10); Debug.Assert(field10 is { });
-            Assert.Equal("<Target0>w", field10.Name);
-
-            var field11 = members1[1] as FieldSymbol;
-            Assert.NotNull(field11); Debug.Assert(field11 is { });
-            Assert.Equal("<Target1>w__1", field11.Name);
-
-            Assert.True(TypeSymbol.Equals(field10.Type, field11.Type, TypeCompareKind.ConsiderEverything));
-
-            var fieldType1 = field10.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
-            Assert.True(fieldType1.IsDelegateType());
-            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType1.Name);
-            Assert.Equal(1, fieldType1.Arity);
-            Assert.Equal(module.GlobalNamespace.GetTypeMember("C"), fieldType1.TypeArguments()[0]);
-        };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef).VerifyIL("C.Main", @"
-{
-  // Code size       97 (0x61)
-  .maxstack  2
-  IL_0000:  ldsfld     ""System.Action <>x.<Target0>w""
-  IL_0005:  brtrue.s   IL_0018
-  IL_0007:  ldnull
-  IL_0008:  ldftn      ""void C.Target0()""
-  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0013:  stsfld     ""System.Action <>x.<Target0>w""
-  IL_0018:  ldsfld     ""System.Action <>x.<Target1>w__1""
-  IL_001d:  brtrue.s   IL_0030
-  IL_001f:  ldnull
-  IL_0020:  ldftn      ""void C.Target1()""
-  IL_0026:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_002b:  stsfld     ""System.Action <>x.<Target1>w__1""
-  IL_0030:  ldsfld     ""System.Action<C> <>x__1.<Target0>w""
-  IL_0035:  brtrue.s   IL_0048
-  IL_0037:  ldnull
-  IL_0038:  ldftn      ""void E.Target0(C)""
-  IL_003e:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
-  IL_0043:  stsfld     ""System.Action<C> <>x__1.<Target0>w""
-  IL_0048:  ldsfld     ""System.Action<C> <>x__1.<Target1>w__1""
-  IL_004d:  brtrue.s   IL_0060
-  IL_004f:  ldnull
-  IL_0050:  ldftn      ""void E.Target1(C)""
-  IL_0056:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
-  IL_005b:  stsfld     ""System.Action<C> <>x__1.<Target1>w__1""
-  IL_0060:  ret
-}
-");
     }
 
     [Fact]
@@ -3086,7 +2809,7 @@ static class E
             var T = A.TypeParameters[0];
             var V = B.TypeParameters[0];
 
-            var container = B.GetTypeMember("<>x");
+            var container = B.GetTypeMember("<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
             Assert.Equal(0, container.Arity);
 
@@ -3095,7 +2818,7 @@ static class E
 
             var field0 = members[0] as FieldSymbol;
             Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<Target0>w", field0.Name);
+            Assert.Equal("<0>__Target0", field0.Name);
 
             var fieldType0 = field0.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
@@ -3107,7 +2830,7 @@ static class E
 
             var field1 = members[1] as FieldSymbol;
             Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<Target1>w__1", field1.Name);
+            Assert.Equal("<1>__Target1", field1.Name);
 
             var fieldType1 = field1.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
@@ -3119,7 +2842,7 @@ static class E
 
             var field2 = members[2] as FieldSymbol;
             Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<Target2>w__2", field2.Name);
+            Assert.Equal("<2>__Target2", field2.Name);
 
             var fieldType2 = field2.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
@@ -3131,7 +2854,7 @@ static class E
 
             var field3 = members[3] as FieldSymbol;
             Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<Target3>w__3", field3.Name);
+            Assert.Equal("<3>__Target3", field3.Name);
 
             var fieldType3 = field3.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
@@ -3144,7 +2867,7 @@ static class E
 
             var field4 = members[4] as FieldSymbol;
             Assert.NotNull(field4); Debug.Assert(field4 is { });
-            Assert.Equal("<Target4>w__4", field4.Name);
+            Assert.Equal("<4>__Target4", field4.Name);
 
             var fieldType4 = field4.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType4); Debug.Assert(fieldType4 is { });
@@ -3157,7 +2880,7 @@ static class E
 
             var field5 = members[5] as FieldSymbol;
             Assert.NotNull(field5); Debug.Assert(field5 is { });
-            Assert.Equal("<Target5>w__5", field5.Name);
+            Assert.Equal("<5>__Target5", field5.Name);
 
             var fieldType5 = field5.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType5); Debug.Assert(fieldType5 is { });
@@ -3169,7 +2892,7 @@ static class E
 
             var field6 = members[6] as FieldSymbol;
             Assert.NotNull(field6); Debug.Assert(field6 is { });
-            Assert.Equal("<Target5>w__6", field6.Name);
+            Assert.Equal("<6>__Target5", field6.Name);
 
             var fieldType6 = field6.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType6); Debug.Assert(fieldType6 is { });
@@ -3179,7 +2902,7 @@ static class E
             Assert.Equal(1, fieldType6.Arity);
             Assert.Equal(V, fieldType6.TypeArguments()[0]);
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -3213,7 +2936,7 @@ static class E
         Action<ModuleSymbol> containerValidator = module =>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("C");
-            var container = testClass.GetTypeMember("<Test>x");
+            var container = testClass.GetTypeMember("<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
 
             Assert.Equal(1, container.Arity);
@@ -3225,7 +2948,7 @@ static class E
 
             var field0 = members[0] as FieldSymbol;
             Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<Target0>w", field0.Name);
+            Assert.Equal("<0>__Target0", field0.Name);
 
             var fieldType0 = field0.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
@@ -3236,7 +2959,7 @@ static class E
 
             var field1 = members[1] as FieldSymbol;
             Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<Target1>w__1", field1.Name);
+            Assert.Equal("<1>__Target1", field1.Name);
 
             var fieldType1 = field1.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
@@ -3248,7 +2971,7 @@ static class E
 
             var field2 = members[2] as FieldSymbol;
             Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<Target2>w__2", field2.Name);
+            Assert.Equal("<2>__Target2", field2.Name);
 
             var fieldType2 = field2.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
@@ -3259,7 +2982,7 @@ static class E
 
             var field3 = members[3] as FieldSymbol;
             Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<Target3>w__3", field3.Name);
+            Assert.Equal("<3>__Target3", field3.Name);
 
             var fieldType3 = field3.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
@@ -3269,7 +2992,7 @@ static class E
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(testClass, fieldType3.TypeArguments()[0]);
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -3303,7 +3026,7 @@ static class E
         Action<ModuleSymbol> containerValidator = module =>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("E");
-            var container = testClass.GetTypeMember("<Test>x");
+            var container = testClass.GetTypeMember("<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
 
             Assert.Equal(1, container.Arity);
@@ -3316,7 +3039,7 @@ static class E
 
             var field0 = members[0] as FieldSymbol;
             Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<Target0>w", field0.Name);
+            Assert.Equal("<0>__Target0", field0.Name);
 
             var fieldType0 = field0.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
@@ -3327,7 +3050,7 @@ static class E
 
             var field1 = members[1] as FieldSymbol;
             Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<Target1>w__1", field1.Name);
+            Assert.Equal("<1>__Target1", field1.Name);
 
             var fieldType1 = field1.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
@@ -3339,7 +3062,7 @@ static class E
 
             var field2 = members[2] as FieldSymbol;
             Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<Target2>w__2", field2.Name);
+            Assert.Equal("<2>__Target2", field2.Name);
 
             var fieldType2 = field2.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
@@ -3350,7 +3073,7 @@ static class E
 
             var field3 = members[3] as FieldSymbol;
             Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<Target3>w__3", field3.Name);
+            Assert.Equal("<3>__Target3", field3.Name);
 
             var fieldType3 = field3.Type as NamedTypeSymbol;
             Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
@@ -3360,7 +3083,8 @@ static class E
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(C, fieldType3.TypeArguments()[0]);
         };
-        CompileAndVerify(source, symbolValidator: containerValidator, references: s_SystemCoreRef);
+
+        CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
     [Fact]
@@ -3384,7 +3108,7 @@ class C
   // Code size       38 (0x26)
   .maxstack  3
   IL_0000:  call       ""System.AppDomain System.AppDomain.CurrentDomain.get""
-  IL_0005:  ldsfld     ""System.ResolveEventHandler <>x.<Target>w""
+  IL_0005:  ldsfld     ""System.ResolveEventHandler C.<>O.<0>__Target""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0020
   IL_000d:  pop
@@ -3392,7 +3116,7 @@ class C
   IL_000f:  ldftn      ""System.Reflection.Assembly C.Target(object, System.ResolveEventArgs)""
   IL_0015:  newobj     ""System.ResolveEventHandler..ctor(object, System.IntPtr)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""System.ResolveEventHandler <>x.<Target>w""
+  IL_001b:  stsfld     ""System.ResolveEventHandler C.<>O.<0>__Target""
   IL_0020:  callvirt   ""void System.AppDomain.AssemblyResolve.add""
   IL_0025:  ret
 }
@@ -3426,7 +3150,7 @@ class D
   // Code size       38 (0x26)
   .maxstack  3
   IL_0000:  newobj     ""C<MyEventArgs>..ctor()""
-  IL_0005:  ldsfld     ""System.EventHandler<MyEventArgs> <>x.<Target>w""
+  IL_0005:  ldsfld     ""System.EventHandler<MyEventArgs> C<TEventArgs>.<>O.<0>__Target""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0020
   IL_000d:  pop
@@ -3434,7 +3158,7 @@ class D
   IL_000f:  ldftn      ""void D.Target(object, MyEventArgs)""
   IL_0015:  newobj     ""System.EventHandler<MyEventArgs>..ctor(object, System.IntPtr)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""System.EventHandler<MyEventArgs> <>x.<Target>w""
+  IL_001b:  stsfld     ""System.EventHandler<MyEventArgs> C<TEventArgs>.<>O.<0>__Target""
   IL_0020:  callvirt   ""void C<MyEventArgs>.SomethingHappened.add""
   IL_0025:  ret
 }
@@ -3463,7 +3187,7 @@ class C<TEventArgs> where TEventArgs : EventArgs
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.EventHandler<TEventArgs> C<TEventArgs>.<>x.<Target>w""
+  IL_0001:  ldsfld     ""System.EventHandler<TEventArgs> C<TEventArgs>.<>O.<0>__Target""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_001c
   IL_0009:  pop
@@ -3471,7 +3195,7 @@ class C<TEventArgs> where TEventArgs : EventArgs
   IL_000b:  ldftn      ""void C<TEventArgs>.Target(object, TEventArgs)""
   IL_0011:  newobj     ""System.EventHandler<TEventArgs>..ctor(object, System.IntPtr)""
   IL_0016:  dup
-  IL_0017:  stsfld     ""System.EventHandler<TEventArgs> C<TEventArgs>.<>x.<Target>w""
+  IL_0017:  stsfld     ""System.EventHandler<TEventArgs> C<TEventArgs>.<>O.<0>__Target""
   IL_001c:  call       ""void C<TEventArgs>.SomethingHappened.add""
   IL_0021:  ret
 }
@@ -3503,7 +3227,7 @@ class D<TEventArgs> where TEventArgs : EventArgs
   // Code size       38 (0x26)
   .maxstack  3
   IL_0000:  newobj     ""D<TEventArgs>..ctor()""
-  IL_0005:  ldsfld     ""System.EventHandler<TEventArgs> C.<Test>x<TEventArgs>.<Target>w""
+  IL_0005:  ldsfld     ""System.EventHandler<TEventArgs> C.<Test>O__0<TEventArgs>.<0>__Target""
   IL_000a:  dup
   IL_000b:  brtrue.s   IL_0020
   IL_000d:  pop
@@ -3511,7 +3235,7 @@ class D<TEventArgs> where TEventArgs : EventArgs
   IL_000f:  ldftn      ""void C.Target<TEventArgs>(object, TEventArgs)""
   IL_0015:  newobj     ""System.EventHandler<TEventArgs>..ctor(object, System.IntPtr)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""System.EventHandler<TEventArgs> C.<Test>x<TEventArgs>.<Target>w""
+  IL_001b:  stsfld     ""System.EventHandler<TEventArgs> C.<Test>O__0<TEventArgs>.<0>__Target""
   IL_0020:  callvirt   ""void D<TEventArgs>.SomethingHappened.add""
   IL_0025:  ret
 }
@@ -3538,7 +3262,7 @@ class C
   .maxstack  3
   IL_0000:  ldc.i4.0
   IL_0001:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_0006:  ldsfld     ""System.Action<<anonymous type: int x>> <>x.<Target>w""
+  IL_0006:  ldsfld     ""System.Action<<anonymous type: int x>> C.<>O.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3546,7 +3270,7 @@ class C
   IL_0010:  ldftn      ""void C.Target<<anonymous type: int x>>(<anonymous type: int x>)""
   IL_0016:  newobj     ""System.Action<<anonymous type: int x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""System.Action<<anonymous type: int x>> <>x.<Target>w""
+  IL_001c:  stsfld     ""System.Action<<anonymous type: int x>> C.<>O.<0>__Target""
   IL_0021:  call       ""void C.Invoke<<anonymous type: int x>>(<anonymous type: int x>, System.Action<<anonymous type: int x>>)""
   IL_0026:  ret
 }
@@ -3577,7 +3301,7 @@ class D<G>
   .maxstack  3
   IL_0000:  ldarg.1
   IL_0001:  newobj     ""<>f__AnonymousType0<G>..ctor(G)""
-  IL_0006:  ldsfld     ""System.Action<<anonymous type: G x>> D<G>.<>x.<Target>w""
+  IL_0006:  ldsfld     ""System.Action<<anonymous type: G x>> D<G>.<>O.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3585,7 +3309,7 @@ class D<G>
   IL_0010:  ldftn      ""void D<G>.Target<<anonymous type: G x>>(<anonymous type: G x>)""
   IL_0016:  newobj     ""System.Action<<anonymous type: G x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""System.Action<<anonymous type: G x>> D<G>.<>x.<Target>w""
+  IL_001c:  stsfld     ""System.Action<<anonymous type: G x>> D<G>.<>O.<0>__Target""
   IL_0021:  call       ""void D<G>.Invoke<<anonymous type: G x>>(<anonymous type: G x>, System.Action<<anonymous type: G x>>)""
   IL_0026:  ret
 }
@@ -3618,7 +3342,7 @@ class E
   .maxstack  3
   IL_0000:  ldarg.1
   IL_0001:  newobj     ""<>f__AnonymousType0<G>..ctor(G)""
-  IL_0006:  ldsfld     ""System.Action<<anonymous type: G x>> D<G>.<>x.<Target>w""
+  IL_0006:  ldsfld     ""System.Action<<anonymous type: G x>> D<G>.<>O.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3626,7 +3350,7 @@ class E
   IL_0010:  ldftn      ""void E.Target<<anonymous type: G x>>(<anonymous type: G x>)""
   IL_0016:  newobj     ""System.Action<<anonymous type: G x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""System.Action<<anonymous type: G x>> D<G>.<>x.<Target>w""
+  IL_001c:  stsfld     ""System.Action<<anonymous type: G x>> D<G>.<>O.<0>__Target""
   IL_0021:  call       ""void D<G>.Invoke<<anonymous type: G x>>(<anonymous type: G x>, System.Action<<anonymous type: G x>>)""
   IL_0026:  ret
 }
@@ -3659,7 +3383,7 @@ class D<G>
   .maxstack  3
   IL_0000:  ldc.i4.0
   IL_0001:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_0006:  ldsfld     ""D<G>.MyAction<<anonymous type: int x>> D<G>.<>x.<Target>w""
+  IL_0006:  ldsfld     ""D<G>.MyAction<<anonymous type: int x>> D<G>.<>O.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3667,7 +3391,7 @@ class D<G>
   IL_0010:  ldftn      ""void D<G>.Target<<anonymous type: int x>>(<anonymous type: int x>)""
   IL_0016:  newobj     ""D<G>.MyAction<<anonymous type: int x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""D<G>.MyAction<<anonymous type: int x>> D<G>.<>x.<Target>w""
+  IL_001c:  stsfld     ""D<G>.MyAction<<anonymous type: int x>> D<G>.<>O.<0>__Target""
   IL_0021:  call       ""void D<G>.Invoke<<anonymous type: int x>>(<anonymous type: int x>, D<G>.MyAction<<anonymous type: int x>>)""
   IL_0026:  ret
 }
@@ -3698,7 +3422,7 @@ class D
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  newobj     ""<>f__AnonymousType0<T>..ctor(T)""
-  IL_0006:  ldsfld     ""System.Action<<anonymous type: T x>> D.<Test>x<T>.<Target>w""
+  IL_0006:  ldsfld     ""System.Action<<anonymous type: T x>> <Test>O__0<T>.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3706,7 +3430,7 @@ class D
   IL_0010:  ldftn      ""void D.Target<<anonymous type: T x>>(<anonymous type: T x>)""
   IL_0016:  newobj     ""System.Action<<anonymous type: T x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""System.Action<<anonymous type: T x>> D.<Test>x<T>.<Target>w""
+  IL_001c:  stsfld     ""System.Action<<anonymous type: T x>> <Test>O__0<T>.<0>__Target""
   IL_0021:  call       ""void D.Invoke<<anonymous type: T x>>(<anonymous type: T x>, System.Action<<anonymous type: T x>>)""
   IL_0026:  ret
 }
@@ -3738,7 +3462,7 @@ class D
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_0007:  ldsfld     ""System.Action<T, <anonymous type: int x>> D.<Test>x<T>.<Target>w""
+  IL_0007:  ldsfld     ""System.Action<T, <anonymous type: int x>> D.<Test>O__0<T>.<0>__Target""
   IL_000c:  dup
   IL_000d:  brtrue.s   IL_0022
   IL_000f:  pop
@@ -3746,7 +3470,7 @@ class D
   IL_0011:  ldftn      ""void D.Target<T, <anonymous type: int x>>(T, <anonymous type: int x>)""
   IL_0017:  newobj     ""System.Action<T, <anonymous type: int x>>..ctor(object, System.IntPtr)""
   IL_001c:  dup
-  IL_001d:  stsfld     ""System.Action<T, <anonymous type: int x>> D.<Test>x<T>.<Target>w""
+  IL_001d:  stsfld     ""System.Action<T, <anonymous type: int x>> D.<Test>O__0<T>.<0>__Target""
   IL_0022:  call       ""void D.Invoke<T, <anonymous type: int x>>(T, <anonymous type: int x>, System.Action<T, <anonymous type: int x>>)""
   IL_0027:  ret
 }
@@ -3773,7 +3497,7 @@ class C
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int*[]> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<int*[]> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3781,7 +3505,7 @@ class C
   IL_000a:  ldftn      ""int*[] C.Target()""
   IL_0010:  newobj     ""System.Func<int*[]>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<int*[]> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<int*[]> C.<>O.<0>__Target""
   IL_001b:  callvirt   ""int*[] System.Func<int*[]>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -3810,7 +3534,7 @@ class C<T>
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Func<T, int*[]> C<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, int*[]> C<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3818,7 +3542,7 @@ class C<T>
   IL_000a:  ldftn      ""int*[] C<T>.Target(T)""
   IL_0010:  newobj     ""System.Func<T, int*[]>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, int*[]> C<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, int*[]> C<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -3849,7 +3573,7 @@ class C
 {
   // Code size       35 (0x23)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<T, int*[]> C.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, int*[]> C.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3857,7 +3581,7 @@ class C
   IL_000a:  ldftn      ""int*[] C.Target<T>(T)""
   IL_0010:  newobj     ""System.Func<T, int*[]>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, int*[]> C.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, int*[]> C.<Test>O__0<T>.<0>__Target""
   IL_001b:  ldarg.1
   IL_001c:  callvirt   ""int*[] System.Func<T, int*[]>.Invoke(T)""
   IL_0021:  pop
@@ -3882,11 +3606,11 @@ class C
     static dynamic Target() => 0;
 }
 ";
-        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test", @"
+        CompileAndVerify(source).VerifyIL("C.Test", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<dynamic> <>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<dynamic> C.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3894,7 +3618,7 @@ class C
   IL_000a:  ldftn      ""dynamic C.Target()""
   IL_0010:  newobj     ""System.Func<dynamic>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<dynamic> <>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<dynamic> C.<>O.<0>__Target""
   IL_001b:  callvirt   ""dynamic System.Func<dynamic>.Invoke()""
   IL_0020:  pop
   IL_0021:  ret
@@ -3918,12 +3642,12 @@ class C<T>
     static dynamic Target(T t) => 0;
 }
 ";
-        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C<T>.Test", @"
+        CompileAndVerify(source).VerifyIL("C<T>.Test", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
-  IL_0000:  ldsfld     ""System.Func<T, dynamic> C<T>.<>x.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, dynamic> C<T>.<>O.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3931,7 +3655,7 @@ class C<T>
   IL_000a:  ldftn      ""dynamic C<T>.Target(T)""
   IL_0010:  newobj     ""System.Func<T, dynamic>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, dynamic> C<T>.<>x.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, dynamic> C<T>.<>O.<0>__Target""
   IL_001b:  ldloca.s   V_0
   IL_001d:  initobj    ""T""
   IL_0023:  ldloc.0
@@ -3958,11 +3682,11 @@ class C
     static dynamic Target<G>(G g) => 0;
 }
 ";
-        CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("C.Test<T>", @"
+        CompileAndVerify(source).VerifyIL("C.Test<T>", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<T, dynamic> C.<Test>x<T>.<Target>w""
+  IL_0000:  ldsfld     ""System.Func<T, dynamic> C.<Test>O__0<T>.<0>__Target""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001b
   IL_0008:  pop
@@ -3970,7 +3694,7 @@ class C
   IL_000a:  ldftn      ""dynamic C.Target<T>(T)""
   IL_0010:  newobj     ""System.Func<T, dynamic>..ctor(object, System.IntPtr)""
   IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<T, dynamic> C.<Test>x<T>.<Target>w""
+  IL_0016:  stsfld     ""System.Func<T, dynamic> C.<Test>O__0<T>.<0>__Target""
   IL_001b:  ldarg.1
   IL_001c:  callvirt   ""dynamic System.Func<T, dynamic>.Invoke(T)""
   IL_0021:  pop
@@ -4015,7 +3739,7 @@ class C
   IL_0004:  call       ""void System.Console.WriteLine(object)""
   IL_0009:  dup
   IL_000a:  brtrue.s   IL_0029
-  IL_000c:  ldsfld     ""System.Func<int> <>x.<M>w""
+  IL_000c:  ldsfld     ""System.Func<int> C.<>O.<0>__M""
   IL_0011:  dup
   IL_0012:  brtrue.s   IL_002a
   IL_0014:  pop
@@ -4023,14 +3747,14 @@ class C
   IL_0016:  ldftn      ""int C.M()""
   IL_001c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0021:  dup
-  IL_0022:  stsfld     ""System.Func<int> <>x.<M>w""
+  IL_0022:  stsfld     ""System.Func<int> C.<>O.<0>__M""
   IL_0027:  br.s       IL_002a
   IL_0029:  ldloc.0
   IL_002a:  call       ""void System.Console.WriteLine(object)""
   IL_002f:  brtrue.s   IL_0034
   IL_0031:  ldloc.0
   IL_0032:  br.s       IL_004f
-  IL_0034:  ldsfld     ""System.Func<int> <>x.<M>w""
+  IL_0034:  ldsfld     ""System.Func<int> C.<>O.<0>__M""
   IL_0039:  dup
   IL_003a:  brtrue.s   IL_004f
   IL_003c:  pop
@@ -4038,7 +3762,7 @@ class C
   IL_003e:  ldftn      ""int C.M()""
   IL_0044:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0049:  dup
-  IL_004a:  stsfld     ""System.Func<int> <>x.<M>w""
+  IL_004a:  stsfld     ""System.Func<int> C.<>O.<0>__M""
   IL_004f:  call       ""void System.Console.WriteLine(object)""
   IL_0054:  ret
 }
