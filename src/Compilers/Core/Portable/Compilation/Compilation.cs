@@ -3411,6 +3411,19 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
 
+        // <Caravela>
+        internal void CloneMissingTypesAndMembersFrom(Compilation other)
+        {
+            _lazyMakeWellKnownTypeMissingMap = other._lazyMakeWellKnownTypeMissingMap == null
+                ? null
+                : new SmallDictionary<int, bool>(other._lazyMakeWellKnownTypeMissingMap, other._lazyMakeWellKnownTypeMissingMap.Comparer);
+
+            _lazyMakeMemberMissingMap = other._lazyMakeMemberMissingMap == null
+                ? null
+                : new SmallDictionary<int, bool>(other._lazyMakeMemberMissingMap, other._lazyMakeMemberMissingMap.Comparer);
+        }
+        // </Caravela>
+
         /// <summary>
         /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns
         /// the actual <see cref="AssemblyIdentity"/> instances that were not referenced.

@@ -12,7 +12,7 @@ namespace Caravela.Compiler
     /// </summary>
     internal static class TransformerDependencyResolver
     {
-        public static void Sort(ref ImmutableArray<ISourceTransformer>.Builder transformers, IReadOnlyList<ImmutableArray<string>> transformerOrders, List<DiagnosticInfo> diagnostics)
+        public static void Sort(ref ImmutableArray<ISourceTransformer>.Builder transformers, IReadOnlyList<ImmutableArray<string?>> transformerOrders, List<DiagnosticInfo> diagnostics)
         {
             // Build a graph of dependencies between unorderedTransformations.
             int n = transformers.Count;
@@ -28,6 +28,11 @@ namespace Caravela.Compiler
 
                 foreach (var transformerName in order)
                 {
+                    if (transformerName == null)
+                    {
+                        continue;
+                    }
+                    
                     int? currentIndex = nameToIndexMapping.TryGetValue(transformerName, out int index) ? index : null;
                     if (currentIndex == null)
                     {

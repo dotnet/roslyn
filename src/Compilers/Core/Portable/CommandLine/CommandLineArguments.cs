@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis
             IAnalyzerAssemblyLoader analyzerLoader,
             bool skipAnalyzers,
             // <Caravela>
-            ImmutableArray<string> transformerOrder,
+            ImmutableArray<string?> transformerOrder,
             // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis
             
             // <Caravela>
             var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
-            var transformerOrders = new List<ImmutableArray<string>>();
+            var transformerOrders = new List<ImmutableArray<string?>>();
             var pluginBuilder = ImmutableArray.CreateBuilder<object>();
             // </Caravela>
 

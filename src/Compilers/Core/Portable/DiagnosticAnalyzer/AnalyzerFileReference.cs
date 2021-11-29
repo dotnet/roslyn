@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _transformers.AddExtensions(builder, language);
         }
 
-        internal void AddTransformerOrder(List<ImmutableArray<string>> transformerOrders)
+        internal void AddTransformerOrder(List<ImmutableArray<string?>> transformerOrders)
         {
             using var assembly = AssemblyMetadata.CreateFromFile(FullPath);
 
