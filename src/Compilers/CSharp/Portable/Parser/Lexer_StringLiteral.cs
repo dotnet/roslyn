@@ -474,16 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch));
                         }
-                        else if (ch is '"' or ':')
-                        {
-                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
-                        }
                     }
                     else if (ch == '"')
                     {
                         if (_isVerbatim && _lexer.TextWindow.PeekChar(1) == '"')
                         {
-                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, "\""));
                             _lexer.TextWindow.AdvanceChar();
                             _lexer.TextWindow.AdvanceChar();
                         }
@@ -492,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return; // premature end of string! let caller complain about unclosed interpolation
                         }
                     }
-                    else if (ch is '{' or ':')
+                    else if (ch = '{')
                     {
                         TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
                         _lexer.TextWindow.AdvanceChar();

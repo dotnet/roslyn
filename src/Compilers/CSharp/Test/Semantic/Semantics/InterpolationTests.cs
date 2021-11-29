@@ -441,44 +441,6 @@ class Program
         }
 
         [Fact]
-        public void InvalidCharInFormatSpecifier2()
-        {
-            string source =
-@"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine( $""{3::}"" );
-    }
-}";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,33): error CS1056: Unerwartetes Zeichen ":".
-                //         Console.WriteLine( $"{3::}" );
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, ":").WithArguments(":").WithLocation(6, 33)
-                );
-        }
-
-        [Fact]
-        public void InvalidCharInFormatSpecifier3()
-        {
-            string source =
-@"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine( $""{3:X\""}"" );
-    }
-}";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,34): error CS1056: Unerwartetes Zeichen """.
-                //         Console.WriteLine( $"{3:X\"}" );
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, @"\").WithArguments("\"").WithLocation(6, 34)
-                );
-        }
-
-        [Fact]
         public void TrailingSpaceInFormatSpecifier()
         {
             string source =
