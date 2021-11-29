@@ -184,6 +184,21 @@ namespace ConsoleApp4
         }
 
         [Fact]
+        public Task TestSymbolFound_GenericType()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`1.M(String s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T> 
+    {
+        void [|M|](string s) { }
+    }
+}");
+        }
+
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_GenericMethod()
         {
             return TestSymbolFoundAsync(

@@ -345,6 +345,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsWithNameAsync(
+                typeName => name == typeName,
+                filter,
+                cancellationToken);
+        }
+
+        internal Task<bool> ContainsSymbolsWithNameAsync(
             Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return ContainsSymbolsAsync(

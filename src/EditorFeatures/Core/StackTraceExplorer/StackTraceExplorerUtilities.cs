@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 }
 
                 var containsSymbol = await project.ContainsSymbolsWithNameAsync(
-                    (name) => name == typeName,
+                    typeName,
                     SymbolFilter.Type,
                     cancellationToken).ConfigureAwait(false);
 
@@ -197,15 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 return MatchType(currentType, arrayTypeNode.TypeIdentifier);
             }
 
-            // Special types can have different casing representations
-            // Ex: string and String are the same (System.String)
-            if (type.IsSpecialType())
-            {
-                return type.Name == stackFrameType.ToString();
-            }
-
-            // Default to just comparing the display name
-            return type.ToDisplayString() == stackFrameType.ToString();
+            return type.Name == stackFrameType.ToString();
         }
     }
 }
