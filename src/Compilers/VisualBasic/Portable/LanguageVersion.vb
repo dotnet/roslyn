@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case LanguageVersion.Latest
                     Return LanguageVersion.VisualBasic16_9
                 Case LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic16
+                    Return LanguageVersion.VisualBasic16_9
                 Case Else
                     Return version
             End Select
