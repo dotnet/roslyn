@@ -162,6 +162,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, node.Type);
+            }
+            return updatedNode;
+        }
+
         private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?
         {
             if (symbols.IsDefaultOrEmpty)

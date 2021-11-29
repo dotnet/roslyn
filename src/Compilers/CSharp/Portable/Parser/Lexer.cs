@@ -772,19 +772,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '$':
-                    if (TextWindow.PeekChar(1) == '"')
+                    if (TryScanInterpolatedString(ref info))
                     {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }
-                    else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
-                        break;
-                    }
-                    else if (this.ModeIs(LexerMode.DebuggerSyntax))
+
+                    if (this.ModeIs(LexerMode.DebuggerSyntax))
                     {
                         goto case 'a';
                     }
@@ -944,6 +937,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
             else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryScanInterpolatedString(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '$');
+
+            if (TextWindow.PeekChar(1) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
             {
                 this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
                 return true;
