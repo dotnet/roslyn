@@ -13605,5 +13605,96 @@ public class C
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count", "error").WithLocation(18, 13)
                 );
         }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteCountAccessor()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    public int this[int i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1]; // 1, 2
+        _ = this[..]; // 3, 4
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (23,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count.get", "error").WithLocation(23, 13),
+                // (23,13): error CS0619: 'C.this[int].get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int].get", "error").WithLocation(23, 13),
+                // (24,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count.get", "error").WithLocation(24, 13),
+                // (24,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(24, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteIndexAndRangeAccessors()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    public int this[Range r]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int this[Index i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""unused"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (26,13): error CS0619: 'C.this[Index].get' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[System.Index].get", "error").WithLocation(26, 13),
+                // (27,13): error CS0619: 'C.this[Range].get' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
+                );
+        }
     }
 }

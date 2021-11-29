@@ -147,7 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             using var tempLexer = new Lexer(SourceText.From(parsedText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
-            return tempParser.ParseInterpolation(text, interpolation, isVerbatim);
+            var result = tempParser.ParseInterpolation(text, interpolation, isVerbatim);
+
+            Debug.Assert(text == result.ToFullString()); // yield from text equals yield from node
+            return result;
         }
 
         private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
@@ -156,11 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var (expression, alignment) = getExpressionAndAlignment();
             var (format, closeBraceToken) = getFormatAndCloseBrace();
 
-            var result = SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
-#if DEBUG
-            Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
-#endif
-            return result;
+            return SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
 
             (ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignment) getExpressionAndAlignment()
             {

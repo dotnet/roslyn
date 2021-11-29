@@ -3427,18 +3427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    {
-                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
-
-                        resultKind = indexerAccess.ResultKind;
-
-                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
-                        // and returned only 1 result
-                        Debug.Assert(indexerAccess.PatternSymbol is object);
-                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
-                    }
-                    break;
+                case BoundKind.ImplicitIndexerAccess:
+                    return GetSemanticSymbols(((BoundImplicitIndexerAccess)boundNode).IndexerOrSliceAccess,
+                        boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
 
                 case BoundKind.EventAssignmentOperator:
                     var eventAssignment = (BoundEventAssignmentOperator)boundNode;
