@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 @else: null);
         }
 
-        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, ParameterSyntax parameterSyntax, IParameterSymbol parameter, CancellationToken cancellationToken)
+        protected override Document? TryAddNullCheckToParameterDeclaration(Document document, ParameterSyntax parameterSyntax)
         {
             var tree = parameterSyntax.SyntaxTree;
             var options = (CSharpParseOptions)tree.Options;
@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 return null;
             }
 
-            var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            // We expect the syntax tree to already be in memory since we already have a node from the tree
+            var syntaxRoot = tree.GetRoot();
             syntaxRoot = syntaxRoot.ReplaceNode(
                 parameterSyntax,
                 parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));

@@ -48,11 +48,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
-        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(
+        protected abstract Document? TryAddNullCheckToParameterDeclaration(
             Document document,
-            TParameterSyntax parameterSyntax,
-            IParameterSymbol parameter,
-            CancellationToken cancellationToken);
+            TParameterSyntax parameterSyntax);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             // First see if we can adopt the '!!' parameter null checking syntax.
-            var modifiedDocument = await TryAddNullCheckToParameterDeclarationAsync(document, parameterSyntax, parameter, cancellationToken).ConfigureAwait(false);
+            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax);
             if (modifiedDocument != null)
             {
                 return modifiedDocument;
