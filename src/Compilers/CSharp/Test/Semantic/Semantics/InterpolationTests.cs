@@ -14596,5 +14596,43 @@ Indexer
 get_C2
 Indexer");
         }
+
+        [Fact]
+        public void InterpolatedStringBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        return $""hello"";
+    }
+}";
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void InterpolatedStringWithReplacementBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        string other = ""world"";
+        return $""hello + {other}"";
+    }
+}";
+
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello + {other}";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+        }
     }
 }

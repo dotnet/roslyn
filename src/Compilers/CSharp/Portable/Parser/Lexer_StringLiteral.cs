@@ -526,16 +526,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
-                            if (_lexer.TextWindow.PeekChar(1) == '"' || _lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(
-                                    isVerbatim: _lexer.TextWindow.PeekChar(1) == '@',
-                                    ref discarded);
-                                continue;
-                            }
+                                if (_lexer.TryScanInterpolatedString(ref discarded))
+                                {
+                                    continue;
+                                }
 
-                            goto default;
+                                goto default;
+                            }
                         case ':':
                             // the first colon not nested within matching delimiters is the start of the format string
                             if (isHole)
