@@ -229,20 +229,17 @@ namespace Microsoft.CodeAnalysis
             {
                 writer.WriteKey("toolsVersions");
                 writer.WriteObjectStart();
-                if ((options & DeterministicKeyOptions.IgnoreToolVersions) != 0)
+                if ((options & DeterministicKeyOptions.IgnoreToolVersions) == 0)
                 {
-                    writer.WriteObjectEnd();
-                    return;
+                    var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                    writer.Write("compilerVersion", compilerVersion);
+
+                    var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                    writer.Write("runtimeVersion", runtimeVersion);
+
+                    writer.Write("framework", RuntimeInformation.FrameworkDescription);
+                    writer.Write("os", RuntimeInformation.OSDescription);
                 }
-
-                var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                writer.Write("compilerVersion", compilerVersion);
-
-                var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                writer.Write("runtimeVersion", runtimeVersion);
-
-                writer.Write("framework", RuntimeInformation.FrameworkDescription);
-                writer.Write("os", RuntimeInformation.OSDescription);
 
                 writer.WriteObjectEnd();
             }
