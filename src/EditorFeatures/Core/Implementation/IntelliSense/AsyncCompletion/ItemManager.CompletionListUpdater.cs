@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     ? ((itemsWithPatternMatches, text) => CompletionService.FilterItems(_completionHelper, itemsWithPatternMatches, text))
                     : ((itemsWithPatternMatches, text) => _completionService.FilterItems(_document!, itemsWithPatternMatches, text));
 
-            // For telemetry
-            private readonly object _targetTypeCompletionFilterChosenMarker = new();
-
             // PERF: Create a singleton to avoid lambda allocation on hot path
             private static readonly Func<TextSpan, RoslynCompletionItem, Span> s_highlightSpanGetter
                 = (span, item) => span.MoveTo(item.DisplayTextPrefix?.Length ?? 0).ToSpan();
@@ -121,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (itemsToBeIncluded.Count == 0)
                     return HandleAllItemsFilteredOut();
 
-                // Decide the item to be selection for this completion session.
-                // This is mostly based on how well the item matches with the filter text, but we also need to
+                // Decide the item to be selected for this completion session.
+                // The selection is mostly based on how well the item matches with the filter text, but we also need to
                 // take into consideration for things like CompletionTrigger, MatchPriority, MRU, etc. 
                 var initialSelection = _initialRoslynTriggerKind == CompletionTriggerKind.Deletion
                     ? HandleDeletionTrigger(itemsToBeIncluded)
@@ -190,18 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 var disposer = PooledListForMatchResult.CreateInstance(out var list);
 
-                // We need to filter if 
-                // 1. a non-empty strict subset of filters are selected
-                // 2. a non-empty set of expanders are unselected
-                var nonExpanderFilterStates = _data.SelectedFilters.WhereAsArray(f => f.Filter is not CompletionExpander);
-
-                var selectedNonExpanderFilters = nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
-                var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
-
-                var unselectedExpanders = _data.SelectedFilters.SelectAsArray(f => !f.IsSelected && f.Filter is CompletionExpander, f => f.Filter);
-                var needToFilterExpanded = unselectedExpanders.Length > 0;
-
-                LogTargetTypeFilterTelemetry(selectedNonExpanderFilters, needToFilter);
+                // FilterStateHelper is used to decide wheter a given item should be included in the list based on the state of filter/expander buttons.
+                var filterHelper = new FilterStateHelper(_data.SelectedFilters);
+                filterHelper.LogTargetTypeFilterTelemetry(_session);
 
                 // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
                 var currentIndex = 0;
@@ -211,15 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
-                    {
+                    if (filterHelper.ShouldBeFilteredOut(item))
                         continue;
-                    }
-
-                    if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
-                    {
-                        continue;
-                    }
 
                     var roslynItem = GetOrAddRoslynCompletionItem(item);
                     if (CompletionHelper.TryCreateMatchResult(_completionHelper, roslynItem, item, _filterText,
@@ -240,48 +221,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 itemsToBeIncluded = list;
                 return disposer;
 
-                static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
-                    => !item.Filters.Any(filter => activeNonExpanderFilters.Contains(filter));
-
-                static bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> unselectedExpanders)
-                {
-                    var associatedWithUnselectedExpander = false;
-                    foreach (var itemFilter in item.Filters)
-                    {
-                        if (itemFilter is CompletionExpander)
-                        {
-                            if (!unselectedExpanders.Contains(itemFilter))
-                            {
-                                // If any of the associated expander is selected, the item should be included in the expanded list.
-                                return false;
-                            }
-
-                            associatedWithUnselectedExpander = true;
-                        }
-                    }
-
-                    // at this point, the item either:
-                    // 1. has no expander filter, therefore should be included
-                    // 2. or, all associated expanders are unselected, therefore should be excluded
-                    return associatedWithUnselectedExpander;
-                }
-
-                void LogTargetTypeFilterTelemetry(ImmutableArray<CompletionFilter> selectedNonExpanderFilters, bool needToFilter)
-                {
-                    if (_session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
-                    {
-                        // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
-                        if (needToFilter &&
-                            !_session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
-                            selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                        {
-                            AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
-
-                            // Make sure we only record one enabling of the filter per session
-                            _session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
-                        }
-                    }
-                }
             }
 
             private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult<VSCompletionItem>> items)
@@ -822,6 +761,81 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         _list.Clear();
                         s_listOfMatchResultPool.Free(_list);
                         _list = null;
+                    }
+                }
+            }
+
+            private sealed class FilterStateHelper
+            {
+                private readonly ImmutableArray<CompletionFilterWithState> _nonExpanderFilterStates;
+                private readonly ImmutableArray<CompletionFilter> _selectedNonExpanderFilters;
+                private readonly bool _needToFilter;
+                private readonly ImmutableArray<CompletionFilter> _unselectedExpanders;
+                private readonly bool _needToFilterExpanded;
+
+                // For telemetry
+                private readonly object _targetTypeCompletionFilterChosenMarker = new();
+
+                public FilterStateHelper(ImmutableArray<CompletionFilterWithState> filtersWithState)
+                {
+                    // We need to filter if 
+                    // 1. a non-empty strict subset of filters are selected
+                    // 2. a non-empty set of expanders are unselected
+                    _nonExpanderFilterStates = filtersWithState.WhereAsArray(f => f.Filter is not CompletionExpander);
+
+                    _selectedNonExpanderFilters = _nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
+                    _needToFilter = _selectedNonExpanderFilters.Length > 0 && _selectedNonExpanderFilters.Length < _nonExpanderFilterStates.Length;
+
+                    _unselectedExpanders = filtersWithState.SelectAsArray(f => !f.IsSelected && f.Filter is CompletionExpander, f => f.Filter);
+                    _needToFilterExpanded = _unselectedExpanders.Length > 0;
+                }
+
+                public bool ShouldBeFilteredOut(VSCompletionItem item)
+                    => ShouldBeFilteredOutOfCompletionList(item) && ShouldBeFilteredOutOfExpandedCompletionList(item);
+
+                private bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item)
+                    => _needToFilter && !item.Filters.Any(filter => _selectedNonExpanderFilters.Contains(filter));
+
+                private bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item)
+                {
+                    if (!_needToFilterExpanded)
+                        return false;
+
+                    var associatedWithUnselectedExpander = false;
+                    foreach (var itemFilter in item.Filters)
+                    {
+                        if (itemFilter is CompletionExpander)
+                        {
+                            if (!_unselectedExpanders.Contains(itemFilter))
+                            {
+                                // If any of the associated expander is selected, the item should be included in the expanded list.
+                                return false;
+                            }
+
+                            associatedWithUnselectedExpander = true;
+                        }
+                    }
+
+                    // at this point, the item either:
+                    // 1. has no expander filter, therefore should be included
+                    // 2. or, all associated expanders are unselected, therefore should be excluded
+                    return associatedWithUnselectedExpander;
+                }
+
+                public void LogTargetTypeFilterTelemetry(IAsyncCompletionSession session)
+                {
+                    if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+                    {
+                        // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
+                        if (_needToFilter &&
+                            !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
+                            _selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                        {
+                            AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
+
+                            // Make sure we only record one enabling of the filter per session
+                            session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
+                        }
                     }
                 }
             }
