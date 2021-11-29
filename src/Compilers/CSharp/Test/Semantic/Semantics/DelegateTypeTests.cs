@@ -8357,7 +8357,8 @@ class Program
   IL_0075:  dup
   IL_0076:  stsfld     ""<anonymous delegate> Program.<>O.<3>__M4""
   IL_007b:  call       ""void Program.Report(System.Delegate)""
-  IL_0080:  ret}");
+  IL_0080:  ret
+}");
         }
 
         [Fact]

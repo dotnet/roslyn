@@ -12194,7 +12194,8 @@ class Test
   IL_0016:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_001b:  dup
   IL_001c:  stsfld     ""System.Action Test.<>O.<0>__M01""
-  IL_0021:  ret}
+  IL_0021:  ret
+}
 ");
 
             var tree = compilation1.SyntaxTrees.Single();
