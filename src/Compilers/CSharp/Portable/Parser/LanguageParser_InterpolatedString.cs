@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
+            return result;
         }
 
         private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
