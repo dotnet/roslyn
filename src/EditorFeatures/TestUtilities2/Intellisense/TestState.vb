@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
-        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As ConvertNamespaceCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
@@ -74,10 +74,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
-            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
+            Me.CompleteStatementCommandHandler = GetExportedValue(Of ConvertNamespaceCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
-            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
+            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of ConvertNamespaceCommandHandler)(NameOf(CompleteStatementCommandHandler))
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
