@@ -2603,7 +2603,7 @@ struct Type<T>
         {
             // don't crash
             using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
@@ -2620,7 +2620,7 @@ struct Type<T>
                 globalOptions,
                 listenerProvider);
 
-            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
             using (var edit = extraBuffer.CreateEdit())
             {
                 edit.Insert(0, "class A { }");
