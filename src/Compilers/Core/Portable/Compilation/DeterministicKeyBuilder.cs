@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis
             writeSubsystemVersion(writer, options.SubsystemVersion);
             writer.Write("fileAlignment", options.FileAlignment);
             writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-            writer.Write("baseAddress", options.BaseAddress.ToString());
+            writer.Write("baseAddress", options.BaseAddress.ToString("G"));
             writer.Write("debugInformationFormat", options.DebugInformationFormat);
             writer.Write("outputNameOverride", options.OutputNameOverride);
             WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
