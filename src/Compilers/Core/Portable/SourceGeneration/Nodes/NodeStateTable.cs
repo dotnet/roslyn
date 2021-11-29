@@ -186,7 +186,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[_states.Count].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
+                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                _states.Add(new TableEntry(chosen, state));
                 return true;
             }
 
@@ -222,8 +223,8 @@ namespace Microsoft.CodeAnalysis
                     var previous = previousEntry.GetItem(i);
                     var replacement = outputs[i];
 
-                    var entryState = comparer.Equals(previous, replacement) ? EntryState.Cached : EntryState.Modified;
-                    modified.Add(replacement, entryState);
+                    (var chosen, var state) = GetModifiedItemAndState(previous, replacement, comparer);
+                    modified.Add(chosen, state);
                 }
 
                 // removed
@@ -262,6 +263,15 @@ namespace Microsoft.CodeAnalysis
 
                 var hasNonCached = _states.Any(static s => !s.IsCached);
                 return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached);
+            }
+
+            private (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            {
+                // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
+                // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
+                return comparer.Equals(previous, replacement)
+                    ? (previous, EntryState.Cached)
+                    : (replacement, EntryState.Modified);
             }
         }
 
