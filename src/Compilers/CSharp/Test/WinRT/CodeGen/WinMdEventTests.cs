@@ -293,7 +293,7 @@ class D
   IL_0013:  ldloc.0
   IL_0014:  ldftn      ""void C.Instance.remove""
   IL_001a:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
-  IL_001f:  ldsfld     ""System.Action <>x.<Action>w""
+  IL_001f:  ldsfld     ""System.Action D.<>O.<0>__Action""
   IL_0024:  dup
   IL_0025:  brtrue.s   IL_003a
   IL_0027:  pop
@@ -301,7 +301,7 @@ class D
   IL_0029:  ldftn      ""void D.Action()""
   IL_002f:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0034:  dup
-  IL_0035:  stsfld     ""System.Action <>x.<Action>w""
+  IL_0035:  stsfld     ""System.Action D.<>O.<0>__Action""
   IL_003a:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
   IL_003f:  ret
 }");
@@ -410,7 +410,7 @@ class C
   IL_001d:  ldarg.0
   IL_001e:  ldftn      ""void C.Instance.remove""
   IL_0024:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
-  IL_0029:  ldsfld     ""System.Action <>x.<Action>w""
+  IL_0029:  ldsfld     ""System.Action C.<>O.<0>__Action""
   IL_002e:  dup
   IL_002f:  brtrue.s   IL_0044
   IL_0031:  pop
@@ -418,7 +418,7 @@ class C
   IL_0033:  ldftn      ""void C.Action()""
   IL_0039:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_003e:  dup
-  IL_003f:  stsfld     ""System.Action <>x.<Action>w""
+  IL_003f:  stsfld     ""System.Action C.<>O.<0>__Action""
   IL_0044:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
   IL_0049:  ret
 }");

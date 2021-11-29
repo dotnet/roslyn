@@ -708,40 +708,45 @@ In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
 {
-  // Code size       70 (0x46)
+  // Code size       85 (0x55)
   .maxstack  2
   .locals init (System.Action V_0) //a
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  dup
-  IL_0004:  brtrue.s   IL_0015
+  IL_0004:  brtrue.s   IL_0024
   IL_0006:  pop
-  IL_0007:  ldnull
-  IL_0008:  ldftn      ""void C.TestMethod()""
-  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0013:  dup
-  IL_0014:  stloc.0
-  IL_0015:  callvirt   ""void System.Action.Invoke()""
-  IL_001a:  ldloc.0
-  IL_001b:  dup
-  IL_001c:  brtrue.s   IL_0040
-  IL_001e:  pop
-  IL_001f:  ldsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_0024:  dup
-  IL_0025:  brtrue.s   IL_003e
-  IL_0027:  pop
-  IL_0028:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_002d:  ldftn      ""void C.<>c.<Main>b__0_0()""
-  IL_0033:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0038:  dup
-  IL_0039:  stsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_003e:  dup
-  IL_003f:  stloc.0
-  IL_0040:  callvirt   ""void System.Action.Invoke()""
-  IL_0045:  ret
-}
-");
+  IL_0007:  ldsfld     ""System.Action C.<>O.<0>__TestMethod""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.TestMethod()""
+  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Action C.<>O.<0>__TestMethod""
+  IL_0022:  dup
+  IL_0023:  stloc.0
+  IL_0024:  callvirt   ""void System.Action.Invoke()""
+  IL_0029:  ldloc.0
+  IL_002a:  dup
+  IL_002b:  brtrue.s   IL_004f
+  IL_002d:  pop
+  IL_002e:  ldsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_0033:  dup
+  IL_0034:  brtrue.s   IL_004d
+  IL_0036:  pop
+  IL_0037:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_003c:  ldftn      ""void C.<>c.<Main>b__0_0()""
+  IL_0042:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0047:  dup
+  IL_0048:  stsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_004d:  dup
+  IL_004e:  stloc.0
+  IL_004f:  callvirt   ""void System.Action.Invoke()""
+  IL_0054:  ret
+}");
         }
 
         [Fact]

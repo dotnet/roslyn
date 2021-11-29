@@ -2245,7 +2245,7 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Skip<string>(System.Collections.Generic.IEnumerable<string>, int)""
-  IL_0007:  ldsfld     ""System.Func<string, bool> <>x.<Filter>w""
+  IL_0007:  ldsfld     ""System.Func<string, bool> C.<>O.<0>__Filter""
   IL_000c:  dup
   IL_000d:  brtrue.s   IL_0022
   IL_000f:  pop
@@ -2253,9 +2253,9 @@ class C
   IL_0011:  ldftn      ""bool C.Filter(string)""
   IL_0017:  newobj     ""System.Func<string, bool>..ctor(object, System.IntPtr)""
   IL_001c:  dup
-  IL_001d:  stsfld     ""System.Func<string, bool> <>x.<Filter>w""
+  IL_001d:  stsfld     ""System.Func<string, bool> C.<>O.<0>__Filter""
   IL_0022:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Where<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, bool>)""
-  IL_0027:  ldsfld     ""System.Func<string, string, string> <>x__1.<Combine>w""
+  IL_0027:  ldsfld     ""System.Func<string, string, string> C.<>O.<1>__Combine""
   IL_002c:  dup
   IL_002d:  brtrue.s   IL_0042
   IL_002f:  pop
@@ -2263,7 +2263,7 @@ class C
   IL_0031:  ldftn      ""string C.Combine(string, string)""
   IL_0037:  newobj     ""System.Func<string, string, string>..ctor(object, System.IntPtr)""
   IL_003c:  dup
-  IL_003d:  stsfld     ""System.Func<string, string, string> <>x__1.<Combine>w""
+  IL_003d:  stsfld     ""System.Func<string, string, string> C.<>O.<1>__Combine""
   IL_0042:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
   IL_0047:  ret
 }";

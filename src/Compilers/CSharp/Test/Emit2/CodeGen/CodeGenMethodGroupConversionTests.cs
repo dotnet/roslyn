@@ -3422,7 +3422,7 @@ class D
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  newobj     ""<>f__AnonymousType0<T>..ctor(T)""
-  IL_0006:  ldsfld     ""System.Action<<anonymous type: T x>> <Test>O__0<T>.<0>__Target""
+  IL_0006:  ldsfld     ""System.Action<<anonymous type: T x>> D.<Test>O__0<T>.<0>__Target""
   IL_000b:  dup
   IL_000c:  brtrue.s   IL_0021
   IL_000e:  pop
@@ -3430,7 +3430,7 @@ class D
   IL_0010:  ldftn      ""void D.Target<<anonymous type: T x>>(<anonymous type: T x>)""
   IL_0016:  newobj     ""System.Action<<anonymous type: T x>>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""System.Action<<anonymous type: T x>> <Test>O__0<T>.<0>__Target""
+  IL_001c:  stsfld     ""System.Action<<anonymous type: T x>> D.<Test>O__0<T>.<0>__Target""
   IL_0021:  call       ""void D.Invoke<<anonymous type: T x>>(<anonymous type: T x>, System.Action<<anonymous type: T x>>)""
   IL_0026:  ret
 }
