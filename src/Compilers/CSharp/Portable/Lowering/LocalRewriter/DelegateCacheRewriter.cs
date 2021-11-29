@@ -45,10 +45,7 @@ internal sealed class DelegateCacheRewriter
         var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
 
         var boundCacheField = _factory.Field(null, cacheField);
-        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType)
-        {
-            WasCompilerGenerated = true
-        };
+        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, receiver, targetMethod, isExtensionMethod: false, type: delegateType);
 
         var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
 
