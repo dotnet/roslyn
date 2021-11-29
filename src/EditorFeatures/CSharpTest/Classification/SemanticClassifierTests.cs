@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -3618,6 +3616,17 @@ class X
         public async Task TestStringEscape8(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape9(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
