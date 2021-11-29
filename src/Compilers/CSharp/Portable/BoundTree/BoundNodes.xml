@@ -147,6 +147,7 @@
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
+    <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
@@ -2069,21 +2070,21 @@
   <Node Name="BoundImplicitIndexerAccess" Base="BoundExpression" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
+    <!-- The target of the index operation -->
+    <Field Name="Receiver" Type="BoundExpression" Null="disallow" />
+
     <!-- An expression with type Index or Range -->
     <Field Name="Argument" Type="BoundExpression" Null="disallow" />
 
     <Field Name="LengthOrCountAccess" Type="BoundExpression" SkipInVisitor="true" />
 
-    <!-- The receiver placeholder for length access -->
+    <!-- The receiver placeholder for length access and IndexerOrSliceAccess-->
     <Field Name="ReceiverPlaceholder" Type="BoundImplicitIndexerReceiverPlaceholder" SkipInVisitor="true" />
 
     <!--
-    May be BoundIndexerAccess or BoundCall or BoundArrayAccess,
-    which are built using the real receiver (not a placeholder) and placeholder(s) for argument(s).
-    We don't mark this property as SkipInVisitor="true" because it contains real receiver, but we
-    make sure SemanticModel doesn't dig too deep into the node.
+    May be BoundIndexerAccess or BoundCall or BoundArrayAccess
     -->
-    <Field Name="IndexerOrSliceAccess" Type="BoundExpression" Null="disallow" />
+    <Field Name="IndexerOrSliceAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" />
 
     <!-- The receiver placeholder(s) of type Int32 for indexer access (one if implicit Index indexer, two if implicit Range indexer) -->
     <Field Name="ArgumentPlaceholders" Type="ImmutableArray&lt;BoundImplicitIndexerValuePlaceholder&gt;" Null="disallow" SkipInVisitor="true" />
