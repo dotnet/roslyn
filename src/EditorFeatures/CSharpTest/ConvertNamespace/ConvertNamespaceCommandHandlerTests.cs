@@ -193,5 +193,85 @@ namespace N2
     }
 }");
         }
+
+        [WpfFact]
+        public void TestOuterUsings()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"
+using A;
+using B;
+
+namespace N$$
+{
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"
+using A;
+using B;
+
+namespace N;
+
+class C
+{
+}
+");
+        }
+
+        [WpfFact]
+        public void TestInnerUsings()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"
+namespace N$$
+{
+    using A;
+    using B;
+
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"
+namespace N;
+
+using A;
+using B;
+
+class C
+{
+}
+");
+        }
+
+        [WpfFact]
+        public void TestCommentAfterName()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"namespace N$$ // Goo
+{
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"namespace N // Goo
+;
+
+class C
+{
+}
+");
+        }
     }
 }
