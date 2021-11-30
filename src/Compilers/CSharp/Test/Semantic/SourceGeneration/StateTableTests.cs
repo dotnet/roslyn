@@ -215,22 +215,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Caches_Previous_Object_When_Modification_Considered_Cached()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder();
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var previousTable = builder.ToImmutableAndFree();
 
-            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added));
+            var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 0), (3, EntryState.Added, 0));
             AssertTableEntries(previousTable, expected);
 
-            builder = previousTable.ToBuilder();
+            builder = previousTable.ToBuilder(stepName: null, false);
             Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default));           // ((1, EntryState.Cached))
             Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default));           // ((4, EntryState.Modified))
             Assert.True(builder.TryModifyEntry(5, new LambdaComparer<int>((i, j) => true))); // ((3, EntryState.Cached))
             var newTable = builder.ToImmutableAndFree();
 
-            expected = ImmutableArray.Create((1, EntryState.Cached), (4, EntryState.Modified), (3, EntryState.Cached));
+            expected = ImmutableArray.Create((1, EntryState.Cached, 0), (4, EntryState.Modified, 0), (3, EntryState.Cached, 0));
             AssertTableEntries(newTable, expected);
         }
 
