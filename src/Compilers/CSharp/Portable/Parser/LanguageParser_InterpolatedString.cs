@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             rescanInterpolation(out var kind, out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
-            var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
+            var result = SyntaxFactory.InterpolatedStringExpression(
+                getOpenQuote(openQuoteRange), getContent(interpolations), getCloseQuote(closeQuoteRange));
 
             interpolations.Free();
             if (error != null)
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
-            SyntaxToken getOpenQuote()
+            SyntaxToken getOpenQuote(Range openQuoteRange)
             {
                 var openQuoteText = originalText[openQuoteRange];
                 return SyntaxFactory.Token(
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     openQuoteText, openQuoteText, trailing: null);
             }
 
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent()
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> getContent(ArrayBuilder<Lexer.Interpolation> interpolations)
             {
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
@@ -111,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
                     if (lastText.Length > 0)
                     {
-                        var token = MakeInterpolatedStringTextToken(lastText, kind);
-                        builder.Add(SyntaxFactory.InterpolatedStringText(token));
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(lastText, kind)));
                     }
                 }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return result;
             }
 
-            SyntaxToken getCloseQuote()
+            SyntaxToken getCloseQuote(Range openQuoteRange)
             {
                 // Make a token for the close quote " (even if it was missing)
                 var closeQuoteText = originalText[closeQuoteRange];

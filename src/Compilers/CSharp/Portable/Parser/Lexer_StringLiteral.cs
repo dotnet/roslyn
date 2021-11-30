@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 openQuoteRange: out _,
                 interpolations: null,
                 closeQuoteRange: out _);
+
             this.AddError(error);
         }
 
