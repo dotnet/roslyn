@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal sealed class DelegateCacheRewriter
+internal sealed partial class DelegateCacheRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly MethodSymbol _topLevelMethod;
@@ -127,7 +127,9 @@ internal sealed class DelegateCacheRewriter
                 return true;
             }
 
-            if (delegateType.ContainsTypeParameters(methodTypeParameters) || containsTypeParameters(targetMethod, methodTypeParameters))
+            var checker = TypeParameterUsageChecker.Instance;
+
+            if (checker.Visit(delegateType, methodTypeParameters) || checker.Visit(targetMethod, methodTypeParameters))
             {
                 return false;
             }
@@ -138,15 +140,5 @@ internal sealed class DelegateCacheRewriter
         }
 
         return true;
-
-        static bool containsTypeParameters(MethodSymbol method, PooledHashSet<TypeParameterSymbol> typeParams)
-        {
-            return method.ContainingType.ContainsTypeParameters(typeParams) ||
-                method.TypeArgumentsWithAnnotations.Any(
-                    static (typeArg, typeParams) =>
-                        typeArg.Type.ContainsTypeParameters(typeParams) ||
-                        typeArg.CustomModifiers.Any(static (cm, typeParams) => ((TypeSymbol)cm.Modifier).ContainsTypeParameters(typeParams), typeParams),
-                    typeParams);
-        }
     }
 }
