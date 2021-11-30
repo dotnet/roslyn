@@ -2412,7 +2412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an ConstructorInitializerSyntax. 
+        /// Analyze data-flow within an <see cref="ConstructorInitializerSyntax"/>. 
         /// </summary>
         /// <param name="constructorInitializer">The ctor-init within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -2423,9 +2423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an PrimaryConstructorBaseTypeSyntax. 
+        /// Analyze data-flow within an <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/>. 
         /// </summary>
-        /// <param name="primaryConstructorBaseType">The primary constructor base type within the associated SyntaxTree to analyze.</param>
+        /// <param name="primaryConstructorBaseType">The node within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
         public virtual DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
         {
@@ -2434,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression. 
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>. 
         /// </summary>
         /// <param name="expression">The expression within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
