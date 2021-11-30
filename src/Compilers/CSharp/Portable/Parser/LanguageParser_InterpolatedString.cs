@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // and where the close quote can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
-            rescanInterpolation(out var kind, out var openQuoteRange, out var error, out var closeQuoteRange);
+            rescanInterpolation(out var kind, out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(), getCloseQuote());
 
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
-            return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
+            return result;
 
-            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
+            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var text = originalText[new Range(openQuoteRange.End, closeQuoteRange.Start)];
                     if (text.Length > 0)
                     {
-                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, kind)));
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, kind)));
                     }
                 }
                 else
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             interpolation.OpenBraceRange.Start)];
                         if (text.Length > 0)
                         {
-                            builder.Add(SyntaxFactory.InterpolatedStringText(MakeStringToken(text, text, kind)));
+                            builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, kind)));
                         }
 
                         builder.Add(ParseInterpolation(this.Options, originalText, interpolation, kind));
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
                     if (lastText.Length > 0)
                     {
-                        var token = MakeStringToken(lastText, lastText, kind);
+                        var token = MakeInterpolatedStringTextToken(lastText, kind);
                         builder.Add(SyntaxFactory.InterpolatedStringText(token));
                     }
                 }
@@ -154,9 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
-            return tempParser.ParseInterpolation(
+            var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,
                 SyntaxFactory.Token(leading: null, SyntaxKind.OpenBraceToken, openTokenText, openTokenText, openTokenTrailingTrivia));
+
+            Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
+            return result;
         }
 
         private InterpolationSyntax ParseInterpolation(
@@ -168,11 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var (expression, alignment) = getExpressionAndAlignment();
             var (format, closeBraceToken) = getFormatAndCloseBrace();
 
-            var result = SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
-#if DEBUG
-            Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
-#endif
-            return result;
+            return SyntaxFactory.Interpolation(openBraceToken, expression, alignment, format, closeBraceToken);
 
             (ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignment) getExpressionAndAlignment()
             {
@@ -195,17 +194,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (interpolation.HasColon)
                 {
                     var colonText = text[interpolation.ColonRange];
-                    var colonToken = SyntaxFactory.Token(leading, SyntaxKind.ColonToken, colonText, colonText, trailing: null);
                     var formatText = text[new Range(interpolation.ColonRange.End, interpolation.CloseBraceRange.Start)];
-                    var formatString = MakeStringToken(formatText, formatText, kind);
-                    var format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
-                    var closeBraceToken = getInterpolationCloseBraceToken(leading: null);
-                    return (format, closeBraceToken);
+                    var format = SyntaxFactory.InterpolationFormatClause(
+                        SyntaxFactory.Token(leading, SyntaxKind.ColonToken, colonText, colonText, trailing: null),
+                        MakeInterpolatedStringTextToken(formatText, kind));
+                    return (format, getInterpolationCloseBraceToken(leading: null));
                 }
                 else
                 {
-                    var closeBraceToken = getInterpolationCloseBraceToken(leading);
-                    return (format: null, closeBraceToken);
+                    return (format: null, getInterpolationCloseBraceToken(leading));
                 }
             }
 
@@ -220,31 +217,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Take the given text and treat it as the contents of a string literal, returning a token for that.
+        /// Interpret the given raw text from source as an InterpolatedStringTextToken.
         /// </summary>
         /// <param name="text">The text for the full string literal, including the quotes and contents</param>
-        /// <param name="bodyText">The text for the string literal's contents, excluding surrounding quotes</param>
         /// <param name="kind">The kind of the interpolation</param>
-        private SyntaxToken MakeStringToken(
-            string text,
-            string bodyText,
-            Lexer.InterpolatedStringKind kind)
+        private SyntaxToken MakeInterpolatedStringTextToken(string text, Lexer.InterpolatedStringKind kind)
         {
             var prefix = kind is Lexer.InterpolatedStringKind.Verbatim ? "@\"" : "\"";
-            var fakeString = prefix + bodyText + "\"";
-            using (var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false))
-            {
-                LexerMode mode = LexerMode.Syntax;
-                SyntaxToken token = tempLexer.Lex(ref mode);
-                Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
-                var result = SyntaxFactory.Literal(null, text, SyntaxKind.InterpolatedStringTextToken, token.ValueText, null);
-                if (token.ContainsDiagnostics)
-                {
-                    result = result.WithDiagnosticsGreen(MoveDiagnostics(token.GetDiagnostics(), -prefix.Length));
-                }
+            var fakeString = prefix + text + "\"";
+            using var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false);
 
-                return result;
+            var mode = LexerMode.Syntax;
+            var token = tempLexer.Lex(ref mode);
+            Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
+            var result = SyntaxFactory.Literal(leading: null, text, SyntaxKind.InterpolatedStringTextToken, token.ValueText, trailing: null);
+            if (token.ContainsDiagnostics)
+            {
+                result = result.WithDiagnosticsGreen(MoveDiagnostics(token.GetDiagnostics(), -prefix.Length));
             }
+
+            return result;
         }
 
         private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)

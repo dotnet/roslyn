@@ -147,17 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        /// <summary>
-        /// Returns an appropriate error code if scanning this verbatim literal ran into an error.
-        /// </summary>
-        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info)
+        private void ScanVerbatimStringLiteral(ref TokenInfo info)
         {
             _builder.Length = 0;
 
             Debug.Assert(TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"');
             TextWindow.AdvanceChar(2);
 
-            ErrorCode? error = null;
             while (true)
             {
                 var ch = TextWindow.PeekChar();
@@ -180,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // Reached the end of the source without finding the end-quote.  Give an error back at the
                     // starting point. And finish lexing this string.
-                    error ??= ErrorCode.ERR_UnterminatedStringLit;
+                    this.AddError(ErrorCode.ERR_UnterminatedStringLit);
                     break;
                 }
 
@@ -191,15 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             info.Kind = SyntaxKind.StringLiteralToken;
             info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
-
-            return error;
         }
 
         private void ScanInterpolatedStringLiteral(ref TokenInfo info)
         {
-            // We have a string of the form
+            // We have a string of one of the forms
             //                $" ... "
-            // or, if isVerbatim is true, of possible forms
             //                $@" ... "
             //                @$" ... "
             // Where the contents contains zero or more sequences
@@ -346,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var start = _lexer.TextWindow.Position;
                 if (_kind is InterpolatedStringKind.Verbatim)
                 {
-                    // skip past @$ or $!
+                    // skip past @$ or $@
                     _lexer.TextWindow.AdvanceChar(2);
                 }
                 else
@@ -558,14 +551,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
-                            if (_lexer.TextWindow.PeekChar(1) == '"' || (_lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"'))
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(ref discarded);
-                                continue;
-                            }
+                                if (_lexer.TryScanInterpolatedString(ref discarded))
+                                {
+                                    continue;
+                                }
 
-                            goto default;
+                                goto default;
+                            }
                         case ':':
                             // the first colon not nested within matching delimiters is the start of the format string
                             if (isHole)
@@ -599,33 +593,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
-                            if (_lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
-                            {
-                                // check for verbatim string inside an expression hole.
-                                var nestedStringPosition = _lexer.TextWindow.Position;
-
-                                // Note that this verbatim string may encounter an error (for example if it contains a
-                                // new line and we don't allow that).  This should be reported to the user, but should
-                                // not put us into an unrecoverable position.  We can clearly see that this was intended
-                                // to be a normal verbatim string, so we can continue on an attempt to understand the
-                                // outer interpolated string properly.
-                                var discarded = default(TokenInfo);
-                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded);
-                                if (errorCode is ErrorCode code)
-                                {
-                                    TrySetRecoverableError(_lexer.MakeError(nestedStringPosition, width: 2, code));
-                                }
-
-                                continue;
-                            }
-                            else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(ref discarded);
-                                continue;
-                            }
+                                if (_lexer.TryScanAtStringToken(ref discarded))
+                                    continue;
 
-                            goto default;
+                                // Wasn't an @"" or @$"" string.  Just consume this as normal code.
+                                goto default;
+                            }
                         case '/':
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
@@ -676,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(start == _lexer.TextWindow.PeekChar());
                 _lexer.TextWindow.AdvanceChar();
-                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, out _);
+                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, colonRange: out _);
                 if (_lexer.TextWindow.PeekChar() == end)
                 {
                     _lexer.TextWindow.AdvanceChar();

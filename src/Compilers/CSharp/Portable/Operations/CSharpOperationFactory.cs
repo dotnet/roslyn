@@ -236,6 +236,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRelationalPatternOperation((BoundRelationalPattern)boundNode);
                 case BoundKind.TypePattern:
                     return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
+                case BoundKind.SlicePattern:
+                    return CreateBoundSlicePatternOperation((BoundSlicePattern)boundNode);
+                case BoundKind.ListPattern:
+                    return CreateBoundListPatternOperation((BoundListPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -300,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -2371,6 +2375,33 @@ namespace Microsoft.CodeAnalysis.Operations
                 semanticModel: _semanticModel,
                 syntax: boundTypePattern.Syntax,
                 isImplicit: boundTypePattern.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
+        {
+            return new SlicePatternOperation(
+                sliceSymbol: boundNode.Pattern is null ? null :
+                    Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                pattern: (IPatternOperation?)Create(boundNode.Pattern),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
+        {
+            return new ListPatternOperation(
+                lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),
+                indexerSymbol: Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
+                declaredSymbol: boundNode.Variable.GetPublicSymbol(),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundNegatedPatternOperation(BoundNegatedPattern boundNegatedPattern)

@@ -204,6 +204,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceAfterCast);
             }
 
+            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                // is [
+                // and [
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // For spacing Before Square Braces
             if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
@@ -436,6 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // Slice pattern:
+            // .. var x
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.SlicePattern)
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind is SyntaxKind.InterpolatedStringStartToken or
                 SyntaxKind.InterpolatedVerbatimStringStartToken)
@@ -556,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
+            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.ListPattern);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);
