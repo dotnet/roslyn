@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
                 case MessageID.IDS_FeatureUsingStatic:
-                case MessageID.IDS_FeatureInterpolatedStrings:
+                case MessageID.IDS_FeatureInterpolatedStrings: // semantic check
                 case MessageID.IDS_AwaitInCatchAndFinally:
                 case MessageID.IDS_FeatureReadonlyAutoImplementedProperties:
                     return LanguageVersion.CSharp6;
