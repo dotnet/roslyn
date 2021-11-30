@@ -15,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoItemMatchesDefaults(isAggressive As Boolean) As Task
+            ' We are not adding the additional file which contains type MyAB and MyA
+            ' the the suggestion from default source doesn't match anything in the completion list.
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -33,7 +35,7 @@ class C
 
                 state.SendInvokeCompletionList()
 
-                Await state.AssertCompletionItemsDoNotContainAny("MyA", "MyB")
+                Await state.AssertCompletionItemsDoNotContainAny("MyAB", "MyA")
                 Await state.AssertSelectedCompletionItem("MyMethod", isHardSelected:=True)
 
             End Using
@@ -42,7 +44,7 @@ class C
         <WpfFact, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SelectFirstMatchingDefaultIfNoFilterText() As Task
-            Using state = CreateTestState(
+            Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
 using NS1;
 class C
@@ -61,13 +63,13 @@ class C
 
         <WpfFact, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SelectFirstMatchingDefaultWithFilterText() As Task
-            Using state = CreateTestState(
+        Public Async Function SelectFirstMatchingDefaultWithPrefixFilterText() As Task
+            Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
 using NS1;
 class C
 {
-    void Method()
+    void MyMethod()
     {
         My$$
     }
@@ -75,46 +77,15 @@ class C
                               </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("MyMethod", displayTextSuffix:="")
                 Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAggressiveDefaultsMatching(isAggressive As Boolean) As Task
-            Using state = CreateTestState(
-                              <Document>
-using NS1;
-class My
-{
-    void Method()
-    {
-        My$$
-    }
-}
-                              </Document>)
-                If isAggressive Then
-                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                End If
-
-                state.SendInvokeCompletionList()
-
-                If isAggressive Then
-                    Await state.AssertCompletionItemsContain("My", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
-                Else
-                    Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("My", isHardSelected:=True)
-                End If
-            End Using
-        End Function
-
-        <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCaseInsensitiveMatchingDefault(isAggressive As Boolean) As Task
-            Using state = CreateTestState(
+        Public Async Function DoNotChangeSelectionIfBetterMatch_CaseSensivePrefix() As Task
+            Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
 using NS1;
 class C
@@ -122,70 +93,6 @@ class C
     void Method(int my)
     {
         m$$
-    }
-}
-                              </Document>)
-                If isAggressive Then
-                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                End If
-
-                state.SendInvokeCompletionList()
-
-                If isAggressive Then
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("my", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
-                Else
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("my", isHardSelected:=True)
-                End If
-            End Using
-        End Function
-
-        <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCaseInsensitiveMatchingDefault2(isAggressive As Boolean) As Task
-            Using state = CreateTestState(
-                              <Document>
-using NS1;
-class C
-{
-    void Method(int myA)
-    {
-        myA$$
-    }
-}
-                              </Document>)
-                If isAggressive Then
-                    state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                End If
-
-                state.SendInvokeCompletionList()
-
-                If isAggressive Then
-                    Await state.AssertCompletionItemsContain("myA", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
-                Else
-                    Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                    Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
-                    Await state.AssertSelectedCompletionItem("myA", isHardSelected:=True)
-                End If
-            End Using
-        End Function
-
-        <WpfFact, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function DoNotChangeSelectionIfBetterMatch() As Task
-            Using state = CreateTestState(
-                              <Document>
-using NS1;
-class C
-{
-    void Method(int my)
-    {
-        my$$
     }
 }
                               </Document>)
@@ -199,10 +106,34 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotChangeSelectionIfBetterMatch_ExactOverPrefix() As Task
+            Using state = CreateTestStateWithAdditionalDocument(
+                              <Document>
+using NS1;
+class My
+{
+    void Method()
+    {
+        My$$
+    }
+}
+                              </Document>)
+
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("MyAB", displayTextSuffix:="")
+                Await state.AssertSelectedCompletionItem("My", isHardSelected:=True)
+
+            End Using
+        End Function
+
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DoNotChangeIfPreselection(isAggressive As Boolean) As Task
-            Using state = CreateTestState(
+            Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
 using NS1;
 class C
@@ -226,7 +157,31 @@ class C
             End Using
         End Function
 
-        Private Shared Function CreateTestState(documentElement As XElement) As TestState
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectAggressiveDefaultsWithPrefixMatchingOverExactMatch() As Task
+            Using state = CreateTestStateWithAdditionalDocument(
+                              <Document>
+using NS1;
+class My
+{
+    void Method()
+    {
+        My$$
+    }
+}
+                              </Document>)
+
+                state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionItemsContain("My", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
+                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
+            End Using
+        End Function
+
+        Private Shared Function CreateTestStateWithAdditionalDocument(documentElement As XElement) As TestState
             Return TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
