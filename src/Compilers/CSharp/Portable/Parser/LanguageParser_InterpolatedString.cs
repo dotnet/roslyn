@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // and where the close quote can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
-            rescanInterpolation(out var openQuoteRange, out var error, out var closeQuoteRange);
+            rescanInterpolation(out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
             var result = SyntaxFactory.InterpolatedStringExpression(
                 getOpenQuote(openQuoteRange), getContent(interpolations), getCloseQuote(closeQuoteRange));
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;
 
-            void rescanInterpolation(out Range openQuoteRange, out SyntaxDiagnosticInfo error, out Range closeQuoteRange)
+            void rescanInterpolation(out SyntaxDiagnosticInfo error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);

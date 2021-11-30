@@ -147,17 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        /// <summary>
-        /// Returns an appropriate error code if scanning this verbatim literal ran into an error.
-        /// </summary>
-        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info)
+        private void ScanVerbatimStringLiteral(ref TokenInfo info)
         {
             _builder.Length = 0;
 
             Debug.Assert(TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"');
             TextWindow.AdvanceChar(2);
 
-            ErrorCode? error = null;
             while (true)
             {
                 var ch = TextWindow.PeekChar();
@@ -180,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // Reached the end of the source without finding the end-quote.  Give an error back at the
                     // starting point. And finish lexing this string.
-                    error ??= ErrorCode.ERR_UnterminatedStringLit;
+                    this.AddError(ErrorCode.ERR_UnterminatedStringLit);
                     break;
                 }
 
@@ -191,8 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             info.Kind = SyntaxKind.StringLiteralToken;
             info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
-
-            return error;
         }
 
         private void ScanInterpolatedStringLiteral(ref TokenInfo info)

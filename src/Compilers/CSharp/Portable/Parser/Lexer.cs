@@ -930,10 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (TextWindow.PeekChar(1) == '"')
             {
-                var errorCode = this.ScanVerbatimStringLiteral(ref info);
-                if (errorCode is ErrorCode code)
-                    this.AddError(code);
-
+                this.ScanVerbatimStringLiteral(ref info);
                 return true;
             }
             else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
