@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(start == _lexer.TextWindow.PeekChar());
                 _lexer.TextWindow.AdvanceChar();
-                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, out _);
+                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, colonRange: out _);
                 if (_lexer.TextWindow.PeekChar() == end)
                 {
                     _lexer.TextWindow.AdvanceChar();
