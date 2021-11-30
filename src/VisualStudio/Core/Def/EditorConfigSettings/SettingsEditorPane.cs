@@ -95,19 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
             }
 
-            var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-            if (statusService is not null)
-            {
-                // This will show the 'Waiting for Intellisense to initalize' message until the workspace is loaded.
-                _threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    if (!await statusService.IsFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false))
-                    {
-                        await statusService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-                    }
-                });
-            }
-
             var whitespaceView = GetWhitespaceView();
             var codeStyleView = GetCodeStyleView();
             var analyzerView = GetAnalyzerView();

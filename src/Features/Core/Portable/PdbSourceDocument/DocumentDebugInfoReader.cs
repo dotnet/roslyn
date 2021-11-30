@@ -4,13 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -49,15 +46,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var hashAlgorithm = SourceHashAlgorithms.GetSourceHashAlgorithm(hashAlgorithmGuid);
                 var checksum = _pdbReader.GetBlobContent(document.Hash);
 
-                var embeddedText = TryGetEmbeddedSourceText(handle);
+                var embeddedTextBytes = TryGetEmbeddedTextBytes(handle);
 
-                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedText));
+                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes));
             }
 
             return sourceDocuments.ToImmutable();
         }
 
-        private SourceText? TryGetEmbeddedSourceText(DocumentHandle handle)
+        private byte[]? TryGetEmbeddedTextBytes(DocumentHandle handle)
         {
             var handles = _pdbReader.GetCustomDebugInformation(handle);
             foreach (var cdiHandle in handles)
@@ -66,34 +63,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var guid = _pdbReader.GetGuid(cdi.Kind);
                 if (guid == PortableCustomDebugInfoKinds.EmbeddedSource)
                 {
-                    var blob = _pdbReader.GetBlobBytes(cdi.Value);
-                    if (blob is not null)
-                    {
-                        var uncompressedSize = BitConverter.ToInt32(blob, 0);
-                        var stream = new MemoryStream(blob, sizeof(int), blob.Length - sizeof(int));
-
-                        if (uncompressedSize != 0)
-                        {
-                            var decompressed = new MemoryStream(uncompressedSize);
-
-                            using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
-                            {
-                                deflater.CopyTo(decompressed);
-                            }
-
-                            if (decompressed.Length != uncompressedSize)
-                            {
-                                return null;
-                            }
-
-                            stream = decompressed;
-                        }
-
-                        using (stream)
-                        {
-                            return EncodedStringText.Create(stream);
-                        }
-                    }
+                    return _pdbReader.GetBlobBytes(cdi.Value);
                 }
             }
 

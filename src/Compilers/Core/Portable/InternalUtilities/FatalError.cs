@@ -12,11 +12,7 @@ using System.Threading;
 #pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
 #endif
 
-#if COMPILERCORE
-namespace Microsoft.CodeAnalysis
-#else
 namespace Microsoft.CodeAnalysis.ErrorReporting
-#endif
 {
     internal static class FatalError
     {

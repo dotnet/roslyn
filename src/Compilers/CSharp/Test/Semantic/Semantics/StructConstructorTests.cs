@@ -899,12 +899,6 @@ class Program
             var source =
 @"#pragma warning disable 649
 using System;
-struct S1
-{
-    object X = null;
-    object Y;
-    public override string ToString() => (X, Y).ToString();
-}
 struct S2
 {
     object X = null;
@@ -923,7 +917,6 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1());
         Console.WriteLine(new S2());
         Console.WriteLine(new S3());
     }
@@ -934,49 +927,33 @@ class Program
                 // (5,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     object X = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(5, 12),
-                // (11,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
-                //     object X = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(11, 12),
-                // (13,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // (7,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S2() { Y = 1; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(13, 12),
-                // (19,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 12),
+                // (13,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     object Y = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(19, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(13, 12));
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
-@"(, )
-(, 1)
+@"(, 1)
 (, )");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       50 (0x32)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (S3 V_0)
-  IL_0000:  newobj     ""S1..ctor()""
-  IL_0005:  box        ""S1""
+  IL_0000:  newobj     ""S2..ctor()""
+  IL_0005:  box        ""S2""
   IL_000a:  call       ""void System.Console.WriteLine(object)""
-  IL_000f:  newobj     ""S2..ctor()""
-  IL_0014:  box        ""S2""
-  IL_0019:  call       ""void System.Console.WriteLine(object)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""S3""
-  IL_0026:  ldloc.0
-  IL_0027:  box        ""S3""
-  IL_002c:  call       ""void System.Console.WriteLine(object)""
-  IL_0031:  ret
-}");
-            verifier.VerifyIL("S1..ctor()",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  stfld      ""object S1.X""
-  IL_0007:  ret
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""S3""
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""S3""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ret
 }");
             verifier.VerifyIL("S2..ctor()",
 @"{
@@ -1012,12 +989,6 @@ class Program
             var source =
 @"#pragma warning disable 649
 using System;
-struct S1
-{
-    internal object X = 1;
-    internal object Y;
-    public override string ToString() => (X, Y).ToString();
-}
 struct S2
 {
     internal object X = 2;
@@ -1036,95 +1007,63 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1());
         Console.WriteLine(new S2());
         Console.WriteLine(new S3());
-        Console.WriteLine(new S1 { });
         Console.WriteLine(new S2 { });
         Console.WriteLine(new S3 { });
-        Console.WriteLine(new S1 { Y = 2 });
         Console.WriteLine(new S2 { Y = 4 });
         Console.WriteLine(new S3 { Y = 6 });
     }
 }";
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"(1, )
+@"(2, 2)
+(, )
 (2, 2)
 (, )
-(1, )
-(2, 2)
-(, )
-(1, 2)
 (2, 4)
 (, 6)");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      193 (0xc1)
+  // Code size      132 (0x84)
   .maxstack  2
   .locals init (S3 V_0,
-                S1 V_1,
-                S2 V_2)
-  IL_0000:  newobj     ""S1..ctor()""
-  IL_0005:  box        ""S1""
+                S2 V_1)
+  IL_0000:  newobj     ""S2..ctor()""
+  IL_0005:  box        ""S2""
   IL_000a:  call       ""void System.Console.WriteLine(object)""
-  IL_000f:  newobj     ""S2..ctor()""
-  IL_0014:  box        ""S2""
-  IL_0019:  call       ""void System.Console.WriteLine(object)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""S3""
-  IL_0026:  ldloc.0
-  IL_0027:  box        ""S3""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""S3""
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""S3""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  newobj     ""S2..ctor()""
+  IL_0027:  box        ""S2""
   IL_002c:  call       ""void System.Console.WriteLine(object)""
-  IL_0031:  newobj     ""S1..ctor()""
-  IL_0036:  box        ""S1""
-  IL_003b:  call       ""void System.Console.WriteLine(object)""
-  IL_0040:  newobj     ""S2..ctor()""
-  IL_0045:  box        ""S2""
-  IL_004a:  call       ""void System.Console.WriteLine(object)""
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  initobj    ""S3""
-  IL_0057:  ldloc.0
-  IL_0058:  box        ""S3""
-  IL_005d:  call       ""void System.Console.WriteLine(object)""
-  IL_0062:  ldloca.s   V_1
-  IL_0064:  call       ""S1..ctor()""
-  IL_0069:  ldloca.s   V_1
-  IL_006b:  ldc.i4.2
-  IL_006c:  box        ""int""
-  IL_0071:  stfld      ""object S1.Y""
-  IL_0076:  ldloc.1
-  IL_0077:  box        ""S1""
-  IL_007c:  call       ""void System.Console.WriteLine(object)""
-  IL_0081:  ldloca.s   V_2
-  IL_0083:  call       ""S2..ctor()""
-  IL_0088:  ldloca.s   V_2
-  IL_008a:  ldc.i4.4
-  IL_008b:  box        ""int""
-  IL_0090:  stfld      ""object S2.Y""
-  IL_0095:  ldloc.2
-  IL_0096:  box        ""S2""
-  IL_009b:  call       ""void System.Console.WriteLine(object)""
-  IL_00a0:  ldloca.s   V_0
-  IL_00a2:  initobj    ""S3""
-  IL_00a8:  ldloca.s   V_0
-  IL_00aa:  ldc.i4.6
-  IL_00ab:  box        ""int""
-  IL_00b0:  stfld      ""object S3.Y""
-  IL_00b5:  ldloc.0
-  IL_00b6:  box        ""S3""
-  IL_00bb:  call       ""void System.Console.WriteLine(object)""
-  IL_00c0:  ret
-}");
-            verifier.VerifyIL("S1..ctor()",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  box        ""int""
-  IL_0007:  stfld      ""object S1.X""
-  IL_000c:  ret
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  initobj    ""S3""
+  IL_0039:  ldloc.0
+  IL_003a:  box        ""S3""
+  IL_003f:  call       ""void System.Console.WriteLine(object)""
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  call       ""S2..ctor()""
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  ldc.i4.4
+  IL_004e:  box        ""int""
+  IL_0053:  stfld      ""object S2.Y""
+  IL_0058:  ldloc.1
+  IL_0059:  box        ""S2""
+  IL_005e:  call       ""void System.Console.WriteLine(object)""
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  initobj    ""S3""
+  IL_006b:  ldloca.s   V_0
+  IL_006d:  ldc.i4.6
+  IL_006e:  box        ""int""
+  IL_0073:  stfld      ""object S3.Y""
+  IL_0078:  ldloc.0
+  IL_0079:  box        ""S3""
+  IL_007e:  call       ""void System.Console.WriteLine(object)""
+  IL_0083:  ret
 }");
             verifier.VerifyIL("S2..ctor()",
 @"{
@@ -1164,12 +1103,6 @@ class Program
             var source =
 @"#pragma warning disable 649
 using System;
-struct S1
-{
-    internal object X { get; } = 1;
-    internal object Y { get; }
-    public override string ToString() => (X, Y).ToString();
-}
 struct S2
 {
     internal object X { get; init; } = 2;
@@ -1188,10 +1121,8 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1());
         Console.WriteLine(new S2());
         Console.WriteLine(new S3());
-        Console.WriteLine(new S1 { });
         Console.WriteLine(new S2 { });
         Console.WriteLine(new S3 { });
         Console.WriteLine(new S2 { Y = 4 });
@@ -1200,71 +1131,53 @@ class Program
 }";
 
             var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"(1, )
-(2, 2)
+@"(2, 2)
 (, )
-(1, )
 (2, 2)
 (, )
 (2, 4)
 (, 6)");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      162 (0xa2)
+  // Code size      132 (0x84)
   .maxstack  2
   .locals init (S3 V_0,
                 S2 V_1)
-  IL_0000:  newobj     ""S1..ctor()""
-  IL_0005:  box        ""S1""
+  IL_0000:  newobj     ""S2..ctor()""
+  IL_0005:  box        ""S2""
   IL_000a:  call       ""void System.Console.WriteLine(object)""
-  IL_000f:  newobj     ""S2..ctor()""
-  IL_0014:  box        ""S2""
-  IL_0019:  call       ""void System.Console.WriteLine(object)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""S3""
-  IL_0026:  ldloc.0
-  IL_0027:  box        ""S3""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""S3""
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""S3""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  newobj     ""S2..ctor()""
+  IL_0027:  box        ""S2""
   IL_002c:  call       ""void System.Console.WriteLine(object)""
-  IL_0031:  newobj     ""S1..ctor()""
-  IL_0036:  box        ""S1""
-  IL_003b:  call       ""void System.Console.WriteLine(object)""
-  IL_0040:  newobj     ""S2..ctor()""
-  IL_0045:  box        ""S2""
-  IL_004a:  call       ""void System.Console.WriteLine(object)""
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  initobj    ""S3""
-  IL_0057:  ldloc.0
-  IL_0058:  box        ""S3""
-  IL_005d:  call       ""void System.Console.WriteLine(object)""
-  IL_0062:  ldloca.s   V_1
-  IL_0064:  call       ""S2..ctor()""
-  IL_0069:  ldloca.s   V_1
-  IL_006b:  ldc.i4.4
-  IL_006c:  box        ""int""
-  IL_0071:  call       ""void S2.Y.init""
-  IL_0076:  ldloc.1
-  IL_0077:  box        ""S2""
-  IL_007c:  call       ""void System.Console.WriteLine(object)""
-  IL_0081:  ldloca.s   V_0
-  IL_0083:  initobj    ""S3""
-  IL_0089:  ldloca.s   V_0
-  IL_008b:  ldc.i4.6
-  IL_008c:  box        ""int""
-  IL_0091:  call       ""void S3.Y.set""
-  IL_0096:  ldloc.0
-  IL_0097:  box        ""S3""
-  IL_009c:  call       ""void System.Console.WriteLine(object)""
-  IL_00a1:  ret
-}");
-            verifier.VerifyIL("S1..ctor()",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  box        ""int""
-  IL_0007:  stfld      ""object S1.<X>k__BackingField""
-  IL_000c:  ret
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  initobj    ""S3""
+  IL_0039:  ldloc.0
+  IL_003a:  box        ""S3""
+  IL_003f:  call       ""void System.Console.WriteLine(object)""
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  call       ""S2..ctor()""
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  ldc.i4.4
+  IL_004e:  box        ""int""
+  IL_0053:  call       ""void S2.Y.init""
+  IL_0058:  ldloc.1
+  IL_0059:  box        ""S2""
+  IL_005e:  call       ""void System.Console.WriteLine(object)""
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  initobj    ""S3""
+  IL_006b:  ldloca.s   V_0
+  IL_006d:  ldc.i4.6
+  IL_006e:  box        ""int""
+  IL_0073:  call       ""void S3.Y.set""
+  IL_0078:  ldloc.0
+  IL_0079:  box        ""S3""
+  IL_007e:  call       ""void System.Console.WriteLine(object)""
+  IL_0083:  ret
 }");
             verifier.VerifyIL("S2..ctor()",
 @"{
@@ -1417,6 +1330,446 @@ class Program
   IL_0002:  stfld      ""int A<T>.S3.<X>k__BackingField""
   IL_0007:  ret
 }");
+        }
+
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
+        [Fact]
+        public void FieldInitializers_06()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S1
+{
+    internal object X = null;
+    internal object Y;
+}
+struct S2
+{
+    internal object X = 2;
+    internal object Y;
+    public S2() { }
+}
+struct S3
+{
+    internal object X;
+    internal object Y = 3;
+    public S3() { Y = 3; }
+}
+struct S4
+{
+    internal object X;
+    internal object Y = 4;
+    public S4() { X = 4; }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // struct S1
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object X = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
+                // (9,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object X = 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(9, 21),
+                // (11,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 12),
+                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                // (16,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object Y = 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(16, 21),
+                // (17,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S3").WithArguments("parameterless struct constructors", "10.0").WithLocation(17, 12),
+                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(17, 12),
+                // (22,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object Y = 4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(22, 21),
+                // (23,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S4() { X = 4; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S4").WithArguments("parameterless struct constructors", "10.0").WithLocation(23, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // struct S1
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(17, 12),
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
+        [Fact]
+        public void FieldInitializers_07()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S1
+{
+    internal object X { get; } = null;
+    internal object Y { get; }
+}
+struct S2
+{
+    internal object X { get; } = 2;
+    internal object Y { get; }
+    public S2() { }
+}
+struct S3
+{
+    internal object X { get; }
+    internal object Y { get; } = 3;
+    public S3() { Y = 3; }
+}
+struct S4
+{
+    internal object X { get; }
+    internal object Y { get; } = 4;
+    public S4() { X = 4; }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object X { get; } = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
+                // (9,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object X { get; } = 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(9, 21),
+                // (11,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 12),
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                // (16,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object Y { get; } = 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(16, 21),
+                // (17,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S3").WithArguments("parameterless struct constructors", "10.0").WithLocation(17, 12),
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12),
+                // (22,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal object Y { get; } = 4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(22, 21),
+                // (23,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S4() { X = 4; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S4").WithArguments("parameterless struct constructors", "10.0").WithLocation(23, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12),
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
+        [Fact]
+        public void FieldInitializers_08()
+        {
+            var source =
+@"#pragma warning disable 649
+record struct S1
+{
+    internal object X = 1;
+    internal object Y;
+}
+record struct S2
+{
+    internal object X { get; } = 2;
+    internal object Y { get; }
+    public S2() { }
+}
+record struct S3
+{
+    internal object X { get; init; }
+    internal object Y { get; init; } = 3;
+    public S3() { Y = 3; }
+}
+record struct S4
+{
+    internal object X { get; init; }
+    internal object Y { get; init; } = 4;
+    public S4() { X = 4; }
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // record struct S1
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                //     public S3() { Y = 3; }
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12)
+            };
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FieldInitializers_09()
+        {
+            var source =
+@"#pragma warning disable 649
+record struct S1()
+{
+    internal object X = 1;
+    internal object Y;
+}
+record struct S2()
+{
+    internal object X { get; } = 2;
+    internal object Y { get; }
+}
+record struct S3()
+{
+    internal object X { get; init; }
+    internal object Y { get; init; } = 3;
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // record struct S1()
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
+                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                // record struct S2()
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
+                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                // record struct S3()
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15)
+            };
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FieldInitializers_10()
+        {
+            var source =
+@"#pragma warning disable 649
+record struct S1(object X)
+{
+    internal object X = 1;
+    internal object Y;
+}
+record struct S2(object X)
+{
+    internal object X { get; } = 2;
+    internal object Y { get; }
+}
+record struct S3(object Y)
+{
+    internal object X { get; init; }
+    internal object Y { get; init; } = 3;
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
+                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
+                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
+                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
+                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15),
+                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25)
+            };
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FieldInitializers_11()
+        {
+            var source =
+@"#pragma warning disable 649
+record struct S1(object X)
+{
+    internal object X;
+    internal object Y = 1;
+}
+record struct S2(object X)
+{
+    internal object X { get; }
+    internal object Y { get; } = 2;
+}
+record struct S3(object Y)
+{
+    internal object X { get; init; } = 3;
+    internal object Y { get; init; }
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (2,15): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(2, 15),
+                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
+                // (7,15): error CS0843: Auto-implemented property 'S2.X' must be fully assigned before control is returned to the caller.
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.X").WithLocation(7, 15),
+                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
+                // (12,15): error CS0843: Auto-implemented property 'S3.Y' must be fully assigned before control is returned to the caller.
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.Y").WithLocation(12, 15),
+                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25)
+            };
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FieldInitializers_12()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+record struct S1(object X)
+{
+    internal object Y = 1;
+}
+record struct S2(object X)
+{
+    internal object Y { get; } = 2;
+}
+record struct S3(object X)
+{
+    internal object Y { get; init; } = 3;
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S1(10));
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S2(20));
+        Console.WriteLine(new S3());
+        Console.WriteLine(new S3(30));
+    }
+}
+";
+
+            var expectedOutput =
+@"S1 { X =  }
+S1 { X = 10 }
+S2 { X =  }
+S2 { X = 20 }
+S3 { X =  }
+S3 { X = 30 }
+";
+
+            CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, verify: Verification.Skipped, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, verify: Verification.Skipped, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
+        [Fact]
+        public void FieldInitializers_13()
+        {
+            var source =
+@"#nullable enable
+
+using System;
+
+var x = new S { P1 = ""x1"", P2 = ""x2"" };
+var y = new S { P2 = ""y2"" };
+
+Console.WriteLine(y.P1);
+
+record struct S
+{
+    public string? P1 { get; init; }
+    public string? P2 { get; init; } = """";
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,15): error CS0843: Auto-implemented property 'S.P1' must be fully assigned before control is returned to the caller.
+                // record struct S
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(10, 15)
+            };
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

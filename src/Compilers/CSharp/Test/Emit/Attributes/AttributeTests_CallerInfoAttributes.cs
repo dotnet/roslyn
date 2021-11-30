@@ -5752,5 +5752,71 @@ class Program
 ABC
 ");
         }
+
+        [Theory]
+        [InlineData("out")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        public void CallerArgumentExpression_OnRefParameter01(string refType)
+        {
+            var comp = CreateCompilation(@$"
+using System.Runtime.CompilerServices;
+#pragma warning disable CS8321
+
+void M(int i, [CallerArgumentExpression(""i"")] {refType} string s)
+{{
+    {(refType == "out" ? "s = null;" : "")}
+}}
+", targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // void M(int i, [CallerArgumentExpression("i")] ref string s)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16)
+            );
+        }
+
+        [Theory]
+        [InlineData("out")]
+        [InlineData("ref")]
+        public void CallerArgumentExpression_OnRefParameter02(string refType)
+        {
+            var comp = CreateCompilation(@$"
+using System.Runtime.CompilerServices;
+#pragma warning disable CS8321
+
+void M(int i, [CallerArgumentExpression(""i"")] {refType} string s = null)
+{{
+    {(refType == "out" ? "s = null;" : "")}
+}}
+", targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // void M(int i, [CallerArgumentExpression("i")] out string s = null)
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16),
+                // (5,47): error CS1741: A ref or out parameter cannot have a default value
+                // void M(int i, [CallerArgumentExpression("i")] out string s = null)
+                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, refType).WithLocation(5, 47)
+            );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CallerArgumentExpression_OnRefParameter03()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Runtime.CompilerServices;
+
+M(1 + 1);
+
+void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
+{
+    Console.WriteLine(s);
+}
+", targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(comp, expectedOutput: "1 + 1").VerifyDiagnostics();
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -141,8 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
-                    ref temps,
-                    enableCallerInfo: ThreeState.True);
+                    ref temps);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 
@@ -163,25 +163,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
         {
-            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+            throw ExceptionUtilities.Unreachable;
         }
 
-        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            return VisitImplicitIndexerAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                return VisitIndexPatternIndexerAccess(
-                    node.Syntax,
-                    node.Receiver,
-                    node.LengthOrCountProperty,
-                    (PropertySymbol)node.PatternSymbol,
-                    node.Argument,
-                    isLeftOfAssignment: isLeftOfAssignment);
+                return VisitIndexPatternIndexerAccess(node, isLeftOfAssignment: isLeftOfAssignment);
             }
             else
             {
@@ -189,82 +213,125 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Argument.Type,
                     _compilation.GetWellKnownType(WellKnownType.System_Range),
                     TypeCompareKind.ConsiderEverything));
-                return VisitRangePatternIndexerAccess(
-                    node.Receiver,
-                    node.LengthOrCountProperty,
-                    (MethodSymbol)node.PatternSymbol,
-                    node.Argument);
+                Debug.Assert(!isLeftOfAssignment || node.IndexerOrSliceAccess.GetRefKind() == RefKind.Ref);
+
+                return VisitRangePatternIndexerAccess(node);
             }
         }
 
-
-        private BoundSequence VisitIndexPatternIndexerAccess(
-            SyntaxNode syntax,
-            BoundExpression receiver,
-            PropertySymbol lengthOrCountProperty,
-            PropertySymbol intIndexer,
-            BoundExpression argument,
-            bool isLeftOfAssignment)
+        private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
+            Debug.Assert(node.ArgumentPlaceholders.Length == 1);
+            Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess or BoundArrayAccess);
+
+            Debug.Assert(TypeSymbol.Equals(
+                node.Argument.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything));
+
             var F = _factory;
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
             var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
 
-            Debug.Assert(receiver.Type is { });
-            var receiverLocal = F.StoreToTemp(
-                VisitExpression(receiver),
-                out var receiverStore,
-                // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
-                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-            locals.Add(receiverLocal.LocalSymbol);
-            sideeffects.Add(receiverStore);
+            var receiver = VisitExpression(node.GetReceiver());
 
-            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(argument, out PatternIndexOffsetLoweringStrategy strategy);
-            BoundExpression indexAccess;
+            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+            // If length access is a local, then we are evaluating a pattern
+            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+            {
+                Debug.Assert(receiver.Type is { });
+
+                var receiverLocal = F.StoreToTemp(
+                    receiver,
+                    out var receiverStore,
+                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                    receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+                locals.Add(receiverLocal.LocalSymbol);
+                sideeffects.Add(receiverStore);
+
+                receiver = receiverLocal;
+            }
+
+            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
+            BoundExpression integerArgument;
 
             switch (strategy)
             {
                 case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
-                    // ensure we evaluate the input before accessing length
-                    if (makeOffsetInput.ConstantValue is null)
+                    BoundExpression lengthAccess = RewriteLengthAccess(node, receiver);
+
+                    // ensure we evaluate the input before accessing length, unless it is an array length
+                    if (makeOffsetInput.ConstantValue is null && lengthAccess.Kind is not BoundKind.ArrayLength)
                     {
                         makeOffsetInput = F.StoreToTemp(makeOffsetInput, out BoundAssignmentOperator inputStore);
                         locals.Add(((BoundLocal)makeOffsetInput).LocalSymbol);
                         sideeffects.Add(inputStore);
                     }
 
-                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, F.Property(receiverLocal, lengthOrCountProperty), strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, lengthAccess, strategy);
                     break;
 
                 case PatternIndexOffsetLoweringStrategy.UseAsIs:
-                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, lengthAccess: null, strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, lengthAccess: null, strategy);
                     break;
 
                 case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
-                    indexAccess = MakePatternIndexOffsetExpression(makeOffsetInput, F.Property(receiverLocal, lengthOrCountProperty), strategy);
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, RewriteLengthAccess(node, receiver), strategy);
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(strategy);
             }
 
-            return (BoundSequence)F.Sequence(
+            Debug.Assert(node.ArgumentPlaceholders.Length == 1);
+            var argumentPlaceholder = node.ArgumentPlaceholders[0];
+            AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+
+            BoundExpression rewrittenIndexerAccess;
+
+            if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
+            {
+                if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
+                {
+                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                        indexerAccess.Arguments,
+                        indexerAccess.Indexer,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        ref receiver,
+                        out ArrayBuilder<LocalSymbol>? temps);
+
+                    if (temps is not null)
+                    {
+                        locals.AddRange(temps);
+                        temps.Free();
+                    }
+
+                    rewrittenIndexerAccess = indexerAccess.Update(
+                        receiver, indexerAccess.Indexer, rewrittenArguments,
+                        indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.Expanded,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.DefaultArguments,
+                        indexerAccess.Type);
+                }
+                else
+                {
+                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess.WithReceiver(receiver), isLeftOfAssignment);
+                }
+            }
+            else
+            {
+                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess(((BoundArrayAccess)node.IndexerOrSliceAccess).WithReceiver(receiver));
+            }
+
+            RemovePlaceholderReplacement(argumentPlaceholder);
+
+            return F.Sequence(
                 locals.ToImmutableAndFree(),
                 sideeffects.ToImmutableAndFree(),
-                MakeIndexerAccess(
-                    syntax,
-                    receiverLocal,
-                    intIndexer,
-                    ImmutableArray.Create<BoundExpression>(indexAccess),
-                    default,
-                    default,
-                    expanded: false,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
-                    intIndexer.Type,
-                    oldNodeOpt: null,
-                    isLeftOfAssignment));
+                rewrittenIndexerAccess);
         }
 
         /// <summary>
@@ -373,14 +440,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundSequence VisitRangePatternIndexerAccess(
-            BoundExpression receiver,
-            PropertySymbol lengthOrCountProperty,
-            MethodSymbol sliceMethod,
-            BoundExpression rangeArg)
+        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node)
         {
+            Debug.Assert(node.ArgumentPlaceholders.Length == 2);
+            Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
+
             Debug.Assert(TypeSymbol.Equals(
-                rangeArg.Type,
+                node.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything));
 
@@ -394,13 +460,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = _factory;
 
+            var receiver = VisitExpression(node.GetReceiver());
+            var rangeArg = node.Argument;
+
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
-            var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
+            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+            // If length access is a local, then we are evaluating a pattern
+            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+            {
+                var receiverLocal = F.StoreToTemp(receiver, out var receiverStore);
 
-            localsBuilder.Add(receiverLocal.LocalSymbol);
-            sideEffectsBuilder.Add(receiverStore);
+                localsBuilder.Add(receiverLocal.LocalSymbol);
+                sideEffectsBuilder.Add(receiverStore);
+
+                receiver = receiverLocal;
+            }
 
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;
@@ -526,9 +602,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((rewriteFlags & useLength) != 0)
                 {
-                    lengthAccess = F.Property(receiverLocal, lengthOrCountProperty);
+                    lengthAccess = RewriteLengthAccess(node, receiver);
 
-                    if ((rewriteFlags & captureLength) != 0)
+                    // If length access is a local, then we are evaluating a pattern and don't need to capture the value.
+                    if ((rewriteFlags & captureLength) != 0 && lengthAccess.Kind is not BoundKind.Local)
                     {
                         var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
                         localsBuilder.Add(lengthLocal.LocalSymbol);
@@ -568,7 +645,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder.Add(rangeLocal.LocalSymbol);
                 sideEffectsBuilder.Add(rangeStore);
 
-                var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+                var lengthAccess = RewriteLengthAccess(node, receiver);
+
+                var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
                 localsBuilder.Add(lengthLocal.LocalSymbol);
                 sideEffectsBuilder.Add(lengthStore);
 
@@ -597,10 +676,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rangeSizeExpr = rangeSizeLocal;
             }
 
-            return (BoundSequence)F.Sequence(
+            Debug.Assert(node.ArgumentPlaceholders.Length == 2);
+            AddPlaceholderReplacement(node.ArgumentPlaceholders[0], startExpr);
+            AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
+
+            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
+            var rewrittenIndexerAccess = VisitExpression(sliceCall.WithReceiver(receiver));
+
+            RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
+            RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
+
+            return F.Sequence(
                 localsBuilder.ToImmutableAndFree(),
                 sideEffectsBuilder.ToImmutableAndFree(),
-                F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));
+                rewrittenIndexerAccess);
+        }
+
+        private BoundExpression RewriteLengthAccess(BoundImplicitIndexerAccess node, BoundExpression receiver)
+        {
+            var receiverPlaceholder = node.ReceiverPlaceholder;
+            AddPlaceholderReplacement(receiverPlaceholder, receiver);
+
+            Debug.Assert(node.LengthOrCountAccess is not null);
+            var lengthAccess = VisitExpression(node.LengthOrCountAccess);
+
+            RemovePlaceholderReplacement(receiverPlaceholder);
+
+            return lengthAccess;
         }
     }
 }
