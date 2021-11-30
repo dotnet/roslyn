@@ -762,24 +762,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '@':
-                    if (TextWindow.PeekChar(1) == '"')
-                    {
-                        var errorCode = this.ScanVerbatimStringLiteral(ref info);
-                        if (errorCode is ErrorCode code)
-                            this.AddError(code);
-                    }
-                    else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(ref info);
-                        break;
-                    }
-                    else if (!this.ScanIdentifierOrKeyword(ref info))
+                    if (!this.TryScanAtStringToken(ref info) &&
+                        !this.ScanIdentifierOrKeyword(ref info))
                     {
                         TextWindow.AdvanceChar();
                         info.Text = TextWindow.GetText(intern: true);
                         this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
                     }
-
                     break;
 
                 case '$':
@@ -933,6 +922,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
             }
+        }
+
+        private bool TryScanAtStringToken(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '@');
+
+            if (TextWindow.PeekChar(1) == '"')
+            {
+                var errorCode = this.ScanVerbatimStringLiteral(ref info);
+                if (errorCode is ErrorCode code)
+                    this.AddError(code);
+
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryScanInterpolatedString(ref TokenInfo info)

@@ -575,33 +575,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
-                            if (_lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
-                            {
-                                // check for verbatim string inside an expression hole.
-                                var nestedStringPosition = _lexer.TextWindow.Position;
-
-                                // Note that this verbatim string may encounter an error (for example if it contains a
-                                // new line and we don't allow that).  This should be reported to the user, but should
-                                // not put us into an unrecoverable position.  We can clearly see that this was intended
-                                // to be a normal verbatim string, so we can continue on an attempt to understand the
-                                // outer interpolated string properly.
-                                var discarded = default(TokenInfo);
-                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded);
-                                if (errorCode is ErrorCode code)
-                                {
-                                    TrySetRecoverableError(_lexer.MakeError(nestedStringPosition, width: 2, code));
-                                }
-
-                                continue;
-                            }
-                            else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 var discarded = default(TokenInfo);
-                                _lexer.ScanInterpolatedStringLiteral(ref discarded);
-                                continue;
-                            }
+                                if (_lexer.TryScanAtStringToken(ref discarded))
+                                    continue;
 
-                            goto default;
+                                // Wasn't an @"" or @$"" string.  Just consume this as normal code.
+                                goto default;
+                            }
                         case '/':
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
