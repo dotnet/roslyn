@@ -46,8 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly DeclarationModifiers _modifiers;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 #nullable enable
-        private readonly SourcePropertyAccessorSymbol? _getMethod;
-        private readonly SourcePropertyAccessorSymbol? _setMethod;
+        [Obsolete("Use GetMethod property instead.")]
+        private SourcePropertyAccessorSymbol? _getMethod;
+        [Obsolete("Use SetMethod property instead.")]
+        private SourcePropertyAccessorSymbol? _setMethod;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -70,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This should only be set via CreateBackingField to avoid race conditions.
         /// </summary>
         private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
+
+        private readonly BindingDiagnosticBag _diagnostics;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -104,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _modifiers = modifiers;
             _explicitInterfaceType = explicitInterfaceType;
+            _diagnostics = diagnostics;
 
             if (isExplicitInterfaceImplementation)
             {
@@ -169,16 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(!IsIndexer);
                 _ = CreateBackingField(isCreatedForFieldKeyword: false);
-            }
-
-            if (hasGetAccessor)
-            {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
-            }
-
-            if (hasSetAccessor)
-            {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
             }
         }
 
@@ -617,11 +612,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics);
 
+        private SourcePropertyAccessorSymbol? GetMethodAccessorMethod => GetMethod as SourcePropertyAccessorSymbol;
+
+        private SourcePropertyAccessorSymbol? SetMethodAccessorMethod => SetMethod as SourcePropertyAccessorSymbol;
+
         public sealed override MethodSymbol? GetMethod
         {
             get
             {
+#pragma warning disable CS0618
+                if ((_propertyFlags & Flags.HasGetAccessor) != 0 && _getMethod is null)
+                {
+                    InterlockedOperations.Initialize(ref _getMethod, CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, _diagnostics));
+                }
+
                 return _getMethod;
+#pragma warning restore CS0618
             }
         }
 
@@ -629,7 +635,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+#pragma warning disable CS0618
+                if ((_propertyFlags & Flags.HasSetAccessor) != 0 && _setMethod is null)
+                {
+                    InterlockedOperations.Initialize(ref _setMethod, CreateSetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, _diagnostics));
+                }
+
                 return _setMethod;
+#pragma warning restore CS0618
             }
         }
 
@@ -828,15 +841,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hasGetAccessor && hasSetAccessor)
                 {
-                    Debug.Assert(_getMethod is object);
-                    Debug.Assert(_setMethod is object);
+                    Debug.Assert(GetMethod is object);
+                    Debug.Assert(SetMethod is object);
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, SetMethod.Locations[0], SetMethod);
                     }
-                    else if ((_getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
-                        (_setMethod.LocalAccessibility != Accessibility.NotApplicable))
+                    else if ((GetMethod.LocalAccessibility != Accessibility.NotApplicable) &&
+                        (SetMethod.LocalAccessibility != Accessibility.NotApplicable))
                     {
                         // Check accessibility is set on at most one accessor.
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, Location, this);
