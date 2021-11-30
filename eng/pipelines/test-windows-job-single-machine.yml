@@ -20,7 +20,7 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'BuildPool.Windows.10.Amd64.Open'
+  default: 'Build.Windows.10.Amd64.Open'
 
 jobs:
 - job: ${{ parameters.jobName }}
