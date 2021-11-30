@@ -1812,7 +1812,7 @@ class Test
 using System;
 
 record C;
-");
+", symbolValidator: validate);
 
             verifier.VerifyTypeIL("C", @"
 .class private auto ansi beforefieldinit C
@@ -2028,7 +2028,13 @@ record C;
     }
 } // end of class C
 ");
-        }
 
+            static void validate(ModuleSymbol module)
+            {
+                var member = module.GlobalNamespace.GetTypeMember("C").GetMember("get_EqualityContract");
+                var attributes = member.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attributes));
+            }
+        }
     }
 }
