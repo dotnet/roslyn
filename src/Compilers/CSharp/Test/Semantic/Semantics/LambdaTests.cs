@@ -5538,6 +5538,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (2,1): warning CS8981: The type name 'var' is lower-cased. Such names may become reserved for the language.
+                // class var { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class var { }").WithArguments("var").WithLocation(2, 1),
                 // (8,13): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
                 //         d = var () => default;
                 Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 13),
@@ -5551,7 +5554,7 @@ class Program
         {
             var source =
 @"using System;
-class var { }
+class @var { }
 class Program
 {
     static void Main()
@@ -5580,9 +5583,9 @@ class Program
         {
             var source =
 @"using System;
-struct var
+struct @var
 {
-    internal class other { }
+    internal class @other { }
     internal other o;
 }
 class Program
@@ -5660,7 +5663,7 @@ class Program
         {
             var source =
 @"using System;
-static class var { }
+static class @var { }
 class Program
 {
     static void Main()

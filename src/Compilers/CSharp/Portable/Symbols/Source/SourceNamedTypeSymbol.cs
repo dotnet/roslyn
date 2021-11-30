@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
 
-            reportLowerCasedNameIfNeeded(declaration, diagnostics);
+            reportAsciiLowerCasedNameIfNeeded(declaration, diagnostics);
             return;
 
-            static void reportLowerCasedNameIfNeeded(MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+            static void reportAsciiLowerCasedNameIfNeeded(MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             {
-                if (!declaration.Name.IsEmpty() && declaration.Name.All(c => char.IsLower(c)))
+                if (!declaration.Name.IsEmpty() && declaration.Name.All(c => char.IsLower(c) && c < 128))
                 {
                     foreach (var decl in declaration.Declarations)
                     {

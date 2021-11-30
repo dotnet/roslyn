@@ -2015,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedTypeForListPattern = 8979,
         ERR_MisplacedSlicePattern = 8980,
 
-        WRN_LowerCaseTypeName = 8980,
+        WRN_LowerCaseTypeName = 8981,
 
         #endregion
 

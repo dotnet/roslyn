@@ -1254,7 +1254,6 @@ return x;
         [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
         public void CS1718WRN_ComparisonToSelf_Roslyn()
         {
-            // TODO2
             string source = @"
 enum @esbyte : sbyte { e0, e1 };
 public class z_1495j12

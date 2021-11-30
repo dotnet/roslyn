@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
                 : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, originalToken.GetTrailingTrivia());
             var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
-
             if (interpolations.Count == 0)
             {
                 // In the special case when there are no interpolations, we just construct a format string

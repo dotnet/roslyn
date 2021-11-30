@@ -20967,6 +20967,8 @@ class C
 class Ten { }
 class eleveN { }
 class twel_ve { }
+
+class cédille { }
 ";
             var expected = new[]
             {
