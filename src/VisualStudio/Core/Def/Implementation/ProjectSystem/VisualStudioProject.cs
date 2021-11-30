@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new();
         private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new();
+
+        /// <summary>
+        /// The list of <see cref="VisualStudioAnalyzer"/> that will be removed in this batch. They have not yet
+        /// been disposed, and will be disposed once the batch is applied.
+        /// </summary>
         private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
         private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
@@ -623,6 +628,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solutionChanges.UpdateSolutionForProjectAction(
                             Id,
                             newSolution: solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference()));
+
+                        analyzerReference.Dispose();
                     }
 
                     ClearAndZeroCapacity(_analyzersRemovedInBatch);
@@ -1219,6 +1226,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (PortableExecutableReference reference in remainingMetadataReferences)
             {
                 _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
+            }
+
+            // Dispose of any analyzers that might still be around to remove their load diagnostics
+            foreach (var visualStudioAnalyzer in _analyzerPathsToAnalyzers.Values.Concat(_analyzersRemovedInBatch))
+            {
+                visualStudioAnalyzer.Dispose();
             }
         }
 
