@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a constructor initializer.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
         {
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a primary-constructor-base-type initializer.
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
         {
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {
