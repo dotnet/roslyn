@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 public bool ShouldBeFilteredOut(VSCompletionItem item)
-                    => ShouldBeFilteredOutOfCompletionList(item) && ShouldBeFilteredOutOfExpandedCompletionList(item);
+                    => ShouldBeFilteredOutOfCompletionList(item) || ShouldBeFilteredOutOfExpandedCompletionList(item);
 
                 private bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item)
                     => _needToFilter && !item.Filters.Any(filter => _selectedNonExpanderFilters.Contains(filter));
