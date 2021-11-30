@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         /// <summary>
-        /// Returns true if semicolon is typed after a namespace name that should be converted.
+        /// Returns the updated file contents if semicolon is typed after a block-scoped namespace name that can be
+        /// converted.
         /// </summary>
         private CompilationUnitSyntax? ConvertNamespace(
             TypeCharCommandArgs args,
