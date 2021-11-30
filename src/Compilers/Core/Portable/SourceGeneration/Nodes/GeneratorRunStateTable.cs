@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
                 return new GeneratorRunStateTable(StepCollectionToImmutable(_namedSteps), StepCollectionToImmutable(_outputSteps));
             }
 
-            private static ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> StepCollectionToImmutable(Dictionary<string, HashSet<IncrementalGeneratorRunStep>> builder)
+            private static ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> StepCollectionToImmutable(Dictionary<string, HashSet<IncrementalGeneratorRunStep>>? builder)
             {
                 if (builder is null)
                 {
