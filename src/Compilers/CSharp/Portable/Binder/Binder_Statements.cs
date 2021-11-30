@@ -1566,7 +1566,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
-                        propertySymbol = GetPropertySymbol(implicitIndexerAccess.IndexerOrSliceAccess, out receiver, out propertySyntax);
+
+                        switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                        {
+                            case BoundIndexerAccess indexerAccess:
+                                propertySymbol = indexerAccess.Indexer;
+                                receiver = implicitIndexerAccess.Receiver;
+                                break;
+
+                            case BoundCall or BoundArrayAccess:
+                                receiver = null;
+                                propertySyntax = null;
+                                return null;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                        }
                     }
                     break;
                 default:

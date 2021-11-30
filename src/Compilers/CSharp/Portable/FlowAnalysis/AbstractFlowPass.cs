@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. The argument to the access
             // 3. The Count or Length method off the receiver
             // 4. The underlying indexer access or method call
-            VisitRvalue(node.GetReceiver());
+            VisitRvalue(node.Receiver);
             VisitRvalue(node.Argument);
 
             return null;

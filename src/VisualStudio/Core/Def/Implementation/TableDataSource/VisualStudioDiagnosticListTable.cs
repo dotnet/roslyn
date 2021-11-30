@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -110,16 +108,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            private VisualStudioDiagnosticListTable(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
                 : base(workspace, provider)
             {
+                _liveTableSource = null!;
+                _buildTableSource = null!;
+                _errorList = null!;
+
                 AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, globalOptions, diagnosticService, IdentifierString));
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
+            private VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
                 : base(workspace, provider)
             {
+                _liveTableSource = null!;
+                _buildTableSource = null!;
+                _errorList = null!;
+
                 AddInitialTableSource(workspace.CurrentSolution, new BuildTableDataSource(workspace, errorSource));
             }
 
@@ -177,6 +183,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (e.PropertyName == nameof(IErrorList.AreOtherErrorSourceEntriesShown))
                 {
                     AddTableSourceIfNecessary(this.Workspace.CurrentSolution);
+                }
+            }
+
+            internal static class TestAccessor
+            {
+                public static VisualStudioDiagnosticListTable Create(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+                {
+                    return new VisualStudioDiagnosticListTable(workspace, globalOptions, diagnosticService, provider);
+                }
+
+                public static VisualStudioDiagnosticListTable Create(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
+                {
+                    return new VisualStudioDiagnosticListTable(workspace, errorSource, provider);
                 }
             }
         }
