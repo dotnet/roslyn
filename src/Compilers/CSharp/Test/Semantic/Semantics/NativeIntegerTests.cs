@@ -3544,7 +3544,7 @@ System.Object");
         public void AliasName_02()
         {
             var source =
-@"using nint = System.Int16;
+@"using @nint = System.Int16;
 class Program
 {
     static @nint F(nint x, nuint y) => x;

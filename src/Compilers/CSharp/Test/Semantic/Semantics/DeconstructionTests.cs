@@ -2888,7 +2888,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         public void DeclarationVarFormWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()

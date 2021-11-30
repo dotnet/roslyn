@@ -1180,9 +1180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, cs.CloseBraceToken);
 
             CreateCompilation(text).GetDeclarationDiagnostics().Verify(
-                // (1,1): warning CS8980: The type name 'a' is lower-cased. Such names may become reserved for the language.
+                // (1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class a where b : c { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class a where b : c { }").WithArguments("a").WithLocation(1, 1),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7),
                 // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a where b : c { }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
@@ -1194,9 +1194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class a { void M() where b : c { } }";
 
             CreateCompilation(text).GetDeclarationDiagnostics().Verify(
-                // (1,1): warning CS8980: The type name 'a' is lower-cased. Such names may become reserved for the language.
+                // (1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class a { void M() where b : c { } }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class a { void M() where b : c { } }").WithArguments("a").WithLocation(1, 1),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7),
                 // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a { void M() where b : c { } }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));

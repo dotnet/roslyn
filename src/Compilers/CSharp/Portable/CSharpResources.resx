@@ -6903,9 +6903,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' cannot be made nullable.</value>
   </data>
   <data name="WRN_LowerCaseTypeName" xml:space="preserve">
-    <value>The type name '{0}' is lower-cased. Such names may become reserved for the language.</value>
+    <value>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
-    <value>The type name is lower-cased. Such names may become reserved for the language.</value>
+    <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
 </root>

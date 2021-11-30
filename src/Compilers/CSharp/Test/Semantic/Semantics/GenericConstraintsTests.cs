@@ -2901,7 +2901,7 @@ class Test<U> where U : unmanaged
         public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
         {
             CreateCompilation(@"
-class Test<unmanaged> where unmanaged : System.IDisposable
+class Test<@unmanaged> where unmanaged : System.IDisposable
 {
     void M<T>(T arg) where T : unmanaged
     {

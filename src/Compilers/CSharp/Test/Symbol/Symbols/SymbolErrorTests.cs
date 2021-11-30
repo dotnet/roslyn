@@ -14833,15 +14833,21 @@ namespace NS
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+                // (13,11): warning CS8981: The type name 'ns' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     using ns = namespace1;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "ns").WithArguments("ns").WithLocation(13, 11),
+                // (14,11): warning CS8981: The type name 'ns' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     using ns = namespace2;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "ns").WithArguments("ns").WithLocation(14, 11),
                 // (14,11): error CS1537: The using alias 'ns' appeared previously in this namespace
                 //     using ns = namespace2;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "ns").WithArguments("ns"),
-                // (14,5): info CS8019: Unnecessary using directive.
-                //     using ns = namespace2;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ns = namespace2;"),
-                // (15,5): info CS8019: Unnecessary using directive.
+                Diagnostic(ErrorCode.ERR_DuplicateAlias, "ns").WithArguments("ns").WithLocation(14, 11),
+                // (15,5): hidden CS8019: Unnecessary using directive.
                 //     using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(15, 5),
+                // (14,5): hidden CS8019: Unnecessary using directive.
+                //     using ns = namespace2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ns = namespace2;").WithLocation(14, 5));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
@@ -15328,7 +15334,7 @@ class AAttribute : Attribute { }
         [Fact]
         public void CS1663ERR_InvalidFixedBufferUsingGenericType()
         {
-            var text = @"unsafe struct Err_FixedBufferDeclarationUsingGeneric<t>
+            var text = @"unsafe struct Err_FixedBufferDeclarationUsingGeneric<@t>
     {
         public fixed t _Type1[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     }
@@ -20927,11 +20933,9 @@ class X
         }
 
         [Fact, WorkItem(56653, "https://github.com/dotnet/roslyn/issues/56653")]
-        public void DisallowLowerCaseTypeName()
+        public void DisallowLowerCaseTypeName_InTypeDeclaration()
         {
             var text = @"
-using zero = one;
-
 class one { }
 
 class @two { }
@@ -20972,30 +20976,129 @@ class cédille { }
 ";
             var expected = new[]
             {
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using zero = one;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using zero = one;").WithLocation(2, 1),
-                // (4,1): warning CS8980: The type name 'one' is lower-cased. Such names may become reserved for the language.
+                // (2,7): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class one { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class one { }").WithArguments("one").WithLocation(4, 1),
-                // (10,5): warning CS8980: The type name 'nint' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(2, 7),
+                // (8,11): warning CS8981: The type name 'nint' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 //     class nint { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class nint { }").WithArguments("nint").WithLocation(10, 5),
-                // (15,1): warning CS8980: The type name 'three' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "nint").WithArguments("nint").WithLocation(8, 11),
+                // (13,16): warning CS8981: The type name 'three' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // partial struct three { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial struct three { }").WithArguments("three").WithLocation(15, 1),
-                // (18,1): warning CS8980: The type name 'four' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "three").WithArguments("three").WithLocation(13, 16),
+                // (16,19): warning CS8981: The type name 'four' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // partial interface four { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial interface four { }").WithArguments("four").WithLocation(18, 1),
-                // (22,1): warning CS8980: The type name 'five' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "four").WithArguments("four").WithLocation(16, 19),
+                // (17,19): warning CS8981: The type name 'four' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // partial interface four { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "four").WithArguments("four").WithLocation(17, 19),
+                // (20,15): warning CS8981: The type name 'five' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // partial class five { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial class five { }").WithArguments("five").WithLocation(22, 1),
-                // (27,1): warning CS8980: The type name 'seven' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "five").WithArguments("five").WithLocation(20, 15),
+                // (25,15): warning CS8981: The type name 'seven' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // delegate void seven();
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "delegate void seven();").WithArguments("seven").WithLocation(27, 1),
-                // (29,1): warning CS8980: The type name 'eight' is lower-cased. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "seven").WithArguments("seven").WithLocation(25, 15),
+                // (27,6): warning CS8981: The type name 'eight' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // enum eight { first, second }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "enum eight { first, second }").WithArguments("eight").WithLocation(29, 1)
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "eight").WithArguments("eight").WithLocation(27, 6)
+            };
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(56653, "https://github.com/dotnet/roslyn/issues/56653")]
+        public void DisallowLowerCaseTypeName_AsTypeParameter()
+        {
+            var text = @"
+class C1<one> { }
+class C2<@two> { }
+class C3<Ten> { }
+class C4<cédille> { }
+
+delegate void D1<one>();
+delegate void D2<@two>();
+delegate void D3<Ten>();
+delegate void D4<cédille>();
+
+class CM
+{
+    void M1<one>() { }
+    void M2<@two>() { }
+    void M3<Ten>() { }
+    void M4<cédille>() { }
+
+    void MLocal()
+    {
+        local1<object>();
+        local2<object>();
+        local3<object>();
+        local4<object>();
+
+        void local1<one>() { }
+        void local2<@two>() { }
+        void local3<Ten>() { }
+        void local4<cédille>() { }
+    }
+}
+";
+            var expected = new[]
+            {
+                // (2,10): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class C1<one> { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(2, 10),
+                // (7,18): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // delegate void D1<one>();
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(7, 18),
+                // (14,13): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     void M1<one>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(14, 13),
+                // (26,21): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void local1<one>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(26, 21)
+            };
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(56653, "https://github.com/dotnet/roslyn/issues/56653")]
+        public void DisallowLowerCaseTypeName_AsAlias()
+        {
+            var text = @"
+using one = System.Console;
+using @two = System.Console;
+using Ten = System.Console;
+using cédille = System.Console;
+";
+            var expected = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using one = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using one = System.Console;").WithLocation(2, 1),
+                // (2,7): warning CS8981: The type name 'one' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using one = System.Console;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "one").WithArguments("one").WithLocation(2, 7),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using @two = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @two = System.Console;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using Ten = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(4, 1),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using cédille = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(5, 1)
             };
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
@@ -21004,8 +21107,17 @@ class cédille { }
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
-                // using zero = one;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using zero = one;").WithLocation(2, 1)
+                // using one = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using one = System.Console;").WithLocation(2, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using @two = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @two = System.Console;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using Ten = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(4, 1),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using cédille = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(5, 1)
                 );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));

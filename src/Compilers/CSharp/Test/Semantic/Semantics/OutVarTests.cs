@@ -17902,7 +17902,7 @@ public class Cls
         public void GetAliasInfo_01()
         {
             var text = @"
-using a = System.Int32;
+using @a = System.Int32;
 
 public class Cls
 {
@@ -17935,7 +17935,7 @@ public class Cls
         public void GetAliasInfo_02()
         {
             var text = @"
-using var = System.Int32;
+using @var = System.Int32;
 
 public class Cls
 {
@@ -33107,8 +33107,8 @@ public class C
         {
             var source =
 @"
-using alias1 = System.Int32;
-using var = System.Int32;
+using @alias1 = System.Int32;
+using @var = System.Int32;
 
 public class C
 {

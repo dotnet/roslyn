@@ -434,33 +434,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            foreach (var syntaxRef in SyntaxReferences)
             {
-                foreach (var syntaxRef in SyntaxReferences)
+                SyntaxToken? identifier = syntaxRef.GetSyntax() switch
                 {
-                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
-                    {
-                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
-                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
-                        _ => null
-                    };
+                    BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                    DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                    _ => null
+                };
 
-                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
-                }
+                ReportReservedTypeNamed(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
             }
 
             return result;
         }
 
-        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        internal static void ReportReservedTypeNamed(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
         {
-            if (diagnostics is object && name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
-                compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            if (diagnostics is null)
             {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
+                return;
+            }
+
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            {
+                if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+                {
+                    diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
+                }
+            }
+            else if (name is { Length: > 0 } &&
+                name.All(c => char.IsLower(c) && c < 128))
+            {
+                diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
             }
         }
-
         #endregion
 
         #region Completion

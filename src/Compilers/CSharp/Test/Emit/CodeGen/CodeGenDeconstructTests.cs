@@ -3735,7 +3735,7 @@ class C
         public void DeclarationWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()
@@ -4974,7 +4974,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string x, alias y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
@@ -5678,7 +5678,7 @@ var (y1, y2) = (x1, x2);
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5759,7 +5759,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 (var x1, (var x2, var x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -6817,7 +6817,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string _, alias _) = (""hello"", 42);
 ";
 
