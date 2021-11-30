@@ -2273,7 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsInTree(constructorInitializer))
             {
-                throw new ArgumentException("expression not within tree");
+                throw new ArgumentException("node not within tree");
             }
 
             var context = RegionAnalysisContext(constructorInitializer);
