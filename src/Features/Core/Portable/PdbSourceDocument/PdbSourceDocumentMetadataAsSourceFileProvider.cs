@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -122,16 +123,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (loopCount++ > 10)
                     return null;
 
-                try
-                {
-                    Directory.CreateDirectory(tempFilePath);
-                }
-                catch (DirectoryNotFoundException)
-                {
-                }
-                catch (UnauthorizedAccessException)
-                {
-                }
+                IOUtilities.PerformIO(() => Directory.CreateDirectory(tempFilePath));
             }
 
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
@@ -139,13 +131,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var encoding = defaultEncoding ?? Encoding.UTF8;
             var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, _logger, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
-            if (sourceFileInfos.Where(t => t is null).Any())
+            if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
-            var documentInfos = CreateDocumentInfos(sourceFileInfos!, navigateProject);
+            var documentInfos = CreateDocumentInfos(sourceFileInfos, navigateProject);
             if (documentInfos.Length > 0)
             {
                 workspace.OnDocumentsAdded(documentInfos);
@@ -198,7 +190,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo[] sourceFileInfos, Project project)
+        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Project project)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
