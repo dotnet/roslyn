@@ -1804,5 +1804,231 @@ class Test
             CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
             CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void EqualityContractGetter_CompilerGeneratedAttribute()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+
+record C;
+");
+
+            verifier.VerifyTypeIL("C", @"
+.class private auto ansi beforefieldinit C
+    extends [netstandard]System.Object
+    implements .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    class [netstandard]System.IEquatable`1<class C>
+{
+    .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 01 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    // Methods
+    .method family hidebysig specialname newslot virtual 
+        instance class [netstandard]System.Type get_EqualityContract () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x208e
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: ldtoken C
+        IL_0005: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
+        IL_000a: ret
+    } // end of method C::get_EqualityContract
+    .method public hidebysig virtual 
+        instance string ToString () cil managed 
+    {
+        // Method begins at RVA 0x209c
+        // Code size 64 (0x40)
+        .maxstack 2
+        .locals init (
+            [0] class [netstandard]System.Text.StringBuilder
+        )
+        IL_0000: newobj instance void [netstandard]System.Text.StringBuilder::.ctor()
+        IL_0005: stloc.0
+        IL_0006: ldloc.0
+        IL_0007: ldstr ""C""
+        IL_000c: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(string)
+        IL_0011: pop
+        IL_0012: ldloc.0
+        IL_0013: ldstr "" { ""
+        IL_0018: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(string)
+        IL_001d: pop
+        IL_001e: ldarg.0
+        IL_001f: ldloc.0
+        IL_0020: callvirt instance bool C::PrintMembers(class [netstandard]System.Text.StringBuilder)
+        IL_0025: brfalse.s IL_0030
+        IL_0027: ldloc.0
+        IL_0028: ldc.i4.s 32
+        IL_002a: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(char)
+        IL_002f: pop
+        IL_0030: ldloc.0
+        IL_0031: ldc.i4.s 125
+        IL_0033: callvirt instance class [netstandard]System.Text.StringBuilder [netstandard]System.Text.StringBuilder::Append(char)
+        IL_0038: pop
+        IL_0039: ldloc.0
+        IL_003a: callvirt instance string [netstandard]System.Object::ToString()
+        IL_003f: ret
+    } // end of method C::ToString
+    .method family hidebysig newslot virtual 
+        instance bool PrintMembers (
+            class [netstandard]System.Text.StringBuilder builder
+        ) cil managed 
+    {
+        // Method begins at RVA 0x20e8
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    } // end of method C::PrintMembers
+    .method public hidebysig specialname static 
+        bool op_Inequality (
+            class C left,
+            class C right
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        // Method begins at RVA 0x20eb
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: call bool C::op_Equality(class C, class C)
+        IL_0007: ldc.i4.0
+        IL_0008: ceq
+        IL_000a: ret
+    } // end of method C::op_Inequality
+    .method public hidebysig specialname static 
+        bool op_Equality (
+            class C left,
+            class C right
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        // Method begins at RVA 0x20f7
+        // Code size 19 (0x13)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: beq.s IL_0011
+        IL_0004: ldarg.0
+        IL_0005: brfalse.s IL_000f
+        IL_0007: ldarg.0
+        IL_0008: ldarg.1
+        IL_0009: callvirt instance bool C::Equals(class C)
+        IL_000e: ret
+        IL_000f: ldc.i4.0
+        IL_0010: ret
+        IL_0011: ldc.i4.1
+        IL_0012: ret
+    } // end of method C::op_Equality
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        // Method begins at RVA 0x210b
+        // Code size 17 (0x11)
+        .maxstack 8
+        IL_0000: call class [netstandard]System.Collections.Generic.EqualityComparer`1<!0> class [netstandard]System.Collections.Generic.EqualityComparer`1<class [netstandard]System.Type>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: callvirt instance class [netstandard]System.Type C::get_EqualityContract()
+        IL_000b: callvirt instance int32 class [netstandard]System.Collections.Generic.EqualityComparer`1<class [netstandard]System.Type>::GetHashCode(!0)
+        IL_0010: ret
+    } // end of method C::GetHashCode
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object obj
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        // Method begins at RVA 0x211d
+        // Code size 13 (0xd)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: isinst C
+        IL_0007: callvirt instance bool C::Equals(class C)
+        IL_000c: ret
+    } // end of method C::Equals
+    .method public hidebysig newslot virtual 
+        instance bool Equals (
+            class C other
+        ) cil managed 
+    {
+        .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        // Method begins at RVA 0x212b
+        // Code size 29 (0x1d)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: beq.s IL_001b
+        IL_0004: ldarg.1
+        IL_0005: brfalse.s IL_0019
+        IL_0007: ldarg.0
+        IL_0008: callvirt instance class [netstandard]System.Type C::get_EqualityContract()
+        IL_000d: ldarg.1
+        IL_000e: callvirt instance class [netstandard]System.Type C::get_EqualityContract()
+        IL_0013: call bool [netstandard]System.Type::op_Equality(class [netstandard]System.Type, class [netstandard]System.Type)
+        IL_0018: ret
+        IL_0019: ldc.i4.0
+        IL_001a: ret
+        IL_001b: ldc.i4.1
+        IL_001c: ret
+    } // end of method C::Equals
+    .method public hidebysig newslot virtual 
+        instance class C '<Clone>$' () cil managed 
+    {
+        // Method begins at RVA 0x2149
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void C::.ctor(class C)
+        IL_0006: ret
+    } // end of method C::'<Clone>$'
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class C original
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2151
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2151
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+    // Properties
+    .property instance class [netstandard]System.Type EqualityContract()
+    {
+        .get instance class [netstandard]System.Type C::get_EqualityContract()
+    }
+} // end of class C
+");
+        }
+
     }
 }
