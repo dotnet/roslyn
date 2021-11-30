@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly Workspace _workspace;
+            private readonly IPersistentStorageService _persistentStorageService;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -41,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(Workspace workspace, IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
+                _persistentStorageService = persistentStorageService;
                 _workspace = workspace;
                 _analyzerInfoCache = analyzerInfoCache;
 
