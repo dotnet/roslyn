@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
                 return null;
 
+            // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
+            var relativePath = Path.GetFileName(sourceDocument.FilePath);
 
             var delay = Task.Delay(SourceLinkTimeout, cancellationToken);
             var sourceFileTask = _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
