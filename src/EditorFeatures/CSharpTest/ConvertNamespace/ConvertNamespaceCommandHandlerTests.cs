@@ -139,6 +139,48 @@ class C
         }
 
         [WpfFact]
+        public void TestDottedName3()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"namespace A$$.B
+{
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"namespace A;.B
+{
+    class C
+    {
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDottedName4()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"namespace $$A.B
+{
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"namespace ;A.B
+{
+    class C
+    {
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestAfterWhitespace()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
