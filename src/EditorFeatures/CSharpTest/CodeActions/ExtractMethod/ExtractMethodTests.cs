@@ -323,6 +323,52 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInit()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this([|i * 10 + 2|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+    { }
+
+    private static int NewMethod(int i) => i * 10 + 2;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInitWithOutVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+    { }
+
+    private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
         {
             await TestInRegularAndScript1Async(
