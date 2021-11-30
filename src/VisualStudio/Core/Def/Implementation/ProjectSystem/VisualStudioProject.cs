@@ -422,6 +422,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
         }
 
+        private bool HasBeenRemoved => !_workspace.CurrentSolution.ContainsProject(Id);
+
         #region Batching
 
         public BatchScope CreateBatchScope()
@@ -451,7 +453,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // If we're passing useAsync: false, we should always get a task that was already completed.
 #pragma warning disable CA2012 // Use ValueTasks correctly
-                    Contract.ThrowIfFalse(_project.OnBatchScopeDisposedMaybeAsync(useAsync: false).IsCompleted);
+                    var valueTask = _project.OnBatchScopeDisposedMaybeAsync(useAsync: false);
+                    Contract.ThrowIfFalse(valueTask.IsCompleted);
+                    if (valueTask.IsFaulted)
+                    {
+                        throw valueTask.AsTask().Exception;
+                    }
 #pragma warning restore CA2012 // Use ValueTasks correctly
                 }
             }
@@ -476,6 +483,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _activeBatchScopes--;
 
                 if (_activeBatchScopes > 0)
+                {
+                    return;
+                }
+
+                // If the project was already removed, we'll just ignore any further requests to complete batches.
+                if (HasBeenRemoved)
                 {
                     return;
                 }
@@ -1603,7 +1616,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 using (_project._gate.DisposableWait())
                 {
                     // If our project has already been removed, this is a stale notification, and we can disregard.
-                    if (!_project._workspace.CurrentSolution.ContainsProject(_project.Id))
+                    if (_project.HasBeenRemoved)
                     {
                         return;
                     }
