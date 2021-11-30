@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
             // <Caravela>
-            ImmutableArray<string> transformerOrder,
+            ImmutableArray<string?> transformerOrder,
             // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             // <Caravela>
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
             // <Caravela>
-            ImmutableArray<string> transformerOrder = default;
+            ImmutableArray<string?> transformerOrder = default;
             // </Caravela>
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
                 {
-                    transformerOrder = transformerOrderString.Split(';').ToImmutableArray();
+                    transformerOrder = transformerOrderString.Split(';').ToImmutableArray<string?>();
                 }
                 // </Caravela>
             }

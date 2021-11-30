@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
             // <Caravela>
-            ImmutableArray<string> transformerOrder,
+            ImmutableArray<string?> transformerOrder,
             // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
