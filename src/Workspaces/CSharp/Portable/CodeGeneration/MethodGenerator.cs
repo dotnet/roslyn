@@ -291,6 +291,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            if (destination is CodeGenerationDestination.CompilationUnit)
+            {
+                if (method.IsStatic)
+                {
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                }
+            }
+
             if (destination != CodeGenerationDestination.InterfaceType)
             {
                 if (CodeGenerationMethodInfo.GetIsAsyncMethod(method))
