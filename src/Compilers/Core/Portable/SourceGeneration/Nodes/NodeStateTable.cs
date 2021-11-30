@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
     }
 
-    internal record struct NodeStateEntry<T>(T Item, EntryState State, int OutputIndex, IncrementalGeneratorRunStep? Step);
+    internal readonly record struct NodeStateEntry<T>(T Item, EntryState State, int OutputIndex, IncrementalGeneratorRunStep? Step);
 
     /// <summary>
     /// A data structure that tracks the inputs and output of an execution node
@@ -94,9 +94,10 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < _states.Length; i++)
             {
                 TableEntry inputEntry = _states[i];
+                IncrementalGeneratorRunStep? step = HasTrackedSteps ? Steps[i] : null;
                 for (int j = 0; j < inputEntry.Count; j++)
                 {
-                    yield return new NodeStateEntry<T>(inputEntry.GetItem(j), inputEntry.GetState(j), j, HasTrackedSteps ? Steps[i] : null);
+                    yield return new NodeStateEntry<T>(inputEntry.GetItem(j), inputEntry.GetState(j), j, step);
                 }
             }
         }
@@ -116,7 +117,6 @@ namespace Microsoft.CodeAnalysis
             }
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            // TODO: See if we can fix this with a "builder" model like we use for all other types here.
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
         }
 
@@ -148,6 +148,19 @@ namespace Microsoft.CodeAnalysis
             return new Builder(this, stepName, stepTrackingEnabled);
         }
 
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
+        {
+            Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
+            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            foreach (var entry in inputTable)
+            {
+                var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
+                bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
+                Debug.Assert(usedCachedEntry);
+            }
+            return builder.ToImmutableAndFree();
+        }
+
         public sealed class Builder
         {
             private readonly ArrayBuilder<TableEntry> _states;
@@ -157,14 +170,13 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
-            public bool TrackIncrementalSteps { get; }
+            public bool TrackIncrementalSteps => _steps is not null;
 
             internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
             {
                 _states = ArrayBuilder<TableEntry>.GetInstance();
                 _previous = previous;
                 _name = name;
-                TrackIncrementalSteps = stepTrackingEnabled;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -312,6 +324,7 @@ namespace Microsoft.CodeAnalysis
 
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
+                Debug.Assert(stepInputs.IsDefault == !TrackIncrementalSteps);
                 if (TrackIncrementalSteps)
                 {
                     // We should have already recorded step information for all steps before the most recently recorded step.
@@ -319,7 +332,7 @@ namespace Microsoft.CodeAnalysis
 
                     TableEntry outputInfo = _states[^1];
 
-                    ArrayBuilder<(object Value, IncrementalStepRunReason OutputStatus)> stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
+                    var stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
 
                     for (int i = 0; i < outputInfo.Count; i++)
                     {
@@ -350,18 +363,6 @@ namespace Microsoft.CodeAnalysis
                 };
             }
 
-            private static IncrementalStepRunReason AsStepState(EntryState outputState)
-            {
-                return outputState switch
-                {
-                    EntryState.Added => IncrementalStepRunReason.New,
-                    EntryState.Modified => IncrementalStepRunReason.Modified,
-                    EntryState.Cached => IncrementalStepRunReason.Cached,
-                    EntryState.Removed => IncrementalStepRunReason.Removed,
-                    _ => throw ExceptionUtilities.UnexpectedValue(outputState)
-                };
-            }
-
             public NodeStateTable<T> ToImmutableAndFree()
             {
                 Debug.Assert(!TrackIncrementalSteps || _states.Count == _steps.Count);
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis
                 var hasNonCached = _states.Any(static s => !s.IsCached);
                 return new NodeStateTable<T>(
                     _states.ToImmutableAndFree(),
-                    TrackIncrementalSteps ? _steps.ToImmutableAndFree() : ImmutableArray<IncrementalGeneratorRunStep>.Empty,
+                    TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
                     isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }

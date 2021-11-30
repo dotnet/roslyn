@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             (_, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
             foreach (var entry in input1Table)
             {
-                var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex), (input2Step!, 0)) : default;
+                var stepInputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex), (input2Step!, 0));
 
                 bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, stepInputs);
                 Debug.Assert(usedCachedEntry);

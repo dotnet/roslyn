@@ -253,9 +253,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    // TODO: Re-enable this for testability
-                    bool trackIncrementalSteps = state.TrackIncrementalSteps && state.IncrementalGenerators[i] is not SourceGeneratorAdaptor;
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(trackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics, var generatorRunStateTable) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 

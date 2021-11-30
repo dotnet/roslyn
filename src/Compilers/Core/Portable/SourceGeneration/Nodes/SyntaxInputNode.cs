@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStep, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (state == EntryState.Removed)
                 {
@@ -93,10 +93,9 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // now, using the obtained syntax nodes, run the transform
-                    for (int i = 0; i < nodes.Length; i++)
+                    foreach (SyntaxNode node in nodes)
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        var node = nodes[i];
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 

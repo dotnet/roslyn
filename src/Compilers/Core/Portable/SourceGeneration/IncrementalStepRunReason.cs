@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis
         Modified,
 
         /// <summary>
-        /// The input to this step was modified from a previous run, but it produced an equal value a the previous run.
+        /// The input to this step was modified from a previous run, but it produced an equal value to the previous run.
         /// </summary>
         Unchanged,
 
         /// <summary>
-        /// The output of this step was pulled from this step's cache since the inputs was unchanged from a previous run.
+        /// The output of this step was pulled from this step's cache since the inputs was unchanged from the previous run.
         /// </summary>
         Cached,
 

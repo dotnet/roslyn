@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                                 try
                                 {
                                     _cancellationToken.ThrowIfCancellationRequested();
-                                    syntaxInputBuilders[i].VisitTree(root, state, syntaxTreeIndex, stepInfo, temporaryRunStateBuilder, model, _cancellationToken);
+                                    syntaxInputBuilders[i].VisitTree(root, state, model, _cancellationToken);
                                 }
                                 catch (UserFunctionException ufe)
                                 {
@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         // save the updated inputs
-                        for (int i = 0; i < syntaxInputBuilders.Count; i++)
+                        foreach (ISyntaxInputBuilder builder in syntaxInputBuilders)
                         {
-                            syntaxInputBuilders[i].SaveStateAndFree(_tableBuilder);
-                            Debug.Assert(_tableBuilder.ContainsKey(syntaxInputBuilders[i].SyntaxInputNode));
+                            builder.SaveStateAndFree(_tableBuilder);
+                            Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
                         }
                     }
                     syntaxInputBuilders.Free();

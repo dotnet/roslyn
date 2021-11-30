@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IncrementalGeneratorOutputKind _outputKind;
 
-        private readonly string _name;
-
         private readonly string _sourceExtension;
 
         public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
@@ -33,24 +31,24 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
             _outputKind = outputKind;
             _sourceExtension = sourceExtension;
-            _name = outputKind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
         }
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
+            string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached)
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.RecordStepsForCachedTable(graphState, sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, _name);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;

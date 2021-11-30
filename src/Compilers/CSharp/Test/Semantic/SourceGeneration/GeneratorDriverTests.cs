@@ -2713,6 +2713,9 @@ class C { }
             // Source output steps should also be in the TrackedOutputSteps collection
             Assert.Contains(WellKnownGeneratorOutputs.SourceOutput, runResult.TrackedOutputSteps.Keys);
             Assert.Contains(WellKnownGeneratorOutputs.ImplementationSourceOutput, runResult.TrackedOutputSteps.Keys);
+
+            Assert.Equal(7, runResult.TrackedSteps.Count);
+            Assert.Equal(2, runResult.TrackedOutputSteps.Count);
         }
 
         [Fact]
@@ -2739,8 +2742,10 @@ class C { }
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator1.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { additionalText }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.All(driver.GetRunResult().Results,
+            GeneratorDriverRunResult runResult = driver.GetRunResult();
+            Assert.All(runResult.Results,
                 result => Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, result.TrackedSteps.Keys));
+            Assert.Equal(2, runResult.Results.Length);
         }
 
         // Introduce a local type here since GeneratorDriver validates that each generator is only included once

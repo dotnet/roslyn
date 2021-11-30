@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.RecordStepsForCachedTable(builder, sourceTable, _name);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name);
                 }
                 return previousTable;
             }

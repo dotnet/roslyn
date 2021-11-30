@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly SyntaxReceiverInputNode _owner;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
-            private readonly ArrayBuilder<(IncrementalGeneratorRunStep Step, int OutputIndex)>? _inputSteps;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
             private TimeSpan lastElapsedTime;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis
             {
                 _owner = owner;
                 _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(stepName: null, trackIncrementalSteps);
-                _inputSteps = trackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep, int)>.GetInstance() : null;
                 try
                 {
                     _receiver = owner._receiverCreator();
@@ -76,16 +74,15 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
-            [MemberNotNullWhen(true, nameof(_inputSteps))]
             private bool TrackIncrementalSteps => _nodeStateTable.TrackIncrementalSteps;
 
             public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
-                _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? _inputSteps.ToImmutableAndFree() : default, EntryState.Modified);
+                _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? System.Collections.Immutable.ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStep, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (_walker is not null && state != EntryState.Removed)
                 {
@@ -96,8 +93,6 @@ namespace Microsoft.CodeAnalysis
                         _walker.VisitWithModel(model, root.Value);
                         if (TrackIncrementalSteps)
                         {
-                            Debug.Assert(inputStep is not null);
-                            _inputSteps.Add((inputStep, syntaxTreeIndex));
                             lastElapsedTime = stopwatch.Elapsed;
                         }
                     }

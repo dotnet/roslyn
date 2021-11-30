@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class IncrementalGeneratorNodeExtensions
     {
-        public static NodeStateTable<TOutput> RecordStepsForCachedTable<TInput, TOutput>(this NodeStateTable<TOutput> previousTable, DriverStateTable.Builder graphState, NodeStateTable<TInput> inputTable, string? stepName)
+        public static NodeStateTable<TOutput> CreateCachedTableWithUpdatedSteps<TInput, TOutput>(this NodeStateTable<TOutput> previousTable, DriverStateTable.Builder graphState, NodeStateTable<TInput> inputTable, string? stepName)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
             NodeStateTable<TOutput>.Builder builder = graphState.CreateTableBuilder(previousTable, stepName);

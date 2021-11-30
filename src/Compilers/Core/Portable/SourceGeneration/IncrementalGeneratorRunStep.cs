@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,6 +15,8 @@ namespace Microsoft.CodeAnalysis
     {
         internal IncrementalGeneratorRunStep(string? stepName, ImmutableArray<(IncrementalGeneratorRunStep Source, int OutputIndex)> inputs, ImmutableArray<(object Value, IncrementalStepRunReason OutputState)> outputs, TimeSpan elapsedTime)
         {
+            Debug.Assert(!inputs.IsDefault);
+            Debug.Assert(!outputs.IsDefault);
             Name = stepName;
             Inputs = inputs;
             Outputs = outputs;
