@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -57,15 +58,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ConvertNamespaceCommandHandler(
             ITextUndoHistoryRegistry textUndoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService, IGlobalOptionService globalOptions)
         {
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // Attempt to convert the block-namespace to a file-scoped namespace if we're at the right location.
-            var convertedRoot = ConvertNamespaceCommandHandler.ConvertNamespace(args, executionContext);
+            var convertedRoot = ConvertNamespace(args, executionContext);
 
             // No matter if we succeeded or not, insert the semicolon.  This way, when we convert, the user can still
             // hit ctrl-z to get back to the code with just the semicolon inserted.
@@ -107,11 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <summary>
         /// Returns true if semicolon is typed after a namespace name that should be converted.
         /// </summary>
-        private static CompilationUnitSyntax? ConvertNamespace(
+        private CompilationUnitSyntax? ConvertNamespace(
             TypeCharCommandArgs args,
             CommandExecutionContext executionContext)
         {
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
+                return null;
+
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
                 return null;
 
             var subjectBuffer = args.SubjectBuffer;

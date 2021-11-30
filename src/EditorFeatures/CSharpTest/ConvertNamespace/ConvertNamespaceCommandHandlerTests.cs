@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
@@ -28,10 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             {
                 _commandHandler = (ConvertNamespaceCommandHandler)GetExportedValues<ICommandHandler>().
                     Single(c => c is ConvertNamespaceCommandHandler);
-
-                //_commandHandler = new ConvertNamespaceCommandHandler(
-                //    this.GetService<ITextUndoHistoryRegistry>(),
-                //    this.GetService<IEditorOperationsFactoryService>());
             }
 
             public static ConvertNamespaceTestState CreateTestState(string markup)
@@ -76,7 +73,31 @@ class C
         }
 
         [WpfFact]
-        public void TestDottedName()
+        public void TestOptionOff()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"namespace N$$
+{
+    class C
+    {
+    }
+}");
+
+            testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(
+                FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"namespace N;
+{
+    class C
+    {
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDottedName1()
         {
             using var testState = ConvertNamespaceTestState.CreateTestState(
 @"namespace A.B$$
@@ -94,6 +115,27 @@ class C
 {
 }
 ");
+        }
+
+        [WpfFact]
+        public void TestDottedName2()
+        {
+            using var testState = ConvertNamespaceTestState.CreateTestState(
+@"namespace A.$$B
+{
+    class C
+    {
+    }
+}");
+
+            testState.SendTypeChar(';');
+            testState.AssertCodeIs(
+@"namespace A.;B
+{
+    class C
+    {
+    }
+}");
         }
 
         [WpfFact]
@@ -265,8 +307,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N // Goo
-;
+@"namespace N; // Goo
 
 class C
 {

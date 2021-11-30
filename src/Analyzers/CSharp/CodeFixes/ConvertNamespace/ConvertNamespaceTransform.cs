@@ -68,15 +68,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             // We move leading and trailing trivia on the open brace to just be trailing trivia on the semicolon, so we preserve
             // comments etc. logically at the top of the file.
-            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
-                .WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia)
-                .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+            var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+
+            if (namespaceDeclaration.Name.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+            {
+                semiColon = semiColon.WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia())
+                                     .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+            }
+            else
+            {
+                semiColon = semiColon.WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+            }
+
+            semiColon = semiColon.WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
 
             var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
                 namespaceDeclaration.AttributeLists,
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
-                namespaceDeclaration.Name,
+                namespaceDeclaration.Name.WithoutTrailingTrivia(),
                 semiColon,
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
