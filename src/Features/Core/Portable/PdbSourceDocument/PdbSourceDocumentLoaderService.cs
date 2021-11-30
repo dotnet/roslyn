@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
     internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
+        private const int SourceLinkTimeout = 1000;
         private readonly ISourceLinkService? _sourceLinkService;
 
         [ImportingConstructor]
@@ -107,12 +108,25 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
                 return null;
 
-            var sourceFile = await _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, sourceDocument.FilePath, logger, cancellationToken).ConfigureAwait(false);
-            // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
 
-            if (sourceFile is not null)
+            var delay = Task.Delay(SourceLinkTimeout, cancellationToken);
+            var sourceFileTask = _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
+
+            var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
+
+            if (winner == sourceFileTask)
             {
-                return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding);
+                var sourceFile = await sourceFileTask.ConfigureAwait(false);
+                if (sourceFile is not null)
+                {
+                    // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
+                    // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
+                    return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding);
+                }
+                else
+                {
+                    // TODO: Log the timeout: https://github.com/dotnet/roslyn/issues/57352
+                }
             }
 
             return null;

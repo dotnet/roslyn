@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     [Export(typeof(IPdbFileLocatorService)), Shared]
     internal sealed class PdbFileLocatorService : IPdbFileLocatorService
     {
+        private const int SymbolLocatorTimeout = 2000;
+
         private readonly ISourceLinkService? _sourceLinkService;
 
         [ImportingConstructor]
@@ -50,18 +52,30 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // Otherwise call the debugger to find the PDB from a symbol server etc.
                 if (result is null && _sourceLinkService is not null)
                 {
-                    var pdbResult = await _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken).ConfigureAwait(false);
+                    var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
+                    var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken);
 
-                    // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
-                    // TODO: Log results from pdbResult.Log: https://github.com/dotnet/roslyn/issues/57352
-                    if (pdbResult is not null && pdbResult.IsPortablePdb)
+                    var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
+
+                    if (winner == pdbResultTask)
                     {
-                        pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
-                        if (pdbStream is not null)
+                        var pdbResult = await pdbResultTask.ConfigureAwait(false);
+
+                        // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
+                        // TODO: Log results from pdbResult.Log: https://github.com/dotnet/roslyn/issues/57352
+                        if (pdbResult is not null && pdbResult.IsPortablePdb)
                         {
-                            var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-                            result = new DocumentDebugInfoReader(peReader, readerProvider);
+                            pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
+                            if (pdbStream is not null)
+                            {
+                                var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+                                result = new DocumentDebugInfoReader(peReader, readerProvider);
+                            }
                         }
+                    }
+                    else
+                    {
+                        // TODO: Log the timeout: https://github.com/dotnet/roslyn/issues/57352
                     }
                 }
             }
