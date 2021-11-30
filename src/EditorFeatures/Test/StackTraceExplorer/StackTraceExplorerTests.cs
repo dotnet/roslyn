@@ -199,6 +199,51 @@ namespace ConsoleApp
         }
 
         [Fact]
+        public Task TestSymbolFound_GenericType2()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`2.M(String s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T, U> 
+    {
+        void [|M|](string s) { }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_GenericType_GenericArg()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`1.M(T s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T>
+    {
+        void [|M|](T s) { }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_GenericArgument()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass.M{( s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T> 
+    {
+        void [|M|](string s) { }
+    }
+}");
+        }
+
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_GenericMethod()
         {
             return TestSymbolFoundAsync(

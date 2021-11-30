@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             // MemberAccessExpression is [Expression].[Identifier], and Identifier is the 
             // method name.
             var typeExpression = compilationUnit.MethodDeclaration.MemberAccessExpression.Left;
+
+            // typeExpression.ToString() returns the full expression (or identifier)
+            // including arity for generic types. 
             var fullyQualifiedTypeName = typeExpression.ToString();
+
             var typeName = typeExpression is StackFrameQualifiedNameNode qualifiedName
                 ? qualifiedName.Right.ToString()
                 : typeExpression.ToString();
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
             {
                 ISymbol symbol = method;
-                if (symbolPart == StackFrameSymbolPart.Class)
+                if (symbolPart == StackFrameSymbolPart.ContainingType)
                 {
                     symbol = method.ContainingType;
                 }

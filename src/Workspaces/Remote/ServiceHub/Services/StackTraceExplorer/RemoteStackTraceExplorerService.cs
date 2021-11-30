@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
                 => new RemoteStackTraceExplorerService(arguments);
         }
 
-        private int _id;
-
         public RemoteStackTraceExplorerService(in ServiceConstructionArguments arguments) : base(arguments)
         {
         }
@@ -31,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
             return RunServiceAsync<SerializableDefinitionItem?>(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                if (solution is null)
-                {
-                    throw new InvalidOperationException();
-                }
-
                 var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
                 if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)
                 {
@@ -48,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
                     return null;
                 }
 
-                return SerializableDefinitionItem.Dehydrate(_id++, definition);
+                return SerializableDefinitionItem.Dehydrate(id: 0, definition);
             }, cancellationToken);
         }
     }

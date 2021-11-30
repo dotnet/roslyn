@@ -4,9 +4,23 @@
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
+    /// <summary>
+    /// Determines what type of symbol to look for
+    /// when mapping a <see cref="ParsedStackFrame"/> to
+    /// a location.
+    /// </summary>
     internal enum StackFrameSymbolPart
     {
+        /// <summary>
+        /// The intended lookup is to find a method symbol associated 
+        /// with a <see cref="ParsedStackFrame"/>
+        /// </summary>
         Method,
-        Class
+
+        /// <summary>
+        /// The intended lookup is to find a type symbol associated
+        /// with a <see cref="ParsedStackFrame"/>
+        /// </summary>
+        ContainingType
     }
 }

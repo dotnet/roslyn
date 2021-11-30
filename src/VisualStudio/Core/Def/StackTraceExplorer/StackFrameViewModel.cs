@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var definition = await GetDefinitionAsync(StackFrameSymbolPart.Class, cancellationToken).ConfigureAwait(false);
+                var definition = await GetDefinitionAsync(StackFrameSymbolPart.ContainingType, cancellationToken).ConfigureAwait(false);
                 if (definition is null)
                 {
                     return;
