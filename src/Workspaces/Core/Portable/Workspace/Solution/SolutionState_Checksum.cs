@@ -88,7 +88,16 @@ namespace Microsoft.CodeAnalysis
                     return;
 
                 foreach (var refProject in projectState.ProjectReferences)
-                    AddReferencedProjects(result, refProject.ProjectId);
+                {
+                    // Note: it's possible in the workspace to see project-ids that don't have a corresponding project
+                    // state.  While not desirable, we allow project's to have refs to projects that no longer exist
+                    // anymore.  This state is expected to be temporary until the project is explicitly told by the
+                    // host to remove the reference.  We do not expose this through the full Solution/Project which
+                    // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
+                    // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
+                    if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                        AddReferencedProjects(result, refProject.ProjectId);
+                }
             }
         }
 

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             // see whether we will allow best effort extraction and if it is possible.
             if (!solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, project.Language) ||
                 !result.Status.HasBestEffort() ||
-                result.Document == null)
+                result.DocumentWithoutFinalFormatting == null)
             {
                 if (notificationService != null)
                 {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // apply extract method code to buffer
-            var document = extractMethodResult.Document;
+            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
 
             // apply changes

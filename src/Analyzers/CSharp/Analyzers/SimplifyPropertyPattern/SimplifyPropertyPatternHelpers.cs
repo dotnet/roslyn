@@ -15,12 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
             [NotNullWhen(true)] out SubpatternSyntax? innerSubpattern,
             [NotNullWhen(true)] out BaseExpressionColonSyntax? outerExpressionColon)
         {
+            // can't simplify if parent pattern is not a property pattern 
+            //
             // can't simplify if we have anything inside other than a property pattern clause.  i.e.
             // `a: { b: ... } x` is not simplifiable as we'll lose the `x` binding for the `a` property.
             //
             // can't simplify `a: { }` or `a: { b: ..., c: ... }`
             if (subpattern is
                 {
+                    Parent: PropertyPatternClauseSyntax,
                     ExpressionColon: { } outer,
                     Pattern: RecursivePatternSyntax
                     {

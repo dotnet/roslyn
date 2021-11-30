@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable.EnableNullableCodeRefactoringProvider>;
@@ -520,6 +522,54 @@ class Example
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithNullableContextOptions(nullableContextOptions));
                     },
                 },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp1)]
+        [InlineData(LanguageVersion.CSharp2)]
+        [InlineData(LanguageVersion.CSharp3)]
+        [InlineData(LanguageVersion.CSharp4)]
+        [InlineData(LanguageVersion.CSharp5)]
+        [InlineData(LanguageVersion.CSharp6)]
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp7_1)]
+        [InlineData(LanguageVersion.CSharp7_2)]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        public async Task DisabledForUnsupportedLanguageVersion(LanguageVersion languageVersion)
+        {
+            var code = @"
+#{|#0:nullable|} enable$$
+";
+
+            var error = languageVersion switch
+            {
+                LanguageVersion.CSharp1 => "CS8022",
+                LanguageVersion.CSharp2 => "CS8023",
+                LanguageVersion.CSharp3 => "CS8024",
+                LanguageVersion.CSharp4 => "CS8025",
+                LanguageVersion.CSharp5 => "CS8026",
+                LanguageVersion.CSharp6 => "CS8059",
+                LanguageVersion.CSharp7 => "CS8107",
+                LanguageVersion.CSharp7_1 => "CS8302",
+                LanguageVersion.CSharp7_2 => "CS8320",
+                LanguageVersion.CSharp7_3 => "CS8370",
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            // /0/Test0.cs(2,2): error [error]: Feature 'nullable reference types' is not available in C# [version]. Please use language version 8.0 or greater.
+            var expected = DiagnosticResult.CompilerError(error).WithLocation(0);
+            if (CultureInfo.CurrentCulture.TwoLetterISOLanguageName == "en")
+            {
+                expected = expected.WithArguments("nullable reference types", "8.0");
+            }
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                ExpectedDiagnostics = { expected },
+                FixedCode = code,
+                LanguageVersion = languageVersion,
             }.RunAsync();
         }
 

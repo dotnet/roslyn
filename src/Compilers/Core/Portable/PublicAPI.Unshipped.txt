@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.Em
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.UpdatedMethods.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.MethodDefinitionHandle>
 Microsoft.CodeAnalysis.Emit.SemanticEditKind.Replace = 4 -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
+Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation.IsInitialization.get -> bool
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceAdditionalText(Microsoft.CodeAnalysis.AdditionalText! oldText, Microsoft.CodeAnalysis.AdditionalText! newText) -> Microsoft.CodeAnalysis.GeneratorDriver!
@@ -100,6 +101,16 @@ Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteArgument = 0 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
 Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument = 2 -> Microsoft.CodeAnalysis.Operations.InterpolatedStringArgumentPlaceholderKind
+Microsoft.CodeAnalysis.OperationKind.ListPattern = 121 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.SlicePattern = 122 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IListPatternOperation
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.IndexerSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.LengthSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Operations.IListPatternOperation.Patterns.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IPatternOperation!>
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation?
+Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.SliceSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
@@ -166,3 +177,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringAppend(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringHandlerArgumentPlaceholder(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringHandlerCreation(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitListPattern(Microsoft.CodeAnalysis.Operations.IListPatternOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSlicePattern(Microsoft.CodeAnalysis.Operations.ISlicePatternOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitListPattern(Microsoft.CodeAnalysis.Operations.IListPatternOperation! operation, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSlicePattern(Microsoft.CodeAnalysis.Operations.ISlicePatternOperation! operation, TArgument argument) -> TResult?
