@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,6 +18,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
+        /// <summary>
+        /// Maps an LSP token type to the index LSP associates with the token.
+        /// Required since we report tokens back to LSP as a series of ints,
+        /// and LSP needs a way to decipher them.
+        /// </summary>
+        public static readonly Dictionary<string, int> TokenTypeToIndex;
+
         public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ImmutableArray.Create(
             ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
@@ -101,6 +107,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
             };
+
+        static SemanticTokensHelpers()
+        {
+            // Computes the mapping between a LSP token type and its respective index recognized by LSP.
+            TokenTypeToIndex = new Dictionary<string, int>();
+            var index = 0;
+            foreach (var lspTokenType in LSP.SemanticTokenTypes.AllTypes)
+            {
+                TokenTypeToIndex.Add(lspTokenType, index);
+                index++;
+            }
+
+            foreach (var roslynTokenType in SemanticTokensHelpers.RoslynCustomTokenTypes)
+            {
+                TokenTypeToIndex.Add(roslynTokenType, index);
+                index++;
+            }
+        }
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
