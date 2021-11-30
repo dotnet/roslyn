@@ -864,12 +864,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            var visualStudioAnalyzer = new VisualStudioAnalyzer(
-                fullPath,
-                _hostDiagnosticUpdateSource,
-                Id,
-                Language);
-
             using (_gate.DisposableWait())
             {
                 if (_analyzerPathsToAnalyzers.ContainsKey(fullPath))
@@ -877,15 +871,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                 }
 
-                _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
-
-                if (_activeBatchScopes > 0)
+                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
+                // it once we apply the batch
+                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == fullPath);
+                if (analyzerPendingRemoval != null)
                 {
-                    _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
+                    _analyzerPathsToAnalyzers.Add(fullPath, analyzerPendingRemoval);
                 }
                 else
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    // Nope, we actually need to make a new one.
+                    var visualStudioAnalyzer = new VisualStudioAnalyzer(
+                        fullPath,
+                        _hostDiagnosticUpdateSource,
+                        Id,
+                        Language);
+
+                    _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
+
+                    if (_activeBatchScopes > 0)
+                    {
+                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    }
+                    else
+                    {
+                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    }
                 }
             }
         }
@@ -908,11 +920,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_activeBatchScopes > 0)
                 {
-                    _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
+                    // it in the first place.
+                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                    {
+                        // Nothing is holding onto this analyzer now, so get rid of it
+                        visualStudioAnalyzer.Dispose();
+                    }
+                    else
+                    {
+                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    }
                 }
                 else
                 {
                     _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
+                    visualStudioAnalyzer.Dispose();
                 }
             }
         }
