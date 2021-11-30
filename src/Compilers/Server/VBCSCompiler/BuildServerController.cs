@@ -13,6 +13,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {

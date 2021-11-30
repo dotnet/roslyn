@@ -20,3 +20,7 @@ dotnet_diagnostic.RS0102.severity = none
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
+
+# XML files
+[*.xml]
+indent_size = 2

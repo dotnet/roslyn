@@ -201,20 +201,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
-
-            // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
-            {
-                _openFileTracker = openFileTracker;
-            }
-
             var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(true))
+            // WARNING: if we do .ConfigureAwait(true) here, it means we're trying to transition to the UI thread while
+            // semaphore is acquired; if the UI thread is blocked trying to acquire the semaphore, we could deadlock.
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
             {
+                _openFileTracker = openFileTracker;
                 _memoryListener = memoryListener;
             }
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
         }
@@ -1331,61 +1329,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
             // IVsHierarchies will raise the appropriate events which we are subscribed to.
 
+            var hierarchy = GetHierarchy(documentId.ProjectId);
+            if (hierarchy == null)
+            {
+                // If we don't have a hierarchy then there's nothing we can do
+                return;
+            }
+
+            // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+            // don't necessarily let us read it first, so we have to fire-and-forget here.
+            string? projectSystemNameForProjectId = null;
+
             using (_gate.DisposableWait())
             {
-                var hierarchy = GetHierarchy(documentId.ProjectId);
-                if (hierarchy == null)
-                {
-                    // If we don't have a hierarchy then there's nothing we can do
-                    return;
-                }
-
-                // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
-                // don't necessarily let us read it first, so we have to fire-and-forget here.
                 foreach (var (projectSystemName, projects) in _projectSystemNameToProjectsMap)
                 {
                     if (projects.Any(p => p.Id == documentId.ProjectId))
                     {
-                        hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemName);
-
-                        // We've updated that property, but we still need to continue the rest of this process to ensure the Running Document Table is updated
-                        // and any shared asset projects are also updated.
-                        break;
+                        projectSystemNameForProjectId = projectSystemName;
                     }
                 }
-
-                var filePath = GetFilePath(documentId);
-                if (filePath == null)
-                {
-                    return;
-                }
-
-                var itemId = hierarchy.TryGetItemId(filePath);
-                if (itemId != VSConstants.VSITEMID_NIL)
-                {
-                    // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
-                    // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
-                    // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
-                    // above. Some project systems out there might still be supporting it, so we'll support it too.
-                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
-                           hierarchy != sharedHierarchy)
-                    {
-                        // Ensure the shared context is set correctly
-                        if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
-                        {
-                            ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
-                        }
-
-                        // We now need to ensure the outer project is also set up
-                        hierarchy = sharedHierarchy;
-                        itemId = sharedItemId;
-                    }
-                }
-
-                // Update the ownership of the file in the Running Document Table
-                var project = (IVsProject3)hierarchy;
-                project.TransferItem(filePath, filePath, punkWindowFrame: null);
             }
+
+            if (projectSystemNameForProjectId is null)
+            {
+                // Project must have been removed asynchronously
+                return;
+            }
+
+            // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+            // don't necessarily let us read it first, so we have to fire-and-forget here.
+            hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemNameForProjectId);
+
+            var filePath = GetFilePath(documentId);
+            if (filePath == null)
+            {
+                return;
+            }
+
+            var itemId = hierarchy.TryGetItemId(filePath);
+            if (itemId != VSConstants.VSITEMID_NIL)
+            {
+                // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
+                // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
+                // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
+                // above. Some project systems out there might still be supporting it, so we'll support it too.
+                while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out var sharedItemId) &&
+                       hierarchy != sharedHierarchy)
+                {
+                    // Ensure the shared context is set correctly
+                    if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                    {
+                        ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
+                    }
+
+                    // We now need to ensure the outer project is also set up
+                    hierarchy = sharedHierarchy;
+                    itemId = sharedItemId;
+                }
+            }
+
+            // Update the ownership of the file in the Running Document Table
+            var project = (IVsProject3)hierarchy;
+            project.TransferItem(filePath, filePath, punkWindowFrame: null);
         }
 
         internal bool TryGetHierarchy(ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy)

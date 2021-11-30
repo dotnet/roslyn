@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Text.RegularExpressions;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         {
 
             var state = new ParseStateMachine();
+            Debug.Assert(state.CurrentParsingSpan == CurrentParsingSpan.Type);
 
             for (var i = 0; i < line.Length; i++)
             {
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             public bool AllowSpace => InsideGeneric || CurrentParsingSpan == CurrentParsingSpan.Arguments;
             public int CurrentSpanStart { get; private set; }
             public int CurrentSpanLength;
-            public CurrentParsingSpan CurrentParsingSpan { get; private set; } = CurrentParsingSpan.Type;
+            public CurrentParsingSpan CurrentParsingSpan { get; private set; }
 
             /// <summary>
             /// [|ConsoleApp4.MyClass|].M(string s, int i) 
