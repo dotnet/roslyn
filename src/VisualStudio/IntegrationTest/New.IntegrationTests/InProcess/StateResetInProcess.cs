@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -29,11 +33,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
         }
 
-        public Task ResetHostSettingsAsync(CancellationToken cancellationToken)
+        public async Task ResetHostSettingsAsync(CancellationToken cancellationToken)
         {
-            _ = cancellationToken;
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            return Task.CompletedTask;
+            // Close all Find References windows
+            await foreach (var window in TestServices.Shell.EnumerateWindowsAsync(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, cancellationToken).WithCancellation(cancellationToken))
+            {
+                ErrorHandler.ThrowOnFailure(window.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var captionObj));
+                if (Regex.IsMatch($"{captionObj}", "^(?:'.*' references|Find All References(?: \\d)?)$"))
+                {
+                    window.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+                }
+            }
         }
     }
 }

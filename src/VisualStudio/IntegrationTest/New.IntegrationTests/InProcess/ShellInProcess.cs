@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
@@ -40,6 +42,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             ErrorHandler.ThrowOnFailure(windowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var captionObj));
             return $"{captionObj}";
+        }
+
+        public async IAsyncEnumerable<IVsWindowFrame> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(uiShell.GetWindowEnum((uint)windowFrameTypeFlags, out var enumWindowFrames));
+            var frameBuffer = new IVsWindowFrame[1];
+            while (true)
+            {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                ErrorHandler.ThrowOnFailure(enumWindowFrames.Next((uint)frameBuffer.Length, frameBuffer, out var fetched));
+                if (fetched == 0)
+                    yield break;
+
+                for (var i = 0; i < fetched; i++)
+                {
+                    yield return frameBuffer[i];
+                }
+            }
         }
 
         public async Task<Version> GetVersionAsync(CancellationToken cancellationToken)
