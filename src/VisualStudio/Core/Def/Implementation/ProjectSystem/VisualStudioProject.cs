@@ -597,8 +597,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     // Project reference adding...
                     solutionChanges.UpdateSolutionForProjectAction(
-                Id,
-                newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
+                        Id,
+                        newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
                     ClearAndZeroCapacity(_projectReferencesAddedInBatch);
 
                     // Project reference removing...
