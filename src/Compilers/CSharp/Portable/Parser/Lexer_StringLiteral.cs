@@ -197,9 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ScanInterpolatedStringLiteral(ref TokenInfo info)
         {
-            // We have a string of the form
+            // We have a string of one of the forms
             //                $" ... "
-            // or, if isVerbatim is true, of possible forms
             //                $@" ... "
             //                @$" ... "
             // Where the contents contains zero or more sequences
