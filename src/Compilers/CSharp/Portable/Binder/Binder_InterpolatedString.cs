@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
             BoundExpression? receiver,
-            Symbol calledMember,
+            bool requiresInstanceReceiver,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
@@ -966,9 +966,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (argumentIndex)
                 {
-                    case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter when receiver != null:
-                        placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = calledMember.RequiresInstanceReceiver()
+                    case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                        Debug.Assert(receiver != null);
+                        valSafeToEscapeScope = requiresInstanceReceiver
                             ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
                             : Binder.ExternalScope;
                         isSuppressed = receiver.IsSuppressed;

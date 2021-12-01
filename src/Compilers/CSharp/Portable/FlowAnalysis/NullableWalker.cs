@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If a <see cref="BoundInterpolatedStringArgumentPlaceholder"/> is an alias for a real slot (ie, a receiver or argument that itself
         /// has a slot), the slot for which the placeholder is an alias.
         /// </summary>
-        private PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, int>? _interpolatedStringArgumentPlaceholderAliases;
+        private PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, VisitResult>? _interpolatedStringArgumentPlaceholderAliases;
 
         /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
@@ -3076,8 +3076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var arguments = node.Arguments;
-            var argumentResults = VisitArguments(node, arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded,
-                receiver: null, receiverState: default, invokedAsExtensionMethod: false).results;
+            var argumentResults = VisitArguments(node, arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, invokedAsExtensionMethod: false).results;
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
             return null;
         }
@@ -3247,7 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
                             // a default visit result
-                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol?)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.DefaultArguments, objectInitializer.Expanded, receiver: null, receiverState: default);
+                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol?)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.DefaultArguments, objectInitializer.Expanded);
                         }
 
                         if (symbol is object)
@@ -3280,8 +3279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
                 node.Expanded,
-                node.ImplicitReceiverOpt,
-                receiverState: NullableFlowState.NotNull,
                 node.InvokedAsExtensionMethod);
 
             Debug.Assert(reinferredMethod is object);
@@ -3361,25 +3358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)placeholder != null);
             return GetOrCreateSlot(placeholder, forceSlotEvenIfEmpty: true);
-        }
-
-        private bool TryGetPlaceholderSlot(BoundExpression node, out int slot)
-        {
-            if (_placeholderLocalsOpt?.TryGetValue(node, out var placeholderLocal) == true)
-            {
-                slot = GetOrCreateSlot(placeholderLocal);
-                return true;
-            }
-            else if (node is BoundInterpolatedStringArgumentPlaceholder argumentPlaceholder
-                     && _interpolatedStringArgumentPlaceholderAliases?.TryGetValue(argumentPlaceholder, out slot) == true)
-            {
-                return true;
-            }
-            else
-            {
-                slot = -1;
-                return false;
-            }
         }
 
         public override BoundNode? VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
@@ -4169,14 +4147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // access expressions.
                             break;
 
-                        case BoundKind.InterpolatedStringArgumentPlaceholder:
-                            if (TryGetPlaceholderSlot(operand, out slot) && PossiblyNullableType(operand.Type))
-                            {
-                                slotBuilder.Add(slot);
-                            }
-
-                            break;
-
                         default:
                             // Attempt to create a slot for the current thing. If there were any more conditional accesses,
                             // they would have been on top, so this is the last thing we need to specially handle.
@@ -4247,11 +4217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We should not blindly strip conversions here. Tracked by https://github.com/dotnet/roslyn/issues/36164
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
-
-            if (slot < 0 && expressionWithoutConversion.Kind == BoundKind.InterpolatedStringArgumentPlaceholder)
-            {
-                _ = TryGetPlaceholderSlot(expressionWithoutConversion, out slot);
-            }
 
             // Since we know for sure the slot is null (we just tested it), we know that dependent slots are not
             // reachable and therefore can be treated as not null.  However, we have not computed the proper
@@ -4908,7 +4873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<VisitArgumentResult> results;
             bool returnNotNull;
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
-                node.Expanded, node.ReceiverOpt, receiverState: NullableFlowState.NotNull, node.InvokedAsExtensionMethod, method);
+                node.Expanded, node.InvokedAsExtensionMethod, method);
 
             ApplyMemberPostConditions(node.ReceiverOpt, method);
 
@@ -5326,11 +5291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             bool expanded,
-            BoundExpression? receiver,
-            NullableFlowState receiverState,
             bool invokedAsExtensionMethod)
         {
-            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, receiver, receiverState, invokedAsExtensionMethod, method);
+            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method);
         }
 
         private ImmutableArray<VisitArgumentResult> VisitArguments(
@@ -5340,11 +5303,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol? property,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            bool expanded,
-            BoundExpression? receiver,
-            NullableFlowState receiverState)
+            bool expanded)
         {
-            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, receiver, receiverState, invokedAsExtensionMethod: false).results;
+            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod: false).results;
         }
 
         /// <summary>
@@ -5358,8 +5319,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             bool expanded,
-            BoundExpression? receiver,
-            NullableFlowState receiverState,
             bool invokedAsExtensionMethod,
             MethodSymbol? method = null)
         {
@@ -5369,7 +5328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
             // Visit the arguments and collect results
-            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded, receiver, receiverState);
+            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded);
 
             // Re-infer method type parameters
             if (method?.IsGenericMethod == true)
@@ -5612,9 +5571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parametersOpt,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            bool expanded,
-            BoundExpression? receiver,
-            NullableFlowState receiverState)
+            bool expanded)
         {
             Debug.Assert(!IsConditionalState);
             int n = arguments.Length;
@@ -5638,9 +5595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => null
                 };
 
-                if (possibleInterpolationData is ({ ArgumentPlaceholders.Length: > 1 }
-                                                  or { ArgumentPlaceholders.Length: 1, HasTrailingHandlerValidityParameter: false })
-                                                 and var interpolationData)
+                bool addedPlaceholders = false;
+                if (possibleInterpolationData is { } interpolationData && interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
                 {
                     foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                     {
@@ -5648,16 +5604,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
                             case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
-                                break;
+                            // We presume that all instance parameters were dereferenced by calling the instance method this handler was passed to. This isn't strictly
+                            // true: the handler constructor will be run before the receiver is dereferenced. However, if the dereference isn't safe, that will be a
+                            // much better error to report than a mismatched argument nullability error.
                             case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                                int slot = getInterpolatedStringHandlerPlaceholderSlot(placeholder, receiver);
-                                State[slot] = receiverState;
                                 break;
                             default:
                                 if (resultsBuilder.Count > placeholder.ArgumentIndex)
                                 {
-                                    slot = getInterpolatedStringHandlerPlaceholderSlot(placeholder, arguments[placeholder.ArgumentIndex]);
-                                    State[slot] = resultsBuilder[placeholder.ArgumentIndex].VisitResult.RValueType.State;
+                                    _interpolatedStringArgumentPlaceholderAliases ??= PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, VisitResult>.GetInstance();
+                                    _interpolatedStringArgumentPlaceholderAliases.Add(placeholder, resultsBuilder[placeholder.ArgumentIndex].VisitResult);
+                                    addedPlaceholders = true;
                                 }
                                 break;
                         }
@@ -5668,26 +5625,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _disableDiagnostics = defaultArguments[i] || previousDisableDiagnostics;
                 resultsBuilder.Add(VisitArgumentEvaluate(argument, GetRefKind(refKindsOpt, i), parameterAnnotations));
                 visitedParameters.Add(parameter);
+
+                if (addedPlaceholders)
+                {
+                    Debug.Assert(possibleInterpolationData.HasValue);
+                    Debug.Assert(_interpolatedStringArgumentPlaceholderAliases != null);
+                    foreach (var placeholder in possibleInterpolationData.GetValueOrDefault().ArgumentPlaceholders)
+                    {
+                        if (placeholder.ArgumentIndex >= 0)
+                        {
+                            _interpolatedStringArgumentPlaceholderAliases.Remove(placeholder);
+                        }
+                    }
+                }
             }
             _disableDiagnostics = previousDisableDiagnostics;
 
             SetInvalidResult();
             visitedParameters.Free();
             return resultsBuilder.ToImmutableAndFree();
-
-            int getInterpolatedStringHandlerPlaceholderSlot(BoundInterpolatedStringArgumentPlaceholder argumentPlaceholder, BoundExpression? originalExpression)
-            {
-                if (originalExpression != null && MakeSlot(originalExpression) is var existingSlot and > 0)
-                {
-                    _interpolatedStringArgumentPlaceholderAliases ??= PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, int>.GetInstance();
-                    _interpolatedStringArgumentPlaceholderAliases[argumentPlaceholder] = existingSlot;
-                    return existingSlot;
-                }
-                else
-                {
-                    return GetOrCreatePlaceholderSlot(argumentPlaceholder);
-                }
-            }
         }
 
         private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
@@ -8636,7 +8592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol method = node.Operator.Method;
                     VisitArguments(node, ImmutableArray.Create(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default, defaultArguments: default,
-                        expanded: true, receiver: null, receiverState: default, invokedAsExtensionMethod: false, method);
+                        expanded: true, invokedAsExtensionMethod: false, method);
                 }
 
                 resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
@@ -8796,7 +8752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
             }
 
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, receiverOpt, receiverState: NullableFlowState.NotNull);
+            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
@@ -8969,8 +8925,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
                     defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: false,
-                    receiver: null,
-                    receiverState: default,
                     invokedAsExtensionMethod: true,
                     enumeratorMethodInfo.Method);
 
@@ -9627,7 +9581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false, receiver: null, receiverState: default);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false);
             Debug.Assert(node.Type is null);
             SetNotNullResult(node);
             return null;
@@ -9708,12 +9662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
             }
-            else
-            {
-                receiverOpt = null;
-            }
 
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false, receiverOpt, receiverState: NullableFlowState.NotNull);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
@@ -9752,7 +9702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var arguments = node.Arguments;
-            var argumentResults = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false, receiver: null, receiverState: default);
+            var argumentResults = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
             return null;
         }
@@ -9833,7 +9783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
             _ = CheckPossibleNullReceiver(receiver);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false, receiver, receiverState: NullableFlowState.NotNull);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, defaultArguments: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             SetLvalueResultType(node, result);
@@ -9969,9 +9919,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
         {
-            if (TryGetPlaceholderSlot(node, out int slot) == true)
+            if (_interpolatedStringArgumentPlaceholderAliases?.TryGetValue(node, out VisitResult result) == true)
             {
-                SetResultType(node, TypeWithState.Create(node.Type, State[slot]));
+                SetResult(node, result.RValueType, result.LValueType);
             }
             else
             {
@@ -10074,7 +10024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAttribute(BoundAttribute node)
         {
             VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, defaultArguments: default,
-                expanded: node.ConstructorExpanded, receiver: null, receiverState: default, invokedAsExtensionMethod: false);
+                expanded: node.ConstructorExpanded, invokedAsExtensionMethod: false);
             foreach (var assignment in node.NamedArguments)
             {
                 Visit(assignment);
@@ -10142,8 +10092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default,
                 defaultArguments: default,
                 expanded: false,
-                receiver: null,
-                receiverState: default,
                 invokedAsExtensionMethod: false);
 
             var returnTypeWithAnnotations = node.FunctionPointer.Signature.ReturnTypeWithAnnotations;
