@@ -22,12 +22,11 @@ namespace Caravela.Compiler.UnitTests
 
         public LicenseSourceFactoryTests()
         {
-            var serviceProvider = new BackstageServiceProvider();
-            serviceProvider
-                .AddSingleton<IDiagnosticsSink>(_diagnostics)
+            var services = new BackstageServiceCollection()
+                .AddSingleton<IBackstageDiagnosticSink>(_diagnostics)
                 .AddStandardDirectories()
                 .AddStandardLicenseFilesLocations();
-            _services = serviceProvider;
+            _services = services.ToServiceProvider();
         }
 
         [Fact]
@@ -53,26 +52,6 @@ namespace Caravela.Compiler.UnitTests
         }
 
         [Fact]
-        public void CaravelaFileLicenseSourceCanBeCreated()
-        {
-            var factory = CreateFactory("File", "dummy.lic");
-            var sources = factory.Create();
-
-            Assert.Single(sources, s => s is FileLicenseSource);
-            _diagnostics.AssertEmpty();
-        }
-
-        [Fact]
-        public void CaravelaFileLicenseSourceNotCreatedWhenFileNotSpecified()
-        {
-            var factory = CreateFactory("File");
-            var sources = factory.Create();
-
-            Assert.Empty(sources);
-            _diagnostics.AssertEmpty();
-        }
-
-        [Fact]
         public void BuildOptionsLicenseSourceCanBeCreated()
         {
             var factory = CreateFactory("Property");
@@ -85,11 +64,10 @@ namespace Caravela.Compiler.UnitTests
         [Fact]
         public void MultipleDistinctSourcesCanBeCreated()
         {
-            var factory = CreateFactory("User,File,Property", "dummy.lic");
+            var factory = CreateFactory("User,Property");
             var sources = factory.Create();
 
             Assert.Collection(sources,
-                source => Assert.True(source is FileLicenseSource),
                 source => Assert.True(source is FileLicenseSource),
                 source => Assert.True(source is BuildOptionsLicenseSource));
             _diagnostics.AssertEmpty();
@@ -105,17 +83,12 @@ namespace Caravela.Compiler.UnitTests
             _diagnostics.AssertEmpty();
         }
 
-        private LicenseSourceFactory CreateFactory(string sourceNames, string? licenseFile = null)
+        private LicenseSourceFactory CreateFactory(string sourceNames)
         {
             var configuration = new Dictionary<string, string>
             {
                 { "build_property.CaravelaLicenseSources", sourceNames }
             };
-
-            if (licenseFile != null)
-            {
-                configuration.Add("build_property.CaravelaLicenseFile", licenseFile);
-            }
 
             var globalOptions = new CompilerAnalyzerConfigOptions(configuration.ToImmutableDictionary());
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(

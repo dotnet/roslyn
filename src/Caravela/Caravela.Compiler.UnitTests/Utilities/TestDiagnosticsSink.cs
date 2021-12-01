@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Caravela.Compiler.UnitTests.Utilities
 {
-    internal sealed class TestDiagnosticsSink : IDiagnosticsSink
+    internal sealed class TestDiagnosticsSink : IBackstageDiagnosticSink
     {
         private readonly List<string> _warnings = new();
         private readonly List<string> _errors = new();

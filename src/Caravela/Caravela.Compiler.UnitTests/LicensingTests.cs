@@ -26,11 +26,9 @@ namespace Caravela.Compiler.UnitTests
             var dir = Temp.CreateDirectory();
             var fileNameWithoutExtension = "temp";
             _src = dir.CreateFile($"{fileNameWithoutExtension}.cs").WriteAllText("class C { }");
-            var license = dir.CreateFile($"{fileNameWithoutExtension}.lic");
             var config = dir.CreateFile($"{fileNameWithoutExtension}.editorconfig").WriteAllText(
                 $@"is_global = true
-build_property.CaravelaLicenseSources = File
-build_property.CaravavelaLicenseFile = {license.Path}
+build_property.CaravelaLicenseSources = Property
 build_property.CaravelaFirstRunLicenseActivatorEnabled = False
 build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
 ");

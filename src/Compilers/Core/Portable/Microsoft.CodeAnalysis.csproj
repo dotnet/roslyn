@@ -22,10 +22,13 @@
   </PropertyGroup>
   <!-- <Caravela> -->
   <ItemGroup>
-    <AssemblyAttribute Include="Caravela.Compiler.Licensing.AssemblyBuildInfoAttribute">
-      <_Parameter1>$([System.DateTime]::UtcNow.ToString(o))</_Parameter1>
-      <_Parameter2>$(VersionPrefix)</_Parameter2>
-      <_Parameter3>$(VersionSuffix)</_Parameter3>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CaravelaCompilerVersion</_Parameter1>
+      <_Parameter2>$(Version)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CaravelaCompilerBuildDate</_Parameter1>
+      <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
   <!-- </Caravela> -->
@@ -48,7 +51,7 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <!-- <Caravela> -->
-    <PackageReference Include="PostSharp.Backstage.Settings" Version="$(BackstageVersion)" />
+    <PackageReference Include="PostSharp.Backstage.Settings" Version="$(PostSharpBackstageSettingsVersion)" />
     <!-- </Caravela> -->
   </ItemGroup>
   <ItemGroup>

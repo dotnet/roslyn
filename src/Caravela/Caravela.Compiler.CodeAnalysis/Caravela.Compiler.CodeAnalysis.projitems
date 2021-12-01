@@ -13,7 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticBagSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\AssemblyBuildInfoAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\BuildOptionsLicenseSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerApplicationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerLicenseConsumer.cs" />

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
@@ -46,44 +45,17 @@ namespace Caravela.Compiler.Licensing
                         yield return FileLicenseSource.CreateUserLicenseFileLicenseSource(_services);
                         break;
 
-                    case "file":
-                        if (TryCreateFileLicenseSource(out var fileLicenseSource))
-                        {
-                            yield return fileLicenseSource;
-                        }
-                        else
-                        {
-                            yield break;
-                        }
-
-                        break;
-
                     case "property":
                         yield return new BuildOptionsLicenseSource(_analyzerConfigOptionsProvider, _services);
                         break;
 
                     default:
-                        var diagnostics = _services.GetRequiredService<IDiagnosticsSink>();
+                        var diagnostics = _services.GetRequiredService<IBackstageDiagnosticSink>();
                         diagnostics.ReportError(
                             $"Unknown license source '{sourceName}' configured in the CaravelaLicenseSources property.");
                         break;
                 }
             }
-        }
-
-        private bool TryCreateFileLicenseSource(
-            [NotNullWhen(true)] out FileLicenseSource? fileLicenseSource)
-        {
-            if (!_analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                "build_property.CaravelaLicenseFile",
-                out var path))
-            {
-                fileLicenseSource = null;
-                return false;
-            }
-
-            fileLicenseSource = new FileLicenseSource(path, _services);
-            return true;
         }
     }
 }

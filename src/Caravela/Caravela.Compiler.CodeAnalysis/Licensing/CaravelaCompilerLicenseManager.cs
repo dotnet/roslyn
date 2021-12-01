@@ -19,7 +19,7 @@ namespace Caravela.Compiler.Licensing
         {
             _consumptionManager = services.GetRequiredService<ILicenseConsumptionManager>();
 
-            var diagnosticsSink = services.GetRequiredService<IDiagnosticsSink>();
+            var diagnosticsSink = services.GetRequiredService<IBackstageDiagnosticSink>();
             _consumer = new CaravelaCompilerLicenseConsumer(diagnosticsSink);
         }
 

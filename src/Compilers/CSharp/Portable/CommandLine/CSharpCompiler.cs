@@ -21,7 +21,6 @@ using PostSharp.Backstage.Licensing;
 using PostSharp.Backstage.Licensing.Consumption;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 using PostSharp.Backstage.Licensing.Registration;
-using PostSharp.Backstage.Licensing.Registration.Evaluation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -429,37 +428,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bool.Parse(firstRunLicenseActivatorEnabledString);
             }
             
-            var services = new BackstageServiceProvider();
+            var serviceCollection = new BackstageServiceCollection();
 
-            services
+            serviceCollection
                 .AddCurrentDateTimeProvider()
                 .AddFileSystem()
                 .AddStandardDirectories()
-                .AddSingleton<IDiagnosticsSink>(new DiagnosticBagSink(diagnostics))
+                .AddSingleton<IBackstageDiagnosticSink>(new DiagnosticBagSink(diagnostics))
                 .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo());
 
             if (IsLicensingBypassed())
             {
-                services.AddSingleton<ILicenseConsumptionManager>(new TestLicenseConsumptionManager());
+                serviceCollection.AddSingleton<ILicenseConsumptionManager>(new TestLicenseConsumptionManager());
             }
             else
             {
-                services.AddStandardLicenseFilesLocations();
+                serviceCollection.AddStandardLicenseFilesLocations();
 
                 if (IsFirstRunLicenseActivatorEnabled())
                 {
                     // TODO: Replace with the AddFirstRunEvaluationLicenseActivator when licensing becomes usable.
-                    services.AddSingleton<IFirstRunLicenseActivator>(new TimeBombLicenseActivator(services));
+                    serviceCollection.AddSingleton<IFirstRunLicenseActivator>(new TimeBombLicenseActivator(serviceCollection.ToServiceProvider()));
                     //services.AddFirstRunEvaluationLicenseActivator();
                 }
 
-                LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, services);
+                LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, serviceCollection.ToServiceProvider());
                 ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
 
-                services.AddLicenseConsumption(licenseSources);
+                serviceCollection.AddLicenseConsumption(licenseSources);
             }
 
-            return services;
+            return serviceCollection.ToServiceProvider();
         }
 
         private protected override TransformersResult RunTransformers(

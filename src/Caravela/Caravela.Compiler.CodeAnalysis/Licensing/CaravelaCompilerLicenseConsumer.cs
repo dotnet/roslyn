@@ -16,14 +16,14 @@ namespace Caravela.Compiler.Licensing
         /// </summary>
         public string? TargetTypeName => null;
 
-        public IDiagnosticsSink Diagnostics { get; }
+        public IBackstageDiagnosticSink Diagnostics { get; }
 
         /// <summary>
         /// Gets <see cref="IDiagnosticsLocation" /> of the licensed feature request.
         /// </summary>
         public IDiagnosticsLocation? DiagnosticsLocation => null;
 
-        public CaravelaCompilerLicenseConsumer(IDiagnosticsSink diagnosticsSink)
+        public CaravelaCompilerLicenseConsumer(IBackstageDiagnosticSink diagnosticsSink)
         {
             Diagnostics = diagnosticsSink;
         }

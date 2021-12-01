@@ -15,7 +15,7 @@ namespace Caravela.Compiler.Licensing
         internal const int WarningPeriod = 15;
         
         private readonly IDateTimeProvider _time;
-        private readonly IDiagnosticsSink _diagnostics;
+        private readonly IBackstageDiagnosticSink _diagnostics;
         private readonly IApplicationInfo _applicationInfo;
         
         private bool _warningReported;
@@ -23,7 +23,7 @@ namespace Caravela.Compiler.Licensing
         public TimeBombLicenseActivator(IServiceProvider services)
         {
             _time = services.GetRequiredService<IDateTimeProvider>();
-            _diagnostics = services.GetRequiredService<IDiagnosticsSink>();
+            _diagnostics = services.GetRequiredService<IBackstageDiagnosticSink>();
             _applicationInfo = services.GetRequiredService<IApplicationInfo>();
         }
 

@@ -22,10 +22,10 @@ namespace Caravela.Compiler
             ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             // TODO: Configure for Try.Caravela
-            var services = new BackstageServiceProvider();
+            var services = new BackstageServiceCollection();
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, services, CancellationToken.None);
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, services.ToServiceProvider(), CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
     }

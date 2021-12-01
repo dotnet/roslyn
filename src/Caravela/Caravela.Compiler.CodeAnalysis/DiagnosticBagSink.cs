@@ -7,8 +7,8 @@ using PostSharp.Backstage.Extensibility;
 
 namespace Caravela.Compiler
 {
-    // TODO: IDiagnosticsSink needs to be generalized to provide all data for DiagnosticDescriptor
-    internal class DiagnosticBagSink : IDiagnosticsSink
+    // TODO: IBackstageDiagnosticSink needs to be generalized to provide all data for Diagnostic.Create()
+    internal class DiagnosticBagSink : IBackstageDiagnosticSink
     {
         private readonly DiagnosticBag _diagnostics;
 
