@@ -41,7 +41,8 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Orientation="Vertical" Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" >
+    <Border Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" BorderThickness="1" BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" >
+        <StackPanel Orientation="Vertical"  >
         <Grid Margin="0 0 0 10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="22" />
@@ -116,6 +117,7 @@
             <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" IsSelected="{Binding Path=RenameFileFlag, Mode=TwoWay}" />
         </StackPanel>
 
-        <TextBlock Text="Enter to rename, Shift+Enter to preview" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />
+        <TextBlock Text="{Binding ElementName=control, Path=SubmitText}" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />
     </StackPanel>
+    </Border>
 </UserControl>

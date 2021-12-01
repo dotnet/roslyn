@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
     /// <summary>
     /// Interaction logic for InlineRenameOptionIcon.xaml
     /// </summary>
-    internal partial class InlineRenameOptionIcon : UserControl, INotifyPropertyChanged
+    internal partial class InlineRenameOptionIcon : UserControl
     {
         public static readonly DependencyProperty MonikerProperty = DependencyProperty.Register(
             "Moniker",
@@ -25,21 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             typeof(bool),
             typeof(InlineRenameOptionIcon));
 
-        public event EventHandler? SelectionChanged;
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public bool IsSelected
         {
             get => (bool)GetValue(SelectedProperty);
-            set
-            {
-                if (value != IsSelected)
-                {
-                    SetValue(SelectedProperty, value);
-                    SelectionChanged?.Invoke(this, EventArgs.Empty);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
-                }
-            }
+            set => SetValue(SelectedProperty, value);
         }
 
         public ImageMoniker Moniker

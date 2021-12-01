@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
         public string ApplyRename => EditorFeaturesResources.Apply1;
         public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
+        public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
         private void TextView_CursorChanged(object sender, CaretPositionChangedEventArgs e)
