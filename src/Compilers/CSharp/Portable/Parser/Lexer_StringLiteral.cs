@@ -276,7 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// things worse.
             /// </summary>
             public SyntaxDiagnosticInfo? Error = null;
-            private bool EncounteredUnrecoverableError = false;
 
             public InterpolatedStringScanner(Lexer lexer)
             {
@@ -305,19 +304,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // only need to record the first error we hit
                 Error ??= error;
-
-                // No matter what, ensure that we know we hit an error we can't recover from.
-                EncounteredUnrecoverableError = true;
-            }
-
-            private void TrySetRecoverableError(SyntaxDiagnosticInfo error)
-            {
-                // only need to record the first error we hit
-                Error ??= error;
-
-                // Do not touch 'EncounteredUnrecoverableError'.  If we already encountered something unrecoverable,
-                // that doesn't change.  And if we haven't hit something unrecoverable then we stay in that mode as this
-                // is a recoverable error.
             }
 
             internal void ScanInterpolatedStringLiteralTop(
@@ -638,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// for when we are attempting to recover from that situation.  Note that just running into new lines will
             /// not make us think we're in runaway lexing.
             /// </summary>
-            private bool RecoveringFromRunawayLexing() => this.EncounteredUnrecoverableError;
+            private bool RecoveringFromRunawayLexing() => Error != null;
 
             private void ScanInterpolatedStringLiteralNestedString()
             {
