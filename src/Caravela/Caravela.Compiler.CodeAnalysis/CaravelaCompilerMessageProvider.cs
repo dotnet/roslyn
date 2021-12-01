@@ -211,8 +211,8 @@ namespace Caravela.Compiler
                 ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
                 ERR_InvalidIntrinsicUse => "Argument is not valid for Caravela intrinsic method.",
-                ERR_LicensingMessage => "The licensing emitted an error.",
-                WRN_LicensingMessage => "The licensing emitted a warning.",
+                ERR_LicensingMessage => "Licensing error.",
+                WRN_LicensingMessage => "Licensing warning.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
