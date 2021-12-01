@@ -434,22 +434,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            foreach (var syntaxRef in SyntaxReferences)
+            if (IsReservedTypeName(Name))
             {
-                SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                foreach (var syntaxRef in SyntaxReferences)
                 {
-                    BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
-                    DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
-                    _ => null
-                };
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
 
-                ReportReservedTypeNamed(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                    ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                }
             }
 
             return result;
         }
 
-        internal static void ReportReservedTypeNamed(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        internal static bool IsReservedTypeName(string? name)
+        {
+            return name is { Length: > 0 } && name.All(c => char.IsLower(c) && c < 128);
+        }
+
+        internal static void ReportReservedTypeName(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
         {
             if (diagnostics is null)
             {
@@ -463,8 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
                 }
             }
-            else if (name is { Length: > 0 } &&
-                name.All(c => char.IsLower(c) && c < 128))
+            else if (IsReservedTypeName(name))
             {
                 diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
             }

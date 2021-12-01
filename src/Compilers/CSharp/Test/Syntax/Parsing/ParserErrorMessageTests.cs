@@ -5823,6 +5823,9 @@ class MyClass
                 // (2,7): warning CS0440: Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias
                 // using global = MyClass;   // CS0440
                 Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global").WithLocation(2, 7),
+                // (2,7): warning CS8981: The type name 'global' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "global").WithArguments("global").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using global = MyClass;   // CS0440
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using global = MyClass;").WithLocation(2, 1));

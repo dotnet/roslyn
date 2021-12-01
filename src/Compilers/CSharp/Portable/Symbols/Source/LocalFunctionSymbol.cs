@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                SourceMemberContainerTypeSymbol.ReportReservedTypeNamed(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+                SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)

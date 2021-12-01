@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_NoAliasHere, location);
                             }
 
-                            SourceMemberContainerTypeSymbol.ReportReservedTypeNamed(identifier.Text, compilation, diagnostics, location);
+                            SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, compilation, diagnostics, location);
 
                             string identifierValueText = identifier.ValueText;
                             bool skipInLookup = false;
