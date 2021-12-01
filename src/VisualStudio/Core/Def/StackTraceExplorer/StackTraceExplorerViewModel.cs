@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     {
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
-        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         public ObservableCollection<FrameViewModel> Frames { get; } = new();
 
         private bool _isLoading;
@@ -50,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public string InstructionText => ServicesVSResources.Paste_valid_stack_trace;
 
-        public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap, IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
+        public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
@@ -58,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
             _classificationTypeMap = classificationTypeMap;
             _formatMap = formatMap;
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
 
             Frames.CollectionChanged += CallstackLines_CollectionChanged;
         }
@@ -120,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             => frame switch
             {
                 IgnoredFrame ignoredFrame => new IgnoredFrameViewModel(ignoredFrame, _formatMap, _classificationTypeMap),
-                ParsedStackFrame stackFrame => new StackFrameViewModel(stackFrame, _threadingContext, _workspace, _formatMap, _classificationTypeMap, _streamingFindUsagesPresenter),
+                ParsedStackFrame stackFrame => new StackFrameViewModel(stackFrame, _threadingContext, _workspace, _formatMap, _classificationTypeMap),
                 _ => throw ExceptionUtilities.UnexpectedValue(frame)
             };
     }
