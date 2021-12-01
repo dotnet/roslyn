@@ -411,7 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         
         // <Caravela>
-        protected virtual bool IsLicensingBypassed() => false;
+        
+        // Used for testing.
+        protected virtual ILicenseConsumptionManager? GetCustomLicenseConsumptionManager() => null;
         
         private IServiceProvider CreateServices(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
         {
@@ -437,9 +439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .AddSingleton<IBackstageDiagnosticSink>(new DiagnosticBagSink(diagnostics))
                 .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo());
 
-            if (IsLicensingBypassed())
+            var customLicenseConsumptionManager = GetCustomLicenseConsumptionManager();
+            
+            if (customLicenseConsumptionManager != null)
             {
-                serviceCollection.AddSingleton<ILicenseConsumptionManager>(new TestLicenseConsumptionManager());
+                serviceCollection.AddSingleton<ILicenseConsumptionManager>(customLicenseConsumptionManager);
             }
             else
             {

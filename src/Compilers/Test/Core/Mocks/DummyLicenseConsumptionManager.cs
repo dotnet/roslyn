@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// <Caravela />
+
 using System;
 using PostSharp.Backstage.Licensing;
 using PostSharp.Backstage.Licensing.Consumption;
 
-namespace Roslyn.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities.Mocks
 {
     public class DummyLicenseConsumptionManager : ILicenseConsumptionManager
     {

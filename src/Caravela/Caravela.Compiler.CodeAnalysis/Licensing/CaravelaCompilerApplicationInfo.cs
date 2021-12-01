@@ -10,8 +10,15 @@ using PostSharp.Backstage.Extensibility;
 
 namespace Caravela.Compiler.Licensing
 {
+    /// <summary>
+    /// Provide application information stored using <see cref="AssemblyMetadataAttribute"/>.
+    /// </summary>
     internal class CaravelaCompilerApplicationInfo : IApplicationInfo
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CaravelaCompilerApplicationInfo"/> class.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Some of the required assembly metadata were not found.</exception>
         public CaravelaCompilerApplicationInfo()
         {
             var metadataAttributes =
@@ -58,7 +65,7 @@ namespace Caravela.Compiler.Licensing
             if (!AllMetadataFound())
             {
                 throw new InvalidOperationException(
-                    $"{nameof(CaravelaCompilerApplicationInfo)} has failed to initialize.");
+                    $"{nameof(CaravelaCompilerApplicationInfo)} has failed to find some of the required assembly metadata.");
             }
 
             this.Version = version!;
@@ -66,12 +73,16 @@ namespace Caravela.Compiler.Licensing
             this.BuildDate = buildDate!.Value;
         }
 
+        /// <inheritdoc />
         public DateTime BuildDate { get; }
 
+        /// <inheritdoc />
         public string Name => "Caravela Compiler";
 
+        /// <inheritdoc />
         public Version Version { get; }
 
+        /// <inheritdoc />
         public bool IsPrerelease { get; }
     }
 }

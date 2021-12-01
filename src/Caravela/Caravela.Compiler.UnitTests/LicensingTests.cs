@@ -10,6 +10,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 using PostSharp.Backstage.Licensing.Licenses;
 using Xunit;
@@ -37,7 +38,7 @@ build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : 
                 transformers: transformer == null
                     ? ImmutableArray<ISourceTransformer>.Empty
                     : new[] { transformer }.ToImmutableArray(),
-                isLicensingBypassed: false);
+                customLicenseConsumptionManager: new DummyLicenseConsumptionManager());
 
             return csc;
         }

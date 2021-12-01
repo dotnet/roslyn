@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerLicenseConsumer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerLicenseManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\LicenseSourceFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\TestLicenseConsumptionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\TimeBombLicenseActivator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDiagnosticSuppressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />

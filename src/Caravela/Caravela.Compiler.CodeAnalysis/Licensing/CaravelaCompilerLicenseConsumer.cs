@@ -7,22 +7,28 @@ using PostSharp.Backstage.Licensing.Consumption;
 
 namespace Caravela.Compiler.Licensing
 {
+    /// <summary>
+    /// General <see cref="ILicenseConsumer"/> for the Caravela Compiler
+    /// reporting diagnotics via the give <see cref="IBackstageDiagnosticSink"/>. 
+    /// </summary>
     internal class CaravelaCompilerLicenseConsumer : ILicenseConsumer
     {
+        /// <inheritdoc />
         public string? TargetTypeNamespace => null;
 
-        /// <summary>
-        /// Gets the name of the type requiring a licensed feature.
-        /// </summary>
+        /// <inheritdoc />
         public string? TargetTypeName => null;
 
+        /// <inheritdoc />
         public IBackstageDiagnosticSink Diagnostics { get; }
 
-        /// <summary>
-        /// Gets <see cref="IDiagnosticsLocation" /> of the licensed feature request.
-        /// </summary>
+        /// <inheritdoc />
         public IDiagnosticsLocation? DiagnosticsLocation => null;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CaravelaCompilerLicenseConsumer"/> class.
+        /// </summary>
+        /// <param name="diagnosticsSink">Diagnostics sink.</param>
         public CaravelaCompilerLicenseConsumer(IBackstageDiagnosticSink diagnosticsSink)
         {
             Diagnostics = diagnosticsSink;

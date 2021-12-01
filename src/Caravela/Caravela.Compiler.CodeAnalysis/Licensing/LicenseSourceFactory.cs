@@ -12,21 +12,37 @@ using PostSharp.Backstage.Licensing.Consumption.Sources;
 
 namespace Caravela.Compiler.Licensing
 {
+    /// <summary>
+    /// Factory class creating license sources enabled using
+    /// the CaravelaLicenseSources MSBuild property / global analyzer option.
+    /// </summary>
     internal class LicenseSourceFactory
     {
         private readonly AnalyzerConfigOptionsProvider _analyzerConfigOptionsProvider;
         private readonly IServiceProvider _services;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LicenseSourceFactory"/> class.
+        /// </summary>
+        /// <param name="analyzerConfigOptionsProvider">Data source.</param>
+        /// <param name="services">Service provider.</param>
         public LicenseSourceFactory(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, IServiceProvider services)
         {
             _analyzerConfigOptionsProvider = analyzerConfigOptionsProvider;
             _services = services;
         }
 
+        /// <summary>
+        /// Creates the license sources enabled using
+        /// the CaravelaLicenseSources MSBuild property / global analyzer option. 
+        /// </summary>
+        /// <returns><see cref="IEnumerable{T}"/> creating the license sources.</returns>
+        /// <exception cref="InvalidOperationException">The CaravelaLicenseSources global analyzer option is missing.</exception>
         public IEnumerable<ILicenseSource> Create()
         {
             // TODO: trace
 
+            // See src\Caravela\doc\Properties.md.
             if (!_analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
                 "build_property.CaravelaLicenseSources",
                 out var sourcesConfig))

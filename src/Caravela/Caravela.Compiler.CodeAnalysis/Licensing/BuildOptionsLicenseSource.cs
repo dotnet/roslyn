@@ -9,10 +9,19 @@ using PostSharp.Backstage.Licensing.Consumption.Sources;
 
 namespace Caravela.Compiler.Licensing
 {
+    /// <summary>
+    /// Provides licenses parsed from license keys given using
+    /// the CaravelaLicense MSBuild property / global analyzer option.
+    /// </summary>
     internal class BuildOptionsLicenseSource : LicenseStringsLicenseSourceBase
     {
         private readonly AnalyzerConfigOptionsProvider _analyzerConfigProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BuildOptionsLicenseSource"/> class.
+        /// </summary>
+        /// <param name="analyzerConfigOptionsProvider">Data source.</param>
+        /// <param name="services">Service provider.</param>
         public BuildOptionsLicenseSource(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
             IServiceProvider services)
             : base(services)
