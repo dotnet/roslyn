@@ -272,12 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private readonly InterpolatedStringKind _kind;
 
             /// <summary>
-            /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
-            /// interpolations).  The first are true syntax errors where we do not know what it is going on and have no
-            /// good strategy to get back on track.  This happens when we see things in the interpolation we truly do
-            /// not know what to do with, or when we find we've gotten into an unbalanced state with the bracket pairs
-            /// we're consuming.  In this case, we will often choose to bail out rather than go on and potentially make
-            /// things worse.
+            /// Error encountered while scanning.  If we run into an error, then we'll attempt to stop parsing at the
+            /// next potential ending location to prevent compounding the issue.
             /// </summary>
             public SyntaxDiagnosticInfo? Error = null;
 
