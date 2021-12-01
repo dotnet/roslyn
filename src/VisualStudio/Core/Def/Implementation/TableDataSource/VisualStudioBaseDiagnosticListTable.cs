@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -51,8 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
         {
             public abstract string BuildTool { get; }
+            [MemberNotNullWhen(true, nameof(TrackingDocumentId))]
             public abstract bool SupportSpanTracking { get; }
-            public abstract DocumentId TrackingDocumentId { get; }
+            public abstract DocumentId? TrackingDocumentId { get; }
         }
 
         protected class AggregatedKey
@@ -68,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 Kind = kind;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj is not AggregatedKey other)
                 {
