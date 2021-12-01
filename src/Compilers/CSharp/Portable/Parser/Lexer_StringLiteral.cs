@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ScanStringLiteral(ref TokenInfo info, bool inDirective)
         {
             var quoteCharacter = TextWindow.PeekChar();
-            Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
+            Debug.Assert(quoteCharacter is '\'' or '"');
 
             TextWindow.AdvanceChar();
             _builder.Length = 0;
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             var escapeStart = _lexer.TextWindow.Position;
                             char ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
-                            if (ch == '{' || ch == '}')
+                            if (ch is '{' or '}')
                             {
                                 TrySetUnrecoverableError(_lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch));
                             }
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // normal string & char constants can have escapes
                         var pos = _lexer.TextWindow.Position;
                         ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
-                        if (ch == '{' || ch == '}')
+                        if (ch is '{' or '}')
                         {
                             TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch));
                         }
