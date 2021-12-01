@@ -21079,6 +21079,7 @@ class CM
             var text = @"
 using one = System.Console;
 using @two = System.Console;
+using three = System;
 using Ten = System.Console;
 using cédille = System.Console;
 ";
@@ -21094,11 +21095,17 @@ using cédille = System.Console;
                 // using @two = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @two = System.Console;").WithLocation(3, 1),
                 // (4,1): hidden CS8019: Unnecessary using directive.
-                // using Ten = System.Console;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(4, 1),
+                // using three = System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using three = System;").WithLocation(4, 1),
+                // (4,7): warning CS8981: The type name 'three' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using three = System;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "three").WithArguments("three").WithLocation(4, 7),
                 // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Ten = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(5, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
                 // using cédille = System.Console;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(5, 1)
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(6, 1)
             };
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
@@ -21113,11 +21120,14 @@ using cédille = System.Console;
                 // using @two = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @two = System.Console;").WithLocation(3, 1),
                 // (4,1): hidden CS8019: Unnecessary using directive.
-                // using Ten = System.Console;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(4, 1),
+                // using three = System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using three = System;").WithLocation(4, 1),
                 // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Ten = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Ten = System.Console;").WithLocation(5, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
                 // using cédille = System.Console;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(5, 1)
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using cédille = System.Console;").WithLocation(6, 1)
                 );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));

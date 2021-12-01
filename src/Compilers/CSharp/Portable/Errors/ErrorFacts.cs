@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
+            // Warning wave warnings (warning level > 4) should be documented in
+            // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
                 case ErrorCode.WRN_LowerCaseTypeName:
