@@ -58,9 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             public readonly ImmutableArray<DocumentId> DocumentIds;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly int Kind;
+            public readonly AnalysisKind Kind;
 
-            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, int kind)
+            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, AnalysisKind kind)
             {
                 DocumentIds = documentIds;
                 Analyzer = analyzer;
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public override int GetHashCode()
-                => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), Kind));
+                => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)Kind));
         }
     }
 }
