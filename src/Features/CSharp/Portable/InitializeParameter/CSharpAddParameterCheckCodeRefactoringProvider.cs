@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 @else: null);
         }
 
-        protected override Document? TryAddNullCheckToParameterDeclaration(Document document, ParameterSyntax parameterSyntax)
+        protected override Document? TryAddNullCheckToParameterDeclaration(Document document, ParameterSyntax parameterSyntax, CancellationToken cancellationToken)
         {
             var tree = parameterSyntax.SyntaxTree;
             var options = (CSharpParseOptions)tree.Options;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             // We expect the syntax tree to already be in memory since we already have a node from the tree
-            var syntaxRoot = tree.GetRoot();
+            var syntaxRoot = tree.GetRoot(cancellationToken);
             syntaxRoot = syntaxRoot.ReplaceNode(
                 parameterSyntax,
                 parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));

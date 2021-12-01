@@ -70,7 +70,6 @@ class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.Preview,
-                OffersEmptyRefactoring = false,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();
@@ -95,7 +94,6 @@ class C
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.Preview,
-                OffersEmptyRefactoring = false,
                 TestCode = testCode,
                 FixedCode = testCode
             }.RunAsync();

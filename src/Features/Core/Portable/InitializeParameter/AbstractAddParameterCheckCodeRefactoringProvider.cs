@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
-        protected abstract Document? TryAddNullCheckToParameterDeclaration(
-            Document document,
-            TParameterSyntax parameterSyntax);
+        protected abstract Document? TryAddNullCheckToParameterDeclaration(Document document, TParameterSyntax parameterSyntax, CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var parameterNodes = generator.GetParameters(functionDeclaration);
+                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(functionDeclaration);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (parameterSyntax, parameter) = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
                 if (parameter == null)
@@ -171,14 +169,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document;
         }
 
-        private static (TParameterSyntax?, IParameterSymbol?) GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static (TParameterSyntax?, IParameterSymbol?) GetParameterAtOrdinal(int index, IReadOnlyList<TParameterSyntax> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             foreach (var parameterNode in parameterNodes)
             {
                 var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(parameterNode, cancellationToken);
                 if (index == parameter.Ordinal)
                 {
-                    return ((TParameterSyntax)parameterNode, parameter);
+                    return (parameterNode, parameter);
                 }
             }
 
@@ -334,7 +332,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             // First see if we can adopt the '!!' parameter null checking syntax.
-            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax);
+            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax, cancellationToken);
             if (modifiedDocument != null)
             {
                 return modifiedDocument;
