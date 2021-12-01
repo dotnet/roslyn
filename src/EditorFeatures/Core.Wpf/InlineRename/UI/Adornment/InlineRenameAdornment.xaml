@@ -102,7 +102,7 @@
             <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
             <CheckBox Name="FileRenameCheckbox" 
                     Content="{Binding Path=FileRenameString}" 
-                    Margin="0" 
+                    Margin="0,5,0,0"
                     IsChecked="{Binding Path=RenameFileFlag, Mode=TwoWay}" 
                     IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}" 
                     Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
@@ -110,10 +110,10 @@
 
         <!-- Collapsed View -->
         <StackPanel Orientation="Horizontal" Visibility="{Binding IsCollapsed, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.OverloadBehavior}" />
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.CommentCode}" />
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.StringQuote}" />
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.OverloadBehavior}" IsSelected="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"/>
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.CommentCode}" IsSelected="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.StringQuote}" IsSelected="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
+            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" IsSelected="{Binding Path=RenameFileFlag, Mode=TwoWay}" />
         </StackPanel>
 
         <TextBlock Text="Enter to rename, Shift+Enter to preview" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />

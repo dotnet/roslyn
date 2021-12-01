@@ -46,7 +46,7 @@
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="HoverBorder" Property="BorderBrush" Value="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" />
                                     </Trigger>
-                                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                         <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" />
                                     </DataTrigger>
                                 </ControlTemplate.Triggers>
