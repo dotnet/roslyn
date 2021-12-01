@@ -260,6 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Verbatim,
         }
 
+        /// <summary>
+        /// Non-copyable ref-struct so that this will only live on the stack for the lifetime of the lexer/parser
+        /// recursing to process interpolated strings.
+        /// </summary>
         [NonCopyable]
         private ref struct InterpolatedStringScanner
         {
