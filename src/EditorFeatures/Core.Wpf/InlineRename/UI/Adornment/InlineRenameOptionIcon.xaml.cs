@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             typeof(bool),
             typeof(InlineRenameOptionIcon));
 
+        public static readonly DependencyProperty TooltipProperty = DependencyProperty.Register(
+            "Tooltip",
+            typeof(string),
+            typeof(InlineRenameOptionIcon));
+
         public bool IsSelected
         {
             get => (bool)GetValue(SelectedProperty);
@@ -35,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
         {
             get => (ImageMoniker)GetValue(MonikerProperty);
             set => SetValue(MonikerProperty, value);
+        }
+
+        public new string ToolTip
+        {
+            get => (string)GetValue(ToolTipProperty);
+            set => SetValue(ToolTipProperty, value);
         }
 
         public InlineRenameOptionIcon()

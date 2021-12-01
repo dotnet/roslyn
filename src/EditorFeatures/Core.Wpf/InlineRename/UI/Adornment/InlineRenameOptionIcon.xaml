@@ -24,7 +24,7 @@
     </UserControl.Resources>
 
     <Grid>
-        <Button Click="ToggleSelect" Background="Transparent" Margin="2">
+        <Button Click="ToggleSelect" Background="Transparent" Margin="2" ToolTip="{Binding Tooltip}">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">

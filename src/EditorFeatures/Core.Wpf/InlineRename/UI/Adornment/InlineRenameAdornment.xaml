@@ -41,8 +41,11 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" BorderThickness="1" BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" >
-        <StackPanel Orientation="Vertical"  >
+    <Border 
+        Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}" 
+        BorderThickness="1" 
+        BorderBrush="{DynamicResource {x:Static rename:InlineRenameColors.ButtonBorderBrush}}" >
+        <StackPanel Orientation="Vertical" Margin="5" >
         <Grid Margin="0 0 0 10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="22" />
@@ -111,10 +114,26 @@
 
         <!-- Collapsed View -->
         <StackPanel Orientation="Horizontal" Visibility="{Binding IsCollapsed, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.OverloadBehavior}" IsSelected="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"/>
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.CommentCode}" IsSelected="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.StringQuote}" IsSelected="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
-            <local:InlineRenameOptionIcon Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" IsSelected="{Binding Path=RenameFileFlag, Mode=TwoWay}" />
+            <local:InlineRenameOptionIcon 
+                Moniker="{x:Static imagecatalog:KnownMonikers.OverloadBehavior}" 
+                IsSelected="{Binding Path=RenameOverloadFlag, Mode=TwoWay}" 
+                ToolTip="{Binding ElementName=control, Path=RenameOverloads}"/>
+            
+            <local:InlineRenameOptionIcon 
+                Moniker="{x:Static imagecatalog:KnownMonikers.CommentCode}" 
+                IsSelected="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}"
+                ToolTip="{Binding ElementName=control, Path=SearchInComments}"/>
+            
+            <local:InlineRenameOptionIcon 
+                Moniker="{x:Static imagecatalog:KnownMonikers.StringQuote}" 
+                IsSelected="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" 
+                ToolTip="{Binding ElementName=control, Path=SearchInStrings}"/>
+            
+            <local:InlineRenameOptionIcon 
+                Moniker="{x:Static imagecatalog:KnownMonikers.ClassFile}" 
+                IsSelected="{Binding Path=RenameFileFlag, Mode=TwoWay}" 
+                ToolTip="{Binding Path=FileRenameString}"/>
+            
         </StackPanel>
 
         <TextBlock Text="{Binding ElementName=control, Path=SubmitText}" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />
