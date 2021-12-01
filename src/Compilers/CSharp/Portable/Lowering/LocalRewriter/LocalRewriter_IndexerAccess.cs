@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (unloweredExpr is BoundObjectCreationExpression { Constructor: MethodSymbol constructor, Arguments: { Length: 2 } arguments } &&
                      (object)constructor == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
                      arguments[0] is { Type.SpecialType: SpecialType.System_Int32, ConstantValue.Value: int _ and >= 0 } index &&
-                     arguments[1] is { ConstantValue.Value: bool fromEnd })
+                     arguments[1] is { Type.SpecialType: SpecialType.System_Boolean, ConstantValue.Value: bool fromEnd })
             {
                 if (fromEnd)
                 {
