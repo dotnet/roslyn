@@ -4218,20 +4218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression is BoundValuePlaceholderBase placeholder)
             {
-                if (_resultForPlaceholdersOpt != null)
+                if (_resultForPlaceholdersOpt != null &&
+                    _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value))
                 {
-                    if (_resultForPlaceholdersOpt.TryGetValue(placeholder, out var value))
-                    {
-                        expression = value.Replacement;
-                    }
-                    else
-                    {
-                        Debug.Assert(!PlaceholderMustBeRegistered(placeholder));
-                        return;
-                    }
+                    expression = value.Replacement;
                 }
                 else
                 {
+                    Debug.Assert(!PlaceholderMustBeRegistered(placeholder));
                     return;
                 }
             }
@@ -10060,21 +10054,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPlaceholderWithReplacement(BoundValuePlaceholderBase node)
         {
-            if (_resultForPlaceholdersOpt != null)
+            if (_resultForPlaceholdersOpt != null &&
+                _resultForPlaceholdersOpt.TryGetValue(node, out var value))
             {
-                if (_resultForPlaceholdersOpt.TryGetValue(node, out var value))
-                {
-                    var result = value.Result;
-                    SetResult(node, result.RValueType, result.LValueType);
-                    return;
-                }
-                else
-                {
-                    Debug.Assert(!PlaceholderMustBeRegistered(node));
-                }
+                var result = value.Result;
+                SetResult(node, result.RValueType, result.LValueType);
             }
-
-            SetNotNullResult(node);
+            else
+            {
+                Debug.Assert(!PlaceholderMustBeRegistered(node));
+                SetNotNullResult(node);
+            }
         }
 
         public override BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node)
