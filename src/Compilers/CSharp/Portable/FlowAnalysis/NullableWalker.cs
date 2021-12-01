@@ -4218,22 +4218,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression is BoundValuePlaceholderBase placeholder)
             {
-                if (PlaceholderMustBeRegistered(placeholder))
+                if (_resultForPlaceholdersOpt != null)
                 {
-                    Debug.Assert(_resultForPlaceholdersOpt is not null);
-                    expression = _resultForPlaceholdersOpt[placeholder].Replacement;
-                }
-                else
-                {
-                    // We tolerate older placeholders not being in the map
-                    if (_resultForPlaceholdersOpt != null && _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value))
+                    if (_resultForPlaceholdersOpt.TryGetValue(placeholder, out var value))
                     {
                         expression = value.Replacement;
                     }
                     else
                     {
+                        Debug.Assert(!PlaceholderMustBeRegistered(placeholder));
                         return;
                     }
+                }
+                else
+                {
+                    return;
                 }
             }
 
@@ -10061,24 +10060,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPlaceholderWithReplacement(BoundValuePlaceholderBase node)
         {
-            if (PlaceholderMustBeRegistered(node))
+            if (_resultForPlaceholdersOpt != null)
             {
-                Debug.Assert(_resultForPlaceholdersOpt is not null);
-                var result = _resultForPlaceholdersOpt[node].Result;
-                SetResult(node, result.RValueType, result.LValueType);
-                return;
+                if (_resultForPlaceholdersOpt.TryGetValue(node, out var value))
+                {
+                    var result = value.Result;
+                    SetResult(node, result.RValueType, result.LValueType);
+                    return;
+                }
+                else
+                {
+                    Debug.Assert(!PlaceholderMustBeRegistered(node));
+                }
             }
 
-            // We tolerate older placeholders not being in the map
-            if (_resultForPlaceholdersOpt != null && _resultForPlaceholdersOpt.TryGetValue(node, out var value))
-            {
-                var result = value.Result;
-                SetResult(node, result.RValueType, result.LValueType);
-            }
-            else
-            {
-                SetNotNullResult(node);
-            }
+            SetNotNullResult(node);
         }
 
         public override BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node)
