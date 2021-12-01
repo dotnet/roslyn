@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // those fixes have a dedicated request priority 'CodeActionPriorityRequest.Lowest'.
             // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one fixable diagnostic
             // that can have a non-suppression/configuration fix.
+            // Note that for 'CodeActionPriorityRequest.High', we only run compiler analyzer, which always has fixable diagnostics,
+            // so we can pass in null. 
             var shouldIncludeDiagnostic = priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low
                 ? GetFixableDiagnosticFilter(document)
                 : null;
@@ -254,8 +256,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
                 var projectFixersMap = GetProjectFixers(document.Project);
 
-                return id => (hasWorkspaceFixers && workspaceFixersMap!.Value.ContainsKey(id))
-                    || projectFixersMap.ContainsKey(id);
+                return id =>
+                {
+                    if (hasWorkspaceFixers && workspaceFixersMap!.Value.ContainsKey(id))
+                        return true;
+
+                    return projectFixersMap.ContainsKey(id);
+                };
             }
         }
 
