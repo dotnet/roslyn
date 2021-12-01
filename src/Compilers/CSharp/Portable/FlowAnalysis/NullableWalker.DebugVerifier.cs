@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
+                Visit(node.Receiver);
                 Visit(node.Argument);
                 Visit(node.IndexerOrSliceAccess);
                 return null;
