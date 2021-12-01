@@ -1640,16 +1640,20 @@ class C
         Console.WriteLine(s[new Index(2, true)]);
         i = 6;
         Console.WriteLine(s[new Index(i, true)]);
+        Console.WriteLine(s[new Index(value: 2, fromEnd: false)]);
+        Console.WriteLine(s[new Index(fromEnd: true, value: 3)]);
     }
 }", expectedOutput: @"b
 c
 f
 d
 e
-a");
+a
+c
+d");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      139 (0x8b)
+  // Code size      185 (0xb9)
   .maxstack  4
   .locals init (int V_0, //i
                 string V_1,
@@ -1694,19 +1698,36 @@ a");
   IL_0062:  call       ""void System.Console.WriteLine(char)""
   IL_0067:  ldc.i4.6
   IL_0068:  stloc.0
-  IL_0069:  stloc.1
-  IL_006a:  ldloc.1
-  IL_006b:  ldloc.0
-  IL_006c:  ldc.i4.1
-  IL_006d:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0072:  stloc.2
-  IL_0073:  ldloca.s   V_2
-  IL_0075:  ldloc.1
-  IL_0076:  callvirt   ""int string.Length.get""
-  IL_007b:  call       ""int System.Index.GetOffset(int)""
-  IL_0080:  callvirt   ""char string.this[int].get""
-  IL_0085:  call       ""void System.Console.WriteLine(char)""
-  IL_008a:  ret
+  IL_0069:  dup
+  IL_006a:  stloc.1
+  IL_006b:  ldloc.1
+  IL_006c:  ldloc.0
+  IL_006d:  ldc.i4.1
+  IL_006e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0073:  stloc.2
+  IL_0074:  ldloca.s   V_2
+  IL_0076:  ldloc.1
+  IL_0077:  callvirt   ""int string.Length.get""
+  IL_007c:  call       ""int System.Index.GetOffset(int)""
+  IL_0081:  callvirt   ""char string.this[int].get""
+  IL_0086:  call       ""void System.Console.WriteLine(char)""
+  IL_008b:  dup
+  IL_008c:  ldc.i4.2
+  IL_008d:  callvirt   ""char string.this[int].get""
+  IL_0092:  call       ""void System.Console.WriteLine(char)""
+  IL_0097:  stloc.1
+  IL_0098:  ldloc.1
+  IL_0099:  ldc.i4.3
+  IL_009a:  ldc.i4.1
+  IL_009b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00a0:  stloc.2
+  IL_00a1:  ldloca.s   V_2
+  IL_00a3:  ldloc.1
+  IL_00a4:  callvirt   ""int string.Length.get""
+  IL_00a9:  call       ""int System.Index.GetOffset(int)""
+  IL_00ae:  callvirt   ""char string.this[int].get""
+  IL_00b3:  call       ""void System.Console.WriteLine(char)""
+  IL_00b8:  ret
 }
 ");
         }
