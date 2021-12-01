@@ -371,13 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     switch (_lexer.TextWindow.PeekChar())
                     {
-                        case '"' when RecoveringFromRunawayLexing():
-                            // When recovering from mismatched delimiters, we consume the next
-                            // quote character as the close quote for the interpolated string. In
-                            // practice this gets us out of trouble in scenarios we've encountered.
-                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
-                            return;
                         case '"':
+                            if (RecoveringFromRunawayLexing())
+                            {
+                                // When recovering from mismatched delimiters, we consume the next
+                                // quote character as the close quote for the interpolated string. In
+                                // practice this gets us out of trouble in scenarios we've encountered.
+                                // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                                return;
+                            }
+
                             if (_kind is InterpolatedStringKind.Verbatim && _lexer.TextWindow.PeekChar(1) == '"')
                             {
                                 _lexer.TextWindow.AdvanceChar(2); // ""
@@ -566,15 +569,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString()));
                             goto default;
-                        case '"' when RecoveringFromRunawayLexing():
-                            // When recovering from mismatched delimiters, we consume the next
-                            // quote character as the close quote for the interpolated string. In
-                            // practice this gets us out of trouble in scenarios we've encountered.
-                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
-                            return;
                         case '"':
+                            if (RecoveringFromRunawayLexing())
+                            {
+                                // When recovering from mismatched delimiters, we consume the next
+                                // quote character as the close quote for the interpolated string. In
+                                // practice this gets us out of trouble in scenarios we've encountered.
+                                // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                                return;
+                            }
+
+                            // handle string literal inside an expression hole.
+                            ScanInterpolatedStringLiteralNestedString();
+                            continue;
+
                         case '\'':
-                            // handle string or character literal inside an expression hole.
+                            // handle character literal inside an expression hole.
                             ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
