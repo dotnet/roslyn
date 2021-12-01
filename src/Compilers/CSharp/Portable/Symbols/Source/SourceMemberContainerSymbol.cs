@@ -434,21 +434,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsReservedTypeName(Name))
-            {
-                foreach (var syntaxRef in SyntaxReferences)
-                {
-                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
-                    {
-                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
-                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
-                        _ => null
-                    };
-
-                    ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
-                }
-            }
-
             return result;
         }
 
@@ -1667,6 +1652,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so the checking of all interfaces here involves some redundancy.
                 Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
             }
+
+            if (IsReservedTypeName(Name))
+            {
+                foreach (var syntaxRef in SyntaxReferences)
+                {
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
+
+                    ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                }
+            }
+
+            return;
 
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
             {

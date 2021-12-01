@@ -319,7 +319,7 @@ public class B
         }
 
         [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
-        public void OnlyOneParse_ExceptWithReservedTypeName()
+        public void OnlyOneParse_WithReservedTypeName()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
@@ -343,22 +343,22 @@ public class b
             var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true, options: TestOptions.ReleaseDll);
 
             var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
 
             var memberNames = type.MemberNames;
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
 
             var interfaces = type.Interfaces();
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
 
             var method = (MethodSymbol)type.GetMembers().First();
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
 
             var returnType = method.ReturnTypeWithAnnotations;
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
 
             var parameterType = method.Parameters.Single();
-            Assert.Equal(2, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
         }
 
         /// <remarks>
