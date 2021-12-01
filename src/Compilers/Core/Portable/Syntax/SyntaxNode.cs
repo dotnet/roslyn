@@ -1252,7 +1252,7 @@ recurse:
         /// </para>
         /// </remarks>
         [return: NotNullIfNotNull("node")]
-        public T CopyAnnotationsTo<T>(T node) where T : SyntaxNode?
+        public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
         {
             if (node == null)
             {
