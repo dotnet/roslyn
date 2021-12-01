@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        private static SyntaxToken GetName(SyntaxNode node)
+        private static SyntaxToken GetName(CSharpSyntaxNode node)
         {
             switch (node.Kind())
             {
