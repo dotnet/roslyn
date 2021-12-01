@@ -1,27 +1,25 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable annotations
 
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal sealed class RazorDocumentServiceProviderWrapper : IDocumentServiceProvider, IDocumentOperationService
     {
         private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
-        private readonly object _lock;
 
-        private RazorSpanMappingServiceWrapper? _spanMappingService;
-        private RazorDocumentExcerptServiceWrapper? _excerptService;
-        private RazorDocumentPropertiesServiceWrapper? _documentPropertiesService;
+        private StrongBox<ISpanMappingService?>? _spanMappingService;
+        private StrongBox<IDocumentExcerptService?>? _excerptService;
+        private StrongBox<DocumentPropertiesService?>? _documentPropertiesService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
             _innerDocumentServiceProvider = innerDocumentServiceProvider ?? throw new ArgumentNullException(nameof(innerDocumentServiceProvider));
-
-            _lock = new object();
         }
 
         public bool CanApplyChange => _innerDocumentServiceProvider.CanApplyChange;
@@ -33,75 +31,65 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var serviceType = typeof(TService);
             if (serviceType == typeof(ISpanMappingService))
             {
-                if (_spanMappingService == null)
-                {
-                    lock (_lock)
+                var spanMappingService = LazyInitialization.EnsureInitialized(
+                    ref _spanMappingService,
+                    static documentServiceProvider =>
                     {
-                        if (_spanMappingService == null)
+                        var razorMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+                        if (razorMappingService != null)
                         {
-                            var razorMappingService = _innerDocumentServiceProvider.GetService<IRazorSpanMappingService>();
-                            if (razorMappingService != null)
-                            {
-                                _spanMappingService = new RazorSpanMappingServiceWrapper(razorMappingService);
-                            }
-                            else
-                            {
-                                return this as TService;
-                            }
+                            return new StrongBox<ISpanMappingService?>(new RazorSpanMappingServiceWrapper(razorMappingService));
                         }
-                    }
-                }
+                        else
+                        {
+                            return new StrongBox<ISpanMappingService?>(null);
+                        }
+                    },
+                    _innerDocumentServiceProvider);
 
-                return (TService)(object)_spanMappingService;
+                return (TService?)spanMappingService.Value;
             }
 
             if (serviceType == typeof(IDocumentExcerptService))
             {
-                if (_excerptService == null)
-                {
-                    lock (_lock)
+                var excerptService = LazyInitialization.EnsureInitialized(
+                    ref _excerptService,
+                    static documentServiceProvider =>
                     {
-                        if (_excerptService == null)
+                        var razorExcerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
+                        if (razorExcerptService != null)
                         {
-                            var excerptService = _innerDocumentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                            if (excerptService != null)
-                            {
-                                _excerptService = new RazorDocumentExcerptServiceWrapper(excerptService);
-                            }
-                            else
-                            {
-                                return this as TService;
-                            }
+                            return new StrongBox<IDocumentExcerptService?>(new RazorDocumentExcerptServiceWrapper(razorExcerptService));
                         }
-                    }
-                }
+                        else
+                        {
+                            return new StrongBox<IDocumentExcerptService?>(null);
+                        }
+                    },
+                    _innerDocumentServiceProvider);
 
-                return (TService)(object)_excerptService;
+                return (TService?)excerptService.Value;
             }
 
             if (serviceType == typeof(DocumentPropertiesService))
             {
-                if (_documentPropertiesService == null)
-                {
-                    lock (_lock)
+                var documentPropertiesService = LazyInitialization.EnsureInitialized(
+                    ref _documentPropertiesService,
+                    static documentServiceProvider =>
                     {
-                        if (_documentPropertiesService == null)
+                        var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
+                        if (razorDocumentPropertiesService != null)
                         {
-                            var documentPropertiesService = _innerDocumentServiceProvider.GetService<IRazorDocumentPropertiesService>();
-
-                            if (documentPropertiesService != null)
-                            {
-                                _documentPropertiesService = new RazorDocumentPropertiesServiceWrapper(documentPropertiesService);
-                            }
-                            else
-                            {
-                                return this as TService;
-                            }
+                            return new StrongBox<DocumentPropertiesService?>(new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService));
                         }
-                    }
-                }
+                        else
+                        {
+                            return new StrongBox<DocumentPropertiesService?>(null);
+                        }
+                    },
+                    _innerDocumentServiceProvider);
 
-                return (TService)(object)_documentPropertiesService;
+                return (TService?)(object?)documentPropertiesService.Value;
             }
 
             return this as TService;
