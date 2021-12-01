@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Analyze data-flow within a part of a method body.
         /// </summary>
-        /// <param name="statementOrExpression">The statement or expression to be analyzed.</param>
+        /// <param name="statementOrExpression">The statement or expression to be analyzed. A ConstructorInitializerSyntax / PrimaryConstructorBaseTypeSyntax is treated here as a regular statement.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
         /// <exception cref="System.ArgumentException">The statement or expression is not with a method
         /// body or field or property initializer.</exception>
