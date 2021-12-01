@@ -4,11 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -83,6 +88,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 return version;
 
             throw new NotSupportedException($"Unexpected version format: {versionProperty}");
+        }
+
+        // This is based on WaitForQuiescenceAsync in the FileChangeService tests
+        public async Task WaitForFileChangeNotificationsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx>(cancellationToken);
+            Assumes.Present(fileChangeService);
+
+            var jobSynchronizer = fileChangeService.GetPropertyValue("JobSynchronizer");
+            Assumes.Present(jobSynchronizer);
+
+            var type = jobSynchronizer.GetType();
+            var methodInfo = type.GetMethod("GetActiveSpawnedTasks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Assumes.Present(methodInfo);
+
+            while (true)
+            {
+                var tasks = (Task[])methodInfo.Invoke(jobSynchronizer, null);
+                if (!tasks.Any())
+                    return;
+
+                await Task.WhenAll(tasks);
+            }
         }
     }
 }

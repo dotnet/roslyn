@@ -67,6 +67,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             if (featureNames.Contains(FeatureAttribute.Workspace))
             {
                 await WaitForProjectSystemAsync(cancellationToken);
+                await TestServices.Shell.WaitForFileChangeNotificationsAsync(cancellationToken);
+                await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
             }
 
             var listenerProvider = await GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(cancellationToken);
