@@ -14,21 +14,15 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
-#if !LIGHTWEIGHT
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-#if !LIGHTWEIGHT
     [ExportLanguageService(typeof(SyntaxGeneratorInternal), LanguageNames.CSharp), Shared]
-#endif
     internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     {
-#if !LIGHTWEIGHT
         [ImportingConstructor]
-#endif
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpSyntaxGeneratorInternal()
         {

@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
     {
-#if !LIGHTWEIGHT
         private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
@@ -519,7 +518,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
-#endif
 
         public abstract bool CanHaveAccessibility(SyntaxNode declaration);
 

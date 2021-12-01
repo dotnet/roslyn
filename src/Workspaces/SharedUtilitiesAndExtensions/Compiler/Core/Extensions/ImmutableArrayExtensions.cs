@@ -59,7 +59,6 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange(items);
         }
 
-#if !LIGHTWEIGHT
         public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
             => new(first, second);
 
@@ -71,6 +70,5 @@ namespace Roslyn.Utilities
 
             return result.ToImmutable();
         }
-#endif
     }
 }

@@ -1,0 +1,7 @@
+
+<Project>
+    <!-- This file must not be added to source control and must not be uploaded as a build artifact.
+         It must be imported by other repos as a dependency. 
+         Dependent projects should not directly reference the artifacts path, which is considered an implementation detail. -->
+    <Import Project="artifacts\packages\Debug\Shipping\Caravela.Compiler.version.props"/>
+</Project>

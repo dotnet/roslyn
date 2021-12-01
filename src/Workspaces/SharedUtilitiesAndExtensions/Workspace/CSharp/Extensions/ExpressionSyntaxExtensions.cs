@@ -7,10 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
-#if !LIGHTWEIGHT
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -84,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : result;
         }
 
-#if !LIGHTWEIGHT
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,
             ITypeSymbol targetType)
@@ -146,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return castExpression;
         }
-#endif
     }
 }
 
