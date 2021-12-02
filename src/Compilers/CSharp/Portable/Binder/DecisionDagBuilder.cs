@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode).RemoveCompilerGeneratedNodes();
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode).RemoveSubsumptionOnlyNodes();
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share the same ID.
@@ -887,11 +887,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Turn an "implicit" non-null test into an explicit one
                                 state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
                             }
-                            else if (foundExplicitValueTest && d.WasCompilerGenerated && d is BoundDagValueTest v)
+                            else if (foundExplicitValueTest && d is BoundDagValueTest { IsSubsumptionOnly: true } v)
                             {
-                                // We're going to remove compiler-generated nodes from dag right after construction.
+                                // We're going to remove subsumption-only nodes from the dag right after construction.
                                 // If we have found an explicit value test we need to unset the flag to preserve it.
-                                state.SelectedTest = new BoundDagValueTest(v.Syntax, v.Value, v.Input, v.HasErrors);
+                                state.SelectedTest = new BoundDagValueTest(v.Syntax, v.Value, isSubsumptionOnly: false, v.Input, v.HasErrors);
                             }
                             break;
                         case var n:
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? next = state.TrueBranch!.Dag;
                                 RoslynDebug.Assert(next is { });
                                 RoslynDebug.Assert(state.FalseBranch == null);
-                                state.Dag = uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next) { WasCompilerGenerated = e.WasCompilerGenerated });
+                                state.Dag = uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next));
                             }
                             break;
                         case BoundDagTest d:
@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? whenFalse = state.FalseBranch!.Dag;
                                 RoslynDebug.Assert(whenTrue is { });
                                 RoslynDebug.Assert(whenFalse is { });
-                                state.Dag = uniqifyDagNode(new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse) { WasCompilerGenerated = d.WasCompilerGenerated });
+                                state.Dag = uniqifyDagNode(new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse));
                             }
                             break;
                         case var n:
@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
                             break;
                         case BoundDagValueTest v2:
-                            if (!v2.WasCompilerGenerated)
+                            if (!v2.IsSubsumptionOnly)
                                 foundExplicitValueTest = true;
                             handleRelationWithValue(BinaryOperatorKind.Equal, v2.Value,
                                 out trueTestPermitsTrueOther, out falseTestPermitsTrueOther, out trueTestImpliesTrueOther, out falseTestImpliesTrueOther);
@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // At this point, we have determined that two non-identical inputs refer to the same element.
                             // We represent this correspondence with an assignment node in order to merge the remaining values.
                             // If tests are related unconditionally, we won't need to do so as the remaining values are updated right away.
-                            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input) { WasCompilerGenerated = true });
+                            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
                         }
                         return true;
 
@@ -1442,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
-                                    var lengthValueTest = new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp) { WasCompilerGenerated = true };
+                                    var lengthValueTest = new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), isSubsumptionOnly: true, s1LengthTemp);
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(lengthValueTest));
                                     continue;
                                 }

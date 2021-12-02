@@ -198,30 +198,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// To facilitate subsumption-checking for list-patterns, some nodes may be inserted into the dag during construction.
         /// We will remove such nodes immediately after as these are not important in lowering or any other analysis.
         /// </summary>
-        public BoundDecisionDag RemoveCompilerGeneratedNodes()
+        public BoundDecisionDag RemoveSubsumptionOnlyNodes()
         {
             return Rewrite(static (node, replacement) =>
             {
-                if (node.WasCompilerGenerated)
+                switch (node)
                 {
-                    switch (node)
-                    {
-                        case BoundEvaluationDecisionDagNode evalNode:
-                            Debug.Assert(evalNode.Evaluation is BoundDagAssignmentEvaluation);
-                            return replacement[evalNode.Next];
+                    case BoundEvaluationDecisionDagNode { Evaluation: BoundDagAssignmentEvaluation } evalNode:
+                        return replacement[evalNode.Next];
 
-                        case BoundTestDecisionDagNode testNode:
-                            Debug.Assert(testNode.Test is BoundDagValueTest { Input.Source: BoundDagPropertyEvaluation { IsLengthOrCount: true } });
-                            // Short-circuit to the "false" branch which is the default as if we never inserted such test.
-                            // Note that when the "true" branch is important, we have unset the compiler-generated flag earlier.
-                            return replacement[testNode.WhenFalse];
+                    case BoundTestDecisionDagNode { Test: BoundDagValueTest { IsSubsumptionOnly: true } } testNode:
+                        Debug.Assert(testNode.Test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true });
+                        // Short-circuit to the "false" branch which is the default as if we never inserted such test.
+                        // Note that when the "true" branch is important, we have unset the subsumption-only flag earlier.
+                        return replacement[testNode.WhenFalse];
 
-                        default:
-                            throw ExceptionUtilities.Unreachable;
-                    }
+                    default:
+                        return TrivialReplacement(node, replacement);
                 }
-
-                return TrivialReplacement(node, replacement);
             });
         }
 

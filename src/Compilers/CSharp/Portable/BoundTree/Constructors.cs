@@ -652,6 +652,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BoundDagTemp ForOriginalInput(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type!, source: null);
     }
 
+    internal partial class BoundDagValueTest
+    {
+        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, value, isSubsumptionOnly: false, input, hasErrors: hasErrors)
+        {
+        }
+    }
+
     internal partial class BoundCompoundAssignmentOperator
     {
         public BoundCompoundAssignmentOperator(SyntaxNode syntax,

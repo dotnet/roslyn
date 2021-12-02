@@ -5212,7 +5212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagValueTest : BoundDagTest
     {
-        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, bool isSubsumptionOnly, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagValueTest, syntax, input, hasErrors || input.HasErrors())
         {
 
@@ -5220,18 +5220,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Value = value;
+            this.IsSubsumptionOnly = isSubsumptionOnly;
         }
 
 
         public ConstantValue Value { get; }
+
+        public bool IsSubsumptionOnly { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagValueTest(this);
 
-        public BoundDagValueTest Update(ConstantValue value, BoundDagTemp input)
+        public BoundDagValueTest Update(ConstantValue value, bool isSubsumptionOnly, BoundDagTemp input)
         {
-            if (value != this.Value || input != this.Input)
+            if (value != this.Value || isSubsumptionOnly != this.IsSubsumptionOnly || input != this.Input)
             {
-                var result = new BoundDagValueTest(this.Syntax, value, input, this.HasErrors);
+                var result = new BoundDagValueTest(this.Syntax, value, isSubsumptionOnly, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11329,7 +11332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagValueTest(BoundDagValueTest node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Value, input);
+            return node.Update(node.Value, node.IsSubsumptionOnly, input);
         }
         public override BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node)
         {
@@ -15591,6 +15594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagValueTest(BoundDagValueTest node, object? arg) => new TreeDumperNode("dagValueTest", null, new TreeDumperNode[]
         {
             new TreeDumperNode("value", node.Value, null),
+            new TreeDumperNode("isSubsumptionOnly", node.IsSubsumptionOnly, null),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

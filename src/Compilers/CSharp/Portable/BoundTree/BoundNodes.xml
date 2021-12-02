@@ -1491,6 +1491,8 @@
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <!--Check that the input is the same as the given constant value (other than null).-->
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+    <!--True if this node is only to facilitate subsumption-checking and should be removed.-->
+    <Field Name="IsSubsumptionOnly" Type="bool"/>
   </Node>
   <Node Name="BoundDagRelationalTest" Base="BoundDagTest">
     <!--Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).-->
