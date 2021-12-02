@@ -334,7 +334,7 @@ stages:
 
     - powershell: |
         mv RoslynTools.VisualStudioInsertionTool.* RIT
-        .\RIT\tools\OneOffInsertion.ps1 `
+        .\RIT\tools\net46\OneOffInsertion.ps1 `
           -autoComplete "$(Insertion.AutoComplete)" `
           -buildQueueName "$(Build.DefinitionName)" `
           -cherryPick "(default)" `
