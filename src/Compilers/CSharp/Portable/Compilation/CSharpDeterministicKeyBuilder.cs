@@ -15,21 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpDeterministicKeyBuilder()
         {
-
         }
 
         protected override void WriteCompilationOptionsCore(JsonWriter writer, CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentException(null, nameof(options));
             }
 
             base.WriteCompilationOptionsCore(writer, options);
 
             writer.Write("unsafe", csharpOptions.AllowUnsafe);
             writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
-            writer.WriteKey("globalUsings");
+            writer.WriteKey("usings");
             writer.WriteArrayStart();
             foreach (var name in csharpOptions.Usings)
             {
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parseOptions is not CSharpParseOptions csharpOptions)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentException(null, nameof(parseOptions));
             }
 
             base.WriteParseOptionsCore(writer, parseOptions);

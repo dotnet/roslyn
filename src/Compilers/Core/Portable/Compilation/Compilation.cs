@@ -129,13 +129,28 @@ namespace Microsoft.CodeAnalysis
         /// with these values that can be used to identify the outputs.
         ///
         /// The returned string has the following properties:
-        /// - The format is undefined. Consumers should assume the format and content can change between 
-        ///   compiler versions.
-        /// - It is designed to be human readable and diffable. This is to help developers
-        ///   understand the difference between two compilations which is impacting the deterministic 
-        ///   output
-        /// - It is *not* in a minimal form. If used as a key in say a content addressable storage consumers
-        ///   should first pass it through a strong hashing function.
+        ///
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// The format is undefined. Consumers should assume the format and content can change between 
+        /// compiler versions.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is designed to be human readable and diffable. This is to help developers
+        /// understand the difference between two compilations which is impacting the deterministic 
+        /// output
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is *not* in a minimal form. If used as a key in say a content addressable storage consumers
+        /// should first pass it through a strong hashing function.
+        /// </description>
+        /// </item>
+        /// </list>
         ///
         /// Compilations which do not use the /deterministic option can still use this API but
         /// the results will change on every invocation.
@@ -146,17 +161,26 @@ namespace Microsoft.CodeAnalysis
         ///
         /// There are a few dark corners of determinism that are not captured with this key as they are 
         /// considered outside the scope of this work:
-        /// 
-        /// 1. Environment variables: clever developers can subvert determinism by manipulation of 
-        ///    environment variables that impact program execution. For example changing normal library 
-        ///    loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change 
-        ///    in deterministic output of compilation by changing compiler, runtime or generator 
-        ///    dependencies.
-        /// 2. Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
-        ///    and both normal compilation and this key can have non-determinstic output if they are 
-        ///    manipulated at the correct point in program execution. That is an existing limitation
-        ///    of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
         ///
+        /// <list type="number">
+        /// <item>
+        /// <description>
+        /// Environment variables: clever developers can subvert determinism by manipulation of 
+        /// environment variables that impact program execution. For example changing normal library 
+        /// loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change 
+        /// in deterministic output of compilation by changing compiler, runtime or generator 
+        /// dependencies.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
+        /// and both normal compilation and this key can have non-determinstic output if they are 
+        /// manipulated at the correct point in program execution. That is an existing limitation
+        /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
+        /// </description>
+        /// </item>
+        /// </list>
         /// This API can throw exceptions in a few cases like invalid file paths.
         /// </remarks>
         internal static string GetDeterministicKey(

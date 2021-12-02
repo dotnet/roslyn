@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    public enum DeterministicKeyOptions
+    internal enum DeterministicKeyOptions
     {
         /// <summary>
         /// The default is to include all inputs to the compilation which impact the output of the 

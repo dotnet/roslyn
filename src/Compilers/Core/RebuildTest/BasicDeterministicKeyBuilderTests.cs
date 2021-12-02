@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 path: fileName,
                 options: parseOptions);
 
-        protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null) =>
-            VisualBasicCompilation.Create(
+        protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null)
+            => VisualBasicCompilation.Create(
                 "test",
                 syntaxTrees,
                 references ?? NetCoreApp.References.ToArray(),
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {{
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""Sha256"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     }}
   }}
 ]";
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ""globalImports"": [
   {
     ""name"": ""<xmlns:xmlNamespacePrefix = \""xmlNamespaceName\"">"",
-    ""isXml"": true
+    ""isXmlClause"": true
   },
   {
     ""name"": ""System.Xml"",
-    ""isXml"": false
+    ""isXmlClause"": false
   }
 ]";
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {
       ""checksum"": ""2cf24dba5fb0a3e26e83b2ac5b9e29e1b161e5c1fa7425e7343362938b9824"",
       ""checksumAlgorithm"": ""Sha256"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     },
     ""parseOptions"": {
       ""kind"": ""Regular"",

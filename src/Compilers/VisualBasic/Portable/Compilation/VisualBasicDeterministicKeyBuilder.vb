@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Globalization
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend NotInheritable Class VisualBasicDeterministicKeyBuilder
@@ -38,37 +40,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Continue For
                 End If
 
+                writer.WriteKey(pair.Key)
+
                 Dim type = value.GetType()
                 If type = GetType(String) Then
-                    writer.Write(pair.Key, CType(value, String))
+                    writer.Write(CType(value, String))
                 ElseIf type = GetType(Boolean) Then
-                    writer.Write(pair.Key, CType(value, Boolean))
-                ElseIf type = GetType(DateTime) Then
-                    writer.Write(pair.Key, CType(value, DateTime).ToString("G"))
-                ElseIf type = GetType(Char) Then
-                    writer.Write(pair.Key, CType(value, Char).ToString())
-                ElseIf type = GetType(Int16) Then
-                    writer.Write(pair.Key, CType(value, Int16).ToString("G"))
-                ElseIf type = GetType(Int32) Then
-                    writer.Write(pair.Key, CType(value, Int32).ToString("G"))
-                ElseIf type = GetType(Int64) Then
-                    writer.Write(pair.Key, CType(value, Int64).ToString("G"))
-                ElseIf type = GetType(UInt16) Then
-                    writer.Write(pair.Key, CType(value, UInt16).ToString("G"))
-                ElseIf type = GetType(UInt32) Then
-                    writer.Write(pair.Key, CType(value, UInt32).ToString("G"))
-                ElseIf type = GetType(UInt64) Then
-                    writer.Write(pair.Key, CType(value, UInt64).ToString("G"))
-                ElseIf type = GetType(Decimal) Then
-                    writer.Write(pair.Key, CType(value, Decimal).ToString("G"))
-                ElseIf type = GetType(Single) Then
-                    writer.Write(pair.Key, CType(value, Single).ToString("G"))
-                ElseIf type = GetType(Double) Then
-                    writer.Write(pair.Key, CType(value, Double).ToString("G"))
-                ElseIf type = GetType(SByte) Then
-                    writer.Write(pair.Key, CType(value, SByte).ToString("G"))
+                    writer.Write(CType(value, Boolean))
                 Else
-                    Throw New NotSupportedException()
+                    Dim formattable = TryCast(value, IFormattable)
+                    If formattable IsNot Nothing Then
+                        writer.Write(formattable.ToString(Nothing, CultureInfo.InvariantCulture))
+                    Else
+                        Throw ExceptionUtilities.UnexpectedValue(value)
+                    End If
                 End If
             Next
             writer.WriteObjectEnd()
@@ -95,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each import In basicOptions.GlobalImports
                 writer.WriteObjectStart()
                 writer.Write("name", import.Name)
-                writer.Write("isXml", import.IsXmlClause)
+                writer.Write("isXmlClause", import.IsXmlClause)
                 writer.WriteObjectEnd()
             Next
             writer.WriteArrayEnd()

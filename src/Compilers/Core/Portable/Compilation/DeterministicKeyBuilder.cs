@@ -3,21 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Globalization;
-using Microsoft.CodeAnalysis.Debugging;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Threading;
-using System.Collections.Generic;
-using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis
             // Note that the file path to the assembly is deliberately not included here. The file path
             // of the assembly does not contribute to the output of the program.
             writer.Write("assemblyName", type.Assembly.FullName);
-            writer.Write("mvid", type.Assembly.ManifestModule.ModuleVersionId.ToString());
+            writer.Write("mvid", GetGuidValue(type.Assembly.ManifestModule.ModuleVersionId));
             writer.WriteObjectEnd();
         }
 
@@ -237,8 +235,8 @@ namespace Microsoft.CodeAnalysis
                     var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                     writer.Write("runtimeVersion", runtimeVersion);
 
-                    writer.Write("framework", RuntimeInformation.FrameworkDescription);
-                    writer.Write("os", RuntimeInformation.OSDescription);
+                    writer.Write("frameworkDescription", RuntimeInformation.FrameworkDescription);
+                    writer.Write("osDescription", RuntimeInformation.OSDescription);
                 }
 
                 writer.WriteObjectEnd();
@@ -271,7 +269,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectStart();
             WriteByteArrayValue(writer, "checksum", sourceText.GetChecksum().AsSpan());
             writer.Write("checksumAlgorithm", sourceText.ChecksumAlgorithm);
-            writer.Write("encoding", sourceText.Encoding?.EncodingName);
+            writer.Write("encodingName", sourceText.Encoding?.EncodingName);
             writer.WriteObjectEnd();
         }
 
@@ -304,8 +302,8 @@ namespace Microsoft.CodeAnalysis
                     case ModuleMetadata m:
                         writeModuleMetadata(m);
                         break;
-                    default:
-                        throw new NotSupportedException();
+                    case var m:
+                        throw ExceptionUtilities.UnexpectedValue(m);
                 }
 
                 writer.WriteKey("properties");
@@ -393,7 +391,7 @@ namespace Microsoft.CodeAnalysis
                 writeSubsystemVersion(writer, options.SubsystemVersion);
                 writer.Write("fileAlignment", options.FileAlignment);
                 writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-                writer.Write("baseAddress", options.BaseAddress.ToString("G"));
+                writer.WriteInvariant("baseAddress", options.BaseAddress);
                 writer.Write("debugInformationFormat", options.DebugInformationFormat);
                 writer.Write("outputNameOverride", options.OutputNameOverride);
                 WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
@@ -461,7 +459,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 writer.Write("deterministic", false);
-                writer.Write("localtime", options.CurrentLocalTime.ToString(CultureInfo.InvariantCulture));
+                writer.WriteInvariant("localtime", options.CurrentLocalTime);
 
                 // When using /deterministic- the compiler will *always* emit different binaries hence the 
                 // key we generate here also must be different. We cannot depend on the `localtime` property

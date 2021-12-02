@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""globalUsings"": []
+      ""usings"": []
     },
     ""syntaxTrees"": [
       {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""text"": {
           ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
           ""checksumAlgorithm"": ""Sha1"",
-          ""encoding"": ""Unicode (UTF-8)""
+          ""encodingName"": ""Unicode (UTF-8)""
         },
         ""parseOptions"": {
           ""kind"": ""Regular"",
@@ -145,12 +145,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         [Theory]
-        [InlineData(@"c:\code\file.cs", @"file.cs", DeterministicKeyOptions.IgnorePaths)]
-        [InlineData(@"c:\code\file.cs", @"c:\code\file.cs", DeterministicKeyOptions.Default)]
-        [InlineData(@"/code/file.cs", @"file.cs", DeterministicKeyOptions.IgnorePaths)]
-        [InlineData(@"/code/file.cs", @"/code/file.cs", DeterministicKeyOptions.Default)]
-        public void SyntaxTreeFilePath(string path, string expectedPath, DeterministicKeyOptions options)
+        [InlineData(@"c:\code\file.cs", @"file.cs", (int)DeterministicKeyOptions.IgnorePaths)]
+        [InlineData(@"c:\code\file.cs", @"c:\code\file.cs", (int)DeterministicKeyOptions.Default)]
+        [InlineData(@"/code/file.cs", @"file.cs", (int)DeterministicKeyOptions.IgnorePaths)]
+        [InlineData(@"/code/file.cs", @"/code/file.cs", (int)DeterministicKeyOptions.Default)]
+        public void SyntaxTreeFilePath(string path, string expectedPath, int optionsRaw)
         {
+            var options = (DeterministicKeyOptions)optionsRaw;
             var source = CSharpTestBase.Parse(
                 @"System.Console.WriteLine(""Hello World"");",
                 filename: path,
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {{
       ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
       ""checksumAlgorithm"": ""Sha1"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     }},
     ""parseOptions"": {{
       ""kind"": ""Regular"",
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {{
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""Sha256"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     }}
   }}
 ]";
@@ -233,8 +234,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""toolsVersions"": {{
       ""compilerVersion"": ""{compilerVersion}"",
       ""runtimeVersion"": ""{runtimeVersion}"",
-      ""framework"": ""{RuntimeInformation.FrameworkDescription}"",
-      ""os"": ""{RuntimeInformation.OSDescription}""
+      ""frameworkDescription"": ""{RuntimeInformation.FrameworkDescription}"",
+      ""osDescription"": ""{RuntimeInformation.OSDescription}""
     }},
     ""publicKey"": """",
     ""options"": {{
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""localtime"": null,
       ""unsafe"": false,
       ""topLevelBinderFlags"": ""None"",
-      ""globalUsings"": []
+      ""usings"": []
     }}
   }},
   ""additionalTexts"": [],
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             {
                 var options = Options.WithUsings(usings);
                 var value = GetCompilationOptionsValue(options);
-                var actual = value["globalUsings"]?.ToString(Formatting.Indented);
+                var actual = value["usings"]?.ToString(Formatting.Indented);
                 AssertJsonCore(expected, actual);
             }
         }
@@ -389,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {
       ""checksum"": ""2cf24dba5fb0a3e26e83b2ac5b9e29e1b161e5c1fa7425e7343362938b9824"",
       ""checksumAlgorithm"": ""Sha256"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     },
     ""parseOptions"": {
       ""kind"": ""Regular"",

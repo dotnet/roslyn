@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return (JArray)property.Value;
         }
 
-        protected JObject GetEmitOptionsValue(
+        private protected JObject GetEmitOptionsValue(
             EmitOptions emitOptions,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             DeterministicKeyOptions options = default)
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {{
       ""checksum"": ""{contentChecksum}"",
       ""checksumAlgorithm"": ""{hashAlgorithm}"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     }}
   }}
 ]";
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""text"": {
       ""checksum"": ""8f8ceeeb5e1b799fe3c7dd9f059bf8852c57cb"",
       ""checksumAlgorithm"": ""Sha1"",
-      ""encoding"": ""Unicode (UTF-8)""
+      ""encodingName"": ""Unicode (UTF-8)""
     }
   }
 ]
