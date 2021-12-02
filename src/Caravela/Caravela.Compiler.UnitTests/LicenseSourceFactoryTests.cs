@@ -22,11 +22,17 @@ namespace Caravela.Compiler.UnitTests
 
         public LicenseSourceFactoryTests()
         {
-            var services = new BackstageServiceCollection()
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
+            serviceProviderBuilder
                 .AddSingleton<IBackstageDiagnosticSink>(_diagnostics)
                 .AddStandardDirectories()
                 .AddStandardLicenseFilesLocations();
-            _services = services.ToServiceProvider();
+            _services = serviceProviderBuilder.ServiceProvider;
         }
 
         [Fact]

@@ -26,11 +26,16 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            var services = new BackstageServiceCollection();
-            services.AddSingleton<ILicenseConsumptionManager>(new DummyLicenseConsumptionManager());
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
+            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new DummyLicenseConsumptionManager());
 
             var transformersResult = CSharpCompiler.RunTransformers(
-                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, services.ToServiceProvider(), CancellationToken.None);
+                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

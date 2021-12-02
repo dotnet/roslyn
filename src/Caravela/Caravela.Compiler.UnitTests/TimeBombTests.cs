@@ -19,11 +19,17 @@ namespace Caravela.Compiler.UnitTests
 
         public TimeBombTests()
         {
-            var services = new BackstageServiceCollection()
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
+            serviceProviderBuilder
                 .AddSingleton<IDateTimeProvider>(_time)
                 .AddSingleton<IApplicationInfo>(_applicationInfo)
                 .AddSingleton<IBackstageDiagnosticSink>(_diagnostics);
-            _timeBomb = new TimeBombLicenseActivator(services.ToServiceProvider());
+            _timeBomb = new TimeBombLicenseActivator(serviceProviderBuilder.ServiceProvider);
         }
 
         private void SetAge(int daysAfterBuild)
