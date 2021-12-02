@@ -10,6 +10,20 @@ steps:
     targetArgument: $(System.DefaultWorkingDirectory)
     optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
 
+- task: SdtReport@2
+  displayName: Create Security Analysis Report
+  inputs:
+    GdnExportAllTools: true
+
+- task: PublishSecurityAnalysisLogs@3
+  displayName: Publish Code Analysis Logs
+  inputs:
+    ArtifactName: CodeAnalysisLogs
+    ArtifactType: Container
+    PublishProcessedResults: true
+    AllTools: true
+    ToolLogsNotFoundAction: Standard
+
 - task: PostAnalysis@2
   displayName: Break on compliance issues
   inputs:
