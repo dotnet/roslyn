@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EditorConfig;
@@ -39,16 +37,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*.{cs,csx,vb,vbx}", TextSpan.FromBounds(40, 49), false));
 
             Assert.True(parseResults.TryGetSectionForLanguage(Language.CSharp, out var section));
-            Assert.Equal(10, section.Span.Start);
-            Assert.Equal("*.cs", section.Text);
+            Assert.Equal(10, section?.Span.Start);
+            Assert.Equal("*.cs", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForLanguage(Language.VisualBasic, out section));
-            Assert.Equal(20, section.Span.Start);
-            Assert.Equal("*.vb", section.Text);
+            Assert.Equal(20, section?.Span.Start);
+            Assert.Equal("*.vb", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForLanguage((Language.CSharp | Language.VisualBasic), out section));
-            Assert.Equal(30, section.Span.Start);
-            Assert.Equal("*.{cs,vb}", section.Text);
+            Assert.Equal(30, section?.Span.Start);
+            Assert.Equal("*.{cs,vb}", section?.Text);
         }
 
         [Fact]
@@ -79,8 +77,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*.{cs,csx}", TextSpan.FromBounds(70, 79), false));
 
             Assert.True(parseResults.TryGetSectionForLanguage(Language.CSharp, SectionMatch.ExactLanguageMatchWithOthers, out var section));
-            Assert.Equal(70, section.Span.Start);
-            Assert.Equal("*.{cs,csx}", section.Text);
+            Assert.Equal(70, section?.Span.Start);
+            Assert.Equal("*.{cs,csx}", section?.Text);
         }
 
         [Fact]
@@ -95,16 +93,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*.{cs,csx}", TextSpan.FromBounds(70, 79), false));
 
             Assert.True(parseResults.TryGetSectionForLanguage(Language.CSharp, SectionMatch.Any, out var section));
-            Assert.Equal(70, section.Span.Start);
-            Assert.Equal("*.{cs,csx}", section.Text);
+            Assert.Equal(70, section?.Span.Start);
+            Assert.Equal("*.{cs,csx}", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForLanguage(Language.VisualBasic, SectionMatch.Any, out section));
-            Assert.Equal(20, section.Span.Start);
-            Assert.Equal("*.vb", section.Text);
+            Assert.Equal(20, section?.Span.Start);
+            Assert.Equal("*.vb", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForLanguage((Language.CSharp | Language.VisualBasic), SectionMatch.Any, out section));
-            Assert.Equal(40, section.Span.Start);
-            Assert.Equal("*.{cs,csx,vb,vbx}", section.Text);
+            Assert.Equal(40, section?.Span.Start);
+            Assert.Equal("*.{cs,csx,vb,vbx}", section?.Text);
         }
 
         [Fact]
@@ -121,12 +119,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*.{cs,csx}", TextSpan.FromBounds(70, 79), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", out var section));
-            Assert.Equal(10, section.Span.Start);
-            Assert.Equal("*.cs", section.Text);
+            Assert.Equal(10, section?.Span.Start);
+            Assert.Equal("*.cs", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", out section));
-            Assert.Equal(20, section.Span.Start);
-            Assert.Equal("*.vb", section.Text);
+            Assert.Equal(20, section?.Span.Start);
+            Assert.Equal("*.vb", section?.Text);
         }
 
         [Fact]
@@ -160,12 +158,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*.{cs,csx}", TextSpan.FromBounds(70, 79), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", SectionMatch.Any, out var section));
-            Assert.Equal(70, section.Span.Start);
-            Assert.Equal("*.{cs,csx}", section.Text);
+            Assert.Equal(70, section?.Span.Start);
+            Assert.Equal("*.{cs,csx}", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", SectionMatch.Any, out section));
-            Assert.Equal(40, section.Span.Start);
-            Assert.Equal("*.{cs,csx,vb,vbx}", section.Text);
+            Assert.Equal(40, section?.Span.Start);
+            Assert.Equal("*.{cs,csx,vb,vbx}", section?.Text);
         }
 
         [Fact]
@@ -179,12 +177,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*", TextSpan.FromBounds(60, 69), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", SectionMatch.Any, out var section));
-            Assert.Equal(30, section.Span.Start);
-            Assert.Equal("*.{cs,csx,vbx}", section.Text);
+            Assert.Equal(30, section?.Span.Start);
+            Assert.Equal("*.{cs,csx,vbx}", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", SectionMatch.Any, out section));
-            Assert.Equal(40, section.Span.Start);
-            Assert.Equal("*.{cs,csx,vb,vbx}", section.Text);
+            Assert.Equal(40, section?.Span.Start);
+            Assert.Equal("*.{cs,csx,vb,vbx}", section?.Text);
         }
 
         [Fact]
@@ -205,12 +203,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*b", TextSpan.FromBounds(110, 119), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", SectionMatch.Any, out var section));
-            Assert.Equal(120, section.Span.Start);
-            Assert.Equal("*.*s", section.Text);
+            Assert.Equal(120, section?.Span.Start);
+            Assert.Equal("*.*s", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", SectionMatch.Any, out section));
-            Assert.Equal(130, section.Span.Start);
-            Assert.Equal("*.*b", section.Text);
+            Assert.Equal(130, section?.Span.Start);
+            Assert.Equal("*.*b", section?.Text);
         }
 
         [Fact]
@@ -222,12 +220,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*", TextSpan.FromBounds(60, 69), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", SectionMatch.Any, out var section));
-            Assert.Equal(100, section.Span.Start);
-            Assert.Equal("*s", section.Text);
+            Assert.Equal(100, section?.Span.Start);
+            Assert.Equal("*s", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", SectionMatch.Any, out section));
-            Assert.Equal(60, section.Span.Start);
-            Assert.Equal("*", section.Text);
+            Assert.Equal(60, section?.Span.Start);
+            Assert.Equal("*", section?.Text);
         }
 
         [Fact]
@@ -238,12 +236,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 ("*s", TextSpan.FromBounds(100, 109), false));
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\CSharp\Program.cs", SectionMatch.Any, out var section));
-            Assert.Equal(100, section.Span.Start);
-            Assert.Equal("*s", section.Text);
+            Assert.Equal(100, section?.Span.Start);
+            Assert.Equal("*s", section?.Text);
 
             Assert.True(parseResults.TryGetSectionForFilePath(@"C:\dev\sources\VisualBasic\Program.vb", SectionMatch.Any, out section));
-            Assert.Equal(0, section.Span.Start);
-            Assert.Equal(string.Empty, section.Text);
+            Assert.Equal(0, section?.Span.Start);
+            Assert.Equal(string.Empty, section?.Text);
         }
     }
 }
