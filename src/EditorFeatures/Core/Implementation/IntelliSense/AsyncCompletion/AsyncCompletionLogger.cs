@@ -4,17 +4,17 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal class AsyncCompletionLogger
+    internal static class AsyncCompletionLogger
     {
         private static readonly LogAggregator s_logAggregator = new();
 
-        internal enum ActionInfo
+        private enum ActionInfo
         {
             // For type import completion
             SessionWithTypeImportCompletionEnabled,
-            CommitWithTypeImportCompletionEnabled,
+            ExpanderUsageCount,
 
             // For targeted type completion
             SessionHasTargetTypeFilterEnabled,
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis
         internal static void LogSessionWithTypeImportCompletionEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
 
-        internal static void LogCommitWithTypeImportCompletionEnabled() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTypeImportCompletionEnabled);
+        internal static void LogExpanderUsage() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExpanderUsageCount);
 
         internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);
