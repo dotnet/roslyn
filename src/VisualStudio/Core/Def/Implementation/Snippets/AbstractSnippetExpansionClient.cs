@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -98,10 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
-            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
-            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
+            _signatureHelpControllerProvider = signatureHelpControllerProvider;
+            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            this._allArgumentProviders = argumentProviders;
+            _allArgumentProviders = argumentProviders;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, OptionSet options, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -537,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
-                var doc = new DOMDocumentClass();
+                var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -739,6 +740,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
+            if (token.RawKind == 0)
+            {
+                // There is no touching word, so return empty immediately
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
@@ -899,7 +906,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
-            var doc = new DOMDocumentClass();
+            var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -1043,10 +1050,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
-            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, documentOptions, position, snippetNode, allowInHiddenRegions, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
@@ -1077,7 +1083,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     continue;
                 }
 
-                if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace) ||
+                if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace ||
                     !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
                 {
                     failedReferenceAdditions.Add(assemblyName);
@@ -1097,7 +1103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return false;
             }

@@ -494,6 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: boundTmps[1],
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };

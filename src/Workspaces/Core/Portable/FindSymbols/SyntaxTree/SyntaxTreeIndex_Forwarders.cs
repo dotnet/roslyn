@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -45,5 +46,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Same as <see cref="DeclaredSymbolInfos"/>, just stored as a set for easy containment checks.
         /// </summary>
         public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet.Value;
+
+        /// <summary>
+        /// Gets the set of global aliases that point to something with the provided name and arity.
+        /// For example of there is <c>global alias X = A.B.C&lt;int&gt;</c>, then looking up with
+        /// <c>name="C"</c> and arity=1 will return <c>X</c>.
+        /// </summary>
+        public ImmutableArray<string> GetGlobalAliases(string name, int arity)
+        {
+            if (_globalAliasInfo == null)
+                return ImmutableArray<string>.Empty;
+
+            using var result = TemporaryArray<string>.Empty;
+
+            foreach (var (alias, aliasName, aliasArity) in _globalAliasInfo)
+            {
+                if (aliasName == name && aliasArity == arity)
+                    result.Add(alias);
+            }
+
+            return result.ToImmutableAndClear();
+        }
     }
 }

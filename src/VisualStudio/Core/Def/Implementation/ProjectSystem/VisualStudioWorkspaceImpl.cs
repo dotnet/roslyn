@@ -73,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
-        private readonly Dictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = new();
+        private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
+        private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = ImmutableDictionary<ProjectId, string>.Empty;
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -100,6 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker? _projectTracker;
+
+        private VirtualMemoryNotificationListener? _memoryListener;
 
         private OpenFileTracker? _openFileTracker;
         internal FileChangeWatcher FileChangeWatcher { get; }
@@ -202,6 +204,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _openFileTracker = openFileTracker;
+            }
+
+            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
+
+            // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
+            lock (_gate)
+            {
+                _memoryListener = memoryListener;
             }
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
@@ -407,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                foreach (var (_, projects) in this._projectSystemNameToProjectsMap)
+                foreach (var (_, projects) in _projectSystemNameToProjectsMap)
                 {
                     foreach (var project in projects)
                     {
@@ -693,20 +703,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
 
                         var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
-                        var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
-                        var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
-
-                        Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
-
-                        for (var i = 0; i < mappedSpanResults.Length; i++)
+                        var mappedTextChanges = await mappingService.GetMappedTextChangesAsync(
+                            oldDocument, newDocument, CancellationToken.None).ConfigureAwait(false);
+                        foreach (var (filePath, textChange) in mappedTextChanges)
                         {
-                            // Only include changes that could be mapped.
-                            var newText = textChanges[i].NewText;
-                            if (!mappedSpanResults[i].IsDefault && newText != null)
-                            {
-                                var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                                filePathToMappedTextChanges.Add(mappedSpanResults[i].FilePath, (newTextChange, projectChanges.ProjectId));
-                            }
+                            filePathToMappedTextChanges.Add(filePath, (textChange, projectChanges.ProjectId));
                         }
                     }
                 }
@@ -749,18 +750,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private OleInterop.IOleUndoManager? TryGetUndoManager()
         {
-            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
-            if (documentTrackingService != null)
+            var documentTrackingService = this.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+            if (documentId != null)
             {
-                var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
-                if (documentId != null)
-                {
-                    var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-                    var exportProvider = composition.DefaultExportProvider;
-                    var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
+                var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
+                var exportProvider = composition.DefaultExportProvider;
+                var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
 
-                    return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
-                }
+                return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
             }
 
             return null;
@@ -1274,7 +1272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     $"This Workspace does not support changing a document's {nameof(document.Id)}.");
             }
 
-            if (document.Folders != updatedInfo.Folders)
+            if (document.Folders != updatedInfo.Folders && !document.Folders.SequenceEqual(updatedInfo.Folders))
             {
                 throw new InvalidOperationException(
                     $"This Workspace does not support changing a document's {nameof(document.Folders)}.");
@@ -1317,10 +1315,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal string? TryGetDependencyNodeTargetIdentifier(ProjectId projectId)
         {
-            lock (_gate)
-            {
-                return _projectToDependencyNodeTargetIdentifier.GetValueOrDefault(projectId, defaultValue: null);
-            }
+            // This doesn't take a lock since _projectToDependencyNodeTargetIdentifier is immutable
+            _projectToDependencyNodeTargetIdentifier.TryGetValue(projectId, out var identifier);
+            return identifier;
         }
 
         internal override void SetDocumentContext(DocumentId documentId)
@@ -1601,8 +1598,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
-                _projectToMaxSupportedLangVersionMap.Remove(projectId);
-                _projectToDependencyNodeTargetIdentifier.Remove(projectId);
+                // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+                ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
+                // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+                ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
                 _projectToRuleSetFilePath.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
@@ -1998,20 +1997,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]
         internal void SetMaxLanguageVersion(ProjectId projectId, string? maxLanguageVersion)
         {
-            lock (_gate)
-            {
-                _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
-            }
+            ImmutableInterlocked.Update(
+                ref _projectToMaxSupportedLangVersionMap,
+                static (map, arg) => map.SetItem(arg.projectId, arg.maxLanguageVersion),
+                (projectId, maxLanguageVersion));
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54135", AllowLocks = false)]
         internal void SetDependencyNodeTargetIdentifier(ProjectId projectId, string targetIdentifier)
         {
-            lock (_gate)
-            {
-                _projectToDependencyNodeTargetIdentifier[projectId] = targetIdentifier;
-            }
+            ImmutableInterlocked.Update(
+                ref _projectToDependencyNodeTargetIdentifier,
+                static (map, arg) => map.SetItem(arg.projectId, arg.targetIdentifier),
+                (projectId, targetIdentifier));
         }
 
         internal void RefreshProjectExistsUIContextForLanguage(string language)

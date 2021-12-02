@@ -102,6 +102,11 @@
         <target state="translated">配列のオフセットおよび長さが制限を超えているか、カウンターがソース コレクションのインデックスから最後までの要素の数より大きい値です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">古い値が見つかりません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">非同時実行コレクションを変更する操作には、排他アクセスが必要です。このコレクションに対して同時更新が実行され、その状態が破壊されました。コレクションの状態は正しくなくなりました。</target>

@@ -42,8 +42,14 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 return result.Value;
             }
 
+            // Read specified references with dependency information from the project assets file.
             var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
-            return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
+
+            // Determine unused references
+            var unusedReferences = await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
+
+            // Remove dependency information before returning.
+            return unusedReferences.SelectAsArray(reference => reference.WithDependencies(null));
         }
     }
 }

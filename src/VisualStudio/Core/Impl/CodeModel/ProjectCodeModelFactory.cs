@@ -7,14 +7,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -22,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     [Export(typeof(IProjectCodeModelFactory))]
     [Export(typeof(ProjectCodeModelFactory))]
-    internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
+    internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
     {
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
 
@@ -31,8 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
-        private readonly IForegroundNotificationService _notificationService;
-        private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
         [ImportingConstructor]
@@ -41,66 +43,101 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, assertIsForeground: false)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
 
-            _notificationService = notificationService;
-            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
+            Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
             // through them, firing their latest events.
             _documentsToFireEventsFor = new AsyncBatchingWorkQueue<DocumentId>(
-                TimeSpan.FromMilliseconds(visualStudioWorkspace.Options.GetOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS)),
+                InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan,
                 ProcessNextDocumentBatchAsync,
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
                 EqualityComparer<DocumentId>.Default,
-                _listener,
+                Listener,
                 threadingContext.DisposalToken);
 
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
+        internal IAsynchronousOperationListener Listener { get; }
+
+        private async ValueTask ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            foreach (var documentId in documentIds)
+            // This logic preserves the previous behavior we had with IForegroundNotificationService.
+            // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 
+            // have, we wait 50ms before continuing.  These constants are just what we defined from
+            // legacy, and otherwise have no special meaning.
+            const int MaxTimeSlice = 15;
+            var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+
+            Debug.Assert(!_threadingContext.JoinableTaskContext.IsOnMainThread, "The following context switch is not expected to cause runtime overhead.");
+            await TaskScheduler.Default;
+
+            // Ensure MEF services used by the code model are initially obtained on a background thread.
+            // This code avoids allocations where possible.
+            // https://github.com/dotnet/roslyn/issues/54159
+            string? previousLanguage = null;
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
             {
-                // Now, enqueue foreground work to actually process these documents in a serialized and incremental
-                // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
-                // doesn't saturate  the UI thread.
-                _notificationService.RegisterNotification(
-                    () => FireEventsForDocument(documentId),
-                    _listener.BeginAsyncOperation("CodeModelEvent"),
-                    cancellationToken);
+                if (projectState.Language == previousLanguage)
+                {
+                    // Avoid duplicate calls if the language did not change
+                    continue;
+                }
+
+                previousLanguage = projectState.Language;
+                projectState.LanguageServices.GetService<ICodeModelService>();
+                projectState.LanguageServices.GetService<ISyntaxFactsService>();
+                projectState.LanguageServices.GetService<ICodeGenerationService>();
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            bool FireEventsForDocument(DocumentId documentId)
+            var stopwatch = SharedStopwatch.StartNew();
+            foreach (var documentId in documentIds)
+            {
+                FireEventsForDocument(documentId);
+
+                // Keep firing events for this doc, as long as we haven't exceeded the max amount
+                // of waiting time, and there's no user input that should take precedence.
+                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                {
+                    await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                    stopwatch = SharedStopwatch.StartNew();
+                }
+            }
+
+            return;
+
+            void FireEventsForDocument(DocumentId documentId)
             {
                 // If we've been asked to shutdown, don't bother reporting any more events.
                 if (_threadingContext.DisposalToken.IsCancellationRequested)
-                    return false;
+                    return;
 
                 var projectCodeModel = this.TryGetProjectCodeModel(documentId.ProjectId);
                 if (projectCodeModel == null)
-                    return false;
+                    return;
 
                 var filename = _visualStudioWorkspace.GetFilePath(documentId);
                 if (filename == null)
-                    return false;
+                    return;
 
                 if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                    return false;
+                    return;
 
                 var codeModel = fileCodeModelHandle.Object;
-                return codeModel.FireEvents();
+                codeModel.FireEvents();
+                return;
             }
         }
 

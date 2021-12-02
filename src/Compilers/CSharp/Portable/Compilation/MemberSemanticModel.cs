@@ -580,6 +580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't defined namespace inside a member.
+            return null;
+        }
+
         public override INamedTypeSymbol GetDeclaredSymbol(BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define type inside a member.
@@ -899,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            var bound = GetUpperBoundNode(node);
+            var bound = GetLowerBoundNode(node);
             BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
             if (awaitableInfo == null)
             {
@@ -2456,7 +2462,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, bool includeInitializersInBody)
             {
                 BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
@@ -2465,7 +2471,7 @@ foundParent:;
                     return boundNode;
                 }
 
-                boundNode = base.BindMethodBody(node, diagnostics);
+                boundNode = base.BindMethodBody(node, diagnostics, includeInitializersInBody);
 
                 return boundNode;
             }

@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
-                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
+                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
             End If
 
             Dim delegateConversions As ConversionKind = Conversions.DetermineDelegateRelaxationLevel(methodConversions)

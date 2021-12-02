@@ -72,15 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             TypeParameterList                ' tied to parent
             TypeParameter                    ' tied to parent
-            TypeParameterConstraintClause    ' tied to parent
-            TypeConstraint                   ' tied to parent
-            TypeKindConstraint               ' tied to parent
-            NewConstraint                    ' tied to parent
 
             ParameterList                    ' tied to parent
             Parameter                        ' tied to parent
             FieldOrParameterName             ' tied to grand-grandparent (type or method declaration)
-            SimpleAsClause                   ' tied to parent
 
             AttributeList                    ' tied to parent
             Attribute                        ' tied to parent
@@ -235,13 +230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      Label.EventStatement,
                      Label.TypeParameterList,
                      Label.TypeParameter,
-                     Label.TypeParameterConstraintClause,
-                     Label.TypeConstraint,
-                     Label.TypeKindConstraint,
-                     Label.NewConstraint,
                      Label.ParameterList,
                      Label.Parameter,
-                     Label.SimpleAsClause,
                      Label.AttributeList,
                      Label.Attribute
                     Return 1
@@ -323,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return ClassifyStatementSyntax(kind, nodeOpt, isLeaf)
             End If
 
-            Return ClassifyTopSytnax(kind, isLeaf, ignoreVariableDeclarations)
+            Return ClassifyTopSytnax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
         End Function
 
         Friend Shared Function ClassifyStatementSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
@@ -723,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
+        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
             Select Case kind
                 Case SyntaxKind.CompilationUnit
                     isLeaf = False
@@ -768,10 +758,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.ModifiedIdentifier
                     isLeaf = True
                     Return If(ignoreVariableDeclarations, Label.Ignored, Label.FieldOrParameterName)
-
-                Case SyntaxKind.SimpleAsClause
-                    isLeaf = ignoreVariableDeclarations
-                    Return If(ignoreVariableDeclarations, Label.Ignored, Label.SimpleAsClause)
 
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock
                     isLeaf = False
@@ -840,24 +826,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = False
                     Return Label.TypeParameter
 
-                Case SyntaxKind.TypeParameterSingleConstraintClause,
-                     SyntaxKind.TypeParameterMultipleConstraintClause
-                    isLeaf = False
-                    Return Label.TypeParameterConstraintClause
-
-                Case SyntaxKind.StructureConstraint,
-                     SyntaxKind.ClassConstraint
-                    isLeaf = True
-                    Return Label.TypeKindConstraint
-
-                Case SyntaxKind.NewConstraint
-                    isLeaf = True
-                    Return Label.NewConstraint
-
-                Case SyntaxKind.TypeConstraint
-                    isLeaf = True
-                    Return Label.TypeConstraint
-
                 Case SyntaxKind.ParameterList
                     isLeaf = False
                     Return Label.ParameterList
@@ -867,12 +835,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.Parameter
 
                 Case SyntaxKind.AttributeList
-                    isLeaf = False
-                    Return Label.AttributeList
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        isLeaf = False
+                        Return Label.AttributeList
+                    End If
+
+                    isLeaf = True
+                    Return Label.Ignored
 
                 Case SyntaxKind.Attribute
                     isLeaf = True
-                    Return Label.Attribute
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        Return Label.Attribute
+                    End If
+
+                    Return Label.Ignored
 
                 Case Else
                     isLeaf = True
@@ -932,6 +909,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' VariableDeclaration, ModifiedIdentifier, and AsClause children.
                     ' But when comparing field definitions we should ignore VariableDeclaration children.
                     ignoreChildFunction = Function(childKind) HasLabel(childKind, ignoreVariableDeclarations:=True)
+
+                Case SyntaxKind.AttributesStatement
+                    ' Normally attributes and attribute lists are ignored, but for attribute statements
+                    ' we need to include them, so just assume they're labelled
+                    ignoreChildFunction = Function(childKind) True
 
                 Case Else
                     If HasChildren(left) Then

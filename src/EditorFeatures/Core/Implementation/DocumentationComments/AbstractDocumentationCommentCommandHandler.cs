@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,6 +15,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
@@ -27,20 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         IChainedCommandHandler<OpenLineAboveCommandArgs>,
         IChainedCommandHandler<OpenLineBelowCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         protected AbstractDocumentationCommentCommandHandler(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            Contract.ThrowIfNull(waitIndicator);
+            Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
@@ -201,11 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             var isValidTargetMember = false;
-            _waitIndicator.Wait("IntelliSense", allowCancel: true, action: c =>
+            _uiThreadOperationExecutor.Execute("IntelliSense", defaultDescription: "", allowCancellation: true, showProgress: false, action: c =>
             {
-                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.CancellationToken);
-                var text = syntaxTree.GetText(c.CancellationToken);
-                isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.CancellationToken);
+                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.UserCancellationToken);
+                var text = syntaxTree.GetText(c.UserCancellationToken);
+                isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.UserCancellationToken);
             });
 
             return isValidTargetMember

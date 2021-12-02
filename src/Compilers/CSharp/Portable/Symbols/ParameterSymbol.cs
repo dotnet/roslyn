@@ -395,9 +395,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
+        /// <summary>
+        /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
+        /// </summary>
+        internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
+
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {

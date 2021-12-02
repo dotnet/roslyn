@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             var name = Enum.GetName(typeof(FunctionId), id) ?? throw ExceptionUtilities.UnexpectedValue(id);
 
-            return new Option2<bool>(nameof(FunctionIdOptions), name, defaultValue: false,
-                storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));
+            return new(nameof(FunctionIdOptions), name, defaultValue: false,
+                storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));
         }
 
         public static Option2<bool> GetOption(FunctionId id)

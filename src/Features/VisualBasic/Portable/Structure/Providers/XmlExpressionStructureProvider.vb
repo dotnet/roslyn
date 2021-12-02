@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class XmlExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of XmlNodeSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(xmlExpression As XmlNodeSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  xmlExpression As XmlNodeSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

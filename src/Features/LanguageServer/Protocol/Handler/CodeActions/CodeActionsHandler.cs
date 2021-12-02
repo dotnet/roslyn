@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             if (document == null)
             {
-                return Array.Empty<VSCodeAction>();
+                return Array.Empty<VSInternalCodeAction>();
             }
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(

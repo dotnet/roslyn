@@ -167,6 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, namespaceDecl.NamespaceKeyword, namespaceDecl.CloseBraceToken);
         }
 
+        internal static bool IsInNamespaceDeclaration(int position, FileScopedNamespaceDeclarationSyntax namespaceDecl)
+        {
+            Debug.Assert(namespaceDecl != null);
+
+            return position >= namespaceDecl.SpanStart;
+        }
+
         internal static bool IsInConstructorParameterScope(int position, ConstructorDeclarationSyntax constructorDecl)
         {
             Debug.Assert(constructorDecl != null);

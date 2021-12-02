@@ -252,15 +252,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeElement CreateCodeType(CodeModelState state, ProjectId projectId, ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.TypeKind == TypeKind.Pointer ||
-                typeSymbol.TypeKind == TypeKind.TypeParameter ||
-                typeSymbol.TypeKind == TypeKind.Submission)
+            if (typeSymbol.TypeKind is TypeKind.Pointer or
+                TypeKind.TypeParameter or
+                TypeKind.Submission)
             {
                 throw Exceptions.ThrowEFail();
             }
 
-            if (typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown)
+            if (typeSymbol.TypeKind is TypeKind.Error or
+                TypeKind.Unknown)
             {
                 return ExternalCodeUnknown.Create(state, projectId, typeSymbol);
             }
@@ -811,7 +811,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             ITypeSymbol typeSymbol;
-            if (type is EnvDTE.vsCMTypeRef || type is int)
+            if (type is EnvDTE.vsCMTypeRef or int)
             {
                 typeSymbol = GetSpecialType((EnvDTE.vsCMTypeRef)type, semanticModel.Compilation);
             }

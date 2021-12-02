@@ -102,6 +102,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
+            {
+                return;
+            }
+
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
@@ -165,7 +173,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
-                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
 
             if (operation == null)
@@ -243,8 +251,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol ||
-                    memberReference.Member is IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or
+                    IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;

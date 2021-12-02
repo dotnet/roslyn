@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -14,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
+    [Obsolete]
     internal sealed partial class VisualStudioWaitContext : IWaitContext
     {
         private const int DelayToShowDialogSecs = 2;

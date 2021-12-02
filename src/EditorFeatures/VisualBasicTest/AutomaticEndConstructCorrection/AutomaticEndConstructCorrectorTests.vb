@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrectio
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
     <[UseExportProvider]>
@@ -358,7 +359,7 @@ End Class</code>.Value
                 Dim caretPosition = initialTextSnapshot.CreateTrackingPoint(document.CursorPosition.Value,
                                                                             PointTrackingMode.Positive,
                                                                             TrackingFidelityMode.Backward)
-                Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
+                Dim corrector = New AutomaticEndConstructCorrector(buffer, workspace.GetService(Of IUIThreadOperationExecutor))
 
                 corrector.Connect()
 
@@ -408,7 +409,7 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.First()
                 Dim spanToVerify = selectedSpans.Skip(1).Single()
 
-                Verify(document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify, workspace)
             End Using
         End Sub
 
@@ -421,13 +422,14 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.Skip(1).Single()
                 Dim spanToVerify = selectedSpans.First()
 
-                Verify(document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify, workspace)
             End Using
         End Sub
 
-        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
+        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As TestWorkspace)
             Dim buffer = document.GetTextBuffer()
-            Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
+            Dim uiThreadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
+            Dim corrector = New AutomaticEndConstructCorrector(buffer, uiThreadOperationExecutor)
 
             corrector.Connect()
             buffer.Replace(spanToReplace.ToSpan(), keyword)

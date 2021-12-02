@@ -14,7 +14,6 @@ namespace Build
     {
         public RoslynSolution() : base("Build.ps1")
         {
-            this.PackRequiresExplicitBuild = true;
         }
 
 
@@ -39,7 +38,7 @@ namespace Build
 
         public override bool Pack(BuildContext context, BuildOptions options)
         {
-            return ExecuteScript(context, options, "-pack");
+            return ExecuteScript(context, options, "-build -pack");
         }
 
         public override bool Restore(BuildContext context, BaseBuildSettings options)

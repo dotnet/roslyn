@@ -238,7 +238,7 @@ $$");
             => await VerifyAbsenceAsync(@"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNestedStaticPublic()
+        public async Task TestAfterNestedStaticPublicInClass()
         {
             await VerifyKeywordAsync(
 @"class C {
@@ -246,15 +246,103 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedStaticPublicInInterface()
+        {
+            await VerifyAbsenceAsync(
+@"interface C {
+    static public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedAbstractPublicInInterface()
+        {
+            await VerifyAbsenceAsync(
+@"interface C {
+    abstract public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedStaticAbstractPublicInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    static abstract public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedAbstractStaticPublicInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    abstract static public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedStaticAbstractInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    static abstract $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedAbstractStaticInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    abstract static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedStaticInInterface()
+        {
+            await VerifyAbsenceAsync(
+@"interface C {
+    static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPublicStatic()
             => await VerifyAbsenceAsync(@"public static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNestedPublicStatic()
+        public async Task TestAfterNestedPublicStaticInClass()
         {
             await VerifyKeywordAsync(
 @"class C {
     public static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedPublicStaticInInterface()
+        {
+            await VerifyAbsenceAsync(
+@"interface C {
+    public static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedPublicAbstractInInterface()
+        {
+            await VerifyAbsenceAsync(
+@"interface C {
+    public abstract $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedPublicStaticAbstractInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    public static abstract $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedPublicAbstractStaticInInterface()
+        {
+            await VerifyKeywordAsync(
+@"interface C {
+    public abstract static $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -313,35 +401,35 @@ global using Bar;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAbstract()
+        public async Task TestNotAfterNestedAbstractInClass()
         {
             await VerifyAbsenceAsync(@"class C {
     abstract $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedVirtual()
+        public async Task TestNotAfterNestedVirtualInClass()
         {
             await VerifyAbsenceAsync(@"class C {
     virtual $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedOverride()
+        public async Task TestNotAfterNestedOverrideInClass()
         {
             await VerifyAbsenceAsync(@"class C {
     override $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNestedSealed()
+        public async Task TestNotAfterNestedSealedInClass()
         {
             await VerifyAbsenceAsync(@"class C {
     sealed $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedReadOnly()
+        public async Task TestNotAfterNestedReadOnlyInClass()
         {
             await VerifyAbsenceAsync(@"class C {
     readonly $$");
@@ -349,10 +437,59 @@ global using Bar;");
 
         [WorkItem(544102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544102")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUnsafeStaticPublic()
+        public async Task TestAfterNestedUnsafeStaticPublicInClass()
         {
             await VerifyKeywordAsync(@"class C {
      unsafe static public $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedAbstractInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+    abstract $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedVirtualInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+    virtual $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedOverrideInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+    override $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedSealedInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+    sealed $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterNestedReadOnlyInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+    readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterUnsafeStaticAbstractInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
+     unsafe static abstract $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternStaticAbstractInInterface()
+        {
+            await VerifyAbsenceAsync(@"interface C {
+     extern static abstract $$");
         }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -97,7 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal abstract object? GetBrowseObject(SymbolListItem symbolListItem);
 
+        [Obsolete("Use TryGoToDefinitionAsync instead", error: false)]
         public abstract bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken);
+        public abstract Task<bool> TryGoToDefinitionAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
+
         public abstract bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
         public abstract void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);

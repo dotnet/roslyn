@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a
@@ -48,5 +48,8 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
 
         public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
             => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
+
+        public ProjectKey WithWorkspaceKind(string workspaceKind)
+            => new(Solution.WithWorkspaceKind(workspaceKind), Id, FilePath, Name, ParseOptionsChecksum);
     }
 }

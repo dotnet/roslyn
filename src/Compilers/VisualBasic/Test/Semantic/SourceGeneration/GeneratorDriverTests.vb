@@ -254,6 +254,43 @@ End Namespace
 
         End Sub
 
+        <Fact>
+        Public Sub Enable_Incremental_Generators()
+
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim testGenerator As VBIncrementalGenerator = New VBIncrementalGenerator()
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(New IncrementalGeneratorWrapper(testGenerator)), parseOptions:=parseOptions)
+
+            Dim outputCompilation As Compilation = Nothing
+            Dim outputDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, outputDiagnostics)
+            outputDiagnostics.Verify()
+
+            Assert.Equal(1, outputCompilation.SyntaxTrees.Count())
+            Assert.Equal(compilation, compilation)
+            Assert.True(testGenerator._initialized)
+        End Sub
+
+        <Fact>
+        Public Sub Prefer_Incremental_Generators()
+
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim testGenerator As VBIncrementalAndSourceGenerator = New VBIncrementalAndSourceGenerator()
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(testGenerator), parseOptions:=parseOptions)
+
+            Dim outputCompilation As Compilation = Nothing
+            Dim outputDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, outputDiagnostics)
+            outputDiagnostics.Verify()
+
+            Assert.Equal(1, outputCompilation.SyntaxTrees.Count())
+            Assert.Equal(compilation, compilation)
+            Assert.True(testGenerator._initialized)
+            Assert.False(testGenerator._sourceInitialized)
+            Assert.False(testGenerator._sourceExecuted)
+        End Sub
 
         Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "") As Compilation
             If (String.IsNullOrWhiteSpace(source)) Then
@@ -348,5 +385,39 @@ End Class
 
     End Class
 
+    <Generator(LanguageNames.VisualBasic)>
+    Friend Class VBIncrementalGenerator
+        Implements IIncrementalGenerator
+
+        Public _initialized As Boolean
+
+        Public Sub Initialize(context As IncrementalGeneratorInitializationContext) Implements IIncrementalGenerator.Initialize
+            _initialized = True
+        End Sub
+    End Class
+
+    <Generator(LanguageNames.VisualBasic)>
+    Friend Class VBIncrementalAndSourceGenerator
+        Implements IIncrementalGenerator
+        Implements ISourceGenerator
+
+        Public _initialized As Boolean
+        Public _sourceInitialized As Boolean
+        Public _sourceExecuted As Boolean
+
+        Public Sub Initialize(context As IncrementalGeneratorInitializationContext) Implements IIncrementalGenerator.Initialize
+            _initialized = True
+        End Sub
+
+        Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
+            _sourceInitialized = True
+        End Sub
+
+        Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
+            _sourceExecuted = True
+        End Sub
+
+
+    End Class
 
 End Namespace

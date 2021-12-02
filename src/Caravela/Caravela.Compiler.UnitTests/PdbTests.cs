@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -184,12 +183,25 @@ class C
             var codeHash = CryptographicHashProvider.ComputeSha1(Encoding.UTF8.GetBytesWithPreamble(tree.ToString())).ToArray();
 
             // none of the statements in the generated code can be mapped to original source, so there are no sequence points
+            
+            // #29513 RoslynEx 4.0: ENC debug info is emitted where sequence points are not expected
+            // Originally, there's been `<methods/>` instead of `<methods>...</methods>`.
+            
             comp.VerifyPdb($@"
 <symbols>
   <files>
     <file id=""1"" name=""C.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(codeHash)}"" />
   </files>
-  <methods />
+  <methods>
+    <method containingType=""C"" name=""get_P"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""1"" offset=""1"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
 </symbols>");
         }
 

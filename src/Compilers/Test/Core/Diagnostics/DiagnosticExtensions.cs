@@ -121,6 +121,10 @@ namespace Microsoft.CodeAnalysis
                     compilation = (TCompilation)CaravelaCompilerTest.ExecuteTransformer(
                         compilation, 
                         new CaravelaCompilerTest.TokenPerLineTransformer());
+
+                    // Tests using the missing types/members test feature of the Compilation class
+                    // would fail if this information is lost here.
+                    compilation.CloneMissingTypesAndMembersFrom(c);
                 }
             }
 

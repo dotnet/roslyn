@@ -2103,7 +2103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                 this.AssemblyCultureAttributeSetting,
                 StrongNameKeys.PublicKey,
-                hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
+                hasPublicKey: !StrongNameKeys.PublicKey.IsDefault,
+                isRetargetable: (AssemblyFlags & AssemblyFlags.Retargetable) == AssemblyFlags.Retargetable);
         }
 
         //This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,

@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IThreadingContext threadingContext, IPersistentStorageLocationService locationService)
-            : base(locationService)
+        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IThreadingContext threadingContext, IPersistentStorageConfiguration configuration)
+            : base(configuration)
         {
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;

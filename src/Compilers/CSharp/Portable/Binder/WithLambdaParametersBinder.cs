@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly LambdaSymbol lambdaSymbol;
         protected readonly MultiDictionary<string, ParameterSymbol> parameterMap;
-        private SmallDictionary<string, ParameterSymbol> _definitionMap;
+        private readonly SmallDictionary<string, ParameterSymbol> _definitionMap;
 
         public WithLambdaParametersBinder(LambdaSymbol lambdaSymbol, Binder enclosing)
             : base(enclosing)
@@ -29,24 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                recordDefinitions(parameters);
-                foreach (var parameter in lambdaSymbol.Parameters)
+                _definitionMap = new SmallDictionary<string, ParameterSymbol>();
+                foreach (var parameter in parameters)
                 {
                     if (!parameter.IsDiscard)
                     {
-                        this.parameterMap.Add(parameter.Name, parameter);
-                    }
-                }
-            }
-
-            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-            {
-                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
-                foreach (var s in definitions)
-                {
-                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
-                    {
-                        declarationMap.Add(s.Name, s);
+                        var name = parameter.Name;
+                        this.parameterMap.Add(name, parameter);
+                        if (!_definitionMap.ContainsKey(name))
+                        {
+                            _definitionMap.Add(name, parameter);
+                        }
                     }
                 }
             }

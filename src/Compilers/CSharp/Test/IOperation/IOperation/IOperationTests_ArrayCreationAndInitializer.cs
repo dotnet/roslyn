@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ArrayCreationAndInitializer : SemanticModelTestBase
     {
         [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_PrimitiveType()

@@ -249,7 +249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if ((object)node.MethodOpt == null)
+            if (node.Method is MethodSymbol method)
+            {
+                if (_inExpressionLambda && method.IsAbstract && method.IsStatic)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                }
+            }
+            else
             {
                 CheckUnsafeType(node.Left);
                 CheckUnsafeType(node.Right);
