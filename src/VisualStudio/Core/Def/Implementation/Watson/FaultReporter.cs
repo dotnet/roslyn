@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal static class WatsonReporter
+    internal static class FaultReporter
     {
         private static Dictionary<string, string>? s_capturedFileContent;
 
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
             // Any exception that is not recovered from shall be propagated and communicated to the client.
-            var nonFatalHandler = WatsonReporter.ReportNonFatal;
-            var fatalHandler = new Action<Exception>(static (exception) => ReportNonFatal(exception, forceDump: false));
+            var nonFatalHandler = FaultReporter.ReportFault;
+            var fatalHandler = new Action<Exception>(static (exception) => ReportFault(exception, forceDump: false));
 
             FatalError.Handler = fatalHandler;
             FatalError.NonFatalHandler = nonFatalHandler;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         /// <param name="forceDump">Force a dump to be created, even if the telemetry system is not
         /// requesting one; we will still do a client-side limit to avoid sending too much at once.</param>
-        public static void ReportNonFatal(Exception exception, bool forceDump)
+        public static void ReportFault(Exception exception, bool forceDump)
         {
             try
             {
