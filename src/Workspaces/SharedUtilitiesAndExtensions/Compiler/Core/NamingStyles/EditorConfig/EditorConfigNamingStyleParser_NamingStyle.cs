@@ -56,13 +56,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 s => s ?? string.Empty,
                 x => null,
                 s => (s ?? string.Empty, null),
-                (t0, t1, t2, t3, t4) =>
+                (nameTuple, prefixTuple, suffixTuple, wordSeparatorTuple, capitalizationTuple) =>
                 {
-                    var (namingStyleName, _) = t0;
-                    var (prefix, _) = t1;
-                    var (suffix, _) = t2;
-                    var (wordSeparator, _) = t3;
-                    var (capitalization, _) = t4;
+                    var (namingStyleName, _) = nameTuple;
+                    var (prefix, _) = prefixTuple;
+                    var (suffix, _) = suffixTuple;
+                    var (wordSeparator, _) = wordSeparatorTuple;
+                    var (capitalization, _) = capitalizationTuple;
+
                     return new NamingStyle(
                         Guid.NewGuid(),
                         namingStyleName,
