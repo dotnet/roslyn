@@ -19,9 +19,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
         public UnitTestingStackTraceService(HostWorkspaceServices services)
             => _stackTraceService = services.GetRequiredService<IStackTraceExplorerService>();
 
-        public async Task<Frame> ParseAsync(string line, CancellationToken cancellationToken)
+        public async Task<Frame?> TryParseAsync(string line, CancellationToken cancellationToken)
         {
             var result = await StackTraceAnalyzer.AnalyzeAsync(line, cancellationToken).ConfigureAwait(false);
+
+            if (result.ParsedFrames.Length == 0)
+            {
+                return null;
+            }
+
             if (result.ParsedFrames.Length > 1)
             {
                 throw new InvalidOperationException();
@@ -41,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
                 _stackTraceService = service;
             }
 
-            public (Document? document, int lineNumber) TryGetDocumentAndLine(Solution solution) 
+            public (Document? document, int lineNumber) TryGetDocumentAndLine(Solution solution)
                 => _stackTraceService.GetDocumentAndLine(solution, _parsedFrame);
 
             public async Task<Definition?> TryFindMethodDefinitionAsync(Solution solution, CancellationToken cancellationToken)
