@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     return false;
                 }
 
-                return left!.ApplicableSymbolKindList.SequenceEqual(right!.ApplicableSymbolKindList) &&
+                return left.ApplicableSymbolKindList.SequenceEqual(right!.ApplicableSymbolKindList) &&
                        left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
                        left.RequiredModifierList.SequenceEqual(right.RequiredModifierList);
             }
