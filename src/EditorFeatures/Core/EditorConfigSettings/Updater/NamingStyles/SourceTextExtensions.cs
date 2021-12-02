@@ -154,12 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         return true;
                     }
 
-                    if (left is null && right is not null)
-                    {
-                        return false;
-                    }
-
-                    if (left is not null && right is null)
+                    if (left is null || right is null)
                     {
                         return false;
                     }
