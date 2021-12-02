@@ -19,7 +19,13 @@ namespace Caravela.Compiler.UnitTests
         [Fact]
         public void LicensesAreRetrievedFromBuildOptions()
         {
-            var services = new BackstageServiceCollection()
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+            
+            serviceProviderBuilder
                 .AddSingleton<IBackstageDiagnosticSink>(_diagnostics)
                 .AddCurrentDateTimeProvider();
 
@@ -32,7 +38,7 @@ namespace Caravela.Compiler.UnitTests
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, globalOptions);
 
-            BuildOptionsLicenseSource source = new(analyzerConfigOptionsProvider, services.ToServiceProvider());
+            BuildOptionsLicenseSource source = new(analyzerConfigOptionsProvider, serviceProviderBuilder.ServiceProvider);
             Assert.Collection(source.GetLicenses(),
                 l => Assert.Equal("License 'SOMELICENSE1'", l.ToString()),
                 l => Assert.Equal("License 'SOMELICENSE2'", l.ToString()));

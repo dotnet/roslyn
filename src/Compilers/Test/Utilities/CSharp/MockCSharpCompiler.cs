@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         // <Caravela>
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseConsumptionManager customLicenseConsumptionManager = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, customLicenseConsumptionManager)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, customLicenseConsumptionManager)
         // </Caravela>
         {
         }
