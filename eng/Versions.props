@@ -62,7 +62,8 @@
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <!-- <Caravela> -->
-    <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">1.0.0-preview</PostSharpBackstageSettingsVersion>
+    <!-- TODO: Change to public version. -->
+    <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">0.1.0.50-dev-debug</PostSharpBackstageSettingsVersion>
     <!-- </Caravela> -->
   </PropertyGroup>
   <!--
