@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Caravela.Compiler;
 using PostSharp.Backstage.Licensing.Consumption;
+using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal AnalyzerOptions AnalyzerOptions;
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, ILicenseConsumptionManager customLicenseConsumptionManager = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, customLicenseConsumptionManager)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, bool bypassLicensing = true)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, bypassLicensing)
         // </Caravela>
         {
         }
 
         // <Caravela>
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ILicenseConsumptionManager customLicenseConsumptionManager = null)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, bool bypassLicensing = true)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         // </Caravela>
         {
@@ -42,7 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _generators = generators.NullToEmpty();
             // <Caravela>
             _transformers = transformers.NullToEmpty();
-            _customLicenseConsumptionManager = customLicenseConsumptionManager;
+
+            if (bypassLicensing)
+            {
+                _customLicenseConsumptionManager = new DummyLicenseConsumptionManager();
+            }
             // </Caravela>
         }
 

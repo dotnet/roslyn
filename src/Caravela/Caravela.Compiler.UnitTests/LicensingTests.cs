@@ -38,7 +38,7 @@ build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : 
                 transformers: transformer == null
                     ? ImmutableArray<ISourceTransformer>.Empty
                     : new[] { transformer }.ToImmutableArray(),
-                customLicenseConsumptionManager: new DummyLicenseConsumptionManager());
+                bypassLicensing: false);
 
             return csc;
         }
@@ -90,14 +90,6 @@ build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : 
             }
 
             base.Dispose();
-        }
-
-        private class EmptyLicenseSource : ILicenseSource
-        {
-            public IEnumerable<ILicense> GetLicenses()
-            {
-                yield break;
-            }
         }
 
         private class DummyTransformer : ISourceTransformer
