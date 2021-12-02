@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Microsoft;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -90,6 +92,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             throw new NotSupportedException($"Unexpected version format: {versionProperty}");
         }
 
+        public async Task<PauseFileChangesRestorer> PauseFileChangesAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx3>(cancellationToken);
+            Assumes.Present(fileChangeService);
+
+            await fileChangeService.Pause();
+            return new PauseFileChangesRestorer(fileChangeService);
+        }
+
         // This is based on WaitForQuiescenceAsync in the FileChangeService tests
         public async Task WaitForFileChangeNotificationsAsync(CancellationToken cancellationToken)
         {
@@ -112,6 +125,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     return;
 
                 await Task.WhenAll(tasks);
+            }
+        }
+
+        public readonly struct PauseFileChangesRestorer : IAsyncDisposable
+        {
+            private readonly IVsFileChangeEx3 _fileChangeService;
+
+            public PauseFileChangesRestorer(IVsFileChangeEx3 fileChangeService)
+            {
+                _fileChangeService = fileChangeService;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _fileChangeService.Resume();
             }
         }
     }
