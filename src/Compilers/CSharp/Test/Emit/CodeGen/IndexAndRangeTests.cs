@@ -1642,6 +1642,7 @@ class C
         Console.WriteLine(s[new Index(i, true)]);
         Console.WriteLine(s[new Index(value: 2, fromEnd: false)]);
         Console.WriteLine(s[new Index(fromEnd: true, value: 3)]);
+        Console.WriteLine(s[new Index(3, false) {}]);
     }
 }", expectedOutput: @"b
 c
@@ -1650,10 +1651,11 @@ d
 e
 a
 c
+d
 d");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      185 (0xb9)
+  // Code size      219 (0xdb)
   .maxstack  4
   .locals init (int V_0, //i
                 string V_1,
@@ -1715,19 +1717,32 @@ d");
   IL_008c:  ldc.i4.2
   IL_008d:  callvirt   ""char string.this[int].get""
   IL_0092:  call       ""void System.Console.WriteLine(char)""
-  IL_0097:  stloc.1
-  IL_0098:  ldloc.1
-  IL_0099:  ldc.i4.3
-  IL_009a:  ldc.i4.1
-  IL_009b:  newobj     ""System.Index..ctor(int, bool)""
-  IL_00a0:  stloc.2
-  IL_00a1:  ldloca.s   V_2
-  IL_00a3:  ldloc.1
-  IL_00a4:  callvirt   ""int string.Length.get""
-  IL_00a9:  call       ""int System.Index.GetOffset(int)""
-  IL_00ae:  callvirt   ""char string.this[int].get""
-  IL_00b3:  call       ""void System.Console.WriteLine(char)""
-  IL_00b8:  ret
+  IL_0097:  dup
+  IL_0098:  stloc.1
+  IL_0099:  ldloc.1
+  IL_009a:  ldc.i4.3
+  IL_009b:  ldc.i4.1
+  IL_009c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00a1:  stloc.2
+  IL_00a2:  ldloca.s   V_2
+  IL_00a4:  ldloc.1
+  IL_00a5:  callvirt   ""int string.Length.get""
+  IL_00aa:  call       ""int System.Index.GetOffset(int)""
+  IL_00af:  callvirt   ""char string.this[int].get""
+  IL_00b4:  call       ""void System.Console.WriteLine(char)""
+  IL_00b9:  stloc.1
+  IL_00ba:  ldloc.1
+  IL_00bb:  ldc.i4.3
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00c2:  stloc.2
+  IL_00c3:  ldloca.s   V_2
+  IL_00c5:  ldloc.1
+  IL_00c6:  callvirt   ""int string.Length.get""
+  IL_00cb:  call       ""int System.Index.GetOffset(int)""
+  IL_00d0:  callvirt   ""char string.this[int].get""
+  IL_00d5:  call       ""void System.Console.WriteLine(char)""
+  IL_00da:  ret
 }
 ");
         }
