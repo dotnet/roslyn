@@ -84,18 +84,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             var vbNamingStylePreferences = options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.VisualBasic);
 
             var commonOptions = GetCommonOptions(csharpNamingStylePreferences, vbNamingStylePreferences);
-            var csharpOnlyOptions = GetOptionsForCSharp(csharpNamingStylePreferences, commonOptions);
-            var vbOnlyOptions = GetOptionsForVisualBasic(vbNamingStylePreferences, commonOptions);
+            var csharpOnlyOptions = GetOptionsUniqueOptions(csharpNamingStylePreferences, commonOptions);
+            var vbOnlyOptions = GetOptionsUniqueOptions(vbNamingStylePreferences, commonOptions);
             return (commonOptions, csharpOnlyOptions, vbOnlyOptions);
 
             static IEnumerable<NamingRule> GetCommonOptions(NamingStylePreferences csharp, NamingStylePreferences visualBasic)
                 => csharp.Rules.NamingRules.Intersect(visualBasic.Rules.NamingRules, NamingRuleComparerIgnoreGUIDs.Instance);
 
-            static IEnumerable<NamingRule> GetOptionsForCSharp(NamingStylePreferences csharp, IEnumerable<NamingRule> common)
+            static IEnumerable<NamingRule> GetOptionsUniqueOptions(NamingStylePreferences csharp, IEnumerable<NamingRule> common)
                 => csharp.Rules.NamingRules.Except(common, NamingRuleComparerIgnoreGUIDs.Instance);
-
-            static IEnumerable<NamingRule> GetOptionsForVisualBasic(NamingStylePreferences visualBasic, IEnumerable<NamingRule> common)
-                => visualBasic.Rules.NamingRules.Except(common, NamingRuleComparerIgnoreGUIDs.Instance);
         }
 
         private class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
