@@ -1,6 +1,6 @@
 ﻿# EditorConfig Parser with TextSpan support
 
-The purpose of the types here is to implement an extensible editorconfig parser that allows you to get strongly types options.
+The purpose of the types here is to implement an extensible editorconfig parser that allows you to get strongly typed options.
 
 The implementation is very similar to the `AnalyzerConfig` type that currently lives here: src\Compilers\Core\Portable\CommandLine\AnalyzerConfig.cs except it has been expanded to be able to produce strongly typed versions of options and track spans where options are defined in the file.
 The span tracking is the crucial part as naming styles (the editorconfig options that necessitated its creation) have many spans that compose to create a single option. Without some mechanism to keep track of all these location it becomes impossible to make edits.
