@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        private bool PlaceholderMustBeRegistered(BoundValuePlaceholderBase placeholder)
+        private static bool PlaceholderMustBeRegistered(BoundValuePlaceholderBase placeholder)
         {
             Debug.Assert(placeholder is { });
 
