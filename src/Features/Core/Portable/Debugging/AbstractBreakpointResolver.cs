@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         {
             // You can only set a breakpoint on methods (including constructors/destructors) and properties.
             var kind = methodOrProperty.Kind;
-            if (!(kind == SymbolKind.Method || kind == SymbolKind.Property))
+            if (kind is not (SymbolKind.Method or SymbolKind.Property))
             {
                 return false;
             }

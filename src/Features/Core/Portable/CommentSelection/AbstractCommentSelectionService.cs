@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var formattingSpans = changes.Select(s => CommonFormattingHelpers.GetFormattingSpan(root, s));
 
             return Formatter.FormatAsync(document, formattingSpans, cancellationToken: cancellationToken);

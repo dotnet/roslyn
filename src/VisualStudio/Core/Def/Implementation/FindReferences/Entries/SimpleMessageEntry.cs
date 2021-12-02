@@ -5,12 +5,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
-        private class SimpleMessageEntry : Entry, ISupportsNavigation
+        private sealed class SimpleMessageEntry : Entry, ISupportsNavigation
         {
             private readonly RoslynDefinitionBucket? _navigationBucket;
             private readonly string _message;
@@ -44,8 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 };
             }
 
-            public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => _navigationBucket != null && _navigationBucket.TryNavigateTo(isPreview, cancellationToken);
+            public bool CanNavigateTo()
+                => _navigationBucket != null && _navigationBucket.CanNavigateTo();
+
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(CanNavigateTo());
+                Contract.ThrowIfNull(_navigationBucket);
+                return _navigationBucket.NavigateToAsync(isPreview, cancellationToken);
+            }
         }
     }
 }

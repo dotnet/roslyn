@@ -340,6 +340,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
         private static readonly byte[][] s_signaturesOfNullableContextAttribute = { s_signature_HasThis_Void_Byte };
         private static readonly byte[][] s_signaturesOfNativeIntegerAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
+        private static readonly byte[][] s_signaturesOfInterpolatedStringArgumentAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
 
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signatures_HasThis_Void_Only);
@@ -374,6 +375,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription CallerFilePathAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerFilePathAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CallerLineNumberAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerLineNumberAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription CallerMemberNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerMemberNameAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription CallerArgumentExpressionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CallerArgumentExpressionAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription IDispatchConstantAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IDispatchConstantAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription DefaultParameterValueAttribute = new AttributeDescription("System.Runtime.InteropServices", "DefaultParameterValueAttribute", s_signaturesOfDefaultParameterValueAttribute);
         internal static readonly AttributeDescription UnverifiableCodeAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnverifiableCodeAttribute", s_signatures_HasThis_Void_Only);
@@ -474,5 +476,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription InterpolatedStringHandlerArgumentAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerArgumentAttribute", s_signaturesOfInterpolatedStringArgumentAttribute);
     }
 }

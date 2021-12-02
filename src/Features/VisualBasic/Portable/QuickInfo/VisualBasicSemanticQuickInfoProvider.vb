@@ -23,7 +23,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Sub
 
         Protected Overrides Async Function BuildQuickInfoAsync(
-                document As Document,
+                context As QuickInfoContext,
+                token As SyntaxToken) As Task(Of QuickInfoItem)
+            Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
+            Dim info = Await BuildQuickInfoAsync(context.Document.Project.Solution.Workspace,
+                semanticModel, token, context.CancellationToken).ConfigureAwait(False)
+            If info IsNot Nothing Then
+                Return info
+            End If
+
+            Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
+        End Function
+
+        Protected Overrides Async Function BuildQuickInfoAsync(
+                context As CommonQuickInfoContext,
+                token As SyntaxToken) As Task(Of QuickInfoItem)
+            Dim info = Await BuildQuickInfoAsync(context.Workspace, context.SemanticModel, token, context.CancellationToken).ConfigureAwait(False)
+            If info IsNot Nothing Then
+                Return info
+            End If
+
+            Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
+        End Function
+
+        Private Overloads Shared Async Function BuildQuickInfoAsync(
+                workspace As Workspace,
+                semanticModel As SemanticModel,
                 token As SyntaxToken,
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
 
@@ -31,70 +56,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 
             Dim predefinedCastExpression = TryCast(parent, PredefinedCastExpressionSyntax)
             If predefinedCastExpression IsNot Nothing AndAlso token = predefinedCastExpression.Keyword Then
-                Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-                Dim documentation = New PredefinedCastExpressionDocumentation(predefinedCastExpression.Keyword.Kind, compilation)
-                Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, documentation, Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                Dim documentation = New PredefinedCastExpressionDocumentation(predefinedCastExpression.Keyword.Kind, semanticModel.Compilation)
+                Return BuildContentForIntrinsicOperator(semanticModel, token, parent, documentation, Glyph.MethodPublic, cancellationToken)
             End If
 
             Select Case token.Kind
                 Case SyntaxKind.AddHandlerKeyword
                     If TypeOf parent Is AddRemoveHandlerStatementSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New AddHandlerStatementDocumentation(), Glyph.Keyword, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New AddHandlerStatementDocumentation(), Glyph.Keyword, cancellationToken)
                     End If
 
                 Case SyntaxKind.DimKeyword
                     If TypeOf parent Is FieldDeclarationSyntax Then
-                        Return Await BuildContentAsync(document, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, cancellationToken).ConfigureAwait(False)
                     ElseIf TypeOf parent Is LocalDeclarationStatementSyntax Then
-                        Return Await BuildContentAsync(document, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, cancellationToken).ConfigureAwait(False)
                     End If
 
                 Case SyntaxKind.CTypeKeyword
                     If TypeOf parent Is CTypeExpressionSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New CTypeCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New CTypeCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.DirectCastKeyword
                     If TypeOf parent Is DirectCastExpressionSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New DirectCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New DirectCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.GetTypeKeyword
                     If TypeOf parent Is GetTypeExpressionSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New GetTypeExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New GetTypeExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.GetXmlNamespaceKeyword
                     If TypeOf parent Is GetXmlNamespaceExpressionSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New GetXmlNamespaceExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New GetXmlNamespaceExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.IfKeyword
                     If parent.Kind = SyntaxKind.BinaryConditionalExpression Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New BinaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New BinaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     ElseIf parent.Kind = SyntaxKind.TernaryConditionalExpression Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New TernaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New TernaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.RemoveHandlerKeyword
                     If TypeOf parent Is AddRemoveHandlerStatementSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New RemoveHandlerStatementDocumentation(), Glyph.Keyword, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New RemoveHandlerStatementDocumentation(), Glyph.Keyword, cancellationToken)
                     End If
 
                 Case SyntaxKind.TryCastKeyword
                     If TypeOf parent Is TryCastExpressionSyntax Then
-                        Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New TryCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                        Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New TryCastExpressionDocumentation(), Glyph.MethodPublic, cancellationToken)
                     End If
 
                 Case SyntaxKind.IdentifierToken
                     If SyntaxFacts.GetContextualKeywordKind(token.ToString()) = SyntaxKind.MidKeyword Then
                         If parent.Kind = SyntaxKind.MidExpression Then
-                            Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New MidAssignmentDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
+                            Return BuildContentForIntrinsicOperator(semanticModel, token, parent, New MidAssignmentDocumentation(), Glyph.MethodPublic, cancellationToken)
                         End If
                     End If
             End Select
 
-            Return Await MyBase.BuildQuickInfoAsync(document, token, cancellationToken).ConfigureAwait(False)
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -122,7 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildContentAsync(
-                document As Document,
+                workspace As Workspace,
+                semanticModel As SemanticModel,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
@@ -131,11 +156,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return Nothing
             End If
 
-            Dim semantics = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
             Dim types = declarators.SelectMany(Function(d) d.Names).Select(
                 Function(n) As ISymbol
-                    Dim symbol = semantics.GetDeclaredSymbol(n, cancellationToken)
+                    Dim symbol = semanticModel.GetDeclaredSymbol(n, cancellationToken)
                     If symbol Is Nothing Then
                         Return Nothing
                     End If
@@ -157,20 +180,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(workspace, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
-                                                                     token As SyntaxToken,
-                                                                     expression As SyntaxNode,
-                                                                     documentation As AbstractIntrinsicOperatorDocumentation,
-                                                                     glyph As Glyph,
-                                                                     cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
+        Private Shared Function BuildContentForIntrinsicOperator(
+                semanticModel As SemanticModel,
+                token As SyntaxToken,
+                expression As SyntaxNode,
+                documentation As AbstractIntrinsicOperatorDocumentation,
+                glyph As Glyph,
+                cancellationToken As CancellationToken) As QuickInfoItem
             Dim builder = New List(Of SymbolDisplayPart)
 
             builder.AddRange(documentation.PrefixParts)
-
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim position = expression.SpanStart
 

@@ -184,9 +184,9 @@ class C
                 Diagnostic(analyzer.Descriptor.Id, source));
 
             var suppressor1 = new DiagnosticSuppressorForId("CS0169");
-            var suppresor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
+            var suppressor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
 
-            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor1, suppresor2 };
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor1, suppressor2 };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors,
                 Diagnostic("CS0169", "f", isSuppressed: true).WithArguments("C1.f").WithLocation(1, 33),
                 Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true));
@@ -304,12 +304,12 @@ class C { }";
 
                 IFormattable context = $@"{new LazyToString(() => exceptions[0])}
 -----";
-                var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
-                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
                     Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message, context).WithLocation(1, 1),
                     Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
 
-                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
             }
             finally
             {
@@ -348,12 +348,12 @@ class C { }";
 
 {new LazyToString(() => exceptions[0])}
 -----";
-                var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
-                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
                     Diagnostic("AD0001").WithArguments(suppressor.ToString(), typeof(NotImplementedException).FullName, new NotImplementedException().Message, context).WithLocation(1, 1),
                     Diagnostic("ID1000", "class C { }").WithLocation(1, 1));
 
-                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
             }
             finally
             {
@@ -376,7 +376,7 @@ class C { }";
             const string unsupportedSuppressionId = "unsupportedId";
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var suppressor = new DiagnosticSuppressor_UnsupportedSuppressionReported(analyzer.Descriptor.Id, supportedSuppressionId, unsupportedSuppressionId);
-            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
 
             // "Reported suppression with ID '{0}' is not supported by the suppressor."
             var exceptionMessage = string.Format(CodeAnalysisResources.UnsupportedSuppressionReported, unsupportedSuppressionId);
@@ -400,7 +400,7 @@ class C { }";
 
 {new LazyToString(() => exceptions[0])}
 -----";
-                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
                     Diagnostic("AD0001").WithArguments(suppressor.ToString(),
                                                        typeof(ArgumentException).FullName,
                                                        exceptionMessage,
@@ -408,7 +408,7 @@ class C { }";
                                         .WithLocation(1, 1),
                     Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
 
-                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
             }
             finally
             {
@@ -429,7 +429,7 @@ class C { }";
             const string unsupportedSuppressedId = "UnsupportedId";
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var suppressor = new DiagnosticSuppressor_InvalidDiagnosticSuppressionReported(analyzer.Descriptor.Id, unsupportedSuppressedId);
-            var analyzersAndSuppresors = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
 
             // "Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor."
             var exceptionMessage = string.Format(CodeAnalysisResources.InvalidDiagnosticSuppressionReported, analyzer.Descriptor.Id, unsupportedSuppressedId);
@@ -453,7 +453,7 @@ class C { }";
 
 {new LazyToString(() => exceptions[0])}
 -----";
-                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppresors,
+                VerifyAnalyzerDiagnostics(compilation, analyzersAndSuppressors,
                     Diagnostic("AD0001").WithArguments(suppressor.ToString(),
                                                        typeof(System.ArgumentException).FullName,
                                                        exceptionMessage,
@@ -461,7 +461,7 @@ class C { }";
                                         .WithLocation(1, 1),
                     Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
 
-                VerifySuppressedDiagnostics(compilation, analyzersAndSuppresors);
+                VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors);
             }
             finally
             {

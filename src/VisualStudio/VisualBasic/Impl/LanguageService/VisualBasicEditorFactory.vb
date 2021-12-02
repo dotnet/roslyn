@@ -24,10 +24,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Protected Overrides ReadOnly Property ContentTypeName As String = ContentTypeNames.VisualBasicContentType
 
         Protected Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
-
-        Protected Overrides ReadOnly Property SyntaxGenerator As SyntaxGenerator = VisualBasicSyntaxGenerator.Instance
-        Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
-
-        Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper = VisualBasicFileHeaderHelper.Instance
     End Class
 End Namespace

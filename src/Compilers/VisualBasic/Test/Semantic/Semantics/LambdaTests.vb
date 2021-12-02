@@ -2164,5 +2164,223 @@ In getter
 ]]>)
         End Sub
 
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_1()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_2()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Shared Sub Main()
+        Dim a, b As New C1((Function(n) n + 1)(1))
+        System.Console.Write(a.F1)
+        System.Console.Write(b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_3()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+
+        x = New C0(True)
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+
+    Sub New()
+    End Sub
+
+    Sub New(b as Boolean)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="2222")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_4()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public a, b As New C1((Function(n1) (Function(n2) n2 + 1)(n1))(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_5()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Shared Sub Main()
+        Test(Of Object)()
+    End Sub
+
+    Shared Sub Test(Of T)()
+        Dim a, b As New C1((Function(n)
+                                Dim x as T
+                                x = Nothing
+                                Return CObj(x) + n + 1
+                            End Function)(1))
+        System.Console.Write(a.F1)
+        System.Console.Write(b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(53593, "https://github.com/dotnet/roslyn/issues/53593")>
+        <Fact()>
+        Public Sub Issue53593_6()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Public Class C0
+
+    Public WithEvents a, b As New C1((Function(n) n + 1)(1))
+
+    Shared Sub Main()
+        Dim x as New C0()
+        System.Console.Write(x.a.F1)
+        System.Console.Write(x.b.F1)
+    End Sub
+End Class
+
+Public Class C1
+
+    Public F1 as Integer
+
+    Sub New(a As Integer)
+        F1 = a
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
     End Class
 End Namespace

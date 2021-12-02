@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>

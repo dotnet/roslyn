@@ -6,6 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expres
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class BinaryOperatorKeywordRecommenderTests
+        Inherits RecommenderTests
+
         Private Shared ReadOnly s_expectedKeywords As String() = BinaryOperatorKeywordRecommender.KeywordList.Select(Function(k) k.Keyword).ToArray()
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

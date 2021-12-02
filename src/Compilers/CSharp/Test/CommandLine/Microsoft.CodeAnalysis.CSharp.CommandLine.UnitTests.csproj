@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup>
@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" Version="$(BasicReferenceAssembliesNetStandard13Version)" />
   </ItemGroup>
   <ItemGroup>
     <!-- <Caravela> -->

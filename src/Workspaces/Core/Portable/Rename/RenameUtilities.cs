@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Rename
         private static bool IsSymbolDefinedInsideMethod(ISymbol symbol)
         {
             return
-                symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Label ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Parameter;
+                symbol.Kind is SymbolKind.Local or
+                SymbolKind.Label or
+                SymbolKind.RangeVariable or
+                SymbolKind.Parameter;
         }
 
         internal static IEnumerable<Document> GetDocumentsAffectedByRename(ISymbol symbol, Solution solution, IEnumerable<RenameLocation> renameLocations)

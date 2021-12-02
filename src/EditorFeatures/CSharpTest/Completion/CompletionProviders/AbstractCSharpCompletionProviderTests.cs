@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
@@ -26,6 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
         protected const string NonBreakingSpaceString = "\x00A0";
+
+        protected static string GetMarkup(string source, LanguageVersion languageVersion)
+            => $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{languageVersion.ToDisplayString()}"">
+        <Document FilePath=""Test2.cs"">
+{source}
+        </Document>
+    </Project>
+</Workspace>";
 
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);

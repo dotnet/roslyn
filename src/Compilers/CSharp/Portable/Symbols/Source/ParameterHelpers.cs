@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -220,7 +221,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+#nullable enable
+        internal static void EnsureIsReadOnlyAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
+        {
+            EnsureIsReadOnlyAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+        }
+
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -229,16 +236,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            EnsureIsReadOnlyAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
+        }
+
+        private static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        {
             foreach (var parameter in parameters)
             {
                 if (parameter.RefKind == RefKind.In)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    if (moduleBuilder is { })
+                    {
+                        moduleBuilder.EnsureIsReadOnlyAttributeExists();
+                    }
+                    else
+                    {
+                        compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    }
                 }
             }
         }
 
-        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNativeIntegerAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
+        {
+            EnsureNativeIntegerAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+        }
+
+        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -247,16 +271,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            EnsureNativeIntegerAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
+        }
+
+        private static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        {
             foreach (var parameter in parameters)
             {
                 if (parameter.TypeWithAnnotations.ContainsNativeInteger())
                 {
-                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    if (moduleBuilder is { })
+                    {
+                        moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    }
+                    else
+                    {
+                        compilation.EnsureNativeIntegerAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    }
                 }
             }
         }
 
-        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNullableAttributeExists(PEModuleBuilder moduleBuilder, Symbol container, ImmutableArray<ParameterSymbol> parameters)
+        {
+            EnsureNullableAttributeExists(moduleBuilder.Compilation, container, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+        }
+
+        internal static void EnsureNullableAttributeExists(CSharpCompilation? compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -265,19 +306,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            EnsureNullableAttributeExists(compilation, container, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
+        }
+
+        private static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        {
             if (parameters.Length > 0 && compilation.ShouldEmitNullableAttributes(container))
             {
                 foreach (var parameter in parameters)
                 {
                     if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
                     {
-                        compilation.EnsureNullableAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                        if (moduleBuilder is { })
+                        {
+                            moduleBuilder.EnsureNullableAttributeExists();
+                        }
+                        else
+                        {
+                            compilation.EnsureNullableAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                        }
                     }
                 }
             }
         }
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
+#nullable disable
 
         private static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams)
         {
@@ -659,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
         {
-            return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
+            return expression.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true) && expression.InitializerExpressionOpt == null;
         }
 
         internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)

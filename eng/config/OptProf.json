@@ -2,84 +2,7 @@
   "products": [
     {
       "name": "Roslyn.VisualStudio.Setup.vsix",
-      "tests": [
-        {
-          "container": "XamlOptProf",
-          "filteredTestCases": [
-            {
-              "filename": "/Microsoft.CodeAnalysis.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.Xaml.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.Remote.Workspaces.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.Features.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            }
-          ]
-        },
+      "tests": [        
         {
           "container": "WinForms",
           "filteredTestCases": [
@@ -121,10 +44,6 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.CodeLens.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
@@ -264,10 +183,6 @@
             {
               "filename": "/Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
               "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
-            },
-            {
-              "filename": "/Microsoft.VisualStudio.LanguageServices.CodeLens.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Features.dll",
@@ -459,8 +374,7 @@
         {
           "container": "XamlOptProf",
           "testCases": [
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated",
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
+            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated"
           ]
         }
       ]
@@ -503,8 +417,7 @@
         {
           "container": "XamlOptProf",
           "testCases": [
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated",
-            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
+            "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated"
           ]
         }
       ]

@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             {
                 errorReportingService.ShowGlobalErrorInfo(
                     string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             {
                 errorReportingService.ShowGlobalErrorInfo(
                     string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,
@@ -83,6 +85,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             {
                 errorReportingService.ShowGlobalErrorInfo(
                     string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,

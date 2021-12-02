@@ -332,21 +332,6 @@
         <target state="translated">Seleção inválida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">A seleção não contém qualquer token válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Nenhuma seleção válida para realizar a extração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">Não há um nó raiz comum para extração</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Preterido</target>
@@ -965,11 +950,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">Especifica a ordem de classificação para uma cláusula Classificar Por em uma consulta. O menor elemento aparecerá primeiro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Assincronamente aguarda a conclusão da tarefa.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
@@ -1691,11 +1671,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <source>WithEvents field</source>
         <target state="translated">Campo de WithEvents</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">acessador de propriedade</target>
-        <note />
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>

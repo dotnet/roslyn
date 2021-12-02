@@ -182,13 +182,19 @@ config_transformer_class_name = ConfigTestClass
         {
             var dir = Temp.CreateDirectory();
 
-            var orderDll = dir.CreateOrOpenFile("order.dll");
+            var transformerAssemblyName = "order";
+            var orderDll = dir.CreateOrOpenFile($"{transformerAssemblyName}.dll");
 
             using (var orderStream = orderDll.Open())
             {
                 var result = CreateCompilation(
                     File.ReadAllText("TransformerOrderTransformers.cs"),
-                    references: new[] { MetadataReference.CreateFromFile(typeof(TransformerOrderAttribute).Assembly.Location) })
+                    references: new[] { 
+#if NET472_OR_GREATER
+                        MetadataReference.CreateFromFile(@"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\netstandard.dll"),
+#endif
+                        MetadataReference.CreateFromFile(typeof(TransformerOrderAttribute).Assembly.Location) },
+                    assemblyName: transformerAssemblyName)
                     .Emit(orderStream);
                 result.Diagnostics.Verify(               
                     // (2,1): hidden CS8019: Unnecessary using directive.

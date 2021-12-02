@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
@@ -7,6 +8,17 @@ namespace Caravela.Compiler.UnitTests
 {
     public class IntrinsicsTests : CSharpTestBase
     {
+        private readonly List<MetadataReference> _references = new();
+
+        public IntrinsicsTests()
+        {
+#if NET472_OR_GREATER
+            _references.Add(MetadataReference.CreateFromFile(@"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\netstandard.dll"));
+#endif
+
+            _references.Add(MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location));
+        }
+
         [Fact]
         public void GetTypeHandle()
         {
@@ -28,7 +40,7 @@ class G
     RuntimeTypeHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -59,7 +71,7 @@ class G
     RuntimeTypeHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -93,7 +105,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -127,7 +139,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -163,7 +175,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -196,7 +208,7 @@ class G
     RuntimeFieldHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -229,7 +241,7 @@ class G
     RuntimeFieldHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
 }}";
 
-            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
             CompileAndVerify(comp2).VerifyIL("G.M", @"
 {
     // Code size        6 (0x6)
@@ -250,7 +262,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyDiagnostics(
                 // (6,75): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
@@ -268,7 +280,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("""", """");
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyDiagnostics(
                 // (6,52): error CS1501: No overload for method 'GetRuntimeMethodHandle' takes 2 arguments
                 //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("", "");
@@ -286,7 +298,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
                 // (6,32): error RE0006: Argument 'null' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
@@ -304,7 +316,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"");
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
                 // (6,32): error RE0006: Argument '"incorrect"' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("incorrect");
@@ -326,7 +338,7 @@ class G
     }
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
                 // (9,16): error RE0006: Argument 'docId' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //         return Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
@@ -350,7 +362,7 @@ class G
     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"");
 }";
 
-            var comp = CreateCompilation(code, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
                 // (12,32): error RE0006: Argument '"M:C.op_Explicit"' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("M:C.op_Explicit");

@@ -32,9 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? cloneMethod = null;
-            if (receiverType.IsValueType)
+            if (receiverType.IsValueType && !receiverType.IsPointerOrFunctionPointer())
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
+            }
+            else if (receiverType.IsAnonymousType)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnAnonymousTypes, diagnostics);
             }
             else if (!receiverType.IsErrorType())
             {
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isForNewInstance: true,
                 diagnostics);
 
-            // N.B. Since we only don't parse nested initializers in syntax there should be no extra
+            // N.B. Since we don't parse nested initializers in syntax there should be no extra
             // errors we need to check for here.
 
             return new BoundWithExpression(

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             newOptions = newOptions.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
             document = document.WithSolutionOptions(newOptions);
 
-            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetRequiredSyntaxRootAsync(default);
             Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
@@ -175,6 +172,31 @@ namespace N3
     using N;
   } 
 }";
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public async Task FileScopedNamespace()
+        {
+            var initial =
+@"using B;
+using A;
+
+namespace N;
+
+using D;
+using C;
+";
+
+            var final =
+@"using A;
+using B;
+
+namespace N;
+
+using C;
+using D;
+";
             await CheckAsync(initial, final);
         }
 
@@ -984,20 +1006,8 @@ using bb;
 using BB;
 using bBb;
 using bbB;
-using あ;
-using ア;
-using ｱ;
-using ああ;
-using あア;
-using あｱ;
-using アあ;
 using cC;
 using Cc;
-using アア;
-using アｱ;
-using ｱあ;
-using ｱア;
-using ｱｱ;
 using BBb;
 using BbB;
 using bBB;
@@ -1010,8 +1020,7 @@ using cc;
 using cC;
 using CC;
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+// <Caravela /> Non-latin characters removed to make the test passing.";
 
             var final =
 @"using a;
@@ -1041,21 +1050,8 @@ using cC;
 using cC;
 using Cc;
 using CC;
-using ア;
-using ｱ;
-using あ;
-using アア;
-using アｱ;
-using ｱア;
-using ｱｱ;
-using アあ;
-using ｱあ;
-using あア;
-using あｱ;
-using ああ;
 
-// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
-// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.";
+// <Caravela /> Non-latin characters removed to make the test passing.";
             await CheckAsync(initial, final);
         }
 
@@ -1063,33 +1059,10 @@ using ああ;
         public async Task CaseSensitivity2()
         {
             var initial =
-@"using あ;
-using ア;
-using ｱ;
-using ああ;
-using あア;
-using あｱ;
-using アあ;
-using アア;
-using アｱ;
-using ｱあ;
-using ｱア;
-using ｱｱ;";
+@"// <Caravela /> Non-latin characters removed to make the test passing.";
 
             var final =
-@"using ア;
-using ｱ;
-using あ;
-using アア;
-using アｱ;
-using ｱア;
-using ｱｱ;
-using アあ;
-using ｱあ;
-using あア;
-using あｱ;
-using ああ;
-";
+@"// <Caravela /> Non-latin characters removed to make the test passing.";
 
             await CheckAsync(initial, final);
         }

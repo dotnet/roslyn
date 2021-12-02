@@ -13,7 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -21,8 +21,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -546,8 +544,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal EnvDTE.CodeElement CodeElementFromPosition(int position, EnvDTE.vsCMElement scope)
         {
             var root = GetSyntaxRoot();
-            var leftToken = SyntaxFactsService.FindTokenOnLeftOfPosition(root, position);
-            var rightToken = SyntaxFactsService.FindTokenOnRightOfPosition(root, position);
+            var leftToken = root.FindTokenOnLeftOfPosition(position);
+            var rightToken = root.FindTokenOnRightOfPosition(position);
 
             // We apply a set of heuristics to determine which member we pick to start searching.
             var token = leftToken;

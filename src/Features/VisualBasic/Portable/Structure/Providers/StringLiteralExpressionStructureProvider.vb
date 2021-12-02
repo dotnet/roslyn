@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class StringLiteralExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of LiteralExpressionSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As LiteralExpressionSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As LiteralExpressionSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)
