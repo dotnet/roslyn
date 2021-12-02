@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Contracts.SourceLink;
 using Microsoft.VisualStudio.Debugger.Contracts.SymbolLocator;
 
-namespace Microsoft.CodeAnalysis.Editor.PdbSourceDocument
+namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
 {
     [Export(typeof(ISourceLinkService)), Shared]
     internal class SourceLinkService : ISourceLinkService
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.PdbSourceDocument
                 dllPath,
                 codeViewEntry.Path);
 
-            var flags = SymbolLocatorSearchFlags.ForceMsftSymbolServer | SymbolLocatorSearchFlags.ForceNuGetSymbolServer;
+            var flags = SymbolLocatorSearchFlags.None; // TODO: Add option to specify ForceMsftSymbolServer and ForceNuGetSymbolServer: https://github.com/dotnet/roslyn/issues/55834
             var result = await _debuggerSymbolLocatorService.LocateSymbolFileAsync(pdbInfo, flags, progress: null, cancellationToken).ConfigureAwait(false);
 
             // TODO: Logging: https://github.com/dotnet/roslyn/issues/57352
