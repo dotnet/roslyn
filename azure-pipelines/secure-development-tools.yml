@@ -10,6 +10,13 @@ steps:
     targetArgument: $(System.DefaultWorkingDirectory)
     optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
 
+- task: BinSkim@3
+  displayName: Run BinSkim
+  inputs:
+    InputType: Basic
+    Function: analyze
+    AnalyzeTarget: $(BinSkimTargets)
+
 - task: SdtReport@2
   displayName: Create Security Analysis Report
   inputs:

@@ -5,12 +5,16 @@
     The root path to recursively search for PDBs.
 .PARAMETER Tests
     A switch indicating to find test-related PDBs instead of product-only PDBs.
+.PARAMETER ConvertToWindowsPDBs
+    A switch to convert and return paths to Windows PDBs instead of portable PDBs.
+    Ignored on non-Windows agents.
 #>
 [CmdletBinding()]
 param (
     [parameter(Mandatory=$true)]
     [string]$Path,
-    [switch]$Tests
+    [switch]$Tests,
+    [switch]$ConvertToWindowsPDBs=$true
 )
 
 $WindowsPdbSubDirName = "symstore"
@@ -54,7 +58,7 @@ $PDBs |% {
 
     Write-Output $BinaryImagePath
 
-    if (-not ($IsMacOS -or $IsLinux)) {
+    if ($ConvertToWindowsPDBs -and -not ($IsMacOS -or $IsLinux)) {
         # Convert the PDB to legacy Windows PDBs
         Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
         $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
@@ -65,5 +69,7 @@ $PDBs |% {
         }
 
         Write-Output "$WindowsPdbDir\$($_.BaseName).pdb"
+    } else {
+        Write-Output $_.FullName
     }
 }
