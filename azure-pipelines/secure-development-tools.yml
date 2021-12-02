@@ -1,11 +1,17 @@
 steps:
 
- ### Check for checked in credentials.
 - task: CredScan@3
-  displayName: 'Run CredScan'
+  displayName: Run CredScan
 
- ### Run PoliCheck to check for disallowed terms. targetType: F indicates we're searching files and folders.
-- task: PoliCheck@1
-  displayName: 'Run PoliCheck'
+- task: PoliCheck@2
+  displayName: Run PoliCheck
   inputs:
     targetType: F
+    targetArgument: $(System.DefaultWorkingDirectory)
+    optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
+
+- task: PostAnalysis@2
+  displayName: Break on compliance issues
+  inputs:
+    GdnBreakAllTools: true
+    GdnBreakGdnToolBinSkimSeverity: Warning
