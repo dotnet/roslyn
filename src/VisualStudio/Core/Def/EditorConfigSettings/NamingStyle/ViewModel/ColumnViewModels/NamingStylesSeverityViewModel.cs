@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
@@ -14,13 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
 {
     internal class NamingStylesSeverityViewModel
     {
-        private static readonly string[] s_severities = new[]
-        {
-            ServicesVSResources.Disabled,
-            ServicesVSResources.Suggestion,
-            ServicesVSResources.Warning,
-            ServicesVSResources.Error
-        };
         private readonly NamingStyleSetting _setting;
 
         public NamingStylesSeverityViewModel(NamingStyleSetting setting)
@@ -57,6 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
 
         public string SelectedSeverityValue { get; set; }
 
-        public static string[] Severities { get; } = s_severities;
+        public static ImmutableArray<string> Severities { get; } =
+            ImmutableArray.Create(
+                ServicesVSResources.Disabled,
+                ServicesVSResources.Suggestion,
+                ServicesVSResources.Warning,
+                ServicesVSResources.Error
+            );
     }
 }
