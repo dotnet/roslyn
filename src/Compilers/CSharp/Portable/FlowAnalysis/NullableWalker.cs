@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundExpression, TypeWithState>? _methodGroupReceiverMapOpt;
 
-        private PooledDictionary<BoundValuePlaceholderBase, (BoundExpression Replacement, VisitResult Result)>? _resultForPlaceholdersOpt;
+        private PooledDictionary<BoundValuePlaceholderBase, (BoundExpression? Replacement, VisitResult Result)>? _resultForPlaceholdersOpt;
 
         /// <summary>
         /// Variables instances for each lambda or local function defined within the analyzed region.
@@ -345,12 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private PooledDictionary<object, PlaceholderLocal>? _placeholderLocalsOpt;
 
         /// <summary>
-        /// If a <see cref="BoundInterpolatedStringArgumentPlaceholder"/> is an alias for a real slot (ie, a receiver or argument that itself
-        /// has a slot), the slot for which the placeholder is an alias.
-        /// </summary>
-        private PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, VisitResult>? _interpolatedStringArgumentPlaceholderAliases;
-
-        /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
         /// Once for diagnostics and once for result state (but disabling diagnostics).
         /// </summary>
@@ -377,7 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultForPlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
-            _interpolatedStringArgumentPlaceholderAliases?.Free();
             _variables.Free();
             Debug.Assert(_conditionalInfoForConversionOpt is null or { Count: 0 });
             _conditionalInfoForConversionOpt?.Free();
@@ -4196,7 +4189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression is BoundValuePlaceholderBase placeholder)
             {
-                if (_resultForPlaceholdersOpt != null && _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value))
+                if (_resultForPlaceholdersOpt != null && _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value) && value.Replacement != null)
                 {
                     expression = value.Replacement;
                 }
@@ -5621,8 +5614,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default:
                                 if (resultsBuilder.Count > placeholder.ArgumentIndex)
                                 {
-                                    _interpolatedStringArgumentPlaceholderAliases ??= PooledDictionary<BoundInterpolatedStringArgumentPlaceholder, VisitResult>.GetInstance();
-                                    _interpolatedStringArgumentPlaceholderAliases.Add(placeholder, resultsBuilder[placeholder.ArgumentIndex].VisitResult);
+                                    EnsurePlaceholdersToResultMap();
+                                    // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
+                                    // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
+                                    // us to miss real warnings.
+                                    _resultForPlaceholdersOpt.Add(placeholder, (Replacement: null, resultsBuilder[placeholder.ArgumentIndex].VisitResult));
                                     addedPlaceholders = true;
                                 }
                                 break;
@@ -5638,12 +5634,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (addedPlaceholders)
                 {
                     Debug.Assert(possibleInterpolationData.HasValue);
-                    Debug.Assert(_interpolatedStringArgumentPlaceholderAliases != null);
+                    Debug.Assert(_resultForPlaceholdersOpt != null);
                     foreach (var placeholder in possibleInterpolationData.GetValueOrDefault().ArgumentPlaceholders)
                     {
                         if (placeholder.ArgumentIndex >= 0)
                         {
-                            _interpolatedStringArgumentPlaceholderAliases.Remove(placeholder);
+                            _resultForPlaceholdersOpt.Remove(placeholder);
                         }
                     }
                 }
@@ -9935,15 +9931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
         {
-            if (_interpolatedStringArgumentPlaceholderAliases?.TryGetValue(node, out VisitResult result) == true)
-            {
-                SetResult(node, result.RValueType, result.LValueType);
-            }
-            else
-            {
-                SetNotNullResult(node);
-            }
-
+            VisitPlaceholderWithReplacement(node);
             return null;
         }
 
@@ -10072,7 +10060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [MemberNotNull(nameof(_resultForPlaceholdersOpt))]
         private void EnsurePlaceholdersToResultMap()
         {
-            _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression Replacement, VisitResult Result)>.GetInstance();
+            _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression? Replacement, VisitResult Result)>.GetInstance();
         }
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
