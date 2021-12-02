@@ -42,6 +42,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="$(RepoRootPath)obj/NOTICE" Pack="true" PackagePath="" Visible="false" Condition=" Exists('$(RepoRootPath)obj/NOTICE') " />
+  </ItemGroup>
+
+  <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
   </ItemGroup>
 

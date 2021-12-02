@@ -1,4 +1,13 @@
 steps:
+- task: ComponentGovernanceComponentDetection@0
+  displayName: Component Detection
+
+- task: notice@0
+  displayName: Generate NOTICE file
+  inputs:
+    outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
+    outputformat: text
+
 - task: MicroBuildSigningPlugin@3
   inputs:
     signType: $(SignType)
