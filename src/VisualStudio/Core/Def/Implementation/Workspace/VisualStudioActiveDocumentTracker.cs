@@ -155,6 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             else if (existingFrame.TextBuffer == null)
             {
                 // If no text buffer is associated with existing frame, remove the existing frame and add the new one.
+                // Note that we do not need to disconnect the existing frame here. It will get disconnected along with
+                // the new frame whenever the document is closed or de-activated.
                 _visibleFrames = _visibleFrames.Remove(existingFrame);
                 _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
             }
