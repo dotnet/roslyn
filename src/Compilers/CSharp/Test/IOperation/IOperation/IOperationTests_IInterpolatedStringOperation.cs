@@ -447,7 +447,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IInvalidOperation (OperationKind.Invalid, Type: Class, IsInvalid, IsImplicit) (Syntax: 'Class')
             Children(1):
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Class')
+                IOperation:  (OperationKind.None, Type: Class, IsInvalid) (Syntax: 'Class')
         Alignment: 
           null
         FormatString: 

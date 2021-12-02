@@ -1910,9 +1910,6 @@ namespace Microsoft.CodeAnalysis
                 // referenced project's compilation and re-importing it.
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
                 {
-                    var workspace = this.Workspace;
-                    workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
-
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
                     return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
                         tracker, this, properties, cancellationToken).ConfigureAwait(false);

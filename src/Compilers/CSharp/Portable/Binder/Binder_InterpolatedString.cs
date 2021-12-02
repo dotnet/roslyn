@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureInterpolatedStrings, diagnostics);
+
             var startText = node.StringStartToken.Text;
             if (startText.StartsWith("@$\"") && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings))
             {
