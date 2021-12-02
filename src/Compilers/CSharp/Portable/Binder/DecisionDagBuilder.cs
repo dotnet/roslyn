@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode).RemoveSubsumptionOnlyNodes();
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
             // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share the same ID.
@@ -982,7 +982,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? next = state.TrueBranch!.Dag;
                                 RoslynDebug.Assert(next is { });
                                 RoslynDebug.Assert(state.FalseBranch == null);
-                                state.Dag = uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next));
+                                // To facilitate subsumption-checking for list-patterns, some nodes may have been inserted into the dag.
+                                // We will skip such nodes (here and below) as these are not important in lowering or any other analysis.
+                                state.Dag = e is BoundDagAssignmentEvaluation ? next :
+                                    uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next));
                             }
                             break;
                         case BoundDagTest d:
@@ -991,7 +994,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundDecisionDagNode? whenFalse = state.FalseBranch!.Dag;
                                 RoslynDebug.Assert(whenTrue is { });
                                 RoslynDebug.Assert(whenFalse is { });
-                                state.Dag = uniqifyDagNode(new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse));
+                                // Short-circuit to the "false" branch which is the default as if we never inserted such test.
+                                // Note that when the "true" branch is important, we have unset the subsumption-only flag earlier.
+                                state.Dag = d is BoundDagValueTest { IsSubsumptionOnly: true } ? whenFalse :
+                                    uniqifyDagNode(new BoundTestDecisionDagNode(d.Syntax, d, whenTrue, whenFalse));
                             }
                             break;
                         case var n:

@@ -194,31 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// To facilitate subsumption-checking for list-patterns, some nodes may be inserted into the dag during construction.
-        /// We will remove such nodes immediately after as these are not important in lowering or any other analysis.
-        /// </summary>
-        public BoundDecisionDag RemoveSubsumptionOnlyNodes()
-        {
-            return Rewrite(static (node, replacement) =>
-            {
-                switch (node)
-                {
-                    case BoundEvaluationDecisionDagNode { Evaluation: BoundDagAssignmentEvaluation } evalNode:
-                        return replacement[evalNode.Next];
-
-                    case BoundTestDecisionDagNode { Test: BoundDagValueTest { IsSubsumptionOnly: true } } testNode:
-                        Debug.Assert(testNode.Test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true });
-                        // Short-circuit to the "false" branch which is the default as if we never inserted such test.
-                        // Note that when the "true" branch is important, we have unset the subsumption-only flag earlier.
-                        return replacement[testNode.WhenFalse];
-
-                    default:
-                        return TrivialReplacement(node, replacement);
-                }
-            });
-        }
-
 #if DEBUG
         /// <summary>
         /// Starting with `this` state, produce a human-readable description of the state tables.
