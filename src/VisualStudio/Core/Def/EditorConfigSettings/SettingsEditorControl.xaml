@@ -44,8 +44,8 @@
         </TabControl>
         <StackPanel x:Name="SettingsEditorSearch" Grid.Row="1" Margin="20,8,0,0" Orientation="Horizontal">
             <Border x:Name="SearchControl"
-                    MinWidth="290"
-                    MaxWidth="290"
+                    MinWidth="424"
+                    MaxWidth="424"
                     VerticalAlignment="Center"/>
         </StackPanel>
         <Grid x:Name="SettingDisplayArea" Grid.Row="2" Margin="5,0,0,0">
