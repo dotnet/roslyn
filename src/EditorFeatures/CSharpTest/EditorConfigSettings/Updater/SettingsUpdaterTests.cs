@@ -417,157 +417,157 @@ csharp_new_line_before_else = true";
             Assert.Equal("pascal_case", setting0.StyleName);
         }
 
-        private const string ExpectedInitialEditorConfig =
-@"
-[*.{cs,vb}]
-#### Naming styles ####
+        private readonly string ExpectedInitialEditorConfig =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
 
-# Naming rules
+# {CompilerExtensionsResources.Naming_rules}
 
-dotnet_naming_rule.interface_should_be_begins_with_i.severity = error
-dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
-dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.symbols = interface
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.style = begins_with_i
 
-dotnet_naming_rule.types_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.types_should_be_pascal_case.symbols = types
-dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = suggestion
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = types
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
-dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = suggestion
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = non_field_members
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-# Symbol specifications
+# {CompilerExtensionsResources.Symbol_specifications}
 
-dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
-dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
-dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.required_modifiers = 
 
-# Naming styles
+# {CompilerExtensionsResources.Naming_styles}
 
-dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix = 
-dotnet_naming_style.begins_with_i.word_separator = 
-dotnet_naming_style.begins_with_i.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 ";
 
-        private const string ExpectedEditorConfigAfterAllSeveritiesChanged =
-@"
-[*.{cs,vb}]
-#### Naming styles ####
+        private readonly string ExpectedEditorConfigAfterAllSeveritiesChanged =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
 
-# Naming rules
+# {CompilerExtensionsResources.Naming_rules}
 
-dotnet_naming_rule.interface_should_be_begins_with_i.severity = error
-dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
-dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.symbols = interface
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.style = begins_with_i
 
-dotnet_naming_rule.types_should_be_pascal_case.severity = error
-dotnet_naming_rule.types_should_be_pascal_case.symbols = types
-dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = types
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = error
-dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
-dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = non_field_members
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-# Symbol specifications
+# {CompilerExtensionsResources.Symbol_specifications}
 
-dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
-dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
-dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.required_modifiers = 
 
-# Naming styles
+# {CompilerExtensionsResources.Naming_styles}
 
-dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix = 
-dotnet_naming_style.begins_with_i.word_separator = 
-dotnet_naming_style.begins_with_i.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 ";
 
-        private const string ExpectedEditorConfigAfterSymbolSpecChange =
-@"
-[*.{cs,vb}]
-#### Naming styles ####
+        private readonly string ExpectedEditorConfigAfterSymbolSpecChange =
+@$"
+[*.{{cs,vb}}]
+#### {CompilerExtensionsResources.Naming_styles} ####
 
-# Naming rules
+# {CompilerExtensionsResources.Naming_rules}
 
-dotnet_naming_rule.interface_should_be_begins_with_i.severity = error
-dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
-dotnet_naming_rule.interface_should_be_begins_with_i.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.symbols = interface
+dotnet_naming_rule.{(CompilerExtensionsResources.Interface + "_should_be_" + CompilerExtensionsResources.Begins_with_I).ToLowerInvariant()}.style = pascal_case
 
-dotnet_naming_rule.types_should_be_pascal_case.severity = error
-dotnet_naming_rule.types_should_be_pascal_case.symbols = types
-dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = types
+dotnet_naming_rule.{(CompilerExtensionsResources.Types + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = error
-dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
-dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.severity = error
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.symbols = non_field_members
+dotnet_naming_rule.{(CompilerExtensionsResources.Non_Field_Members + "_should_be_" + CompilerExtensionsResources.Pascal_Case).ToLowerInvariant()}.style = pascal_case
 
-# Symbol specifications
+# {CompilerExtensionsResources.Symbol_specifications}
 
-dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.interface.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_kinds = interface
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Interface.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
-dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.types.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Types.ToLowerInvariant()}.required_modifiers = 
 
-dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
-dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
-dotnet_naming_symbols.non_field_members.required_modifiers = 
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_kinds = property, event, method
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+dotnet_naming_symbols.{CompilerExtensionsResources.Non_Field_Members.ToLowerInvariant()}.required_modifiers = 
 
-# Naming styles
+# {CompilerExtensionsResources.Naming_styles}
 
-dotnet_naming_style.begins_with_i.required_prefix = I
-dotnet_naming_style.begins_with_i.required_suffix = 
-dotnet_naming_style.begins_with_i.word_separator = 
-dotnet_naming_style.begins_with_i.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_prefix = I
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Begins_with_I.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 
-dotnet_naming_style.pascal_case.required_prefix = 
-dotnet_naming_style.pascal_case.required_suffix = 
-dotnet_naming_style.pascal_case.word_separator = 
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_prefix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.required_suffix = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.word_separator = 
+dotnet_naming_style.{CompilerExtensionsResources.Pascal_Case.ToLowerInvariant()}.capitalization = pascal_case
 ";
 
         private class TestViewModel : ISettingsEditorViewModel
