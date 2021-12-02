@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
@@ -449,6 +450,142 @@ namespace $$N
 namespace $$N;
 
 class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        public async Task TextConvertToFileScopedWithCommentedOutContents()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+$$namespace N
+{
+    // public class C
+    // {
+    // }
+}
+",
+                FixedCode = @"
+namespace N;
+
+    // public class C
+    // {
+    // }
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        public async Task TextConvertToFileScopedWithCommentedAfterContents()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+$$namespace N
+{
+    public class C
+    {
+    }
+
+    // I'll probably write some more code here later
+}
+",
+                FixedCode = @"
+namespace N;
+
+public class C
+{
+}
+
+    // I'll probably write some more code here later
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        public async Task TextConvertToFileScopedWithTriviaAroundNamespace1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#if !NONEXISTENT
+$$namespace NDebug
+#else
+namespace NRelease
+#endif
+{
+    public class C
+    {
+    }
+}
+",
+                FixedCode = @"
+#if !NONEXISTENT
+namespace NDebug;
+#else
+namespace NRelease
+#endif
+
+public class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(57564, "https://github.com/dotnet/roslyn/issues/57564")]
+        public async Task TextConvertToFileScopedWithTriviaAroundNamespace2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#if NONEXISTENT
+namespace NDebug
+#else
+$$namespace NRelease
+#endif
+{
+    public class C
+    {
+    }
+}
+",
+                FixedCode = @"
+#if NONEXISTENT
+namespace NDebug
+#else
+namespace NRelease;
+#endif
+
+public class C
 {
 }
 ",

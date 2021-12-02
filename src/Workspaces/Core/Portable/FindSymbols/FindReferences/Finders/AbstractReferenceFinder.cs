@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// <summary>
         /// Finds all the documents in the provided project that contain a global attribute in them.
         /// </summary>
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalAttributesAsync(
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalSuppressMessageAttributeAsync(
             Project project,
             IImmutableSet<Document>? documents,
             CancellationToken cancellationToken)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
-                return info.ContainsGlobalAttributes;
+                return info.ContainsGlobalSuppressMessageAttribute;
             }, cancellationToken);
         }
 
