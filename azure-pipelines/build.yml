@@ -4,10 +4,17 @@ parameters:
   default:
     vmImage: windows-2022
 - name: includeMacOS
+- name: EnableAPIScan
+  type: boolean
+  default: false
 
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
+  variables:
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
+    - group: VSCloudServices-APIScan
   steps:
   - checkout: self
     clean: true
@@ -27,6 +34,8 @@ jobs:
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
+      parameters:
+        EnableAPIScan: ${{ parameters.EnableAPIScan }}
 
   - template: expand-template.yml
 

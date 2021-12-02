@@ -1,3 +1,7 @@
+parameters:
+- name: EnableAPIScan
+  type: boolean
+
 steps:
 
 - task: CredScan@3
@@ -16,6 +20,27 @@ steps:
     InputType: Basic
     Function: analyze
     AnalyzeTarget: $(BinSkimTargets)
+
+- task: CopyFiles@2
+  displayName: Collect APIScan inputs
+  inputs:
+    SourceFolder: $(Build.ArtifactStagingDirectory)/Symbols-$(Agent.JobName)
+    # Exclude any patterns from the Contents (e.g. `!**/git2*`) that we have symbols for but do not need to run APIScan on.
+    Contents: |
+      **
+    TargetFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
+
+- task: APIScan@2
+  displayName: Run APIScan
+  inputs:
+    softwareFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
+    softwareName: $(SymbolsFeatureName)
+    softwareVersionNum: $(GitBuildVersion)
+    isLargeApp: false
+    toolVersion: Latest
+  condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
+  env:
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
 - task: SdtReport@2
   displayName: Create Security Analysis Report
@@ -36,3 +61,13 @@ steps:
   inputs:
     GdnBreakAllTools: true
     GdnBreakGdnToolBinSkimSeverity: Warning
+    GdnBreakSuppressionFiles: $(System.DefaultWorkingDirectory)/azure-pipelines/falsepositives.gdnsuppress
+    GdnBreakSuppressionSets: falsepositives
+    GdnBreakOutputSuppressionFile: $(Build.ArtifactStagingDirectory)/guardian_failures_as_suppressions/
+    GdnBreakOutputSuppressionSet: falsepositives
+
+# This is useful when false positives appear so we can copy some of the output into the suppressions file.
+- publish: $(Build.ArtifactStagingDirectory)/guardian_failures_as_suppressions
+  artifact: guardian_failures_as_suppressions
+  displayName: Publish Guardian failures
+  condition: failed()

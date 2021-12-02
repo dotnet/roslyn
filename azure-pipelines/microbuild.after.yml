@@ -1,3 +1,7 @@
+parameters:
+- name: EnableAPIScan
+  type: boolean
+
 steps:
 - task: MicroBuildCodesignVerify@3
   displayName: Verify Signed Files
@@ -23,3 +27,5 @@ steps:
   continueOnError: true
 
 - template: secure-development-tools.yml
+  parameters:
+    EnableAPIScan: ${{ parameters.EnableAPIScan }}
