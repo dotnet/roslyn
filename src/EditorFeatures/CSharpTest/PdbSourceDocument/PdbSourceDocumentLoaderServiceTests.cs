@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
@@ -36,7 +37,7 @@ public class C
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(sourceFilePath: sourceFilePath);
+                var sourceLinkService = new Lazy<ISourceLinkService?>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
                 var service = new PdbSourceDocumentLoaderService(sourceLinkService);
 
                 using var hash = SHA256.Create();
@@ -69,7 +70,7 @@ public class C
                 var sourceFilePath = Path.Combine(path, "SourceLink.cs");
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(sourceFilePath: sourceFilePath);
+                var sourceLinkService = new Lazy<ISourceLinkService?>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
                 var service = new PdbSourceDocumentLoaderService(sourceLinkService);
 
                 var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
