@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Threading;
 
 #if NET20
@@ -16,11 +17,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
     {
-        private static Action<Exception>? s_fatalHandler;
-
-#if !NET20
-        private static Action<Exception, bool>? s_nonFatalHandler;
-#endif
+        public delegate void ErrorReporterHandler(Exception exception, ErrorSeverity severity, bool forceDump);
+        private static ErrorReporterHandler? s_handler;
 
 #pragma warning disable IDE0052 // Remove unread private members - We want to hold onto last exception to make investigation easier
         private static Exception? s_reportedException;
@@ -28,82 +26,84 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 #pragma warning restore IDE0052
 
         /// <summary>
-        /// Set by the host to a fail fast trigger, 
-        /// if the host desires to crash the process on a fatal exception.
+        /// Set by the host to handle an error report; this may crash the process or report telemetry.
         /// </summary>
         [DisallowNull]
-        public static Action<Exception>? Handler
+        public static ErrorReporterHandler? Handler
         {
             get
             {
-                return s_fatalHandler;
+                return s_handler;
             }
 
             set
             {
-                if (s_fatalHandler != value)
+                if (s_handler != value)
                 {
-                    Debug.Assert(s_fatalHandler == null, "Handler already set");
-                    s_fatalHandler = value;
+                    Debug.Assert(s_handler == null, "Handler already set");
+                    s_handler = value;
                 }
             }
         }
 
-#if !NET20
+        // Same as setting the Handler property except that it avoids the assert.  This is useful in 
+        // test code which needs to verify the handler is called in specific cases and will continually
+        // overwrite this value.
+        public static void OverwriteHandler(ErrorReporterHandler? value)
+        {
+            s_handler = value;
+        }
+
+        // In the result provider, we aren't copying our handler to somewhere else, so we don't
+        // need this method. It's too much of a challenge to shared code to work in
+        // old versions of the runtime since APIs changed over time.
+#if !NET20 && !NETSTANDARD1_3 
 
         /// <summary>
-        /// Set by the host to a fail fast trigger, 
-        /// if the host desires to NOT crash the process on a non fatal exception.
+        /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
-        [DisallowNull]
-        public static Action<Exception, bool>? NonFatalHandler
+        /// <remarks>
+        /// This file is in linked into multiple layers, but we want to ensure that all layers have the same copy.
+        /// This lets us copy the handler in this instance into the same in another instance.</remarks>
+        public static void CopyHandlerTo(Assembly assembly)
         {
-            get
+            var targetType = assembly.GetType(typeof(FatalError).FullName!, throwOnError: true)!;
+            var targetHandlerProperty = targetType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
+            if (Handler is not null)
             {
-                return s_nonFatalHandler;
+                // We need to convert the delegate type to the type in the linked copy since they won't have identity.
+                var convertedDelegate = Delegate.CreateDelegate(targetHandlerProperty.PropertyType, Handler.Target, method: Handler.Method);
+                targetHandlerProperty.SetValue(obj: null, value: convertedDelegate);
             }
-
-            set
+            else
             {
-                if (s_nonFatalHandler != value)
-                {
-                    Debug.Assert(s_nonFatalHandler == null, "Handler already set");
-                    s_nonFatalHandler = value;
-                }
+                targetHandlerProperty.SetValue(obj: null, value: null);
             }
         }
 
 #endif
 
-        // Same as setting the Handler property except that it avoids the assert.  This is useful in 
-        // test code which needs to verify the handler is called in specific cases and will continually
-        // overwrite this value.
-        public static void OverwriteHandler(Action<Exception>? value)
-        {
-            s_fatalHandler = value;
-        }
-
         private static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
             => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
 
         /// <summary>
-        /// Use in an exception filter to report a fatal error (by calling <see cref="Handler"/>), unless the
+        /// Use in an exception filter to report an error (by calling <see cref="Handler"/>), unless the
         /// operation has been cancelled. The exception is never caught.
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagateUnlessCanceled(Exception exception)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (exception is OperationCanceledException)
             {
                 return false;
             }
 
-            return ReportAndPropagate(exception);
+            return ReportAndPropagate(exception, severity);
         }
 
         /// <summary>
-        /// <para>Use in an exception filter to report a fatal error (by calling <see cref="Handler"/>), unless the
+        /// <para>Use in an exception filter to report an error (by calling <see cref="Handler"/>), unless the
         /// operation has been cancelled at the request of <paramref name="contextCancellationToken"/>. The exception is
         /// never caught.</para>
         ///
@@ -121,37 +121,35 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
 
-            return ReportAndPropagate(exception);
+            return ReportAndPropagate(exception, severity);
         }
 
-#if !NET20
-
         /// <summary>
-        /// Use in an exception filter to report a non-fatal error (by calling <see cref="NonFatalHandler"/>) and catch
+        /// Use in an exception filter to report an error (by calling <see cref="Handler"/>) and catch
         /// the exception, unless the operation was cancelled.
         /// </summary>
-        /// <returns><see langword="true"/> to catch the exception if the non-fatal error was reported; otherwise,
+        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatchUnlessCanceled(Exception exception)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (exception is OperationCanceledException)
             {
                 return false;
             }
 
-            return ReportAndCatch(exception);
+            return ReportAndCatch(exception, severity);
         }
 
         /// <summary>
-        /// <para>Use in an exception filter to report a non-fatal error (by calling <see cref="NonFatalHandler"/>) and
+        /// <para>Use in an exception filter to report an error (by calling <see cref="Handler"/>) and
         /// catch the exception, unless the operation was cancelled at the request of
         /// <paramref name="contextCancellationToken"/>.</para>
         ///
@@ -167,38 +165,34 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <param name="contextCancellationToken">A <see cref="CancellationToken"/> which will have
         /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
-        /// <returns><see langword="true"/> to catch the exception if the non-fatal error was reported; otherwise,
+        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
 
-            return ReportAndCatch(exception);
+            return ReportAndCatch(exception, severity);
         }
 
-#endif
-
         /// <summary>
-        /// Use in an exception filter to report a fatal error without catching the exception.
+        /// Use in an exception filter to report an error without catching the exception.
         /// The error is reported by calling <see cref="Handler"/>.
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagate(Exception exception)
+        public static bool ReportAndPropagate(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            Report(exception, s_fatalHandler);
+            Report(exception, severity);
             return false;
         }
 
-#if !NET20
-
         /// <summary>
-        /// Report a non-fatal error.
-        /// Calls <see cref="NonFatalHandler"/> and doesn't pass the exception through (the method returns true).
+        /// Report an error.
+        /// Calls <see cref="Handler"/> and doesn't pass the exception through (the method returns true).
         /// This is generally expected to be used within an exception filter as that allows us to
         /// capture data at the point the exception is thrown rather than when it is handled.
         /// However, it can also be used outside of an exception filter. If the exception has not
@@ -207,30 +201,28 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatch(Exception exception)
+        public static bool ReportAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            Report(exception, static (exception) => s_nonFatalHandler?.Invoke(exception, false));
+            Report(exception, severity);
             return true;
         }
 
         [DebuggerHidden]
-        public static bool ReportWithDumpAndCatch(Exception exception)
+        public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            Report(exception, static (exception) => s_nonFatalHandler?.Invoke(exception, true));
+            Report(exception, severity, forceDump: true);
             return true;
         }
 
-#endif
-
         private static readonly object s_reportedMarker = new();
 
-        private static void Report(Exception exception, Action<Exception>? handler)
+        private static void Report(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
         {
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
             s_reportedExceptionMessage = exception.ToString();
 
-            if (handler == null)
+            if (s_handler == null)
             {
                 return;
             }
@@ -247,12 +239,21 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 #endif
+
             if (!exception.Data.IsReadOnly)
             {
                 exception.Data[s_reportedMarker] = s_reportedMarker;
             }
 
-            handler.Invoke(exception);
+            s_handler(exception, severity, forceDump);
         }
+    }
+
+    internal enum ErrorSeverity
+    {
+        Uncategorized,
+        Diagnostic,
+        General,
+        Critical
     }
 }

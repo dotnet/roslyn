@@ -28,21 +28,20 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
-            // Any exception that is not recovered from shall be propagated and communicated to the client.
-            var nonFatalHandler = FaultReporter.ReportFault;
-            var fatalHandler = new Action<Exception>(static (exception) => ReportFault(exception, forceDump: false));
+            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+        }
 
-            FatalError.Handler = fatalHandler;
-            FatalError.NonFatalHandler = nonFatalHandler;
-
-            // We also must set the handlers for the compiler layer as well.
-            var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalErrorType = compilerAssembly.GetType(typeof(FatalError).FullName, throwOnError: true)!;
-            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
-            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
-            compilerFatalErrorHandlerProperty.SetValue(null, fatalHandler);
-            compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalHandler);
+        private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
+        {
+            return severity switch
+            {
+                ErrorSeverity.Uncategorized => FaultSeverity.Uncategorized,
+                ErrorSeverity.Diagnostic => FaultSeverity.Diagnostic,
+                ErrorSeverity.General => FaultSeverity.General,
+                ErrorSeverity.Critical => FaultSeverity.Critical,
+                _ => FaultSeverity.Uncategorized
+            };
         }
 
         public static void RegisterTelemetrySesssion(TelemetrySession session)
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         /// <param name="forceDump">Force a dump to be created, even if the telemetry system is not
         /// requesting one; we will still do a client-side limit to avoid sending too much at once.</param>
-        public static void ReportFault(Exception exception, bool forceDump)
+        public static void ReportFault(Exception exception, FaultSeverity severity, bool forceDump)
         {
             try
             {
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 var faultEvent = new FaultEvent(
                     eventName: FunctionId.NonFatalWatson.GetEventName(),
                     description: GetDescription(exception),
-                    FaultSeverity.Diagnostic,
+                    severity,
                     exceptionObject: exception,
                     gatherEventDetails: faultUtility =>
                     {
