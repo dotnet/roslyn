@@ -2054,7 +2054,7 @@ public class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
 
-            // Sequence point higlights `await using ...`
+            // Sequence point highlights `await using ...`
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      303 (0x12f)

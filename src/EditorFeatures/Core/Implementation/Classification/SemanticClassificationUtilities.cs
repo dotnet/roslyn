@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap)
+            ClassificationTypeMap typeMap,
+            CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -47,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
             // as we do not have to wait on skeletons to be built.
 
-            document = document.WithFrozenPartialSemantics(context.CancellationToken);
+            document = document.WithFrozenPartialSemantics(cancellationToken);
             spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
-                    context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
+                    context, spanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
             if (classified)
             {
                 return;
@@ -60,14 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
-                context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
+                context, spanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpanAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap)
+            ClassificationTypeMap typeMap,
+            CancellationToken cancellationToken)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -82,8 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 return false;
             }
-
-            var cancellationToken = context.CancellationToken;
 
             var lastSemanticVersion = (VersionStamp?)context.State;
             if (lastSemanticVersion != null)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
-                context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
+                context, subSpanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
@@ -134,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap)
+            ClassificationTypeMap typeMap,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -142,16 +143,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var snapshotSpan = spanToTag.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
 
-                var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                     await AddSemanticClassificationsAsync(
                         document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
-                    ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
+                    foreach (var span in classifiedSpans)
+                        context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     context.State = version;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Document document,
             TextSpan textSpan,
             IClassificationService classificationService,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -188,14 +188,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
+            var options = ClassificationOptions.From(document.Project);
             await classificationService.AddSemanticClassificationsAsync(
-                document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
             Document document,
             TextSpan textSpan,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
@@ -207,12 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (semanticCacheService == null)
                 return false;
 
-            var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = checksums.Text;
-
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
-                textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                document, textSpan, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 

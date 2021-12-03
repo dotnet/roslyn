@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
@@ -52,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var cancellationToken = completionContext.CancellationToken;
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+                if (!completionContext.CompletionOptions.ShowNameSuggestions)
                 {
                     return;
                 }
 
-                var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
                 if (context.IsInNonUserCode)
                 {
                     return;
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return baseNames;
         }
 
-        private static bool IsValidType(ITypeSymbol type)
+        private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
         {
             if (type == null)
             {
@@ -339,9 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         private static bool IsRelevantSymbolKind(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Parameter ||
-                symbol.Kind == SymbolKind.RangeVariable;
+            return symbol.Kind is SymbolKind.Local or
+                SymbolKind.Parameter or
+                SymbolKind.RangeVariable;
         }
 
         private static CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

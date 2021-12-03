@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
         protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet _)
         {
             var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsForPath(FileName);
+            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
             var analyzerReferences = projects.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
             foreach (var analyzerReference in analyzerReferences)
             {
@@ -61,8 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
                     .Select(g =>
                     {
                         var selectedDiagnostic = g.First();
+                        var isEditorconfig = selectedDiagnostic.IsDefinedInEditorConfig(editorConfigOptions);
+                        var settingLocation = new SettingLocation(isEditorconfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, FileName);
                         var severity = selectedDiagnostic.GetEffectiveSeverity(editorConfigOptions);
-                        return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language);
+                        return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language, settingLocation);
                     });
             }
         }

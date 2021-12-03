@@ -4,21 +4,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditingTestBase : CSharpTestBase
     {
+        public static readonly string ReloadableAttributeSrc = @"
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
+";
+
         internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
         {
             return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
@@ -31,6 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Iterator,
             ConstructorWithParameters
         }
+
+        public static string GetResource(string keyword)
+            => keyword switch
+            {
+                "class" => FeaturesResources.class_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "interface" => FeaturesResources.interface_,
+                "record" => CSharpFeaturesResources.record_,
+                "record struct" => CSharpFeaturesResources.record_struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(keyword)
+            };
 
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
@@ -50,15 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription? activeStatements = null,
             SemanticEditDescription[]? semanticEdits = null,
             RudeEditDiagnosticDescription[]? diagnostics = null)
-            => new(activeStatements, semanticEdits, diagnostics);
+            => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
-        private static SyntaxTree ParseSource(string source)
-            => new CSharpEditAndContinueTestHelpers().ParseText(ActiveStatementsDescription.ClearTags(source));
+        private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
+            => SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                path: documentIndex.ToString());
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
+        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
         {
-            var tree1 = ParseSource(src1);
-            var tree2 = ParseSource(src2);
+            var tree1 = ParseSource(src1, documentIndex);
+            var tree2 = ParseSource(src2, documentIndex);
 
             tree1.GetDiagnostics().Verify();
             tree2.GetDiagnostics().Verify();
@@ -93,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
             var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
-            Assert.Equal(kind != MethodKind.Regular && kind != MethodKind.ConstructorWithParameters, needsSyntaxMap);
+            Assert.Equal(kind is not MethodKind.Regular and not MethodKind.ConstructorWithParameters, needsSyntaxMap);
 
-            if (kind == MethodKind.Regular || kind == MethodKind.ConstructorWithParameters)
+            if (kind is MethodKind.Regular or MethodKind.ConstructorWithParameters)
             {
                 Assert.Empty(diagnostics);
             }
@@ -149,8 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource)
-            => new(oldSource, newSource);
+        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, string path = "0")
+            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: path), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);

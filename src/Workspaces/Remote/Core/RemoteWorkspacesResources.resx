@@ -198,4 +198,22 @@
   <data name="FeatureName_NavigationBarItem" xml:space="preserve">
     <value>Navigation bar</value>
   </data>
+  <data name="FeatureName_InheritanceMargin" xml:space="preserve">
+    <value>Inheritance margin</value>
+  </data>
+  <data name="FeatureName_UnusedReferenceAnalysis" xml:space="preserve">
+    <value>Unused reference analysis</value>
+  </data>
+  <data name="FeatureName_ValueTracking" xml:space="preserve">
+    <value>Value Tracking</value>
+  </data>
+  <data name="FeatureName_ProcessTelemetry" xml:space="preserve">
+    <value>Process telemetry</value>
+  </data>
+  <data name="FeatureName_CompilationAvailable" xml:space="preserve">
+    <value>Project semantics availability</value>
+  </data>
+  <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+  </data>
 </root>

@@ -20,13 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests3 : PatternMatchingTestBase
     {
-        private static void AssertEmpty(SymbolInfo info)
-        {
-            Assert.NotEqual(default, info);
-            Assert.Null(info.Symbol);
-            Assert.Equal(CandidateReason.None, info.CandidateReason);
-        }
-
         [Fact]
         public void PropertyPatternSymbolInfo_01()
         {
@@ -1567,7 +1560,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ...  default })')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
                     Value: 
                       IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
                         Instance Receiver: 
@@ -1590,7 +1583,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ... ow null! })')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
                     Value: 
                       IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
                         Instance Receiver: 
@@ -3014,7 +3007,7 @@ class C
                 );
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
-ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
   Arms(3):
@@ -6538,7 +6531,7 @@ class C
 42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       41 (0x29)
+  // Code size       38 (0x26)
   .maxstack  1
   .locals init (C V_0, //c1
                 C V_1) //c2
@@ -6546,20 +6539,18 @@ class C
   IL_0001:  isinst     ""C""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0011
+  IL_0008:  brfalse.s  IL_000e
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_0011
-  IL_000d:  ldloc.0
-  IL_000e:  stloc.1
-  IL_000f:  br.s       IL_0012
-  IL_0011:  ret
-  IL_0012:  ldloc.0
-  IL_0013:  ldfld      ""object C.F""
-  IL_0018:  call       ""void System.Console.WriteLine(object)""
-  IL_001d:  ldloc.1
-  IL_001e:  ldfld      ""object C.F""
-  IL_0023:  call       ""void System.Console.WriteLine(object)""
-  IL_0028:  ret
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      ""object C.F""
+  IL_0015:  call       ""void System.Console.WriteLine(object)""
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""object C.F""
+  IL_0020:  call       ""void System.Console.WriteLine(object)""
+  IL_0025:  ret
 }");
         }
 

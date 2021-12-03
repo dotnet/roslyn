@@ -4,8 +4,12 @@
 
 #nullable disable
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -22,46 +26,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
-            ProgressTracker = new StreamingProgressTracker((current, max) =>
+            ProgressTracker = new StreamingProgressTracker((current, max, ct) =>
             {
                 _progress.ReportProgress(current, max);
                 return default;
             });
         }
 
-        public ValueTask OnCompletedAsync()
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
         {
             _progress.OnCompleted();
             return default;
         }
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document)
+        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentCompleted(document);
             return default;
         }
 
-        public ValueTask OnFindInDocumentStartedAsync(Document document)
+        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentStarted(document);
             return default;
         }
 
-        public ValueTask OnDefinitionFoundAsync(SymbolGroup group)
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
-            foreach (var symbol in group.Symbols)
-                _progress.OnDefinitionFound(symbol);
+            try
+            {
+                foreach (var symbol in group.Symbols)
+                    _progress.OnDefinitionFound(symbol);
 
-            return default;
+                return default;
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
-        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location)
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
         {
             _progress.OnReferenceFound(symbol, location);
             return default;
         }
 
-        public ValueTask OnStartedAsync()
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken)
         {
             _progress.OnStarted();
             return default;

@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">솔루션 루트에서 새 .editorconfig 파일이 검색되었습니다. 이 파일을 솔루션 항목으로 설정하시겠습니까?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">새 네임스페이스가 만들어집니다.</target>
@@ -19,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Action">
         <source>Action</source>
-        <target state="new">Action</target>
+        <target state="translated">작업</target>
         <note>Action to perform on an unused reference, such as remove or keep</note>
       </trans-unit>
       <trans-unit id="Add">
@@ -64,12 +59,17 @@
       </trans-unit>
       <trans-unit id="Allow_multiple_blank_lines">
         <source>Allow multiple blank lines</source>
-        <target state="new">Allow multiple blank lines</target>
+        <target state="translated">여러 빈 줄 허용</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_statement_immediately_after_block">
         <source>Allow statement immediately after block</source>
-        <target state="new">Allow statement immediately after block</target>
+        <target state="translated">블록 바로 뒤에 문 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">항상</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -77,19 +77,24 @@
         <target state="translated">명확하게 하기 위해 항상</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="translated">분석기 기본값</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
-        <target state="new">Analyzers</target>
+        <target state="translated">분석기</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_project_references">
         <source>Analyzing project references...</source>
-        <target state="new">Analyzing project references...</target>
+        <target state="translated">프로젝트 참조를 분석하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply">
         <source>Apply</source>
-        <target state="new">Apply</target>
+        <target state="translated">적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
@@ -99,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Assemblies">
         <source>Assemblies</source>
-        <target state="new">Assemblies</target>
+        <target state="translated">어셈블리</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -127,6 +132,11 @@
         <target state="translated">백그라운드 분석 범위:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">줄의 시작</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
         <target state="translated">32비트</target>
@@ -147,6 +157,11 @@
         <target state="translated">C#/Visual Basic 진단 언어 클라이언트</target>
         <note />
       </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="translated">계산 중...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">종속 항목을 계산하는 중...</target>
@@ -162,29 +177,39 @@
         <target state="translated">호출 사이트</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="new">Carrage Return + Newline (\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="translated">캐리지 리턴 + 줄 바꿈(\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="new">Carrage Return (\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="translated">캐리지 리턴(\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
         <source>Category</source>
-        <target state="new">Category</target>
+        <target state="translated">범주</target>
         <note />
       </trans-unit>
       <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
         <source>Choose which action you would like to perform on the unused references.</source>
-        <target state="new">Choose which action you would like to perform on the unused references.</target>
+        <target state="translated">사용하지 않는 참조에 대해 수행할 작업을 선택합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="new">Clear</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="new">Close Tab</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
         <source>Code Style</source>
-        <target state="new">Code Style</target>
+        <target state="translated">코드 스타일</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
@@ -217,9 +242,19 @@
         <target state="translated">정규식 색 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="translated">상속 여백과 표시기 여백 결합</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">설명</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">빠른 작업을 비동기적으로 컴퓨팅(실험적, 다시 시작해야 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -242,14 +277,39 @@
         <target state="translated">현재 매개 변수</target>
         <note />
       </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="translated">기본값(현재 문서)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="translated">기본값(전체 솔루션)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="translated">기본값(문서 열기)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="translated">파생 형식</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
-        <target state="new">Disabled</target>
+        <target state="translated">사용 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Alt+F1을 누른 채 모든 힌트 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -292,6 +352,16 @@
         <target state="translated">Razor '풀' 진단 사용(실험적, 다시 시작 필요)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
+        <source>Enable all features in opened files from source generators (experimental)</source>
+        <target state="translated">소스 생성기에서 열린 파일의 모든 기능 사용 (실험적)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="translated">진단용 파일 로깅 사용('%Temp%\Roslyn' 폴더에 로그인)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">'풀' 진단 사용(실험적, 다시 시작 필요)</target>
@@ -299,7 +369,12 @@
       </trans-unit>
       <trans-unit id="Enabled">
         <source>Enabled</source>
-        <target state="new">Enabled</target>
+        <target state="translated">사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">줄의 끝</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -319,7 +394,12 @@
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
-        <target state="new">Error</target>
+        <target state="translated">오류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="translated">표시 중지를 업데이트하는 동안 오류가 발생했습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -337,14 +417,14 @@
         <target state="translated">마침</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="new">Format document</target>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">비 인터페이스 멤버의 경우</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="new">Formatting</target>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">문서 서식</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -359,7 +439,27 @@
       </trans-unit>
       <trans-unit id="Id">
         <source>Id</source>
-        <target state="new">Id</target>
+        <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="translated">구현된 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="translated">구현된 구성원</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="translated">구성원을 구현하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="translated">구현 형식</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -387,9 +487,24 @@
         <target state="translated">리포지토리에서 인덱싱됨</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">인라인 힌트(실험적)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="translated">상속 여백</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="translated">상속된 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">인라인 힌트</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -412,6 +527,11 @@
         <target state="translated">정의되지 않은 TODO 변수 소개</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">항목 원본</target>
@@ -419,7 +539,7 @@
       </trans-unit>
       <trans-unit id="Keep">
         <source>Keep</source>
-        <target state="new">Keep</target>
+        <target state="translated">유지</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -457,6 +577,11 @@
         <target state="translated">로컬 메타데이터</target>
         <note />
       </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="translated">위치</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">'{0}'을(를) 추상으로 지정</target>
@@ -477,10 +602,25 @@
         <target state="translated">한정자 기본 설정:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">네임스페이스로 이동</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="translated">여러 구성원이 상속됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="translated">여러 구성원이 {0} 행에 상속됨</target>
+        <note>Line number info is needed for accessibility purpose.</note>
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
@@ -501,6 +641,16 @@
         <source>Namespace: '{0}'</source>
         <target state="translated">네임스페이스: '{0}'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="translated">네임스페이스 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="translated">네임스페이스가 업데이트되었습니다.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -647,6 +797,16 @@
         <target state="translated">명명 규칙</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="translated">'{0}'(으)로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">안 함 </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">필요한 경우 사용 안 함</target>
@@ -659,17 +819,22 @@
       </trans-unit>
       <trans-unit id="New_line_preferences_experimental_colon">
         <source>New line preferences (experimental):</source>
-        <target state="new">New line preferences (experimental):</target>
+        <target state="translated">새 줄 기본 설정(실험적):</target>
         <note />
       </trans-unit>
       <trans-unit id="Newline_n">
         <source>Newline (\\n)</source>
-        <target state="new">Newline (\\n)</target>
+        <target state="translated">줄 바꿈(\\n)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="translated">업데이트할 네임스페이스가 없습니다.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
-        <target state="new">No unused references were found.</target>
+        <target state="translated">사용되지 않는 참조가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -682,6 +847,11 @@
         <target state="translated">None</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">기본값인 경우 생략</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">생략(선택적 매개 변수에만 해당)</target>
@@ -690,6 +860,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">열린 문서</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">래핑 시 연산자 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -707,9 +882,29 @@
         <target state="translated">기타</target>
         <note />
       </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="translated">재정의된 구성원</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="translated">구성원 재정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="translated">패키지 설치가 취소됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="translated">패키지 제거가 취소됨</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
-        <target state="new">Packages</target>
+        <target state="translated">패키지</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -752,6 +947,16 @@
         <target state="translated">괄호 기본 설정:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="new">Paste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">일시 중지됨(큐의 {0}개 작업)</target>
@@ -777,6 +982,11 @@
         <target state="translated">인덱스 연산자 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">범위 연산자 선호</target>
@@ -794,7 +1004,12 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">간단한 부울 식을 기본으로 사용</target>
+        <target state="translated">단순화된 부울 식을 기본으로 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">단순화된 보간 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -802,9 +1017,14 @@
         <target state="translated">정적 로컬 함수 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="new">Prefer tuple swap</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
-        <target state="new">Projects</target>
+        <target state="translated">프로젝트</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -812,14 +1032,19 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">빠른 작업</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="new">Refactoring Only</target>
+        <target state="translated">리팩터링만</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
-        <target state="new">Reference</target>
+        <target state="translated">참조</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -829,12 +1054,17 @@
       </trans-unit>
       <trans-unit id="Remove_All">
         <source>Remove All</source>
-        <target state="new">Remove All</target>
+        <target state="translated">모두 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
-        <target state="new">Remove Unused References</target>
+        <target state="translated">사용하지 않는 참조 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -852,9 +1082,14 @@
         <target state="translated">리포지토리</target>
         <note />
       </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">접근성 한정자 필요</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Require_colon">
         <source>Require:</source>
-        <target state="new">Require:</target>
+        <target state="translated">필요:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -882,6 +1117,11 @@
         <target state="translated">{0}에서 코드 분석 실행</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="translated">별도의 프로세스에서 코드 분석 실행(다시 시작해야 함)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">'{0}'에 대한 코드 분석을 실행하는 중...</target>
@@ -904,7 +1144,12 @@
       </trans-unit>
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
-        <target state="new">Search Settings</target>
+        <target state="translated">검색 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="translated">적절한 기호를 선택하여 값 추적 시작</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -944,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer (experimental)</target>
+        <target state="translated">솔루션 탐색기에서 "사용하지 않는 참조 제거" 명령 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -962,6 +1207,11 @@
         <target state="translated">암시적 개체 만들기에 대한 힌트 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="translated">인덱서에 대한 힌트 표시</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">람다 매개 변수 형식에 대한 힌트 표시</target>
@@ -977,14 +1227,44 @@
         <target state="translated">유추된 형식의 변수에 대한 힌트 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="translated">상속 여백 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="translated">암시적으로 트리거된 빌드에 대한 분석기 건너뛰기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">색 구성표의 일부 색이 [환경] &gt; [글꼴 및 색] 옵션 페이지에서 변경한 내용에 따라 재정의됩니다. 모든 사용자 지정을 되돌리려면 [글꼴 및 색] 페이지에서 '기본값 사용'을 선택하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="new">Stack Trace {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
-        <target state="new">Suggestion</target>
+        <target state="translated">제안</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -999,12 +1279,17 @@
       </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
-        <target state="new">Symbols without references</target>
+        <target state="translated">참조 없는 기호</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="translated">네임스페이스 동기화</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <target state="translated">두 번 탭하여 인수 삽입(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1024,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
-        <target state="new">This action cannot be undone. Do you wish to continue?</target>
+        <target state="translated">이 작업은 실행 취소할 수 없습니다. 계속하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
@@ -1037,9 +1322,14 @@
         <target state="translated">잘못된 네임스페이스입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="translated">이 규칙은 구성할 수 없음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">제목</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1062,6 +1352,11 @@
         <target state="translated">형식 이름이 인식됩니다.</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="translated">다시 할당된 변수에 밑줄 긋기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">사용되지 않는 값이 사용되지 않는 로컬에 명시적으로 할당됩니다.</target>
@@ -1072,19 +1367,19 @@
         <target state="translated">사용되지 않는 값이 무시 항목에 명시적으로 할당됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="translated">네임스페이스를 업데이트하는 중...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
-        <target state="new">Updating project references...</target>
+        <target state="translated">프로젝트 참조를 업데이트하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">심각도를 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">코드 분석에 64비트 프로세스 사용(다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1104,8 +1399,13 @@
       </trans-unit>
       <trans-unit id="Value">
         <source>Value</source>
-        <target state="new">Value</target>
+        <target state="translated">값</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="translated">값 추적</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
@@ -1137,9 +1437,14 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="translated">Visual Studio 설정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="new">Warning</target>
+        <target state="translated">경고</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
@@ -1160,6 +1465,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="translated">공백</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -1277,6 +1587,11 @@
         <target state="translated">값이 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="translated">'{0}'이(가) 상속되었습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
         <target state="translated">'{0}'이(가) 추상으로 변경됩니다.</target>
@@ -1290,6 +1605,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}'이(가) 공용으로 변경됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -1350,11 +1670,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">기본 형식</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">기타 파일</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -2318,6 +2633,11 @@ Additional information: {1}</source>
         <target state="translated">속성, 이벤트 및 메서드 삽입 시 다음에 배치합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
+        <note />
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">같은 종류의 다른 멤버와 함께 있는 경우</target>
@@ -2376,11 +2696,6 @@ Additional information: {1}</source>
       <trans-unit id="Pick_members">
         <source>Pick members</source>
         <target state="translated">멤버 선택</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Visual Studio에서 사용하는 프로세스에서 복원할 수 없는 오류가 발생했습니다. 작업을 저장하고, Visual Studio를 종료한 후 다시 시작하시는 것을 권장해 드립니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
@@ -2519,34 +2834,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">디컴파일된 소스에 탐색을 사용하도록 설정(실험적)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">중요: Visual Studio에는 이진 코드에서 소스 코드를 재생할 수 있는 디컴파일 기능("디컴파일러")이 포함됩니다. 디컴파일러에 액세스하고 사용함으로써 아래의 Visual Studio 라이선스 조건 및 디컴파일러 조건에 동의하게 됩니다. 이러한 결합된 조건에 동의하지 않는 경우 디컴파일러에 액세스하거나 사용하지 마세요.
- 
-이진 코드 및 소스 코드는 저작권 및 상표법으로 보호될 수 있습니다. 이진 코드에 디컴파일러를 사용하기 전에 먼저  
-(i) 이진 코드 사용과 관련된 라이선스 조건에 소프트웨어 디컴파일을 금지하는 조항이 포함되어 있지 않은지 확인하거나
-(ii) 소프트웨어 소유자에게 이진 코드 디컴파일 권한을 얻으세요.
- 
-디컴파일 사용은 선택 사항입니다. Microsoft는 소프트웨어 디컴파일을 금지하는 법 또는 소프트웨어 라이선스 조건을 위반하는 디컴파일러 사용을 책임지지 않으며 이와 관련된 모든 책임을 부인합니다.
-
-본인은 상기 내용에 모두 동의합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">디컴파일러 법적 고지 사항</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="translated">디컴파일된 원본으로의 이동을 사용하도록 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

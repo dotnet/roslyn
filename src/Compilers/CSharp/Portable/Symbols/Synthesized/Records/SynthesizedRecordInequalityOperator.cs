@@ -13,12 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
-    /// 
+    ///
+    /// For record class:
     /// public static bool operator==(R? left, R? right)
     ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
     /// public static bool operator !=(R? left, R? right)
     ///      => !(left == right);
-    ///        
+    ///
+    /// For record struct:
+    /// public static bool operator==(R left, R right)
+    ///      => left.Equals(right);
+    /// public static bool operator !=(R left, R right)
+    ///      => !(left == right);
+    ///
     ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
     ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
     /// </summary>

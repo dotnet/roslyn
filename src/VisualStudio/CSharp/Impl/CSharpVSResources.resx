@@ -640,4 +640,16 @@
   <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
     <value>Automatically complete statement on semicolon</value>
   </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+  </data>
+  <data name="Block_scoped" xml:space="preserve">
+    <value>Block scoped</value>
+  </data>
+  <data name="File_scoped" xml:space="preserve">
+    <value>File scoped</value>
+  </data>
+  <data name="Prefer_extended_property_pattern" xml:space="preserve">
+    <value>Prefer extended property pattern</value>
+  </data>
 </root>

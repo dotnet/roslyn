@@ -812,6 +812,8 @@ namespace N
 }
 ";
 
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -819,8 +821,9 @@ namespace N
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -829,8 +832,46 @@ namespace N
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task OperatorBinaryNullForgivingHandling()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+#nullable enable
+
+public class C
+{
+    public static C operator +(C a, C b) => default;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var _ = c!.$$
+    }
+}
+", "+", @"
+#nullable enable
+
+public class C
+{
+    public static C operator +(C a, C b) => default;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var _ = c! + $$
+    }
+}
+");
         }
     }
 }

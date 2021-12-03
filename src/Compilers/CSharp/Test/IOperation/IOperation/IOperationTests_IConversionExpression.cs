@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Test list drawn from Microsoft.CodeAnalysis.CSharp.ConversionKind
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConversionExpression : SemanticModelTestBase
     {
         #region Implicit Conversions
 
@@ -5216,7 +5216,7 @@ class Class
         }
         #endregion
 
-        private class ExpectedSymbolVerifier
+        internal class ExpectedSymbolVerifier
         {
             public static SyntaxNode VariableDeclaratorSelector(SyntaxNode syntaxNode) =>
                 ((VariableDeclaratorSyntax)syntaxNode).Initializer.Value;

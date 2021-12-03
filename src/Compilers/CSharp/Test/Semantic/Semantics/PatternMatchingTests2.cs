@@ -395,21 +395,48 @@ public class Point
                 // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(17, 18),
                 // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(18, 19),
                 // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(19, 21),
                 // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(20, 18),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(20, 18),
                 // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(21, 19),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(21, 19),
                 // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!!").WithLocation(22, 21),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(22, 21),
                 // (22,22): error CS8715: Duplicate null suppression operator ('!')
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
@@ -3016,6 +3043,631 @@ class C
                 // (7,24): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         _ = o switch { int? => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(7, 24)
+                );
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SwitchExpression()
+        {
+            var source = @"
+int count = 0;
+foreach (var position in new[] { Position.First, Position.Last })
+{
+    foreach (var wrap in new[] { new Wrap { Sub = new Zero() }, new Wrap { Sub = new One() }, new Wrap { Sub = new Two() }, new Wrap { Sub = new object() } })
+    {
+        count++;
+        if (M(position, wrap) != M2(position, wrap))
+            throw null;
+    }
+}
+
+System.Console.Write(count);
+
+static string M(Position position, Wrap wrap)
+{
+    return position switch
+    {
+        not Position.First when wrap.Sub is Zero => ""Not First and Zero"",
+        _ when wrap is { Sub: One or Two } => ""One or Two"",
+        Position.First => ""First"",
+        _ => ""Other""
+    };
+}
+
+static string M2(Position position, Wrap wrap)
+{
+    if (position is not Position.First && wrap.Sub is Zero)
+        return ""Not First and Zero"";
+    if (wrap is { Sub: One or Two })
+        return ""One or Two"";
+    if (position is Position.First)
+        return ""First"";
+    return ""Other"";
+}
+
+enum Position
+{
+    First,
+    Last,
+}
+
+class Zero { }
+class One { }
+class Two { }
+
+class Wrap
+{
+    public object Sub;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "8");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SwitchStatement()
+        {
+            var source = @"
+M(Position.Last, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new One() });
+M(Position.Last, new Wrap { Sub = new Two() });
+M(Position.First, new Wrap { Sub = new Zero() });
+M(Position.Last, new Wrap { Sub = new object() });
+
+static void M(Position position, Wrap wrap)
+{
+    string text;
+    switch (position)
+    {
+        case not Position.First when wrap.Sub is Zero: text = ""Not First and Zero""; break;
+        case var _ when wrap is { Sub: One or Two }: text = ""One or Two""; break;
+        case Position.First: text = ""First""; break;
+        default: text = ""Other""; break;
+    }
+
+    System.Console.WriteLine((position, wrap.Sub, text));
+}
+
+enum Position
+{
+    First,
+    Last,
+}
+
+class Zero { }
+class One { }
+class Two { }
+
+class Wrap
+{
+    public object Sub;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+(Last, Zero, Not First and Zero)
+(Last, One, One or Two)
+(Last, Two, One or Two)
+(First, Zero, First)
+(Last, System.Object, Other)");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_SequencePoints()
+        {
+            var source = @"
+C.M(0, false, false);
+C.M(0, true, false);
+C.M(0, false, true);
+C.M(1, false, false);
+C.M(1, false, true);
+C.M(2, false, false);
+
+public class C
+{
+    public static void M(int i, bool b1, bool b2)
+    {
+        string text;
+        switch (i)
+        {
+            case not 1 when b1:
+                text = ""b1"";
+                break;
+            case var _ when b2:
+                text = ""b2"";
+                break;
+            case 1:
+                text = ""1"";
+                break;
+            default:
+                text = ""default"";
+                break;
+        }
+
+        System.Console.WriteLine((i, b1, b2, text));
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+(0, False, False, default)
+(0, True, False, b1)
+(0, False, True, b2)
+(1, False, False, 1)
+(1, False, True, b2)
+(2, False, False, default)
+");
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (string V_0, //text
+                int V_1)
+  // sequence point: switch (i)
+  IL_0000:  ldarg.0
+  // sequence point: <hidden>
+  IL_0001:  ldc.i4.1
+  IL_0002:  beq.s      IL_000f
+  // sequence point: when b1
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0013
+  // sequence point: text = ""b1"";
+  IL_0007:  ldstr      ""b1""
+  IL_000c:  stloc.0
+  // sequence point: break;
+  IL_000d:  br.s       IL_0035
+  // sequence point: <hidden>
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.1
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.2
+  IL_0014:  stloc.1
+  // sequence point: when b2
+  IL_0015:  ldarg.2
+  IL_0016:  brtrue.s   IL_001f
+  // sequence point: <hidden>
+  IL_0018:  ldloc.1
+  IL_0019:  brfalse.s  IL_0027
+  IL_001b:  ldloc.1
+  IL_001c:  ldc.i4.2
+  IL_001d:  beq.s      IL_002f
+  // sequence point: text = ""b2"";
+  IL_001f:  ldstr      ""b2""
+  IL_0024:  stloc.0
+  // sequence point: break;
+  IL_0025:  br.s       IL_0035
+  // sequence point: text = ""1"";
+  IL_0027:  ldstr      ""1""
+  IL_002c:  stloc.0
+  // sequence point: break;
+  IL_002d:  br.s       IL_0035
+  // sequence point: text = ""default"";
+  IL_002f:  ldstr      ""default""
+  IL_0034:  stloc.0
+  // sequence point: System.Console.WriteLine((i, b1, b2, text));
+  IL_0035:  ldarg.0
+  IL_0036:  ldarg.1
+  IL_0037:  ldarg.2
+  IL_0038:  ldloc.0
+  IL_0039:  newobj     ""System.ValueTuple<int, bool, bool, string>..ctor(int, bool, bool, string)""
+  IL_003e:  box        ""System.ValueTuple<int, bool, bool, string>""
+  IL_0043:  call       ""void System.Console.WriteLine(object)""
+  // sequence point: }
+  IL_0048:  ret
+}
+", source: source, sequencePoints: "C.M");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_MissingInt32Type()
+        {
+            var source = @"
+class C
+{
+    static void M(string s, bool b1, bool b2)
+    {
+        switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         switch (s)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }").WithArguments("System.Int32").WithLocation(6, 9),
+                // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         switch (s)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }").WithArguments("System.Int32").WithLocation(6, 9),
+                // (8,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //             case not "one" when b1:
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"case not ""one"" when b1:").WithArguments("System.Int32").WithLocation(8, 13)
+                );
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_WithBindings()
+        {
+            var source = @"
+C.M(""Alice"", false, true);
+C.M(""Bob"", false, true);
+
+public class C
+{
+    public static void M(string s, bool b1, bool b2)
+    {
+        switch (s)
+        {
+            case not ""x"" when b1:
+                throw null;
+            case { Length: var j and > 2 } when b2:
+                System.Console.WriteLine((s, b1, b2, j.ToString()));
+                break;
+            case ""x"":
+                throw null;
+            default:
+                throw null;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+(Alice, False, True, 5)
+(Bob, False, True, 3)
+");
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1, //j
+                string V_2)
+  // sequence point: switch (s)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  // sequence point: <hidden>
+  IL_0002:  ldloc.2
+  IL_0003:  ldstr      ""x""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brfalse.s  IL_002c
+  IL_000f:  ldloc.2
+  IL_0010:  callvirt   ""int string.Length.get""
+  IL_0015:  stloc.1
+  // sequence point: <hidden>
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.2
+  IL_0018:  bgt.s      IL_0031
+  IL_001a:  br.s       IL_005b
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_005d
+  IL_001f:  ldloc.2
+  IL_0020:  callvirt   ""int string.Length.get""
+  IL_0025:  stloc.1
+  // sequence point: <hidden>
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.2
+  IL_0028:  bgt.s      IL_0035
+  IL_002a:  br.s       IL_005d
+  // sequence point: when b1
+  IL_002c:  ldarg.1
+  IL_002d:  brfalse.s  IL_001c
+  // sequence point: throw null;
+  IL_002f:  ldnull
+  IL_0030:  throw
+  // sequence point: <hidden>
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.2
+  IL_0036:  stloc.0
+  // sequence point: when b2
+  IL_0037:  ldarg.2
+  IL_0038:  brtrue.s   IL_0041
+  // sequence point: <hidden>
+  IL_003a:  ldloc.0
+  IL_003b:  brfalse.s  IL_005b
+  IL_003d:  ldloc.0
+  IL_003e:  ldc.i4.2
+  IL_003f:  beq.s      IL_005d
+  // sequence point: System.Console.WriteLine((s, b1, b2, j.ToString()));
+  IL_0041:  ldarg.0
+  IL_0042:  ldarg.1
+  IL_0043:  ldarg.2
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  call       ""string int.ToString()""
+  IL_004b:  newobj     ""System.ValueTuple<string, bool, bool, string>..ctor(string, bool, bool, string)""
+  IL_0050:  box        ""System.ValueTuple<string, bool, bool, string>""
+  IL_0055:  call       ""void System.Console.WriteLine(object)""
+  // sequence point: break;
+  IL_005a:  ret
+  // sequence point: throw null;
+  IL_005b:  ldnull
+  IL_005c:  throw
+  // sequence point: throw null;
+  IL_005d:  ldnull
+  IL_005e:  throw
+}
+", source: source, sequencePoints: "C.M");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_Multiples()
+        {
+            // The `b3` condition ends up in the `when` clause on four leaves in the DAG
+            // and `b1` ends up in two leaves
+            var source = @"
+int count = 0;
+
+foreach (int i1 in new[] { 0, 1 })
+    foreach (int i2 in new[] { 0, 1 })
+        foreach (int i3 in new[] { 0, 1 })
+            foreach (bool b0 in new[] { false, true })
+                foreach (bool b1 in new[] { false, true })
+                    foreach (bool b2 in new[] { false, true })
+                        foreach (bool b3 in new[] { false, true })
+                        {
+                            count++;
+                            if (M(i1, i2, i3, b0, b1, b2, b3) != M2(i1, i2, i3, b0, b1, b2, b3))
+                                throw null;
+                        }
+
+System.Console.Write(count);
+
+static string M(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    object o = null;
+    switch (i1, i2, i3)
+    {
+        case (var x, var y, var z) when f(x, y, z):
+            throw null;
+        case (not 0, 0, _) when b0:
+            return ""b0"";
+        case (_, not 0, 0) when b1:
+            return ""b1"";
+        case (0, _, not 0) when b2:
+            return ""b2"";
+        case (_, _, _) when b3:
+            return ""b3"";
+        case (0, _, _):
+            return ""first"";
+        case (_, 0, _):
+            return ""second"";
+        case (_, _, 0):
+            return ""third"";
+    }
+    return ""last"";
+}
+
+static string M2(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    if (i1 is not 0 && i2 is 0 && b0)
+        return ""b0"";
+    if (i2 is not 0 && i3 is 0 && b1)
+        return ""b1"";
+    if (i3 is not 0 && i1 is 0 && b2)
+        return ""b2"";
+    if (b3)
+        return ""b3"";
+    if (i1 is 0)
+        return ""first"";
+    if (i2 is 0)
+        return ""second"";
+    if (i3 is 0)
+        return ""third"";
+    return ""last"";
+}
+
+static bool f(int i1, int i2, int i3) => false;
+";
+
+            CompileAndVerify(source, expectedOutput: "128");
+        }
+
+        [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
+        public void SharedWhenExpression_Multiples_LabelInSharedWhenExpression()
+        {
+            var source = @"
+int count = 0;
+var wrap = new Wrap { value = null };
+
+foreach (int i1 in new[] { 0, 1 })
+    foreach (int i2 in new[] { 0, 1 })
+        foreach (int i3 in new[] { 0, 1 })
+            foreach (bool b0 in new[] { false, true })
+                foreach (bool b1 in new[] { false, true })
+                    foreach (bool b2 in new[] { false, true })
+                        foreach (bool b3 in new[] { false, true })
+                        {
+                            count++;
+                            if (M(i1, i2, i3, b0, b1, b2, b3) != M2(i1, i2, i3, b0, b1, b2, b3))
+                                throw null;
+                        }
+
+System.Console.Write(count);
+
+string M(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    switch (i1, i2, i3)
+    {
+        case (var x, var y, var z) when f(x, y, z):
+            throw null;
+        case (not 0, 0, _) when b0 && wrap is { value: string or string[] }:
+            throw null;
+        case (_, not 0, 0) when b1 && wrap is { value: string or string[] }:
+            throw null;
+        case (0, _, not 0) when b2 && wrap is { value: string or string[] }:
+            throw null;
+        case (_, _, _) when b3:
+            return ""b3"";
+        case (0, _, _):
+            return ""first"";
+        case (_, 0, _):
+            return ""second"";
+        case (_, _, 0):
+            return ""third"";
+    }
+    return ""last"";
+}
+
+static string M2(int i1, int i2, int i3, bool b0, bool b1, bool b2, bool b3)
+{
+    if (b3)
+        return ""b3"";
+    if (i1 is 0)
+        return ""first"";
+    if (i2 is 0)
+        return ""second"";
+    if (i3 is 0)
+        return ""third"";
+    return ""last"";
+}
+
+static bool f(int i1, int i2, int i3) => false;
+
+public class Wrap
+{
+    public object value;
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "128");
+        }
+
+        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [InlineData("(short)0", "True")]
+        [InlineData("short.MinValue", "True")]
+        [InlineData("short.MaxValue", "True")]
+        [InlineData("-1", "False")]
+        [InlineData("(object)null", "False")]
+        [InlineData("string.Empty", "False")]
+        public void ObviousTestAfterTypeTest(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(Extenders.F({value}));
+
+static class Extenders
+{{
+    public const short MaxValue = 0x7FFF;
+
+    public static bool F<T>(T value)
+        => value switch
+        {{
+            <= MaxValue => true,
+            _ => false
+        }};
+}}";
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [InlineData("(int)0", "1")]
+        [InlineData("(int)255", "1")]
+        [InlineData("int.MinValue", "1")]
+        [InlineData("int.MaxValue", "4")]
+        [InlineData("(short)0", "2")]
+        [InlineData("(short)255", "2")]
+        [InlineData("short.MinValue", "2")]
+        [InlineData("short.MaxValue", "2")]
+        [InlineData("(uint)0", "8")]
+        public void ObviousTestAfterTypeTest2(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(Extenders.F({value}));
+
+public static class Extenders
+{{
+    public static int F<T>(this T value) where T : struct
+    {{
+        int elementSize = value switch
+        {{
+            <= 255 => 1,
+            <= short.MaxValue => 2,
+            <= int.MaxValue => 4,
+            _ => 8
+        }};
+
+        return elementSize;
+    }}
+}}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expected);
+        }
+
+        [Theory, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        [InlineData("(uint)0", "0")]
+        [InlineData("uint.MaxValue", "0")]
+        [InlineData("-1", "1")]
+        [InlineData("(object)null", "1")]
+        [InlineData("string.Empty", "1")]
+        public void ObviousTestAfterTypeTest_UnsignedIntegerNonNegative(string value, string expected)
+        {
+            var source = $@"
+System.Console.Write(M({value}));
+
+int M<T>(T o)
+{{
+    return o switch
+    {{
+       >= (uint)0 => 0,
+       _ => 1
+    }};
+}}";
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(57148, "https://github.com/dotnet/roslyn/issues/57148")]
+        public void ObviousTestAfterTypeTest_UnsignedIntegerNegative()
+        {
+            var source = @"
+public class C
+{
+    public void M<T>(T o)
+    {
+        _ = o switch
+        {
+           < (uint)0 => 0,
+           _ => 2
+        };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,12): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //            < (uint)0 => 0,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "< (uint)0").WithLocation(8, 12)
                 );
         }
     }

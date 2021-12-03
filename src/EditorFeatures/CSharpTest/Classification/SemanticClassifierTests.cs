@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -291,7 +292,9 @@ class C
 class C
 {
     dynamic<int> d;
-}", testHost);
+}",
+                testHost,
+                Class("dynamic"));
         }
 
         [Theory]
@@ -1461,7 +1464,8 @@ class C
             await TestInMethodAsync(@"global::System.String.Clone("");",
                 testHost,
                 Namespace("System"),
-                Class("String"));
+                Class("String"),
+                Method("Clone"));
         }
 
         [Theory]
@@ -1974,12 +1978,12 @@ class Serializable
 {
 }
 
-[NonSerialized]           // Binds to global::NonSerializedAttribute; not colorized
+[NonSerialized]           // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
 
-[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; not colorized
+[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
@@ -1997,6 +2001,8 @@ class ObsoleteAttribute : Attribute
                 Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
+                Class("NonSerialized"),
+                Class("NonSerializedAttribute"),
                 Class("Obsolete"),
                 Class("Attribute"),
                 Class("ObsoleteAttribute"),
@@ -2589,7 +2595,8 @@ struct Type<T>
     }
 }",
                 testHost,
-                Keyword("var"));
+                Keyword("var"),
+                Method("nameof"));
         }
 
         [WpfFact]
@@ -2607,11 +2614,12 @@ struct Type<T>
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
             using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
             var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
                 listenerProvider);
 
             using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
@@ -4411,6 +4419,71 @@ class C
 }",
                 testHost,
                 Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordClassClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordStructClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R property { get; set; }
+}",
+                testHost,
+                RecordStruct("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Namespace("NS"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57184, "https://github.com/dotnet/roslyn/issues/57184")]
+        public async Task MethodGroupClassifications(TestHost testHost)
+        {
+            await TestAsync(
+@"var f = m;
+Delegate d = m;
+MulticastDelegate md = m;
+ICloneable c = m;
+object obj = m;
+m(m);
+
+int m(Delegate d) { }",
+                testHost,
+                    Keyword("var"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"));
         }
     }
 }

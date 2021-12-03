@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                     // (but it still needed below to decide whether to show generic suffix)
-                    builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                    builder.Add(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity));
                 }
 
                 properties = builder.ToImmutableDictionaryAndFree();
@@ -116,21 +116,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static string GetContainingNamespace(CompletionItem item)
             => item.InlineDescription;
 
-        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
-            var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var (symbol, overloadCount) = GetSymbolAndOverloadCount(item, compilation);
 
             if (symbol != null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 return await CommonCompletionUtilities.CreateDescriptionAsync(
-                    document.Project.Solution.Workspace,
+                    document.Project.Solution.Workspace.Services,
                     semanticModel,
                     position: 0,
                     symbol,
                     overloadCount,
+                    options,
                     supportedPlatforms: null,
                     cancellationToken).ConfigureAwait(false);
             }

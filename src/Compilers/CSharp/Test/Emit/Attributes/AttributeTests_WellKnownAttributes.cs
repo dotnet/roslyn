@@ -11221,6 +11221,96 @@ public class C
             Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
         }
 
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, false)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_01(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    {GetSkipLocalsInit(skipLocalsMethod)} static void Main()
+    {{
+        Action a = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<Main>b__0_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        [Theory]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(true, true, false)]
+        public void SkipLocalsInit_Lambda_02(bool skipLocalsType, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        // [SkipLocalsInit] on constructor is ignored
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, true)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_03(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    {GetSkipLocalsInit(skipLocalsMethod)} Program() {{ }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        private static string GetSkipLocalsInit(bool skipLocalsInit) => skipLocalsInit ? "[SkipLocalsInit]" : "";
+
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
         public void SkipLocalsInit_Module_TopLevelStatements()
         {
@@ -11241,7 +11331,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
             Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.False(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
@@ -11260,7 +11350,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
             Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.True(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.True(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact]
@@ -13293,6 +13383,54 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }
 
+        /// <summary>
+        /// Verify that a synthesized (and emitted) parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct. Compare
+        /// with previous test where no parameterless constructor is emitted for the struct type.
+        /// </summary>
+        [Theory]
+        [InlineData(
+@"#pragma warning disable 414
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        private int F = 1; // requires synthesized parameterless .ctor
+    }
+}")]
+        [InlineData(
+@"namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        // explicit parameterless .ctor
+        public IsReadOnlyAttribute() { }
+    }
+}")]
+        public void WellKnownTypeAsStruct_ParameterlessConstructor_IsReadOnlyAttribute(string sourceAttribute)
+        {
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        int i = 42;
+        A.M(in i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference();
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "42");
+        }
+
         [Fact]
         public void TestObsoleteOnPropertyAccessorUsedInNameofAndXmlDocComment()
         {
@@ -13425,6 +13563,138 @@ class C
                 // (7,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Deprecated("don't use this", DeprecationType.Remove, 50331648u)]
                 Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int this[int i] => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int Count => 0;
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (17,13): error CS0619: 'C.this[int]' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int]", "error").WithLocation(17, 13),
+                // (17,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count", "error").WithLocation(17, 13),
+                // (18,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(18, 13),
+                // (18,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count", "error").WithLocation(18, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteCountAccessor()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    public int this[int i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1]; // 1, 2
+        _ = this[..]; // 3, 4
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (23,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count.get", "error").WithLocation(23, 13),
+                // (23,13): error CS0619: 'C.this[int].get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int].get", "error").WithLocation(23, 13),
+                // (24,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count.get", "error").WithLocation(24, 13),
+                // (24,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(24, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteIndexAndRangeAccessors()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    public int this[Range r]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int this[Index i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""unused"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (26,13): error CS0619: 'C.this[Index].get' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[System.Index].get", "error").WithLocation(26, 13),
+                // (27,13): error CS0619: 'C.this[Range].get' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
+                );
         }
     }
 }

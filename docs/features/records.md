@@ -180,7 +180,7 @@ At runtime the primary constructor
 * executes the body of each *primary_constructor_body*, if any, in source order.
 
 - [ ] **Open issue**: We need to specify that order, particularly across compilation units for partials.
-- [ ] **Open Issue**: We need to specify that every explicitly declared constructor must chain to the primry constructor.
+- [ ] **Open Issue**: We need to specify that every explicitly declared constructor must chain to the primary constructor.
 - [ ] **Open issue**: Should it be allowed to change the access modifier on the primary constructor?
 - [ ] **Open issue**: In a record struct, it is an error for there to be no record parameters?
 

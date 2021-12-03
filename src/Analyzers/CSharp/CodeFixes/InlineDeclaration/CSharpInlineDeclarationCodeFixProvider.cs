@@ -398,10 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private static SyntaxNode GetTopmostContainer(SyntaxNode expression)
         {
             return expression.GetAncestorsOrThis(
-                a => a is StatementSyntax ||
-                     a is EqualsValueClauseSyntax ||
-                     a is ArrowExpressionClauseSyntax ||
-                     a is ConstructorInitializerSyntax).LastOrDefault();
+                a => a is StatementSyntax or
+                     EqualsValueClauseSyntax or
+                     ArrowExpressionClauseSyntax or
+                     ConstructorInitializerSyntax).LastOrDefault();
         }
 
         private static bool TryGetSpeculativeSemanticModel(

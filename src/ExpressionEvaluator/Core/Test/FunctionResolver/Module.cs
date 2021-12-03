@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
@@ -13,45 +11,46 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     internal sealed class Module : IDisposable
     {
-        private readonly string _name;
-        private readonly PEReader _reader;
-        private int _getMetadataCount;
+        private readonly PEReader? _reader;
 
-        internal Module(ImmutableArray<byte> bytes, string name = null)
+        public readonly string? Name;
+        public int MetadataAccessCount { get; private set; }
+
+        internal Module(ImmutableArray<byte> metadata, string? name = null)
         {
-            _name = name;
-            _reader = bytes.IsDefault ? null : new PEReader(bytes);
+            Name = name;
+            _reader = metadata.IsDefault ? null : new PEReader(metadata);
         }
 
-        internal string Name => _name;
-
-        internal int GetMetadataCount => _getMetadataCount;
-
-        internal MetadataReader GetMetadata()
+        internal unsafe bool TryGetMetadata(out byte* pointer, out int length)
         {
-            _getMetadataCount++;
-            return GetMetadataInternal();
+            MetadataAccessCount++;
+
+            if (_reader == null)
+            {
+                pointer = null;
+                length = 0;
+                return false;
+            }
+
+            var block = _reader.GetMetadata();
+            pointer = block.Pointer;
+            length = block.Length;
+            return true;
         }
 
-        internal MetadataReader GetMetadataInternal()
+        internal unsafe MetadataReader? GetMetadataReader()
         {
             if (_reader == null)
             {
                 return null;
             }
-            unsafe
-            {
-                var block = _reader.GetMetadata();
-                return new MetadataReader(block.Pointer, block.Length);
-            }
+
+            var block = _reader.GetMetadata();
+            return new MetadataReader(block.Pointer, block.Length);
         }
 
         void IDisposable.Dispose()
-        {
-            if (_reader != null)
-            {
-                _reader.Dispose();
-            }
-        }
+            => _reader?.Dispose();
     }
 }

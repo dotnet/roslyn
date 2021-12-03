@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
+#if DEBUG
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
+#endif
+        private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
         private int _flags;
@@ -43,10 +49,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#if DEBUG
+            var builderForAsserts = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#endif
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
             {
+                if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
+                {
+                    builder.Add(singleDeclaration, new AliasesAndUsings());
+                }
+#if DEBUG
+                else
+                {
+                    builderForAsserts.Add(singleDeclaration, new AliasesAndUsings());
+                }
+#endif
+
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
+
+            _aliasesAndUsings = builder.ToImmutable();
+#if DEBUG
+            _aliasesAndUsingsForAsserts = builderForAsserts.ToImmutable();
+#endif
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
@@ -57,18 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override AssemblySymbol ContainingAssembly
             => _module.ContainingAssembly;
-
-        internal IEnumerable<Imports> GetBoundImportsMerged()
-        {
-            var compilation = this.DeclaringCompilation;
-            foreach (var declaration in _mergedDeclaration.Declarations)
-            {
-                if (declaration.HasUsings || declaration.HasExternAliases)
-                {
-                    yield return compilation.GetImports(declaration);
-                }
-            }
-        }
 
         public override string Name
             => _mergedDeclaration.Name;
@@ -396,15 +410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
+                case DeclarationKind.RecordStruct:
                     return new SourceNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Script:
                 case DeclarationKind.Submission:
                 case DeclarationKind.ImplicitClass:
                     return new ImplicitNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
-
-                case DeclarationKind.SimpleProgram:
-                    return new SimpleProgramNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind);

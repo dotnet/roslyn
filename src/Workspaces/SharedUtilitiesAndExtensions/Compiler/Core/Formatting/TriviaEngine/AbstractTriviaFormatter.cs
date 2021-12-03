@@ -122,6 +122,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
 
         /// <summary>
+        /// true if previoustrivia is _ and nextTrivia is a Visual Basic comment
+        /// </summary>
+        protected abstract bool LineContinuationFollowedByWhitespaceComment(SyntaxTrivia previousTrivia, SyntaxTrivia nextTrivia);
+
+        /// <summary>
+        /// check whether given trivia is a Comment in VB or not
+        /// It is never reachable in C# since it follows a test for
+        /// LineContinuation Character.
+        /// </summary>
+        protected abstract bool IsVisualBasicComment(SyntaxTrivia trivia);
+
+        /// <summary>
         /// check whether given string is either null or whitespace
         /// </summary>
         protected bool IsNullOrWhitespace([NotNullWhen(true)] string? text)
@@ -279,8 +291,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var implicitLineBreak = false;
 
             var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
-            foreach (var trivia in list)
+
+            // Holds last position before _ ' Comment so we can reset after processing comment
+            var previousLineColumn = LineColumn.Default;
+            SyntaxTrivia trivia;
+            for (var i = 0; i < list.Count; i++)
             {
+                trivia = list[i];
                 if (trivia.RawKind == 0)
                 {
                     continue;
@@ -288,18 +305,31 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (IsWhitespaceOrEndOfLine(trivia))
                 {
+                    existingWhitespaceDelta = existingWhitespaceDelta.With(
+                       GetLineColumnOfWhitespace(
+                           lineColumn,
+                           previousTrivia,
+                           previousWhitespaceTrivia,
+                           existingWhitespaceDelta,
+                           trivia));
+
                     if (IsEndOfLine(trivia))
                     {
                         implicitLineBreak = false;
+                        // If we are on a new line we don't want to continue
+                        // reseting indenting this handles the case of a NewLine
+                        // followed by whitespace and a comment
+                        previousLineColumn = LineColumn.Default;
                     }
-
-                    existingWhitespaceDelta = existingWhitespaceDelta.With(
-                        GetLineColumnOfWhitespace(
-                            lineColumn,
-                            previousTrivia,
-                            previousWhitespaceTrivia,
-                            existingWhitespaceDelta,
-                            trivia));
+                    else if (LineContinuationFollowedByWhitespaceComment(previousTrivia, (i + 1) < list.Count ? list[i + 1] : default))
+                    {
+                        // we have a comment following an underscore space the formatter
+                        // thinks this next line should be shifted to right by
+                        // indentation value. Since we know through the test above that
+                        // this is the special case of _ ' Comment we don't want the extra indent
+                        // so we set the LineColumn value back to where it was before the comment
+                        previousLineColumn = lineColumn;
+                    }
 
                     previousWhitespaceTrivia = trivia;
                     continue;
@@ -312,6 +342,16 @@ namespace Microsoft.CodeAnalysis.Formatting
                     previousTrivia, existingWhitespaceDelta, trivia,
                     formatter, whitespaceAdder,
                     changes, implicitLineBreak, cancellationToken);
+
+                if (previousLineColumn.Column != 0
+                    && previousLineColumn.Column < lineColumn.Column
+                    && IsVisualBasicComment(trivia))
+                {
+                    lineColumn = previousLineColumn;
+                    // When we see a NewLine we don't want any special handling
+                    // for _ ' Comment
+                    previousLineColumn = LineColumn.Default;
+                }
 
                 implicitLineBreak = implicitLineBreak || ContainsImplicitLineBreak(trivia);
                 existingWhitespaceDelta = LineColumnDelta.Default;
@@ -418,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         /// <summary>
-        /// if the given trivia is the very first or the last trivia between two normal tokens and 
+        /// if the given trivia is the very first or the last trivia between two normal tokens and
         /// if the trivia is structured trivia, get one token that belongs to the structured trivia and one belongs to the normal token stream
         /// </summary>
         private void GetTokensAtEdgeOfStructureTrivia(SyntaxTrivia trivia1, SyntaxTrivia trivia2, out SyntaxToken token1, out SyntaxToken token2)
@@ -475,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private bool FirstLineBlank()
         {
-            // if we see elastic trivia as the first trivia in the trivia list, 
+            // if we see elastic trivia as the first trivia in the trivia list,
             // we consider it as blank line
             if (this.Token1.TrailingTrivia.Count > 0 &&
                 this.Token1.TrailingTrivia[0].IsElastic())
@@ -601,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetInsertionIndex(ArrayBuilder<SyntaxTrivia> changes)
         {
-            // first line is blank or there is no changes. 
+            // first line is blank or there is no changes.
             // just insert at the head
             if (_firstLineBlank ||
                 changes.Count == 0)
@@ -690,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private TextSpan GetInsertionSpan(ArrayBuilder<TextChange> changes)
         {
-            // first line is blank or there is no changes. 
+            // first line is blank or there is no changes.
             // just insert at the head
             if (_firstLineBlank ||
                 changes.Count == 0)
@@ -910,7 +950,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetSpaces(int space)
         {
-            if (space >= 0 && space < 20)
+            if (space is >= 0 and < 20)
             {
                 return s_spaceCache[space];
             }

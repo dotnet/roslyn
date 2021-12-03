@@ -942,62 +942,6 @@ public record C(int x, int y)
 ");
         }
 
-        [Fact(Skip = "record struct")]
-        public void RecordClone4_0()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E;
-    public int Z;
-}");
-            comp.VerifyDiagnostics(
-                // (3,21): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.E").WithLocation(3, 21),
-                // (3,21): error CS0171: Field 'S.Z' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.Z").WithLocation(3, 21),
-                // (5,25): warning CS0067: The event 'S.E' is never used
-                //     public event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E").WithLocation(5, 25)
-            );
-
-            var s = comp.GlobalNamespace.GetTypeMember("S");
-            var clone = s.GetMethod(WellKnownMemberNames.CloneMethodName);
-            Assert.Equal(0, clone.Arity);
-            Assert.Equal(0, clone.ParameterCount);
-            Assert.Equal(s, clone.ReturnType);
-
-            var ctor = (MethodSymbol)s.GetMembers(".ctor")[1];
-            Assert.Equal(1, ctor.ParameterCount);
-            Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
-        }
-
-        [Fact(Skip = "record struct")]
-        public void RecordClone4_1()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E = null;
-    public int Z = 0;
-}");
-            comp.VerifyDiagnostics(
-                // (5,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(5, 25),
-                // (5,25): warning CS0414: The field 'S.E' is assigned but its value is never used
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25),
-                // (6,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public int Z = 0;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
-                );
-        }
-
         [Fact]
         public void NominalRecordEquals()
         {
@@ -1137,7 +1081,7 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
-                "System.String C.ToString()",
+                "System.String! C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder! builder)",
                 "System.Boolean C.operator !=(C? left, C? right)",
                 "System.Boolean C.operator ==(C? left, C? right)",
@@ -1371,6 +1315,9 @@ enum G : C { }";
                 // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
@@ -1424,6 +1371,9 @@ enum H : C { }
                 // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'E.PrintMembers(StringBuilder)': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
@@ -1853,6 +1803,23 @@ class Test
 ";
             CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
             CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EqualityContractGetter_CompilerGeneratedAttribute()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+
+record C;
+", symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var member = module.GlobalNamespace.GetTypeMember("C").GetMember("get_EqualityContract");
+                var attributes = member.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attributes));
+            }
         }
     }
 }

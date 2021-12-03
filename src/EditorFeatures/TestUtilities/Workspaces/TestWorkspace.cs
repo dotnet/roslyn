@@ -52,13 +52,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
-        private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
+        private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
 
-        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+        public TestWorkspace(
+            ExportProvider? exportProvider = null,
+            TestComposition? composition = null,
+            string? workspaceKind = WorkspaceKind.Host,
+            Guid solutionTelemetryId = default,
+            bool disablePartialSolutions = true,
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
+
+            SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
@@ -505,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 path,
                 mappedCaretLocation,
                 mappedSpans,
-                textBuffer: projectionBuffer);
+                textBuffer: (ITextBuffer2)projectionBuffer);
 
             this.ProjectionDocuments.Add(projectionDocument);
             return projectionDocument;
@@ -675,10 +683,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeDocument(DocumentId documentId, SourceText text)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentText(documentId, text));
+            ChangeDocumentAsync(documentId, text);
+        }
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+        public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
+        {
+            return ChangeDocumentAsync(documentId, this.CurrentSolution.WithDocumentText(documentId, text));
+        }
+
+        public Task ChangeDocumentAsync(DocumentId documentId, Solution solution)
+        {
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(solution);
+
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+        }
+
+        public Task AddDocumentAsync(DocumentInfo documentInfo)
+        {
+            var documentId = documentInfo.Id;
+
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)
@@ -699,10 +727,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeProject(ProjectId projectId, Solution solution)
         {
+            ChangeProjectAsync(projectId, solution);
+        }
+
+        public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
+        {
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(solution);
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
 
         public new void ClearSolution()
@@ -710,10 +743,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeSolution(Solution solution)
         {
+            ChangeSolutionAsync(solution);
+        }
+
+        public Task ChangeSolutionAsync(Solution solution)
+        {
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(solution);
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
@@ -728,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return true;
         }
 
-        internal ITextBuffer GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
+        internal ITextBuffer2 GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
         {
             // If we don't have a file path we'll just make something up for the purpose of this dictionary so all
             // buffers are still held onto. This isn't a file name used in the workspace itself so it's unobservable.

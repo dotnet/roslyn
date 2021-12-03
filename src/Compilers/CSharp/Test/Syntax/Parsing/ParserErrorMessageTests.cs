@@ -239,12 +239,12 @@ public class mine {
                 // (2,7): error CS1041: Identifier expected; 'namespace' is a keyword
                 // using namespace System;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(2, 7),
-                // (2,23): error CS1514: { expected
-                // using namespace System;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(2, 23),
                 // (4,42): error CS0150: A constant value is expected
                 //     public enum e1 {one=1, two=2, three= };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "}").WithLocation(4, 42),
+                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
         }
 
         [WorkItem(862028, "DevDiv/Personal")]
@@ -2886,12 +2886,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -2947,12 +2944,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -3293,6 +3287,9 @@ class Program
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "the parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
                 // (10,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
@@ -3301,10 +3298,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 42),
                 // (11,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] int y
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
-                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
-                //         const string message = "the parameter is obsolete";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13));
         }
 
         [Fact]
@@ -4650,12 +4644,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -4707,12 +4698,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -6008,11 +5996,9 @@ class C
     }
 }";
 
+            // Moved to be a semantic diagnostic.
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
-                //         return $"hello";
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -6028,11 +6014,10 @@ class C
     }
 }";
 
+
+            // Moved to be a semantic diagnostic.
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
-            // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
-            //         return $"hello + {other}";
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
         }
 
         [WorkItem(529870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529870")]
@@ -6392,10 +6377,7 @@ class C
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
     // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5. Please use language version 6 or greater.
     //         var s = o?.ToString(); // null propagating operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17),
-    // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
-    //         var x = $"hello world";
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello world""").WithArguments("interpolated strings", "6").WithLocation(22, 17)
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17)
                 );
         }
 

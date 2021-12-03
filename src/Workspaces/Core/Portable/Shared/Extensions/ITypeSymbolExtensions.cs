@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (typeSymbol == null || interfaceMember == null)
                 return ImmutableArray<ISymbol>.Empty;
 
-            if (interfaceMember.Kind != SymbolKind.Event &&
-                interfaceMember.Kind != SymbolKind.Method &&
-                interfaceMember.Kind != SymbolKind.Property)
+            if (interfaceMember.Kind is not SymbolKind.Event and
+                not SymbolKind.Method and
+                not SymbolKind.Property)
             {
                 return ImmutableArray<ISymbol>.Empty;
             }
@@ -170,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 from baseType in typeSymbol.GetBaseTypesAndThis()
                 from member in baseType.GetMembers(constructedInterfaceMember.Name).OfType<TSymbol>()
                 where member.DeclaredAccessibility == Accessibility.Public &&
-                      !member.IsStatic &&
                       SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, constructedInterfaceMember, syntaxFacts.IsCaseSensitive)
                 select member;
 

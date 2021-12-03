@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            return Imports.Empty;
-        }
-
         protected override SourceLocalSymbol? LookupLocal(SyntaxToken nameToken)
         {
             return null;

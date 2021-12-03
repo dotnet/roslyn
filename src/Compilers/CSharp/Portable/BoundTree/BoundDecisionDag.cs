@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_topologicallySortedNodes.IsDefault)
                 {
                     // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { this.RootNode }, Successors, out _topologicallySortedNodes);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(this.RootNode), Successors, out _topologicallySortedNodes);
 
                     // Since these nodes were constructed by an isomorphic mapping from a known acyclic graph, it cannot be cyclic
                     Debug.Assert(wasAcyclic);
@@ -188,9 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagRelationalTest d:
                             var f = ValueSetFactory.ForType(input.Type);
                             if (f is null) return null;
-                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
-                            var set = f.Related(d.Relation.Operator(), d.Value);
-                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
+                            return f.Related(d.Relation.Operator(), inputConstant, d.Value);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
@@ -206,101 +204,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new string Dump()
         {
             var allStates = this.TopologicallySortedNodes;
-            var stateIdentifierMap = PooledDictionary<BoundDecisionDagNode, int>.GetInstance();
-            for (int i = 0; i < allStates.Length; i++)
-            {
-                stateIdentifierMap.Add(allStates[i], i);
-            }
-
-            int nextTempNumber = 0;
-            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
-            int tempIdentifier(BoundDagEvaluation e)
-            {
-                return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
-            }
-
-            string tempName(BoundDagTemp t)
-            {
-                return $"t{tempIdentifier(t.Source)}{(t.Index != 0 ? $".{t.Index.ToString()}" : "")}";
-            }
 
             var resultBuilder = PooledStringBuilder.GetInstance();
             var result = resultBuilder.Builder;
 
             foreach (var state in allStates)
             {
-                result.AppendLine($"State " + stateIdentifierMap[state]);
-                switch (state)
-                {
-                    case BoundTestDecisionDagNode node:
-                        result.AppendLine($"  Test: {dumpDagTest(node.Test)}");
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundEvaluationDecisionDagNode node:
-                        result.AppendLine($"  Test: {dumpDagTest(node.Evaluation)}");
-                        if (node.Next != null)
-                        {
-                            result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
-                        }
-                        break;
-                    case BoundWhenDecisionDagNode node:
-                        result.AppendLine($"  WhenClause: " + node.WhenExpression?.Syntax);
-                        if (node.WhenTrue != null)
-                        {
-                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
-                        }
-
-                        if (node.WhenFalse != null)
-                        {
-                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
-                        }
-                        break;
-                    case BoundLeafDecisionDagNode node:
-                        result.AppendLine($"  Case: {node.Label.Name}" + node.Syntax);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(state);
-                }
+                result.AppendLine(state.GetDebuggerDisplay());
             }
 
-            stateIdentifierMap.Free();
-            tempIdentifierMap.Free();
             return resultBuilder.ToStringAndFree();
-
-            string dumpDagTest(BoundDagTest d)
-            {
-                switch (d)
-                {
-                    case BoundDagTypeEvaluation a:
-                        return $"t{tempIdentifier(a)}={a.Kind}(t{tempIdentifier(a)} as {a.Type})";
-                    case BoundDagEvaluation e:
-                        return $"t{tempIdentifier(e)}={e.Kind}(t{tempIdentifier(e)})";
-                    case BoundDagTypeTest b:
-                        return $"?{d.Kind}({tempName(d.Input)} is {b.Type})";
-                    case BoundDagValueTest v:
-                        return $"?{d.Kind}({tempName(d.Input)} == {v.Value})";
-                    case BoundDagRelationalTest r:
-                        var operatorName = r.Relation.Operator() switch
-                        {
-                            BinaryOperatorKind.LessThan => "<",
-                            BinaryOperatorKind.LessThanOrEqual => "<=",
-                            BinaryOperatorKind.GreaterThan => ">",
-                            BinaryOperatorKind.GreaterThanOrEqual => ">=",
-                            _ => "??"
-                        };
-                        return $"?{d.Kind}({tempName(d.Input)} {operatorName} {r.Value})";
-                    default:
-                        return $"?{d.Kind}({tempName(d.Input)})";
-                }
-            }
         }
 #endif
     }

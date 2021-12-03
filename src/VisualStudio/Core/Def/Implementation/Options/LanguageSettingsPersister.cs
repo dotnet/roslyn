@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// An <see cref="IOptionPersister"/> that syncs core language settings against the settings that exist for all languages
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
+    /// 
+    /// TODO: replace with free-threaded impl: https://github.com/dotnet/roslyn/issues/56815
     /// </summary>
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // TODO: make this configurable
             _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
                                                                .Add(LanguageNames.VisualBasic, Tuple.Create(Guids.VisualBasicLanguageServiceId))
-                                                               .Add("TypeScript", Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
+                                                               .Add(InternalLanguageNames.TypeScript, Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
                                                                .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
                                                                .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
 
@@ -82,11 +84,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.TabSize,
             FormattingOptions.SmartIndent,
             FormattingOptions.IndentationSize,
-            CompletionOptions.HideAdvancedMembers,
-            CompletionOptions.TriggerOnTyping,
-            SignatureHelpOptions.ShowSignatureHelp,
-            NavigationBarOptions.ShowNavigationBar,
-            BraceCompletionOptions.Enable,
+            CompletionOptions.Metadata.HideAdvancedMembers,
+            CompletionOptions.Metadata.TriggerOnTyping,
+            SignatureHelpViewOptions.ShowSignatureHelp,
+            NavigationBarViewOptions.ShowNavigationBar
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -143,25 +144,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return FormattingOptions.IndentStyle.Smart;
                 }
             }
-            else if (option == CompletionOptions.HideAdvancedMembers)
+            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
             {
                 return languagePreference.fHideAdvancedAutoListMembers != 0;
             }
-            else if (option == CompletionOptions.TriggerOnTyping)
+            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
             {
                 return languagePreference.fAutoListMembers != 0;
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 return languagePreference.fAutoListParams != 0;
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 return languagePreference.fDropdownBar != 0;
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                return languagePreference.fBraceCompletion != 0;
             }
             else
             {
@@ -198,25 +195,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         break;
                 }
             }
-            else if (option == CompletionOptions.HideAdvancedMembers)
+            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
             {
                 languagePreference.fHideAdvancedAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == CompletionOptions.TriggerOnTyping)
+            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 languagePreference.fAutoListParams = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                languagePreference.fBraceCompletion = Convert.ToUInt32((bool)value ? 1 : 0);
             }
             else
             {

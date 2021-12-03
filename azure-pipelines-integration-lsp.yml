@@ -8,7 +8,9 @@ trigger:
 - features/*
 - demos/*
 
-# Branches that trigger builds on PR
+# Branches that are allowed to trigger a build via /azp run.
+# Automatic building of all PRs is disabled in the pipeline's trigger page.
+# See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
 pr:
 - main
 - main-vs-deps
@@ -16,11 +18,15 @@ pr:
 - features/*
 - demos/*
 
+variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
 
   steps:

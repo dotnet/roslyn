@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,10 +81,12 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">Visualizza suggerimenti inline;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Sottolinea variabili riassegnate;
+Visualizza suggerimenti inline;
 Mostra diagnostica per file chiusi;
-Colora espressione regolare; 
+Colora espressione regolare;
 Evidenzia i componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
@@ -103,7 +106,7 @@ Mostra separatori di riga routine;
 Mostra la struttura per i costrutti a livello di dichiarazione;
 Mostra la struttura per i costrutti a livello di codice;
 Mostra la struttura per i commenti e le aree del preprocessore;
-Comprimi regions durante la compressione delle definizioni;
+Comprimi regioni durante la compressione delle definizioni;
 Dissolvenza;
 Applica dissolvenza a direttive using non usate;
 Applica dissolvenza a codice non eseguibile;
@@ -117,7 +120,7 @@ Mostra anteprima per verifica ridenominazione;
 Dividi valori letterali stringa dopo INVIO;
 Segnala segnaposto non validi in chiamate string.Format;
 Estrai metodo;
-Non inserire out o ref in struct personalizzato;
+Non inserire out o ref in struct personalizzata;
 Implementa interfaccia o classe astratta;
 Posiziona proprietà, eventi e metodi inseriti;
 con altri membri dello stesso tipo;
@@ -128,7 +131,8 @@ preferisci proprietà automatiche;
 regex;
 espressione regolare;
 Usa colori migliorati;
-Combinazione colori editor;</target>
+Combinazione colori editor;
+Margine di ereditarietà;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -290,19 +294,20 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
+        <target state="translated">Modifica impostazioni dell'elenco di completamento;Preseleziona membri usati di recente; Elenchi di completamento;
 Mostra elenco di completamento dopo la digitazione di un carattere;
 Mostra elenco di completamento dopo l'eliminazione di un carattere;
 Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale);
 Evidenzia le parti corrispondenti di voci dell'elenco di completamento;
 Mostra i filtri per le voci di completamento;
+Completa automaticamente istruzione dopo punto e virgola;
 Comportamento dei frammenti;
 Non includere mai i frammenti;
 Includi sempre i frammenti;
 Includi i frammenti quando si digita ?+TAB dopo un identificatore;
 Comportamento del tasto INVIO;
 Non aggiungere mai una nuova riga dopo INVIO;
-Aggiungi una nuova riga dopo INVIO alla fine della parola digitata;
+Aggiungi una nuova riga dopo INVIO solo alla fine della parola digitata;
 Aggiungi sempre una nuova riga dopo INVIO;
 Mostra suggerimenti per nomi;
 Mostra elementi da spazi dei nomi non importati (sperimentale);</target>

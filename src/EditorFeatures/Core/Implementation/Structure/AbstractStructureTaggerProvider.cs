@@ -5,15 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -40,14 +45,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
+        }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
+
+        protected override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
+        {
+            // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
+
+            var openDocument = subjectBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            if (openDocument == null)
+                return false;
+
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+                return false;
+
+            // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
+            // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
+            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            if (isMetadataAsSource)
+                return true;
+
+            // If we contain any #region sections, we want to collapse those automatically on open the first
+            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
+            // do that.
+            if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
+                return true;
+
+            return false;
+
+            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
+            {
+                foreach (var line in textSnapshot.Lines)
+                {
+                    if (StartsWithRegionTag(line))
+                        return true;
+                }
+
+                return false;
+
+                static bool StartsWithRegionTag(ITextSnapshotLine line)
+                {
+                    var start = line.GetFirstNonWhitespacePosition();
+                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
+                }
+            }
         }
 
         protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -64,23 +114,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             //    the file will not have outline spans.  When the workspace is created, we want to
             //    then produce the right outlining spans.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
-        /// <summary>
-        /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
-        /// </summary>
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             try
             {
@@ -97,44 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     return;
 
                 var blockStructure = await outliningService.GetBlockStructureAsync(
-                        documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
+                    documentSnapshotSpan.Document, cancellationToken).ConfigureAwait(false);
 
                 ProcessSpans(
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,
                     blockStructure.Spans);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Keep this in sync with <see cref="ProduceTagsAsync"/>
-        /// </summary>
-        protected sealed override void ProduceTagsSynchronously(
-            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
-        {
-            try
-            {
-                var document = documentSnapshotSpan.Document;
-                if (document == null)
-                    return;
-
-                // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
-                    return;
-
-                var outliningService = BlockStructureService.GetService(document);
-                if (outliningService == null)
-                    return;
-
-                var blockStructure = outliningService.GetBlockStructure(document, context.CancellationToken);
-                ProcessSpans(
-                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                    blockStructure.Spans);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -188,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             {
                             }
                         }
+
                         continue;
                     }
 

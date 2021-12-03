@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool InExpressionTree => (Flags & BinderFlags.InExpressionTree) == BinderFlags.InExpressionTree;
+
         /// <summary>
         /// True if this is the top-level binder for a local function or lambda
         /// (including implicit lambdas from query expressions).
@@ -405,12 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RoslynDebug.Assert(Next is object);
                 return Next.QuickAttributeChecker;
             }
-        }
-
-        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            RoslynDebug.Assert(Next is object);
-            return Next.GetImports(basesBeingResolved);
         }
 
         protected virtual bool InExecutableBinder

@@ -14,11 +14,15 @@ pr:
 - features/*
 - demos/*
 
+variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+
 jobs:
 - job: VS_Integration
   pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
   strategy:
     maxParallel: 4
     matrix:

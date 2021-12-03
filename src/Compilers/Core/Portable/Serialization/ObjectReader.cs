@@ -187,13 +187,11 @@ namespace Roslyn.Utilities
             object value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
-                    () => ReadValueWorker(),
-                    _cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
+                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
 
                 // We must not proceed until the additional task completes. After returning from a read, the underlying
                 // stream providing access to raw memory will be closed; if this occurs before the separate thread

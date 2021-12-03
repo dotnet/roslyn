@@ -97,7 +97,9 @@ namespace RunTests
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
 
-            var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } });
+            var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })
+                ?? throw new InvalidOperationException("Failed to deserialize global.json.");
+
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
@@ -120,6 +122,7 @@ namespace RunTests
 ";
 
             File.WriteAllText("helix-tmp.csproj", project);
+
             var process = ProcessRunner.CreateProcess(
                 executable: _options.DotnetFilePath,
                 arguments: "build helix-tmp.csproj",
@@ -154,29 +157,51 @@ namespace RunTests
 
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, useSingleQuotes: isUnix);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
+                var setEnvironmentVariable = isUnix ? "export" : "set";
 
-                var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
-                var lsCommand = isUnix ? "ls" : "dir";
-                var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
-                var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
-                var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
-                    ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
-                    : "";
+                var command = new StringBuilder();
+                command.AppendLine(isUnix ? "ls -l" : "dir");
+                command.AppendLine(isUnix ? $"./rehydrate.sh" : $@"call .\rehydrate.cmd");
+                command.AppendLine(isUnix ? "ls -l" : "dir");
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
+                command.AppendLine("dotnet --info");
+
+                if (Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is string iop)
+                    command.AppendLine($"{setEnvironmentVariable} ROSLYN_TEST_IOPERATION={iop}");
+
+                command.AppendLine($"dotnet {commandLineArguments}");
+
+                // We want to collect any dumps during the post command step here; these commands are ran after the
+                // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
+                // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
+                // precisely to address this problem.
+                var postCommands = new StringBuilder();
+
+                var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!);
+
+                if (isUnix)
+                {
+                    // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
+                    // for the command to work causes too much escaping issues in MSBuild.
+                    File.WriteAllText(Path.Combine(payloadDirectory, "copy-dumps.sh"), "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;");
+                    postCommands.AppendLine("./copy-dumps.sh");
+                }
+                else
+                {
+                    postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
+                }
+
                 var workItem = $@"
         <HelixWorkItem Include=""{assemblyInfo.DisplayName}"">
-            <PayloadDirectory>{Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!)}</PayloadDirectory>
+            <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
             <Command>
-                {lsCommand}
-                {rehydrateCommand}
-                {lsCommand}
-                {setRollforward}
-                {setPrereleaseRollforward}
-                dotnet --info
-                {setTestIOperation}
-                dotnet {commandLineArguments}
+                {command}
             </Command>
-            <Timeout>00:15:00</Timeout>
+            <PostCommands>
+                {postCommands}
+            </PostCommands>
+            <Timeout>00:30:00</Timeout>
         </HelixWorkItem>
 ";
                 return workItem;

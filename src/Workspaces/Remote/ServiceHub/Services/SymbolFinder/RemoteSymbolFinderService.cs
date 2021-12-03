@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
 
-                var progressCallback = new FindReferencesProgressCallback(solution, _callback, callbackId, cancellationToken);
+                var progressCallback = new FindReferencesProgressCallback(solution, _callback, callbackId);
 
                 if (symbol == null)
                 {
-                    await progressCallback.OnStartedAsync().ConfigureAwait(false);
-                    await progressCallback.OnCompletedAsync().ConfigureAwait(false);
+                    await progressCallback.OnStartedAsync(cancellationToken).ConfigureAwait(false);
+                    await progressCallback.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var convertedType = System.Convert.ChangeType(value, typeCode);
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                var progressCallback = new FindLiteralReferencesProgressCallback(_callback, callbackId, cancellationToken);
+                var progressCallback = new FindLiteralReferencesProgressCallback(_callback, callbackId);
                 await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
                     convertedType, solution, progressCallback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -185,26 +185,24 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
-            private readonly CancellationToken _cancellationToken;
 
             public IStreamingProgressTracker ProgressTracker { get; }
 
-            public FindLiteralReferencesProgressCallback(RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            public FindLiteralReferencesProgressCallback(RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, RemoteServiceCallbackId callbackId)
             {
                 _callback = callback;
                 _callbackId = callbackId;
-                _cancellationToken = cancellationToken;
                 ProgressTracker = this;
             }
 
-            public ValueTask OnReferenceFoundAsync(Document document, TextSpan span)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnLiteralReferenceFoundAsync(_callbackId, document.Id, span), _cancellationToken);
+            public ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnLiteralReferenceFoundAsync(_callbackId, document.Id, span, cancellationToken), cancellationToken);
 
-            public ValueTask AddItemsAsync(int count)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddLiteralItemsAsync(_callbackId, count), _cancellationToken);
+            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddLiteralItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync()
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.LiteralItemCompletedAsync(_callbackId), _cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.LiteralItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
         }
 
         private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress, IStreamingProgressTracker
@@ -212,53 +210,52 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly Solution _solution;
             private readonly RemoteCallback<IRemoteSymbolFinderService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
-            private readonly CancellationToken _cancellationToken;
 
             public IStreamingProgressTracker ProgressTracker { get; }
 
-            public FindReferencesProgressCallback(Solution solution, RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            public FindReferencesProgressCallback(Solution solution, RemoteCallback<IRemoteSymbolFinderService.ICallback> callback, RemoteServiceCallbackId callbackId)
             {
                 _solution = solution;
                 _callback = callback;
                 _callbackId = callbackId;
-                _cancellationToken = cancellationToken;
                 ProgressTracker = this;
             }
 
-            public ValueTask OnStartedAsync()
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnStartedAsync(_callbackId), _cancellationToken);
+            public ValueTask OnStartedAsync(CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnStartedAsync(_callbackId, cancellationToken), cancellationToken);
 
-            public ValueTask OnCompletedAsync()
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnCompletedAsync(_callbackId), _cancellationToken);
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnCompletedAsync(_callbackId, cancellationToken), cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(Document document)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentStartedAsync(_callbackId, document.Id), _cancellationToken);
+            public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentStartedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
 
-            public ValueTask OnFindInDocumentCompletedAsync(Document document)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentCompletedAsync(_callbackId, document.Id), _cancellationToken);
+            public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentCompletedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(SymbolGroup group)
+            public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
-                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, _cancellationToken);
+                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
                 return _callback.InvokeAsync(
-                    (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup), _cancellationToken);
+                    (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup, cancellationToken), cancellationToken);
             }
 
-            public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation reference)
+            public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation reference, CancellationToken cancellationToken)
             {
-                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, _cancellationToken);
-                var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken);
-                var dehydratedReference = SerializableReferenceLocation.Dehydrate(reference, _cancellationToken);
+                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
+                var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, cancellationToken);
+                var dehydratedReference = SerializableReferenceLocation.Dehydrate(reference, cancellationToken);
 
                 return _callback.InvokeAsync(
-                    (callback, cancellationToken) => callback.OnReferenceFoundAsync(_callbackId, dehydratedGroup, dehydratedDefinition, dehydratedReference), _cancellationToken);
+                    (callback, cancellationToken) => callback.OnReferenceFoundAsync(
+                        _callbackId, dehydratedGroup, dehydratedDefinition, dehydratedReference, cancellationToken), cancellationToken);
             }
 
-            public ValueTask AddItemsAsync(int count)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddReferenceItemsAsync(_callbackId, count), _cancellationToken);
+            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddReferenceItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync()
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReferenceItemCompletedAsync(_callbackId), _cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReferenceItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
         }
     }
 }

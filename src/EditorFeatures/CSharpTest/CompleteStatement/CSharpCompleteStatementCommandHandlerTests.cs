@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
@@ -55,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y)")]
         [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y)")]
         [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
+        [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
+        [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
@@ -4178,7 +4181,8 @@ public class ClassC
             Verify(code, expected, ExecuteTest,
                 setOptionsOpt: workspace =>
                 {
-                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+                    var globalOptions = workspace.GetService<IGlobalOptionService>();
+                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
         protected override TestWorkspace CreateTestWorkspace(string code)

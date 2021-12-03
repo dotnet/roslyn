@@ -13,7 +13,10 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -38,15 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var checkpoint = new Checkpoint();
 
-            var notificationService = workspace.GetService<IForegroundNotificationService>();
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    notificationService,
+                    workspace.GetService<IThreadingContext>(),
                     typeMap: null,
+                    workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                notificationService,
                 AsynchronousOperationListenerProvider.NullListener,
                 typeMap: null,
                 diffTimeout: TimeSpan.MaxValue);
@@ -81,6 +82,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await checkpoint.Task;
             Assert.Equal(1, actualVersionNumber);
             Assert.Equal(37, actualLength);
+            Assert.Equal(2, callstacks.Count);
+        }
+
+        [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestTagsChangedAfterDelete()
+        {
+            var code =
+@"class Goo";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var document = workspace.Documents.First();
+            var subjectBuffer = document.GetTextBuffer();
+
+            var checkpoint = new Checkpoint();
+
+            var typeMap = workspace.ExportProvider.GetExportedValue<SyntacticClassificationTypeMap>();
+
+            var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
+                new SyntacticClassificationTaggerProvider(
+                    workspace.GetService<IThreadingContext>(),
+                    typeMap,
+                    workspace.GetService<IGlobalOptionService>(),
+                    AsynchronousOperationListenerProvider.NullProvider),
+                subjectBuffer,
+                AsynchronousOperationListenerProvider.NullListener,
+                typeMap,
+                diffTimeout: TimeSpan.MaxValue);
+
+            // Capture the expected value before the await, in case it changes.
+            var expectedLength = subjectBuffer.CurrentSnapshot.Length;
+            int? actualVersionNumber = null;
+            int? actualLength = null;
+            var callstacks = new List<string>();
+            tagComputer.TagsChanged += (s, e) =>
+            {
+                actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
+                actualLength = e.Span.Length;
+                callstacks.Add(new StackTrace().ToString());
+                checkpoint.Release();
+            };
+
+            await checkpoint.Task;
+            Assert.Equal(0, actualVersionNumber);
+            Assert.Equal(expectedLength, actualLength);
+            Assert.Equal(1, callstacks.Count);
+
+            checkpoint = new Checkpoint();
+
+            // Now delete the last character.
+            var snapshot = subjectBuffer.Delete(new Span(subjectBuffer.CurrentSnapshot.Length - 1, 1));
+
+            // Try to get the tags prior to TagsChanged firing.  This will force us to use the previous 
+            // data we've cached to produce the new results.
+            tagComputer.GetTags(new NormalizedSnapshotSpanCollection(subjectBuffer.CurrentSnapshot.GetFullSpan()));
+
+            expectedLength = snapshot.Length;
+
+            // NOTE: TagsChanged is raised on the UI thread, so there is no race between
+            // assigning expected here and verifying in the event handler, because the
+            // event handler can't run until we await.
+            await checkpoint.Task;
+
+            Assert.Equal(1, actualVersionNumber);
+            Assert.Equal(2, actualLength);
             Assert.Equal(2, callstacks.Count);
         }
     }

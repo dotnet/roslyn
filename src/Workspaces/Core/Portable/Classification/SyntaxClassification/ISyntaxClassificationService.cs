@@ -24,14 +24,17 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AddSyntacticClassificationsAsync"/>
-        void AddSyntacticClassifications(SyntaxTree syntaxTree,
+        void AddSyntacticClassifications(
+            SyntaxNode root,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AddSemanticClassificationsAsync"/>
-        Task AddSemanticClassificationsAsync(Document document,
+        Task AddSemanticClassificationsAsync(
+            Document document,
             TextSpan textSpan,
+            ClassificationOptions options,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
             ArrayBuilder<ClassifiedSpan> result,
@@ -41,17 +44,17 @@ namespace Microsoft.CodeAnalysis.Classification
         void AddSemanticClassifications(
             SemanticModel semanticModel,
             TextSpan textSpan,
-            Workspace workspace,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
             Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
             ArrayBuilder<ClassifiedSpan> result,
+            ClassificationOptions options,
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AdjustStaleClassification"/>
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         /// <inheritdoc cref="IClassificationService.ComputeSyntacticChangeRangeAsync"/>
-        ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
-            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
+        TextChangeRange? ComputeSyntacticChangeRange(
+            SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

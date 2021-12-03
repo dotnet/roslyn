@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
@@ -21,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private TodoTableItem(
             Workspace workspace,
             TodoCommentData data,
-            string projectName,
+            string? projectName,
             Guid projectGuid,
             string[] projectNames,
             Guid[] projectGuids)
@@ -48,12 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override LinePosition GetOriginalPosition()
             => new(Data.OriginalLine, Data.OriginalColumn);
 
-        public override string GetOriginalFilePath()
+        public override string? GetOriginalFilePath()
             => Data.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is TodoTableItem otherTodoItem))
+            if (other is not TodoTableItem otherTodoItem)
             {
                 return false;
             }

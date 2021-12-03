@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,12 +17,6 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private static string s_codeFixTitle;
-        public AbstractConvertTypeOfToNameOfCodeFixProvider()
-        {
-            s_codeFixTitle = GetCodeFixTitle();
-        }
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
@@ -32,8 +24,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
+                GetCodeFixTitle(),
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-               context.Diagnostics);
+                context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -41,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
@@ -59,14 +52,14 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(s_codeFixTitle, createChangedDocument, s_codeFixTitle)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

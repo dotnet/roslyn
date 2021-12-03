@@ -169,6 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
+                if (node.InterpolatedStringHandlerData is { } data)
+                {
+                    Visit(data.Construction);
+                }
+
                 VisitBinaryOperatorChildren(node);
                 return null;
             }
@@ -212,6 +217,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
@@ -241,6 +261,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
                 // info is exposed to consumers.
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+            {
+                if (node.InterpolationData is { Construction: var construction })
+                {
+                    Visit(construction);
+                }
+                base.VisitInterpolatedString(node);
+                return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+            {
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
                 return null;
             }
         }

@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using DiffPlex;
+using DiffPlex.Chunkers;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,6 +29,10 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class AssertEx
     {
+        private static readonly IChunker s_lineChunker = new LineChunker();
+        private static readonly IChunker s_lineEndingsPreservingChunker = new LineEndingsPreservingChunker();
+        private static readonly InlineDiffBuilder s_diffBuilder = new InlineDiffBuilder(new Differ());
+
         #region AssertEqualityComparer<T>
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
@@ -226,14 +231,7 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            string assertMessage = GetAssertMessage(expected, actual, comparer, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine);
-
-            if (message != null)
-            {
-                assertMessage = message + "\r\n" + assertMessage;
-            }
-
-            Assert.True(false, assertMessage);
+            Assert.True(false, GetAssertMessage(expected, actual, comparer, message, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine));
         }
 
         /// <summary>
@@ -249,30 +247,35 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            var diffBuilder = new InlineDiffBuilder(new Differ());
-            var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
+            var diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineChunker);
             var messageBuilder = new StringBuilder();
             messageBuilder.AppendLine(
                 string.IsNullOrEmpty(message)
                     ? "Actual and expected values differ. Expected shown in baseline of diff:"
                     : message);
 
+            if (!diff.Lines.Any(line => line.Type == ChangeType.Inserted || line.Type == ChangeType.Deleted))
+            {
+                // We have a failure only caused by line ending differences; recalculate with line endings visible
+                diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineEndingsPreservingChunker);
+            }
+
             foreach (var line in diff.Lines)
             {
                 switch (line.Type)
                 {
                     case ChangeType.Inserted:
-                        messageBuilder.Append("+");
+                        messageBuilder.Append('+');
                         break;
                     case ChangeType.Deleted:
-                        messageBuilder.Append("-");
+                        messageBuilder.Append('-');
                         break;
                     default:
-                        messageBuilder.Append(" ");
+                        messageBuilder.Append(' ');
                         break;
                 }
 
-                messageBuilder.AppendLine(line.Text);
+                messageBuilder.AppendLine(line.Text.Replace("\r", "<CR>").Replace("\n", "<LF>"));
             }
 
             Assert.True(false, messageBuilder.ToString());
@@ -434,14 +437,10 @@ namespace Roslyn.Test.Utilities
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
             if (!result)
             {
-                if (string.IsNullOrEmpty(message))
-                {
-                    message = GetAssertMessage(
-                        ToString(expected, itemSeparator, itemInspector),
-                        ToString(actual, itemSeparator, itemInspector));
-                }
-
-                Assert.True(result, message);
+                Assert.True(result, GetAssertMessage(
+                    ToString(expected, itemSeparator, itemInspector),
+                    ToString(actual, itemSeparator, itemInspector),
+                    prefix: message));
             }
         }
 
@@ -523,6 +522,7 @@ namespace Roslyn.Test.Utilities
         public static void AssertEqualToleratingWhitespaceDifferences(
             string expected,
             string actual,
+            string message = null,
             bool escapeQuotes = true,
             [CallerFilePath] string expectedValueSourcePath = null,
             [CallerLineNumber] int expectedValueSourceLine = 0)
@@ -532,7 +532,7 @@ namespace Roslyn.Test.Utilities
 
             if (normalizedExpected != normalizedActual)
             {
-                Assert.True(false, GetAssertMessage(expected, actual, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
+                Assert.True(false, GetAssertMessage(expected, actual, message, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
             }
         }
 
@@ -597,15 +597,13 @@ namespace Roslyn.Test.Utilities
             return output.ToString();
         }
 
-        public static string GetAssertMessage(string expected, string actual, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
-        {
-            return GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
-        }
+        public static string GetAssertMessage(string expected, string actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
+            => GetAssertMessage(DiffUtil.Lines(expected), DiffUtil.Lines(actual), prefix, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
 
-        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, bool escapeQuotes, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
+        public static string GetAssertMessage<T>(IEnumerable<T> expected, IEnumerable<T> actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
         {
             Func<T, string> itemInspector = escapeQuotes ? new Func<T, string>(t => t.ToString().Replace("\"", "\"\"")) : null;
-            return GetAssertMessage(expected, actual, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            return GetAssertMessage(expected, actual, prefix: prefix, itemInspector: itemInspector, itemSeparator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
         private static readonly string s_diffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
@@ -614,6 +612,7 @@ namespace Roslyn.Test.Utilities
             IEnumerable<T> expected,
             IEnumerable<T> actual,
             IEqualityComparer<T> comparer = null,
+            string prefix = null,
             Func<T, string> itemInspector = null,
             string itemSeparator = null,
             string expectedValueSourcePath = null,
@@ -647,13 +646,20 @@ namespace Roslyn.Test.Utilities
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
 
             var message = new StringBuilder();
-            message.AppendLine();
+
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                message.AppendLine(prefix);
+                message.AppendLine();
+            }
+
             message.AppendLine("Expected:");
             message.AppendLine(expectedString);
             if (expected.Count() > 10)
             {
                 message.AppendLine("... truncated ...");
             }
+
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
@@ -777,6 +783,54 @@ namespace Roslyn.Test.Utilities
 
                 Assert.True(false, builder.ToString());
             }
+        }
+
+        /// <summary>
+        /// Run multiple assertions at once and collect the result.
+        /// This is useful when you want to verify multiple assertions but don't want to re-run to adjust every other case.
+        /// </summary>
+        public static void Multiple(params Action[] assertions)
+        {
+            Multiple(includeStackTrace: false, assertions);
+        }
+
+        /// <inheritdoc cref="Multiple(System.Action[])"/>
+        public static void Multiple(bool includeStackTrace, params Action[] assertions)
+        {
+            List<(int, Exception)> exceptions = null;
+
+            // Run assertions in reverse order so that line numbers don't change as we adjust the baseline.
+            for (int index = assertions.Length - 1; index >= 0; --index)
+            {
+                try
+                {
+                    assertions[index]();
+                }
+                catch (Exception ex)
+                {
+                    (exceptions ??= new()).Add((index, ex));
+                }
+            }
+
+            if (exceptions is null)
+                return;
+
+            var stringBuilder = new StringBuilder($"{exceptions.Count} out of {assertions.Length} assertions failed.");
+            foreach (var (index, ex) in exceptions)
+            {
+                var stack = ex.StackTrace.Split(new[] { "\r\n" }, StringSplitOptions.None);
+                stringBuilder
+                    .AppendLine($"Assertion failed at index {index}:")
+                    .AppendLine(stack[^2]) // Prints the failing line in the original test case.
+                    .AppendLine(ex.Message);
+                if (includeStackTrace)
+                    stringBuilder.AppendLine(ex.StackTrace);
+                stringBuilder
+                    .AppendLine()
+                    .AppendLine();
+            }
+
+            Fail(stringBuilder.ToString());
         }
 
 #nullable enable

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="0_directive" xml:space="preserve">
+    <value>#{0} directive</value>
+  </data>
   <data name="Add_project_reference_to_0" xml:space="preserve">
     <value>Add project reference to '{0}'.</value>
   </data>
@@ -137,6 +140,12 @@
   </data>
   <data name="overloads_" xml:space="preserve">
     <value>overloads</value>
+  </data>
+  <data name="type" xml:space="preserve">
+    <value>type</value>
+  </data>
+  <data name="property_accessor" xml:space="preserve">
+    <value>property accessor</value>
   </data>
   <data name="_0_Keyword" xml:space="preserve">
     <value>{0} Keyword</value>
@@ -216,23 +225,23 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_1_0" xml:space="preserve">
-    <value>Generate enum member '{1}.{0}'</value>
+  <data name="Generate_enum_member_0" xml:space="preserve">
+    <value>Generate enum member '{0}'</value>
   </data>
-  <data name="Generate_constant_1_0" xml:space="preserve">
-    <value>Generate constant '{1}.{0}'</value>
+  <data name="Generate_constant_0" xml:space="preserve">
+    <value>Generate constant '{0}'</value>
   </data>
-  <data name="Generate_read_only_property_1_0" xml:space="preserve">
-    <value>Generate read-only property '{1}.{0}'</value>
+  <data name="Generate_read_only_property_0" xml:space="preserve">
+    <value>Generate read-only property '{0}'</value>
   </data>
-  <data name="Generate_property_1_0" xml:space="preserve">
-    <value>Generate property '{1}.{0}'</value>
+  <data name="Generate_property_0" xml:space="preserve">
+    <value>Generate property '{0}'</value>
   </data>
-  <data name="Generate_read_only_field_1_0" xml:space="preserve">
-    <value>Generate read-only field '{1}.{0}'</value>
+  <data name="Generate_read_only_field_0" xml:space="preserve">
+    <value>Generate read-only field '{0}'</value>
   </data>
-  <data name="Generate_field_1_0" xml:space="preserve">
-    <value>Generate field '{1}.{0}'</value>
+  <data name="Generate_field_0" xml:space="preserve">
+    <value>Generate field '{0}'</value>
   </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
@@ -288,8 +297,8 @@
   <data name="Introduce_query_variable_for_0" xml:space="preserve">
     <value>Introduce query variable for '{0}'</value>
   </data>
-  <data name="Anonymous_Types_colon" xml:space="preserve">
-    <value>Anonymous Types:</value>
+  <data name="Types_colon" xml:space="preserve">
+    <value>Types:</value>
   </data>
   <data name="is_" xml:space="preserve">
     <value>is</value>
@@ -354,231 +363,223 @@
   <data name="Extract_interface" xml:space="preserve">
     <value>Extract interface...</value>
   </data>
-  <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating '{0}' requires restarting the application.</value>
   </data>
-  <data name="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine" xml:space="preserve">
-    <value>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</value>
+  <data name="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine" xml:space="preserve">
+    <value>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</value>
   </data>
-  <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
+  <data name="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating a complex statement containing an await expression requires restarting the application.</value>
   </data>
-  <data name="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing visibility of {0} will prevent the debug session from continuing.</value>
+  <data name="Changing_visibility_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing visibility of {0} requires restarting the application.</value>
   </data>
-  <data name="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</value>
+  <data name="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
+    <value>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</value>
   </data>
-  <data name="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</value>
+  <data name="Ceasing_to_capture_variable_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Ceasing to capture variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting captured variable '{0}' will prevent the debug session from continuing.</value>
+  <data name="Deleting_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Deleting captured variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</value>
+  <data name="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</value>
   </data>
-  <data name="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the parameters of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Changing_the_parameters_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the parameters of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the return type of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the type of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Changing_the_type_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the type of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</value>
+  <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</value>
+  <data name="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</value>
   </data>
-  <data name="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</value>
+  <data name="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</value>
   </data>
-  <data name="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
+  <data name="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
   </data>
-  <data name="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
+  <data name="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
+    <value>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
+  <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} into a {1} requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} into an interface requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' into a generic type will prevent the debug session from continuing.</value>
+  <data name="Adding_0_into_a_generic_type_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} into a generic type requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
+  <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} into an interface method requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
+  <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} into a class with explicit or sequential layout requires restarting the application.</value>
   </data>
-  <data name="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the modifiers of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the modifiers of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_Handles_clause_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the Handles clause of {0} requires restarting the application.</value>
+    <comment>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</comment>
   </data>
-  <data name="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</value>
+  <data name="Adding_0_with_the_Handles_clause_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} with the Handles clause requires restarting the application.</value>
+    <comment>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</comment>
   </data>
-  <data name="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the Implements clause of a {0} requires restarting the application.</value>
+    <comment>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</comment>
   </data>
-  <data name="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_variance_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the variance of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the variance of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_type_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the type of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the type of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_initializer_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the initializer of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the initializer of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_size_of_a_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the size of a {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the size of a '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_underlying_type_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the underlying type of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the underlying type of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the base class and/or base interface(s) of {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</value>
+  <data name="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing a field to an event or vice versa requires restarting the application.</value>
   </data>
-  <data name="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a field to an event or vice versa will prevent the debug session from continuing.</value>
+  <data name="Updating_the_kind_of_a_type_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the kind of a type requires restarting the application.</value>
   </data>
-  <data name="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the kind of a type will prevent the debug session from continuing.</value>
+  <data name="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the kind of a property/event accessor requires restarting the application.</value>
   </data>
-  <data name="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the kind of an property/event accessor will prevent the debug session from continuing.</value>
+  <data name="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the library name of Declare statement requires restarting the application.</value>
+    <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
   </data>
-  <data name="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</value>
+  <data name="Updating_the_alias_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the alias of Declare statement requires restarting the application.</value>
+    <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
   </data>
-  <data name="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the library name of Declare Statement will prevent the debug session from continuing.</value>
+  <data name="Renaming_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Renaming {0} requires restarting the application.</value>
   </data>
-  <data name="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating the alias of Declare Statement will prevent the debug session from continuing.</value>
+  <data name="Adding_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} requires restarting the application.</value>
   </data>
-  <data name="Renaming_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Renaming '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</value>
+    <comment>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</comment>
   </data>
-  <data name="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_an_extern_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding an extern {0} requires restarting the application.</value>
+    <comment>{Locked="extern"} "extern" is C# keyword and should not be localized.</comment>
   </data>
-  <data name="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_an_imported_method_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding an imported method requires restarting the application.</value>
   </data>
-  <data name="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding an extern '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_a_user_defined_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a user defined {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding an imported method will prevent the debug session from continuing.</value>
+  <data name="Adding_a_generic_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a generic {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a user defined '{0}' will prevent the debug session from continuing.</value>
+  <data name="Adding_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding {0} around an active statement requires restarting the application.</value>
   </data>
-  <data name="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a generic '{0}' will prevent the debug session from continuing.</value>
+  <data name="Moving_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Moving {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding '{0}' around an active statement will prevent the debug session from continuing.</value>
+  <data name="Deleting_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Deleting {0} requires restarting the application.</value>
   </data>
-  <data name="Moving_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Moving '{0}' will prevent the debug session from continuing.</value>
+  <data name="Deleting_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Deleting {0} around an active statement requires restarting the application.</value>
   </data>
-  <data name="Deleting_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting {0} will prevent the debug session from continuing.</value>
+  <data name="Updating_a_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating a {0} around an active statement requires restarting the application.</value>
   </data>
-  <data name="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting '{0}' around an active statement will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Adding_a_method_body_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a method body will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting a method body will prevent the debug session from continuing.</value>
-  </data>
-  <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
-    <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
-  </data>
-  <data name="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a '{0}' around an active statement will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
+  <data name="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating async or iterator modifier around an active statement requires restarting the application.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
   </data>
-  <data name="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</value>
+  <data name="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing {0} from asynchronous to synchronous requires restarting the application.</value>
   </data>
-  <data name="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying a generic method will prevent the debug session from continuing.</value>
+  <data name="Modifying_a_generic_method_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying a generic method requires restarting the application.</value>
   </data>
-  <data name="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</value>
+  <data name="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying whitespace or comments in a generic {0} requires restarting the application.</value>
   </data>
-  <data name="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</value>
+  <data name="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying a method inside the context of a generic type requires restarting the application.</value>
   </data>
-  <data name="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</value>
+  <data name="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</value>
   </data>
-  <data name="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</value>
+  <data name="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying the initializer of {0} in a generic type requires restarting the application.</value>
   </data>
-  <data name="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
+  <data name="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</value>
   </data>
-  <data name="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  <data name="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</value>
   </data>
-  <data name="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
+  <data name="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</value>
   </data>
-  <data name="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</value>
+  <data name="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</value>
   </data>
-  <data name="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying a catch handler around an active statement will prevent the debug session from continuing.</value>
+  <data name="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying a catch handler around an active statement requires restarting the application.</value>
   </data>
-  <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
+  <data name="Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying {0} which contains the stackalloc operator requires restarting the application.</value>
+    <comment>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</comment>
   </data>
-  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
+  <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</value>
+    <comment>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</comment>
   </data>
-  <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
+  <data name="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</value>
+    <comment>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</comment>
   </data>
-  <data name="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
+  <data name="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying source with experimental language features enabled requires restarting the application.</value>
   </data>
-  <data name="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying source with experimental language features enabled will prevent the debug session from continuing.</value>
+  <data name="Updating_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating an active statement requires restarting the application.</value>
   </data>
-  <data name="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating an active statement will prevent the debug session from continuing.</value>
+  <data name="Removing_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Removing {0} that contains an active statement requires restarting the application.</value>
   </data>
-  <data name="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Removing {0} that contains an active statement will prevent the debug session from continuing.</value>
+  <data name="Adding_a_new_file_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a new file requires restarting the application.</value>
   </data>
-  <data name="Adding_a_new_file_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a new file will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</value>
+  <data name="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application" xml:space="preserve">
+    <value>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</value>
   </data>
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
@@ -586,14 +587,14 @@
   <data name="Unknown_symbol_kind" xml:space="preserve">
     <value>Unknown symbol kind</value>
   </data>
-  <data name="Generate_abstract_property_1_0" xml:space="preserve">
-    <value>Generate abstract property '{1}.{0}'</value>
+  <data name="Generate_abstract_property_0" xml:space="preserve">
+    <value>Generate abstract property '{0}'</value>
   </data>
-  <data name="Generate_abstract_method_1_0" xml:space="preserve">
-    <value>Generate abstract method '{1}.{0}'</value>
+  <data name="Generate_abstract_method_0" xml:space="preserve">
+    <value>Generate abstract method '{0}'</value>
   </data>
-  <data name="Generate_method_1_0" xml:space="preserve">
-    <value>Generate method '{1}.{0}'</value>
+  <data name="Generate_method_0" xml:space="preserve">
+    <value>Generate method '{0}'</value>
   </data>
   <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
     <value>Requested assembly already loaded from '{0}'.</value>
@@ -742,8 +743,8 @@ Do you want to continue?</value>
   <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
     <value>TODO: set large fields to null</value>
   </data>
-  <data name="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
+  <data name="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application" xml:space="preserve">
+    <value>Modifying {0} which contains a static variable requires restarting the application.</value>
   </data>
   <data name="Compiler2" xml:space="preserve">
     <value>Compiler</value>
@@ -961,11 +962,15 @@ This version used in: {2}</value>
   <data name="Add_missing_param_nodes" xml:space="preserve">
     <value>Add missing param nodes</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
+  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
+    <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
+  <data name="Await_the_preceding_expression" xml:space="preserve">
+    <value>Await the preceding expression</value>
+  </data>
+  <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
+    <value>Await the preceding expression and add ConfigureAwait({0}).</value>
+    <comment>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
@@ -1141,8 +1146,8 @@ This version used in: {2}</value>
   <data name="Use_0" xml:space="preserve">
     <value>Use {0}</value>
   </data>
-  <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
+  <data name="Switching_between_lambda_and_local_function_requires_restarting_the_application" xml:space="preserve">
+    <value>Switching between a lambda and a local function requires restarting the application.</value>
   </data>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
@@ -1201,22 +1206,22 @@ This version used in: {2}</value>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
   </data>
-  <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
+  <data name="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding a method with an explicit interface specifier requires restarting the application.</value>
   </data>
-  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
-    <value>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
-    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  <data name="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1" xml:space="preserve">
+    <value>Modifying source file '{0}' requires restarting the application due to internal error: {1}</value>
+    <comment>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</comment>
   </data>
-  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big" xml:space="preserve">
-    <value>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</value>
+  <data name="Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big" xml:space="preserve">
+    <value>Modifying source file '{0}' requires restarting the application because the file is too big.</value>
   </data>
-  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
-    <value>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
-    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  <data name="Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1" xml:space="preserve">
+    <value>Modifying the body of {0} requires restarting the application due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</comment>
   </data>
-  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements" xml:space="preserve">
-    <value>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</value>
+  <data name="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements" xml:space="preserve">
+    <value>Modifying the body of {0} requires restarting the application because the body has too many statements.</value>
   </data>
   <data name="Change_namespace_to_0" xml:space="preserve">
     <value>Change namespace to '{0}'</value>
@@ -1396,7 +1401,7 @@ This version used in: {2}</value>
     <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="EditAndContinueDisallowedByProject" xml:space="preserve">
-    <value>Changes made in project '{0}' will prevent the debug session from continuing: {1}</value>
+    <value>Changes made in project '{0}' require restarting the application: {1}</value>
   </data>
   <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
@@ -1892,7 +1897,7 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
-    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</comment>
+    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</comment>
   </data>
   <data name="_10ths_of_a_second_non_zero" xml:space="preserve">
     <value>10ths of a second (non-zero)</value>
@@ -2435,7 +2440,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
   </data>
   <data name="Regex_balancing_group_long" xml:space="preserve">
     <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</value>
@@ -2830,6 +2835,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_dash_1" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
+  <data name="all_anonymous_types_in_container" xml:space="preserve">
+    <value>all anonymous types in container</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="just_this_anonymous_type" xml:space="preserve">
+    <value>just this anonymous type</value>
+  </data>
   <data name="member_kind_and_name" xml:space="preserve">
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>
@@ -2840,19 +2854,98 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
-  <data name="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</value>
+  <data name="Introduce_parameter" xml:space="preserve">
+    <value>Introduce parameter</value>
   </data>
-  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</value>
+  <data name="Introduce_parameter_for_0" xml:space="preserve">
+    <value>Introduce parameter for '{0}'</value>
   </data>
-  <data name="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Adding a positional parameter to a record will prevent the debug session from continuing.</value>
+  <data name="Introduce_parameter_for_all_occurrences_of_0" xml:space="preserve">
+    <value>Introduce parameter for all occurrences of '{0}'</value>
   </data>
-  <data name="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting a positional parameter from a record will prevent the debug session from continuing.</value>
+  <data name="into_new_overload" xml:space="preserve">
+    <value>into new overload</value>
+  </data>
+  <data name="into_extracted_method_to_invoke_at_call_sites" xml:space="preserve">
+    <value>into extracted method to invoke at call sites</value>
+  </data>
+  <data name="and_update_call_sites_directly" xml:space="preserve">
+    <value>and update call sites directly</value>
+  </data>
+  <data name="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' as read only requires restarting the application,</value>
+  </data>
+  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</value>
   </data>
   <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
     <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
+  </data>
+  <data name="Convert_to_record_struct" xml:space="preserve">
+    <value>Convert to record struct</value>
+  </data>
+  <data name="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Applying source changes while the application is running is not supported by the runtime.</value>
+  </data>
+  <data name="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Making_a_method_an_iterator_requires_restarting_the_application" xml:space="preserve">
+    <value>Making a method an iterator requires restarting the application.</value>
+  </data>
+  <data name="Making_a_method_asynchronous_requires_restarting_the_application" xml:space="preserve">
+    <value>Making a method asynchronous requires restarting the application.</value>
+  </data>
+  <data name="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</value>
+  </data>
+  <data name="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application" xml:space="preserve">
+    <value>An update that causes the return type of the implicit Main method to change requires restarting the application.</value>
+    <comment>{Locked="Main"} is C# keywords and should not be localized.</comment>
+  </data>
+  <data name="Changing_parameter_types_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing parameter types of {0} requires restarting the application.</value>
+  </data>
+  <data name="Changing_type_parameters_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing type parameters of {0} requires restarting the application.</value>
+  </data>
+  <data name="Changing_constraints_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing constraints of {0} requires restarting the application.</value>
+  </data>
+  <data name="No_common_root_node_for_extraction" xml:space="preserve">
+    <value>No common root node for extraction.</value>
+  </data>
+  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
+    <value>No valid selection to perform extraction.</value>
+  </data>
+  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
+    <value>Selection does not contain a valid token.</value>
+  </data>
+  <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
+    <value>Selection not contained inside a type.</value>
+  </data>
+  <data name="Invalid_selection" xml:space="preserve">
+    <value>Invalid selection.</value>
+  </data>
+  <data name="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Renaming {0} requires restarting the application because it is not supported by the runtime.</value>
+  </data>
+  <data name="Move_static_members_to_another_type" xml:space="preserve">
+    <value>Move static members to another type...</value>
+  </data>
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
+  </data>
+  <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
+    <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
+  <data name="Miscellaneous_Files" xml:space="preserve">
+    <value>Miscellaneous Files</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Silent" xml:space="preserve">
+    <value>Silent</value>
   </data>
 </root>

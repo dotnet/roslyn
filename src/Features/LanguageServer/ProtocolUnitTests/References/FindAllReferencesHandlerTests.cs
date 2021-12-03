@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -40,10 +41,10 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
-            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
@@ -76,22 +77,22 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
             using var progress = BufferedProgress.Create<object>(null);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First(), progress);
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), progress);
 
             Assert.Null(results);
 
             // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
             // with the test creating one, and the handler another, we have to unwrap.
-            results = progress.GetValues().Cast<LSP.VSReferenceItem>().ToArray();
+            results = progress.GetValues().Cast<LSP.VSInternalReferenceItem>().ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);
 
-            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+            AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
@@ -124,10 +125,10 @@ class B
         var j = someInt + {|caret:|}{|reference:A|}.someInt;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
-            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             var textElement = results[0].Text as ClassifiedTextElement;
             Assert.NotNull(textElement);
@@ -167,10 +168,10 @@ class B
 }"
             };
 
-            using var testLspServer = CreateTestLspServer(markups, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markups);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
-            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+            AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
 
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
@@ -191,9 +192,9 @@ class B
 {
     {|caret:|}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.Empty(results);
         }
 
@@ -210,9 +211,9 @@ class A
         Console.{|caret:|}{|reference:WriteLine|}(""text"");
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             Assert.NotNull(results[0].Location.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
@@ -232,9 +233,9 @@ class A
     }
 }
 ";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Namespace definitions should not have a location
             Assert.True(results.Any(r => r.DefinitionText != null && r.Location == null));
@@ -262,9 +263,9 @@ class C
     }
 }
 ";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 1, expectedReferenceCount: 1);
         }
 
@@ -274,9 +275,9 @@ class C
             var markup =
 @"static class {|caret:|}{|reference:C|} { }
 ";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindAllReferencesAsync(testLspServer, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Ensure static definitions and references are only classified once
             var textRuns = ((ClassifiedTextElement)results.First().Text).Runs;
@@ -292,18 +293,19 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
         {
-            var vsClientCapabilities = new LSP.VSClientCapabilities
+            var vsClientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
+            return results?.Cast<LSP.VSInternalReferenceItem>()?.ToArray();
         }
 
-        private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
+        private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
         {
             var definition = referenceItems[definitionIndex];
             var definitionId = definition.DefinitionId;
@@ -326,7 +328,7 @@ class C
         }
 
         private static void AssertHighlightCount(
-            LSP.VSReferenceItem[] referenceItems,
+            LSP.VSInternalReferenceItem[] referenceItems,
             int expectedDefinitionCount,
             int expectedWrittenReferenceCount,
             int expectedReferenceCount)

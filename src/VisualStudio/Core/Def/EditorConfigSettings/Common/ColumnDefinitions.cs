@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             public const string Id = Prefix + AnalyzerPrefix + "idname";
             public const string Severity = Prefix + AnalyzerPrefix + "severityname";
             public const string Title = Prefix + AnalyzerPrefix + "titlename";
+            public const string Location = Prefix + AnalyzerPrefix + "location";
+
         }
 
         internal static class CodeStyle
@@ -26,14 +28,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             public const string Description = Prefix + CodeStylePrefix + "descriptionname";
             public const string Value = Prefix + CodeStylePrefix + "valuename";
             public const string Severity = Prefix + CodeStylePrefix + "severityname";
+            public const string Location = Prefix + CodeStylePrefix + "location";
         }
 
-        internal static class Formatting
+        internal static class Whitespace
         {
-            private const string FormattingPrefix = "Formatting.";
+            private const string FormattingPrefix = "whitespace.";
             public const string Category = Prefix + FormattingPrefix + "categoryname";
             public const string Description = Prefix + FormattingPrefix + "descriptionname";
             public const string Value = Prefix + FormattingPrefix + "valuename";
+            public const string Location = Prefix + FormattingPrefix + "location";
+
         }
     }
 }

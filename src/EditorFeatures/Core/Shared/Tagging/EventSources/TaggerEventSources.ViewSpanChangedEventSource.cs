@@ -18,22 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
             private readonly ITextView _textView;
-            private readonly TaggerDelay _textChangeDelay;
-            private readonly TaggerDelay _scrollChangeDelay;
 
             private Span? _span;
-            private ITextSnapshot? _viewTextSnapshot;
-            private ITextSnapshot? _viewVisualSnapshot;
 
             public event EventHandler<TaggerEventArgs>? Changed;
 
-            public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
+            public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView)
             {
                 Debug.Assert(textView != null);
                 _foregroundObject = new ForegroundThreadAffinitizedObject(threadingContext);
                 _textView = textView;
-                _textChangeDelay = textChangeDelay;
-                _scrollChangeDelay = scrollChangeDelay;
             }
 
             public void Connect()
@@ -61,34 +55,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 // caused by the user collapsing an outlining region.
 
                 var lastSpan = _span;
-                var lastViewTextSnapshot = _viewTextSnapshot;
-                var lastViewVisualSnapshot = _viewVisualSnapshot;
-
                 _span = _textView.TextViewLines.FormattedSpan.Span;
-                _viewTextSnapshot = _textView.TextSnapshot;
-                _viewVisualSnapshot = _textView.VisualSnapshot;
 
                 if (_span != lastSpan)
                 {
                     // The span changed.  This could have happened for a few different reasons.  
                     // If none of the view's text snapshots changed, then it was because of scrolling.
-
-                    if (_viewTextSnapshot == lastViewTextSnapshot &&
-                        _viewVisualSnapshot == lastViewVisualSnapshot)
-                    {
-                        // We scrolled.
-                        RaiseChanged(_scrollChangeDelay);
-                    }
-                    else
-                    {
-                        // text changed in some way.
-                        RaiseChanged(_textChangeDelay);
-                    }
+                    RaiseChanged();
                 }
             }
 
-            private void RaiseChanged(TaggerDelay delay)
-                => this.Changed?.Invoke(this, new TaggerEventArgs(delay));
+            private void RaiseChanged()
+                => this.Changed?.Invoke(this, new TaggerEventArgs());
         }
     }
 }

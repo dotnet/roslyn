@@ -43,8 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         {
             var givenFolder = new DirectoryInfo(FileName).Parent;
             var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsForPath(FileName);
-            var project = projects.First();
+            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
+            var project = projects.FirstOrDefault();
+            if (project is null)
+            {
+                // no .NET projects in the solution
+                return;
+            }
+
             var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
             var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
             var result = project.GetAnalyzerConfigOptions();

@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     case DeclaredSymbolInfoKind.Interface:
                     case DeclaredSymbolInfoKind.Module:
                     case DeclaredSymbolInfoKind.Struct:
+                    case DeclaredSymbolInfoKind.RecordStruct:
                         return true;
                     default:
                         return false;
@@ -236,6 +237,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     DeclaredSymbolInfoKind.Module => Glyph.ModulePublic,
                     DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
                     DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
+                    DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
                     _ => Glyph.ClassPublic,
                 };
 

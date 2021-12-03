@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right,
             ConstantValue? constantValueOpt,
             MethodSymbol? methodOpt,
+            TypeSymbol? constrainedToTypeOpt,
             LookupResultKind resultKind,
             ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
             TypeSymbol type,
@@ -381,10 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                constantValueOpt,
-                methodOpt,
+                UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt),
                 resultKind,
-                originalUserDefinedOperatorsOpt,
                 left,
                 right,
                 type,
@@ -396,23 +395,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind operatorKind,
             ConstantValue? constantValueOpt,
             MethodSymbol? methodOpt,
+            TypeSymbol? constrainedToTypeOpt,
             LookupResultKind resultKind,
             BoundExpression left,
             BoundExpression right,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, constantValueOpt, methodOpt, resultKind, originalUserDefinedOperatorsOpt: default, left, right, type, hasErrors)
+            this(syntax, operatorKind, UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt: default), resultKind, left, right, type, hasErrors)
         {
         }
 
         public BoundBinaryOperator Update(BinaryOperatorKind operatorKind,
                                           ConstantValue? constantValueOpt,
                                           MethodSymbol? methodOpt,
+                                          TypeSymbol? constrainedToTypeOpt,
                                           LookupResultKind resultKind,
                                           BoundExpression left,
                                           BoundExpression right,
                                           TypeSymbol type)
-            => Update(operatorKind, constantValueOpt, methodOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
+        {
+            var uncommonData = UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, OriginalUserDefinedOperatorsOpt);
+            return Update(operatorKind, uncommonData, resultKind, left, right, type);
+        }
+
+        public BoundBinaryOperator Update(UncommonData uncommonData)
+        {
+            return Update(OperatorKind, uncommonData, ResultKind, Left, Right, Type);
+        }
     }
 
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator
@@ -425,6 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol logicalOperator,
             MethodSymbol trueOperator,
             MethodSymbol falseOperator,
+            TypeSymbol? constrainedToTypeOpt,
             LookupResultKind resultKind,
             ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
             TypeSymbol type,
@@ -435,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 logicalOperator,
                 trueOperator,
                 falseOperator,
+                constrainedToTypeOpt,
                 resultKind,
                 originalUserDefinedOperatorsOpt,
                 left,
@@ -449,11 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                  MethodSymbol logicalOperator,
                                                                  MethodSymbol trueOperator,
                                                                  MethodSymbol falseOperator,
+                                                                 TypeSymbol? constrainedToTypeOpt,
                                                                  LookupResultKind resultKind,
                                                                  BoundExpression left,
                                                                  BoundExpression right,
                                                                  TypeSymbol type)
-            => Update(operatorKind, logicalOperator, trueOperator, falseOperator, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
+            => Update(operatorKind, logicalOperator, trueOperator, falseOperator, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
     }
 
     internal sealed partial class BoundParameter
@@ -646,23 +658,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature @operator,
             BoundExpression left,
             BoundExpression right,
-            Conversion leftConversion,
-            Conversion finalConversion,
+            BoundValuePlaceholder? leftPlaceholder,
+            BoundExpression? leftConversion,
+            BoundValuePlaceholder? finalPlaceholder,
+            BoundExpression? finalConversion,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, @operator, left, right, leftConversion, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            : this(syntax, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
         public BoundCompoundAssignmentOperator Update(BinaryOperatorSignature @operator,
                                                       BoundExpression left,
                                                       BoundExpression right,
-                                                      Conversion leftConversion,
-                                                      Conversion finalConversion,
+                                                      BoundValuePlaceholder? leftPlaceholder,
+                                                      BoundExpression? leftConversion,
+                                                      BoundValuePlaceholder? finalPlaceholder,
+                                                      BoundExpression? finalConversion,
                                                       LookupResultKind resultKind,
                                                       TypeSymbol type)
-            => Update(@operator, left, right, leftConversion, finalConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
+            => Update(@operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
     }
 
     internal partial class BoundUnaryOperator
@@ -673,10 +689,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand,
             ConstantValue? constantValueOpt,
             MethodSymbol? methodOpt,
+            TypeSymbol? constrainedToTypeOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, operand, constantValueOpt, methodOpt, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            this(syntax, operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
@@ -684,9 +701,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          BoundExpression operand,
                                          ConstantValue? constantValueOpt,
                                          MethodSymbol? methodOpt,
+                                         TypeSymbol? constrainedToTypeOpt,
                                          LookupResultKind resultKind,
                                          TypeSymbol type)
-            => Update(operatorKind, operand, constantValueOpt, methodOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
+            => Update(operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
     }
 
     internal partial class BoundIncrementOperator
@@ -696,18 +714,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorKind operatorKind,
             BoundExpression operand,
             MethodSymbol? methodOpt,
-            Conversion operandConversion,
-            Conversion resultConversion,
+            TypeSymbol? constrainedToTypeOpt,
+            BoundValuePlaceholder? operandPlaceholder,
+            BoundExpression? operandConversion,
+            BoundValuePlaceholder? resultPlaceholder,
+            BoundExpression? resultConversion,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            this(syntax, operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
-        public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, Conversion operandConversion, Conversion resultConversion, LookupResultKind resultKind, TypeSymbol type)
+        public BoundIncrementOperator Update(UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BoundValuePlaceholder? operandPlaceholder, BoundExpression? operandConversion, BoundValuePlaceholder? resultPlaceholder, BoundExpression? resultConversion, LookupResultKind resultKind, TypeSymbol type)
         {
-            return Update(operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
+            return Update(operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
 }

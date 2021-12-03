@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -32,18 +33,38 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
         /// </summary>
-        internal async ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+        internal ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+            => StoreAssetsAsync(solution, projectId: null, cancellationToken);
+
+        /// <summary>
+        /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
+        /// </summary>
+        internal ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
+            => StoreAssetsAsync(project.Solution, project.Id, cancellationToken);
+
+        private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var solutionChecksum = projectId == null
+                ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+                : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
             var context = SolutionReplicationContext.Create();
 
+            // The check of `fromPrimaryBranch: solution == solution.Workspace.CurrentSolution` may result in
+            // non-deterministic behavior.  Specifically, because this syncing is done in the BG, but change
+            // to .CurrentSolution can happen on another thread, it may be the case that 'fromPrimaryBranch'
+            // is true/false depending on the ordering of those ops.  That's ok sa this is just a hint to the
+            // remote side if they should cache this snapshot or not, and fork future syncs off of it.  We
+            // will always reach a fixed point here when the user pauses (which effectively always happens), so
+            // we're always going to get to the point that we do send `true` here and we cache a recent enough
+            // solution that we will then fork off of on the OOP side.
             var id = Interlocked.Increment(ref s_scopeId);
             var solutionInfo = new PinnedSolutionInfo(
                 id,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                fromPrimaryBranch: solution == solution.Workspace.CurrentSolution,
                 solutionState.WorkspaceVersion,
-                solutionChecksum);
+                solutionChecksum,
+                projectId);
 
             Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
 
@@ -149,14 +170,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
-            // only solution with checksum can be in asset storage
-            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
+            if (solutionState.TryGetStateChecksums(out var stateChecksums))
+                await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
 
-            await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            foreach (var projectId in solutionState.ProjectIds)
+            {
+                if (remainingChecksumsToFind.Count == 0)
+                    break;
+
+                if (solutionState.TryGetStateChecksums(projectId, out var checksums))
+                    await checksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static' | name_equals)? name ';'
+  : 'global'? 'using' ('static' | name_equals)? name ';'
   ;
 
 name_equals
@@ -76,13 +76,13 @@ name_colon
 member_declaration
   : base_field_declaration
   | base_method_declaration
+  | base_namespace_declaration
   | base_property_declaration
   | base_type_declaration
   | delegate_declaration
   | enum_member_declaration
   | global_statement
   | incomplete_member
-  | namespace_declaration
   ;
 
 base_field_declaration
@@ -98,7 +98,6 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
-  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -178,7 +177,11 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  ;
+
+explicit_interface_specifier
+  : name '.'
   ;
 
 destructor_declaration
@@ -187,10 +190,6 @@ destructor_declaration
 
 method_declaration
   : attribute_list* modifier* type explicit_interface_specifier? identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
-  ;
-
-explicit_interface_specifier
-  : name '.'
   ;
 
 type_parameter_list
@@ -230,7 +229,20 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  ;
+
+base_namespace_declaration
+  : file_scoped_namespace_declaration
+  | namespace_declaration
+  ;
+
+file_scoped_namespace_declaration
+  : attribute_list* modifier* 'namespace' name ';' extern_alias_directive* using_directive* member_declaration*
+  ;
+
+namespace_declaration
+  : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
   ;
 
 base_property_declaration
@@ -309,7 +321,7 @@ interface_declaration
   ;
 
 record_declaration
-  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* syntax_token ('class' | 'struct')? identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration
@@ -326,10 +338,6 @@ global_statement
 
 incomplete_member
   : attribute_list* modifier* type?
-  ;
-
-namespace_declaration
-  : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
   ;
 
 type
@@ -547,9 +555,11 @@ pattern
   | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | list_pattern
   | parenthesized_pattern
   | recursive_pattern
   | relational_pattern
+  | slice_pattern
   | type_pattern
   | unary_pattern
   | var_pattern
@@ -589,6 +599,10 @@ discard_pattern
   : '_'
   ;
 
+list_pattern
+  : '[' (pattern (',' pattern)* ','?)? ']' variable_designation?
+  ;
+
 parenthesized_pattern
   : '(' pattern ')'
   ;
@@ -602,7 +616,16 @@ positional_pattern_clause
   ;
 
 subpattern
-  : name_colon? pattern
+  : base_expression_colon? pattern
+  ;
+
+base_expression_colon
+  : expression_colon
+  | name_colon
+  ;
+
+expression_colon
+  : expression ':'
   ;
 
 property_pattern_clause
@@ -616,6 +639,10 @@ relational_pattern
   | '==' expression
   | '>' expression
   | '>=' expression
+  ;
+
+slice_pattern
+  : '..' pattern?
   ;
 
 type_pattern
@@ -744,11 +771,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* type? parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : modifier* parameter '=>' (block | expression)
+  : attribute_list* modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression
@@ -1172,7 +1199,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
-  | line_directive_trivia
+  | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
   | pragma_checksum_directive_trivia
@@ -1226,8 +1253,21 @@ error_directive_trivia
   : '#' 'error'
   ;
 
+line_or_span_directive_trivia
+  : line_directive_trivia
+  | line_span_directive_trivia
+  ;
+
 line_directive_trivia
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
+  ;
+
+line_span_directive_trivia
+  : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
+  ;
+
+line_directive_position
+  : '(' numeric_literal_token ',' numeric_literal_token ')'
   ;
 
 load_directive_trivia

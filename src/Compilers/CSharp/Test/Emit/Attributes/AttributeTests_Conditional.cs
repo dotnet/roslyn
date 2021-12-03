@@ -5,17 +5,14 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -688,6 +685,29 @@ class Bar
                 // (6,14): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [Conditional(Goo.M)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Goo.M"));
+        }
+
+        [Fact]
+        public void ConditionalAttributeArgument_Null()
+        {
+            var source =
+@"using System.Diagnostics;
+class Program
+{
+    [Conditional(""A"")]
+    [Conditional(null)]
+    [Conditional(""B"")]
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0633: The argument to the 'Conditional' attribute must be a valid identifier
+                //     [Conditional(null)]
+                Diagnostic(ErrorCode.ERR_BadArgumentToAttribute, "null").WithArguments("Conditional").WithLocation(5, 18));
+            var method = comp.GetMember<MethodSymbol>("Program.Main");
+            Assert.Equal(new[] { "A", null, "B" }, method.GetAppliedConditionalSymbols());
         }
 
         #endregion

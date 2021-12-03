@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
                 tryHandleNumericLimits(ref unnamedEnumValue) ??
                 tryHandleRecursivePattern(ref unnamedEnumValue) ??
+                tryHandleListPattern(ref unnamedEnumValue) ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -236,6 +237,104 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // Handle the special case of a list pattern
+            string tryHandleListPattern(ref bool unnamedEnumValue)
+            {
+                if (constraints.IsEmpty && evaluations.IsEmpty)
+                    return null;
+
+                // not-null tests are implicitly incorporated into a list pattern
+                if (!constraints.All(isNotNullTest))
+                {
+                    return null;
+                }
+
+                if (evaluations[0] is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthOrCount)
+                {
+                    BoundDagSliceEvaluation slice = null;
+                    for (int i = 1; i < evaluations.Length; i++)
+                    {
+                        switch (evaluations[i])
+                        {
+                            case BoundDagIndexerEvaluation:
+                                continue;
+                            case BoundDagSliceEvaluation e:
+                                if (slice != null)
+                                {
+                                    // A list pattern can only support a single slice within.
+                                    // We won't try to generate a list pattern if there's more.
+                                    return null;
+                                }
+                                slice = e;
+                                continue;
+                            default:
+                                return null;
+                        }
+                    }
+
+                    var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
+                    var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
+                    int lengthValue = lengthValues.Sample.Int32Value;
+                    if (slice != null)
+                    {
+                        if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                        {
+                            // Bail if there's a slice but only one length value is remained.
+                            // That could happen with nested slice patterns or length tests
+                            // and also with very long list patterns in certain conditions.
+                            return null;
+                        }
+
+                        if (slice.StartIndex - slice.EndIndex > lengthValue)
+                        {
+                            // Bail if the sample value is less than the required minimum length by the slice
+                            // to avoid generating an incorrect example.
+                            return null;
+                        }
+                    }
+
+                    var subpatterns = new ArrayBuilder<string>(lengthValue);
+                    subpatterns.AddMany("_", lengthValue);
+                    for (int i = 1; i < evaluations.Length; i++)
+                    {
+                        switch (evaluations[i])
+                        {
+                            case BoundDagIndexerEvaluation e:
+                                var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                                int index = e.Index;
+                                int effectiveIndex = index < 0 ? lengthValue + index : index;
+                                if (effectiveIndex < 0 || effectiveIndex >= lengthValue)
+                                    return null;
+                                var oldPattern = subpatterns[effectiveIndex];
+                                var newPattern = SamplePatternForTemp(indexerTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                                subpatterns[effectiveIndex] = makeConjunct(oldPattern, newPattern);
+                                continue;
+                            case BoundDagSliceEvaluation e:
+                                Debug.Assert(e == slice);
+                                continue;
+                            case var v:
+                                throw ExceptionUtilities.UnexpectedValue(v);
+                        }
+                    }
+
+                    if (slice != null)
+                    {
+                        var sliceTemp = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
+                        var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
+                        if (slicePattern != "_")
+                        {
+                            // If the slice is not matched against any pattern, the slice pattern would
+                            // have no effect on the output given the provided sample length value.
+                            subpatterns.Insert(slice.StartIndex, $".. {slicePattern}");
+                        }
+                    }
+
+                    return "[" + string.Join(", ", subpatterns) + "]";
+                }
+
+                return null;
+            }
+
             // Handle the special case of a tuple pattern
             string tryHandleTuplePattern(ref bool unnamedEnumValue)
             {
@@ -262,13 +361,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
-
-                static string makeConjunct(string oldPattern, string newPattern) => (oldPattern, newPattern) switch
-                {
-                    ("_", var x) => x,
-                    (var x, "_") => x,
-                    (var x, var y) => x + " and " + y
-                };
             }
 
             // Handle the special case of numeric limits
@@ -283,33 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (BoundDagNonNullTest _, true) => true,
                         _ => false
                     }) &&
-                    ValueSetFactory.ForType(input.Type) is { } fac)
+                    ValueSetFactory.ForInput(input) is { } fac)
                 {
                     // All we have are numeric constraints. Process them to compute a value not covered.
-                    var remainingValues = fac.AllValues;
-                    foreach (var constraint in constraints)
-                    {
-                        var (test, sense) = constraint;
-                        switch (test)
-                        {
-                            case BoundDagValueTest v:
-                                addRelation(BinaryOperatorKind.Equal, v.Value);
-                                break;
-                            case BoundDagRelationalTest r:
-                                addRelation(r.Relation, r.Value);
-                                break;
-                        }
-                        void addRelation(BinaryOperatorKind relation, ConstantValue value)
-                        {
-                            if (value.IsBad)
-                                return;
-                            var filtered = fac.Related(relation, value);
-                            if (!sense)
-                                filtered = filtered.Complement();
-                            remainingValues = remainingValues.Intersect(filtered);
-                        }
-                    }
-
+                    IValueSet remainingValues = computeRemainingValues(fac, constraints);
                     if (remainingValues.Complement().IsEmpty)
                         return "_";
 
@@ -325,13 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
 
-                if (!constraints.All(c => c switch
-                {
-                    // not-null tests are implicitly incorporated into a recursive pattern
-                    (test: BoundDagNonNullTest _, sense: true) => true,
-                    (test: BoundDagExplicitNullTest _, sense: false) => true,
-                    _ => false,
-                }))
+                // not-null tests are implicitly incorporated into a recursive pattern
+                if (!constraints.All(isNotNullTest))
                 {
                     return null;
                 }
@@ -398,6 +462,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             string produceFallbackPattern()
             {
                 return requireExactType ? input.Type.ToDisplayString() : "_";
+            }
+
+            IValueSet computeRemainingValues(IValueSetFactory fac, ImmutableArray<(BoundDagTest test, bool sense)> constraints)
+            {
+                var remainingValues = fac.AllValues;
+                foreach (var constraint in constraints)
+                {
+                    var (test, sense) = constraint;
+                    switch (test)
+                    {
+                        case BoundDagValueTest v:
+                            addRelation(BinaryOperatorKind.Equal, v.Value);
+                            break;
+                        case BoundDagRelationalTest r:
+                            addRelation(r.Relation, r.Value);
+                            break;
+                    }
+
+                    void addRelation(BinaryOperatorKind relation, ConstantValue value)
+                    {
+                        if (value.IsBad)
+                            return;
+                        var filtered = fac.Related(relation, value);
+                        if (!sense)
+                            filtered = filtered.Complement();
+                        remainingValues = remainingValues.Intersect(filtered);
+                    }
+                }
+
+                return remainingValues;
+            }
+
+            static string makeConjunct(string oldPattern, string newPattern) => (oldPattern, newPattern) switch
+            {
+                ("_", var x) => x,
+                (var x, "_") => x,
+                (var x, var y) => x + " and " + y
+            };
+
+            static bool isNotNullTest((BoundDagTest test, bool sense) constraint)
+            {
+                return constraint is
+                    (test: BoundDagNonNullTest _, sense: true) or
+                    (test: BoundDagExplicitNullTest _, sense: false);
             }
         }
 

@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 CodeMarkerLogger.Instance,
                 new EtwLogger(_optionsService),
                 new VSTelemetryLogger(telemetrySession),
+                new FileLogger(_optionsService),
                 Logger.GetLogger());
 
         protected override void TelemetrySessionInitialized()
@@ -54,12 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 Contract.ThrowIfNull(settings);
 
                 // initialize session in the remote service
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.InitializeTelemetrySession),
-                    solution: null,
-                    new object?[] { Process.GetCurrentProcess().Id, settings },
-                    callbackTarget: null,
+                _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                    (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, cancellationToken),
                     CancellationToken.None).ConfigureAwait(false);
             });
         }

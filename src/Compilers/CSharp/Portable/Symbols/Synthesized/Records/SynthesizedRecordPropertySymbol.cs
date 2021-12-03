@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,
                 isExpressionBodied: false,
-                isInitOnly: true,
+                isInitOnly: ShouldUseInit(containingType),
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -60,14 +60,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
         }
 
+        private static bool ShouldUseInit(TypeSymbol container)
+        {
+            // the setter is always init-only in record class and in readonly record struct
+            return !container.IsStructType() || container.IsReadOnly;
+        }
+
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics)
         {
+            var usesInit = !isGet && ShouldUseInit(ContainingType);
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
-                usesInit: !isGet, // the setter is always init-only
+                usesInit,
                 ContainingType,
                 this,
                 _modifiers,

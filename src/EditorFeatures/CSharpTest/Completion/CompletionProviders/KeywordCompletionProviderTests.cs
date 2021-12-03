@@ -412,7 +412,10 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
         [InlineData("struct", true)]
+        [InlineData("record struct", true)]
         [InlineData("class", false)]
+        [InlineData("record", false)]
+        [InlineData("record class", false)]
         [InlineData("interface", false)]
         public async Task SuggestReadonlyPropertyAccessor(string declarationType, bool present)
         {

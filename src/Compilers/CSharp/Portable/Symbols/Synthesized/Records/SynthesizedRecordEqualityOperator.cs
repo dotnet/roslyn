@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
-    /// 
+    ///
+    /// For record class:
     /// public static bool operator==(R? left, R? right)
     ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
     /// public static bool operator !=(R? left, R? right)
     ///      => !(left == right);
-    ///        
+    ///
+    /// For record struct:
+    /// public static bool operator==(R left, R right)
+    ///      => left.Equals(right);
+    /// public static bool operator !=(R left, R right)
+    ///      => !(left == right);
+    ///
     ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
     ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
     /// </summary>
@@ -34,7 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
+                // For record class:
                 // => (object)left == right || ((object)left != null && left.Equals(right));
+                // For record struct:
+                // => left.Equals(right));
                 MethodSymbol? equals = null;
                 foreach (var member in ContainingType.GetMembers(WellKnownMemberNames.ObjectEquals))
                 {
@@ -57,11 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var left = F.Parameter(Parameters[0]);
                 var right = F.Parameter(Parameters[1]);
 
-                BoundExpression objectEqual = F.ObjectEqual(left, right);
-                BoundExpression recordEquals = F.LogicalAnd(F.ObjectNotEqual(left, F.Null(F.SpecialType(SpecialType.System_Object))),
+                BoundExpression expression;
+                if (ContainingType.IsRecordStruct)
+                {
+                    expression = F.Call(left, equals, right);
+                }
+                else
+                {
+                    BoundExpression objectEqual = F.ObjectEqual(left, right);
+                    BoundExpression recordEquals = F.LogicalAnd(F.ObjectNotEqual(left, F.Null(F.SpecialType(SpecialType.System_Object))),
                                                             F.Call(left, equals, right));
+                    expression = F.LogicalOr(objectEqual, recordEquals);
+                }
 
-                F.CloseMethod(F.Block(F.Return(F.LogicalOr(objectEqual, recordEquals))));
+                F.CloseMethod(F.Block(F.Return(expression)));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {

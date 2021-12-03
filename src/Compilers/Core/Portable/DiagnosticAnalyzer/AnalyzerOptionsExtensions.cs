@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //  3. Non-configurable diagnostics
             if (analyzerOptions == null ||
                 !descriptor.IsEnabledByDefault ||
-                descriptor.CustomTags.Contains(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.IsCompilerOrNotConfigurable())
             {
                 severity = default;
                 return false;
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // bulk configuration should not be applied.
             // For example, 'dotnet_diagnostic.CA1000.severity = error'
             if (compilation.Options.SpecificDiagnosticOptions.ContainsKey(descriptor.Id) ||
-                compilation.Options.SyntaxTreeOptionsProvider?.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out _) == true)
+                compilation.Options.SyntaxTreeOptionsProvider?.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out _) == true ||
+                compilation.Options.SyntaxTreeOptionsProvider?.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out _) == true)
             {
                 severity = default;
                 return false;

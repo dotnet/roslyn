@@ -59,17 +59,17 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="translated">分配 "out" 参数</target>
+        <target state="translated">为 "out" 参数赋值</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">分配 "out" (在开始处)</target>
+        <target state="translated">为 "out" 赋值 (在开始处)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="translated">分配给 "{0}"</target>
+        <target state="translated">赋值给 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
@@ -122,6 +122,11 @@
         <target state="translated">声明成可为 null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="new">Enable nullable reference types in project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">修复返回类型</target>
@@ -162,6 +167,16 @@
         <target state="translated">反向“for”语句</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="new">Selection cannot include global statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="new">Selection cannot include top-level statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">简化 lambda 表达式</target>
@@ -180,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Unseal 类 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">使用递归模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -204,7 +229,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">外部别名</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -297,21 +322,6 @@
         <target state="translated">无效的选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">所选内容不包含有效令牌。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">没有执行提取的有效选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">没有可用于提取的公共根节点。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">包含无效的选择。</target>
@@ -389,7 +399,7 @@
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="translated">使 {0} 返回任务，而不是 void。</target>
+        <target state="translated">使 {0} 返回 Task，而不是 void。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
@@ -414,7 +424,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">记录</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">记录结构</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -699,12 +714,12 @@
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="translated">将方法改为 Async</target>
+        <target state="translated">使方法异步</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="translated">使方法异步(保持无效)</target>
+        <target state="translated">使方法异步(保持 void)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
@@ -759,7 +774,7 @@
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="translated">介绍 'using' 语句</target>
+        <target state="translated">引入 'using' 语句</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

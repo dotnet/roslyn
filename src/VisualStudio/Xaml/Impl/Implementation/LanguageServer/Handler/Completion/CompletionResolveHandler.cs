@@ -46,10 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             Contract.ThrowIfNull(context.Solution);
 
-            CompletionResolveData data;
+            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
+            {
+                return completionItem;
+            }
+
+            CompletionResolveData? data;
             if (completionItem.Data is JToken token)
             {
                 data = token.ToObject<CompletionResolveData>();
+                Assumes.Present(data);
             }
             else
             {
@@ -73,29 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             return vsCompletionItem;
-        }
-
-        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
-        {
-            return new LSP.VSCompletionItem
-            {
-                AdditionalTextEdits = completionItem.AdditionalTextEdits,
-                Command = completionItem.Command,
-                CommitCharacters = completionItem.CommitCharacters,
-                Data = completionItem.Data,
-                Detail = completionItem.Detail,
-                Documentation = completionItem.Documentation,
-                FilterText = completionItem.FilterText,
-                InsertText = completionItem.InsertText,
-                InsertTextFormat = completionItem.InsertTextFormat,
-                Kind = completionItem.Kind,
-                Label = completionItem.Label,
-                SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
-            };
         }
     }
 }

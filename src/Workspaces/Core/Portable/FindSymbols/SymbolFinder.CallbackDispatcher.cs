@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -30,40 +31,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // references
 
-            public ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count)
-                => GetFindReferencesCallback(callbackId).AddItemsAsync(count);
+            public ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
-            public ValueTask ReferenceItemCompletedAsync(RemoteServiceCallbackId callbackId)
-                => GetFindReferencesCallback(callbackId).ItemCompletedAsync();
+            public ValueTask ReferenceItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).ItemsCompletedAsync(count, cancellationToken);
 
-            public ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId)
-                => GetFindReferencesCallback(callbackId).OnCompletedAsync();
+            public ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnCompletedAsync(cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup)
-                => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(symbolGroup);
+            public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(symbolGroup, cancellationToken);
 
-            public ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId)
-                => GetFindReferencesCallback(callbackId).OnFindInDocumentCompletedAsync(documentId);
+            public ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnFindInDocumentCompletedAsync(documentId, cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId)
-                => GetFindReferencesCallback(callbackId).OnFindInDocumentStartedAsync(documentId);
+            public ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnFindInDocumentStartedAsync(documentId, cancellationToken);
 
-            public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
-                => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(symbolGroup, definition, reference);
+            public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(symbolGroup, definition, reference, cancellationToken);
 
-            public ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId)
-                => GetFindReferencesCallback(callbackId).OnStartedAsync();
+            public ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+                => GetFindReferencesCallback(callbackId).OnStartedAsync(cancellationToken);
 
             // literals
 
-            public ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count)
-                => GetFindLiteralsCallback(callbackId).AddItemsAsync(count);
+            public ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindLiteralsCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
-            public ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId)
-                => GetFindLiteralsCallback(callbackId).ItemCompletedAsync();
+            public ValueTask LiteralItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+                => GetFindLiteralsCallback(callbackId).ItemsCompletedAsync(count, cancellationToken);
 
-            public ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span)
-                => GetFindLiteralsCallback(callbackId).OnLiteralReferenceFoundAsync(documentId, span);
+            public ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
+                => GetFindLiteralsCallback(callbackId).OnLiteralReferenceFoundAsync(documentId, span, cancellationToken);
         }
     }
 }

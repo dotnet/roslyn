@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -24,7 +24,13 @@ namespace Microsoft.CodeAnalysis.Classification
         /// (i.e. identifiers being classified as keywords).  These incorrect results will be patched
         /// up when the lexical results are superseded by the calls to AddSyntacticClassifications.
         /// </summary>
-        void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+
+        /// <inheritdoc cref="AddSyntacticClassificationsAsync"/>
+        /// <remarks>This method is optional and only should be implemented by languages that support
+        /// syntax.  If the language does not support syntax, callers should use
+        /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
+        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -32,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// be used to determine if a piece of text that looks like a keyword should actually be
         /// considered an identifier in its current context.
         /// </summary>
-        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  Semantics of the language
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// For example, semantic information can be used to determine if an identifier should be
         /// classified as a type, structure, or something else entirely. 
         /// </summary>
-        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current
@@ -52,15 +58,6 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntactic and semantic classifications for this version later.
         /// </summary>
         ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
-
-        /// <summary>
-        /// This method can be called into by hosts of the <see cref="IClassificationService"/>.  It allows instances to
-        /// pre-compute data that will be cached and preserved up through the calls to classification methods.
-        /// Implementations can use this to do things like preemptively parse the document in the background, without
-        /// concern that this might impact the UI thread later on when classifications are retrieved.  <see
-        /// langword="null"/> can be returned if not data needs to be cached.
-        /// </summary>
-        ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines the range of the documents that should be considered syntactically changed after an edit.  In
@@ -79,6 +76,15 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </para>
         /// </summary>
         ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
-            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
+            Document oldDocument, Document newDocument,
+            TimeSpan timeout, CancellationToken cancellationToken);
+
+        /// <inheritdoc cref="ComputeSyntacticChangeRangeAsync"/>
+        /// <remarks>This method is optional and only should be implemented by languages that support
+        /// syntax.  If the language does not support syntax, callers should use
+        /// <see cref="ComputeSyntacticChangeRangeAsync"/> instead.</remarks>
+        TextChangeRange? ComputeSyntacticChangeRange(
+            Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
+            TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

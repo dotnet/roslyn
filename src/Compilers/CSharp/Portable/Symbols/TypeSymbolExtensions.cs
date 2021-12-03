@@ -132,6 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
+        public static bool IsValidNullableTypeArgument(this TypeSymbol type)
+        {
+            return type is { IsValueType: true }
+                   && !type.IsNullableType()
+                   && !type.IsPointerOrFunctionPointer()
+                   && !type.IsRestrictedType();
+        }
+
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
         {
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
@@ -366,9 +374,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // If the type is a delegate type, it returns it. If the type is an
         // expression tree type associated with a delegate type, it returns
         // the delegate type. Otherwise, null.
-        public static NamedTypeSymbol? GetDelegateType(this TypeSymbol type)
+        public static NamedTypeSymbol? GetDelegateType(this TypeSymbol? type)
         {
-            if ((object)type == null) return null;
+            if (type is null) return null;
             if (type.IsExpressionTree())
             {
                 type = ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -377,31 +385,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
         }
 
-        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol type)
+        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol? type)
         {
             return (TypeSymbol?)GetDelegateType(type) ?? type as FunctionPointerTypeSymbol;
         }
 
         /// <summary>
-        /// return true if the type is constructed from System.Linq.Expressions.Expression`1
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter.
         /// </summary>
-        public static bool IsExpressionTree(this TypeSymbol _type)
+        public static bool IsExpressionTree(this TypeSymbol type)
         {
-            return _type.OriginalDefinition is NamedTypeSymbol type &&
-                type.Arity == 1 &&
-                type.MangleName &&
-                type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName);
+            return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && isGenericType;
         }
 
+        /// <summary>
+        /// Returns true if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
+        public static bool IsNonGenericExpressionType(this TypeSymbol type)
+        {
+            return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && !isGenericType;
+        }
+
+        /// <summary>
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter, or if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
+        public static bool IsGenericOrNonGenericExpressionType(this TypeSymbol _type, out bool isGenericType)
+        {
+            if (_type.OriginalDefinition is NamedTypeSymbol type)
+            {
+                switch (type.Name)
+                {
+                    case "Expression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName))
+                        {
+                            if (type.Arity == 0)
+                            {
+                                isGenericType = false;
+                                return true;
+                            }
+                            if (type.Arity == 1 &&
+                                type.MangleName)
+                            {
+                                isGenericType = true;
+                                return true;
+                            }
+                        }
+                        break;
+                    case "LambdaExpression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName) &&
+                            type.Arity == 0)
+                        {
+                            isGenericType = false;
+                            return true;
+                        }
+                        break;
+                }
+            }
+            isGenericType = false;
+            return false;
+        }
 
         /// <summary>
         /// return true if the type is constructed from a generic interface that 
         /// might be implemented by an array.
         /// </summary>
-        public static bool IsPossibleArrayGenericInterface(this TypeSymbol _type)
+        public static bool IsPossibleArrayGenericInterface(this TypeSymbol type)
         {
-            if (!(_type is NamedTypeSymbol t))
+            if (!(type is NamedTypeSymbol t))
             {
                 return false;
             }
@@ -424,8 +478,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
-        private static bool CheckFullName(Symbol symbol, string[] names)
+        private static bool IsNamespaceName(Symbol symbol, string[] names)
         {
+            if (symbol.Kind != SymbolKind.Namespace)
+            {
+                return false;
+            }
+
             for (int i = 0; i < names.Length; i++)
             {
                 if ((object)symbol == null || symbol.Name != names[i]) return false;
@@ -444,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
             var invokeMethod = type.DelegateInvokeMethod();
-            if ((object)invokeMethod == null)
+            if (invokeMethod is null)
             {
                 return default(ImmutableArray<ParameterSymbol>);
             }
@@ -477,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
+        public static MethodSymbol? DelegateInvokeMethod(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
             RoslynDebug.Assert(type.IsDelegateType() || type.IsExpressionTree());
@@ -1008,6 +1067,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
             (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
+        public static bool ContainsMethodTypeParameter(this TypeSymbol type)
+        {
+            var result = type.VisitType(s_containsMethodTypeParameterPredicate, null);
+            return result is object;
+        }
+
+        private static readonly Func<TypeSymbol, object?, bool, bool> s_containsMethodTypeParameterPredicate =
+            (type, _, _) => type.TypeKind == TypeKind.TypeParameter && type.ContainingSymbol is MethodSymbol;
 
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
@@ -1616,17 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the AsyncBuilder attribute.
-                foreach (var attr in type.GetAttributes())
-                {
-                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
-                        && attr.CommonConstructorArguments.Length == 1
-                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
-                    {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
-                        return true;
-                    }
-                }
+                return type.HasAsyncMethodBuilderAttribute(out builderArgument);
             }
 
             builderArgument = null;
@@ -1905,17 +1963,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var globalNamespace = outerNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
-        }
-
-        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
-        {
-            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
-            return !returnType.IsErrorType() &&
-                !returnType.IsVoidType() &&
-                !returnType.IsNonGenericTaskType(declaringCompilation) &&
-                !returnType.IsGenericTaskType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
 
         internal static int TypeToIndex(this TypeSymbol type)

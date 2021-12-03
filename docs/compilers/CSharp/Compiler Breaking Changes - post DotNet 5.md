@@ -34,3 +34,44 @@
         return a ?? (b ? 1 : 2);
     }
     ```
+
+3. https://github.com/dotnet/roslyn/issues/52630 In C# 9 (.NET 5, Visual Studio 16.9), it is possible that a record uses a hidden member from a base type as a positional member. In Visual Studio 16.10, this is now an error:
+```csharp
+record Base
+{
+    public int I { get; init; }
+}
+record Derived(int I) // The positional member 'Base.I' found corresponding to this parameter is hidden.
+    : Base
+{
+    public int I() { return 0; }
+}
+```
+
+4. In .NET 5 and Visual Studio 16.9 (and earlier), top-level statements could be used in a program containing a type named `Program`. In .NET 6 and Visual Studio 17.0, top-level statements generate a partial declaration of a `Program` class, so any user-defined `Program` type must also be a partial class.
+
+```csharp
+System.Console.Write("top-level");
+Method();
+
+partial class Program
+{
+    static void Method()
+    {
+    }
+}
+```
+
+5. https://github.com/dotnet/roslyn/issues/53021 C# will now report an error for a misplaced ```::``` token in explicit interface implementation. In this example code:
+
+    ``` C#
+    void N::I::M()
+    {
+    }
+    ```
+
+    Previous versions of Roslyn wouldn't report any errors.
+
+    We now report an error for a ```::``` token before M.
+
+

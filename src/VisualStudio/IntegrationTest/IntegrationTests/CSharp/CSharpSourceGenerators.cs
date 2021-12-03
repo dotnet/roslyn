@@ -54,8 +54,9 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, VisualStudio.Editor.GetSelectedText());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
-        public void FindReferencesForFileWithDefinitionInSourceGeneratedFile()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [CombinatorialData]
+        public void FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
         {
             VisualStudio.Editor.SetText(@"using System;
 internal static class Program
@@ -67,6 +68,13 @@ internal static class Program
 }");
 
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
+
+            if (invokeFromSourceGeneratedFile)
+            {
+                VisualStudio.Workspace.SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(true);
+                VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
+            }
+
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
             var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
@@ -115,7 +123,7 @@ internal static class Program
             var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
             var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
-            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview);
+            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview, shouldActivate: true);
 
             // Assert we are in the right file now
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());

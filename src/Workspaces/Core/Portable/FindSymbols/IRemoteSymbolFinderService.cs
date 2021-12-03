@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         internal interface ICallback
         {
-            ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count);
-            ValueTask ReferenceItemCompletedAsync(RemoteServiceCallbackId callbackId);
-            ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId);
-            ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId);
-            ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
-            ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
-            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group);
-            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
+            ValueTask AddReferenceItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
+            ValueTask ReferenceItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
+            ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
+            ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
+            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, CancellationToken cancellationToken);
+            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken);
 
-            ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count);
-            ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId);
-            ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span);
+            ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
+            ValueTask LiteralItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
+            ValueTask OnLiteralReferenceFoundAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
         }
 
         ValueTask FindReferencesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId symbolAndProjectIdArg, ImmutableArray<DocumentId> documentArgs,

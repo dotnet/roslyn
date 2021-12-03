@@ -357,6 +357,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The name of a type synthesized for a top-level statements entry point method.
         /// </summary>
-        public const string TopLevelStatementsEntryPointTypeName = "<Program>$";
+        public const string TopLevelStatementsEntryPointTypeName = "Program";
     }
 }

@@ -577,6 +577,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.UserDefinedOperator:
                             return OperatorDeclaration(method);
                     }
+
                     break;
 
                 case SymbolKind.Parameter:
@@ -661,6 +662,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return true;
                     }
+
                     break;
 
                 case SymbolKind.NamedType:
@@ -674,6 +676,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Delegate:
                             return true;
                     }
+
                     break;
             }
 
@@ -1431,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that declares a single local variable.
         /// </summary>
         internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
-            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+            => LocalDeclarationStatement(null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement

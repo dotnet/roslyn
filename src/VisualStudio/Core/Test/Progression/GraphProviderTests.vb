@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TestGetContainsGraphQueries()
             Dim context = CreateGraphContext(GraphContextDirection.Contains, Array.Empty(Of GraphCategory)())
-            Dim queries = AbstractGraphProvider.GetGraphQueries(context)
+            Dim queries = AbstractGraphProvider.GetGraphQueries(context, threadingContext:=Nothing, asyncListener:=Nothing)
             Assert.Equal(queries.Single().GetType(), GetType(ContainsGraphQuery))
         End Sub
 
@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub TestGetContainsGraphQueriesWithTarget()
             Dim context = CreateGraphContext(GraphContextDirection.Target, {CodeLinkCategories.Contains})
-            Dim queries = AbstractGraphProvider.GetGraphQueries(context)
+            Dim queries = AbstractGraphProvider.GetGraphQueries(context, threadingContext:=Nothing, asyncListener:=Nothing)
             Assert.Equal(queries.Single().GetType(), GetType(ContainsGraphQuery))
         End Sub
 

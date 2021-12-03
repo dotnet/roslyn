@@ -56,9 +56,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // If there is a crash, the runtime error is output to stderr and
             // we want MSBuild to print it out regardless of verbosity.
             LogStandardErrorAsError = true;
@@ -489,6 +488,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
@@ -502,10 +507,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
-                string workingDir = CurrentDirectoryToUse();
-                string? tempDir = BuildServerConnection.GetTempPath(workingDir);
                 var requestId = Guid.NewGuid();
+                logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
+
+                string workingDirectory = CurrentDirectoryToUse();
+                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
@@ -519,31 +525,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 logger.Log($"CommandLine = '{commandLineCommands}'");
                 logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                var clientDir = Path.GetDirectoryName(PathToManagedTool);
-                if (clientDir is null || tempDir is null)
+                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                if (clientDirectory is null || tempDirectory is null)
                 {
-                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
-
-                var buildPaths = new BuildPathsAlt(
-                    clientDir: clientDir,
-                    workingDir: workingDir,
-                    // MSBuild doesn't need the .NET SDK directory
-                    sdkDir: null,
-                    tempDir: tempDir);
 
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
-                var responseTask = BuildServerConnection.RunServerCompilationAsync(
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                     GetArguments(ToolArguments, responseFileCommands).ToList(),
-                    buildPaths,
+                    workingDirectory: workingDirectory,
+                    tempDirectory: tempDirectory,
                     keepAlive: null,
-                    libEnvVariable: LibDirectoryToUse(),
+                    libDirectory: LibDirectoryToUse());
+
+                var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
+                    ? SharedCompilationId
+                    : BuildServerConnection.GetPipeName(clientDirectory);
+
+                var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    clientDirectory,
                     logger: logger,
                     cancellationToken: _sharedCompileCts.Token);
 
@@ -557,9 +565,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                var util = new TaskLoggingHelper(this);
-                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
+                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                Log.LogErrorFromException(e);
                 ExitCode = -1;
             }
             finally
