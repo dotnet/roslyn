@@ -1302,6 +1302,10 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+            catch
+            {
+                throw;
+            }
             finally
             {
                 if (enumerator != null)
