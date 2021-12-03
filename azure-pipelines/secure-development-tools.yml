@@ -36,7 +36,7 @@ steps:
   inputs:
     softwareFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
     softwareName: $(SymbolsFeatureName)
-    softwareVersionNum: $(GitBuildVersion)
+    softwareVersionNum: $(NBGV_MajorMinorVersion)
     isLargeApp: false
     toolVersion: Latest
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
