@@ -1236,10 +1236,9 @@ namespace Microsoft.CodeAnalysis
                 FileUtilities.ResolveRelativePath(directory, baseDirectory);
 
             IEnumerator<string>? enumerator = null;
+            bool yielded = false;
             try
             {
-                bool yielded = false;
-
                 // NOTE: Directory.EnumerateFiles(...) surprisingly treats pattern "." the 
                 //       same way as "*"; as we don't expect anything to be found by this 
                 //       pattern, let's just not search in this case
@@ -1286,7 +1285,15 @@ namespace Microsoft.CodeAnalysis
                         yield return resolvedPath;
                     }
                 }
-
+            finally
+            {
+                if (enumerator != null)
+                {
+                    enumerator.Dispose();
+                }
+            }
+            try
+            {
                 // the pattern didn't match any files:
                 if (!yielded)
                 {
@@ -1306,13 +1313,7 @@ namespace Microsoft.CodeAnalysis
             {
                 throw;
             }
-            finally
-            {
-                if (enumerator != null)
-                {
-                    enumerator.Dispose();
-                }
-            }
+
         }
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);
