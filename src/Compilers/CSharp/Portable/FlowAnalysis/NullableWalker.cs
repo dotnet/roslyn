@@ -479,7 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        private static bool PlaceholderMustBeRegistered(BoundValuePlaceholderBase placeholder)
+        [Conditional("DEBUG")]
+        private static void AssertPlaceholderAllowedWithoutRegistration(BoundValuePlaceholderBase placeholder)
         {
             Debug.Assert(placeholder is { });
 
@@ -490,16 +491,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
-                    return false;
+                    return;
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Since such placeholders are always not-null, we skip adding them to the map.
-                    return false;
+                    return;
 
                 default:
                     // Newer placeholders are expected to follow placeholder discipline, namely that
                     // they must be added to the map before they are visited, then removed.
-                    return true;
+                    throw ExceptionUtilities.UnexpectedValue(placeholder.Kind);
             }
         }
 
@@ -4225,7 +4226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!PlaceholderMustBeRegistered(placeholder));
+                    AssertPlaceholderAllowedWithoutRegistration(placeholder);
                     return;
                 }
             }
@@ -8764,7 +8765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
         {
             // These placeholders don't need to be replaced because we know they are always not-null
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
         }
@@ -9906,7 +9907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
             // These placeholders don't yet follow proper placeholder discipline
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
         }
@@ -9914,7 +9915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
         {
             // These placeholders don't yet follow proper placeholder discipline
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
         }
@@ -10031,7 +10032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             // These placeholders don't yet follow proper placeholder discipline
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
         }
@@ -10039,7 +10040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             // These placeholders don't yet follow proper placeholder discipline
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
         }
@@ -10047,7 +10048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
             // These placeholders don't always follow proper placeholder discipline yet
-            Debug.Assert(!PlaceholderMustBeRegistered(node));
+            AssertPlaceholderAllowedWithoutRegistration(node);
             VisitPlaceholderWithReplacement(node);
             return null;
         }
@@ -10062,7 +10063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(!PlaceholderMustBeRegistered(node));
+                AssertPlaceholderAllowedWithoutRegistration(node);
                 SetNotNullResult(node);
             }
         }
