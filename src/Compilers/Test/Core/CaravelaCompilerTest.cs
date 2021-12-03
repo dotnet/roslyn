@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Caravela.Compiler;
+using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
+using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing.Consumption;
 
 namespace Roslyn.Test.Utilities
 {
@@ -23,8 +26,16 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
+            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new DummyLicenseConsumptionManager());
+
             var transformersResult = CSharpCompiler.RunTransformers(
-                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, CancellationToken.None);
+                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 

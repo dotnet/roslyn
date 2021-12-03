@@ -11,10 +11,16 @@ using System.Linq;
 using System.Threading;
 using Caravela.Compiler;
 using Caravela.Compiler.Interface.TypeForwards;
+using Caravela.Compiler.Licensing;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing;
+using PostSharp.Backstage.Licensing.Consumption;
+using PostSharp.Backstage.Licensing.Consumption.Sources;
+using PostSharp.Backstage.Licensing.Registration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -400,17 +406,91 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider);
         }
-
+        
         // <Caravela>
+        
+        // Used for testing.
+        protected virtual ILicenseConsumptionManager? GetCustomLicenseConsumptionManager() => null;
+        
+        private IServiceProvider CreateServices(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, DiagnosticBag diagnostics)
+        {
+            bool IsFirstRunLicenseActivatorEnabled()
+            {
+                if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                    "build_property.CaravelaFirstRunLicenseActivatorEnabled",
+                    out var firstRunLicenseActivatorEnabledString))
+                {
+                    throw new InvalidOperationException(
+                        "CaravelaFirstRunLicenseActivatorEnabled property is required.");
+                }
 
+                return bool.Parse(firstRunLicenseActivatorEnabledString);
+            }
+
+            var services = new ServiceCollection();
+
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
+            serviceProviderBuilder
+                .AddCurrentDateTimeProvider()
+                .AddFileSystem()
+                .AddStandardDirectories()
+                .AddSingleton<IBackstageDiagnosticSink>(new DiagnosticBagSink(diagnostics))
+                .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo());
+
+            var customLicenseConsumptionManager = GetCustomLicenseConsumptionManager();
+
+            if (customLicenseConsumptionManager != null)
+            {
+                serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(customLicenseConsumptionManager);
+            }
+            else
+            {
+                serviceProviderBuilder.AddStandardLicenseFilesLocations();
+
+                if (IsFirstRunLicenseActivatorEnabled())
+                {
+                    // TODO: Replace with the AddFirstRunEvaluationLicenseActivator when licensing becomes usable.
+                    serviceProviderBuilder.AddSingleton<IFirstRunLicenseActivator>(new TimeBombLicenseActivator(serviceProviderBuilder.ServiceProvider));
+                    //services.AddFirstRunEvaluationLicenseActivator();
+                }
+
+                LicenseSourceFactory licenseSourceFactory = new(analyzerConfigOptionsProvider, serviceProviderBuilder.ServiceProvider);
+                ILicenseSource[] licenseSources = licenseSourceFactory.Create().ToArray();
+
+                serviceProviderBuilder.AddLicenseConsumption(licenseSources);
+            }
+
+            return serviceProviderBuilder.ServiceProvider;
+        }
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
+            // If there are no transformers, don't do anything, not even annotating
+            if (transformers.IsEmpty)
+            {
+                return TransformersResult.Empty(inputCompilation);
+            }
+
+            var services = CreateServices(analyzerConfigProvider, diagnostics);
+            var license = new CaravelaCompilerLicenseConsumptionManager(services);
+
+            license.ConsumeFeatures(LicensedFeatures.Community);
+
+            bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
+            if (shouldDebugTransformedCode)
+            {
+                license.ConsumeFeatures(LicensedFeatures.Caravela);
+            }
+
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
-            
-            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, cancellationToken);
+
+            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, services, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
@@ -418,26 +498,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static TransformersResult RunTransformers(
-            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics, ImmutableArray<ResourceDescription> manifestResources,
-            IAnalyzerAssemblyLoader assemblyLoader, CancellationToken cancellationToken )
+            Compilation inputCompilation,
+            ImmutableArray<ISourceTransformer> transformers,
+            SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions,
+            ImmutableArray<object> plugins,
+            AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics,
+            ImmutableArray<ResourceDescription> manifestResources,
+            IAnalyzerAssemblyLoader assemblyLoader,
+            IServiceProvider services,
+            CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
                 return TransformersResult.Empty(inputCompilation);
             }
-            
+
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
             HashSet<SyntaxTree> addedTrees = new();
             var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
             List<ManagedResource> addedResources = new();
             var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
-            
+
             // Add tracking annotations to the input tree.
             var annotatedInputCompilation = inputCompilation;
             bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
+
             if (!shouldDebugTransformedCode)
             {
                 // mark old trees as debuggable
@@ -450,13 +538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     newTreesToOldTrees[annotatedTree] = tree;
                 }
             }
-            
+
             // We source-only analyzers
             if (sourceOnlyAnalyzersOptions != null)
             {
                 // Executing the analyzers can realize most of the compilation, so we pay attention to execute them on the same compilation
                 // as the one we give as the input for transformations.
-                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers( sourceOnlyAnalyzersOptions, annotatedInputCompilation, diagnostics, cancellationToken);
+                annotatedInputCompilation = ExecuteSourceOnlyAnalyzers(sourceOnlyAnalyzersOptions, annotatedInputCompilation, diagnostics, cancellationToken);
             }
 
             // Execute the transformers.
@@ -466,19 +554,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new TransformerContext(outputCompilation, plugins,
-                        analyzerConfigProvider.GlobalOptions, inputResources.AddRange(addedResources), diagnostics,
+                    var context = new TransformerContext(outputCompilation,
+                        plugins,
+                        analyzerConfigProvider.GlobalOptions,
+                        inputResources.AddRange(addedResources),
+                        services,
+                        diagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
-                    
+
                     diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                     addedResources.AddRange(context.AddedResources);
 
-                    
                     foreach (var transformedTree in context.TransformedTrees)
                     {
                         SyntaxTree newTree = transformedTree.NewTree;
-                        
                         
                         // Annotate the new tree.
                         /*
@@ -501,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         */
-                        
+
                         // Update the compilation and indices.
                         if (transformedTree.OldTree != null)
                         {
@@ -536,7 +626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {

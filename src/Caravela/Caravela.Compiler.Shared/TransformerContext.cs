@@ -32,13 +32,19 @@ namespace Caravela.Compiler
         internal List<DiagnosticFilter> DiagnosticFilters { get; } = new();
 
         internal TransformerContext(
-            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, ImmutableArray<ManagedResource> manifestResources,
-            DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
+            Compilation compilation,
+            ImmutableArray<object> plugins,
+            AnalyzerConfigOptions globalOptions,
+            ImmutableArray<ManagedResource> manifestResources,
+            IServiceProvider services,
+            DiagnosticBag diagnostics,
+            IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
             Plugins = plugins;
             GlobalOptions = globalOptions;
             Resources = manifestResources;
+            Services = services;
             _diagnostics = diagnostics;
             _assemblyLoader = assemblyLoader;
         }
@@ -55,8 +61,8 @@ namespace Caravela.Compiler
             {
                 throw new InvalidOperationException("The original compilation does not contain this syntax tree.");
             }
-            
-            if ( oldTree == newTree )
+
+            if (oldTree == newTree)
             {
                 return;
             }
@@ -127,6 +133,11 @@ namespace Caravela.Compiler
         /// Gets the list of managed resources. 
         /// </summary>
         public ImmutableArray<ManagedResource> Resources { get; }
+
+        /// <summary>
+        /// Gets the services initialized by the compiler.
+        /// </summary>
+        public IServiceProvider Services { get; }
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the user's compilation.

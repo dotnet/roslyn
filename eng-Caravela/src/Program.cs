@@ -65,6 +65,7 @@ namespace Build
                 Solutions = ImmutableArray.Create<Solution>(
                     new RoslynSolution()),
                 PublishingTargets = ImmutableArray.Create<PublishingTarget>(publicPublishing, privatePublishing),
+                Dependencies = ImmutableArray.Create(new ProductDependency("PostSharp.Backstage.Settings")),
                 SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
             };
             product.BuildCompleted += OnBuildCompleted;

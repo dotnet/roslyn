@@ -18,6 +18,8 @@
 
     <!-- CaravelaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
     <CaravelaSourceOnlyAnalyzers>$(CaravelaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</CaravelaSourceOnlyAnalyzers>
+    <CaravelaLicenseSources Condition="'$(CaravelaLicenseSources)'==''">User,Property</CaravelaLicenseSources>
+    <CaravelaFirstRunLicenseActivatorEnabled Condition="'$(CaravelaFirstRunLicenseActivatorEnabled)'==''">True</CaravelaFirstRunLicenseActivatorEnabled>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
@@ -30,5 +32,8 @@
     <CompilerVisibleProperty Include="CaravelaCompilerTransformedFilesOutputPath" />
     <CompilerVisibleProperty Include="CaravelaDebugCompiler" />
     <CompilerVisibleProperty Include="CaravelaSourceOnlyAnalyzers" />
+    <CompilerVisibleProperty Include="CaravelaLicense" />
+    <CompilerVisibleProperty Include="CaravelaLicenseSources" />
+    <CompilerVisibleProperty Include="CaravelaFirstRunLicenseActivatorEnabled" />
   </ItemGroup>
 </Project>

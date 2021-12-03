@@ -4,12 +4,12 @@
 
 // <Caravela /> This code is used by Try.Caravela.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using PostSharp.Backstage.Extensibility;
 
 namespace Caravela.Compiler
 {
@@ -19,8 +19,15 @@ namespace Caravela.Compiler
             Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
             ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
+            var services = new ServiceCollection();
+
+            // TODO: Configure for Try.Caravela
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services.GetServiceProvider());
+
             var diagnostics = DiagnosticBag.GetInstance();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, CancellationToken.None);
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
     }

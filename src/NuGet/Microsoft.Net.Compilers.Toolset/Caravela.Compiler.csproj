@@ -64,8 +64,10 @@
       <!-- <Caravela> -->
       <_File Include="$(MSBuildProjectDirectory)\buildTransitive\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildTransitive" />
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
-      <_File Include="@(CaravelaCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
-      <_File Include="@(CaravelaCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+      <_File Include="@(CommonCaravelaCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
+      <_File Include="@(DesktopCaravelaCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
+      <_File Include="@(CommonCaravelaCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+      <_File Include="@(CoreClrCaravelaCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
       <!-- </Caravela> -->
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
