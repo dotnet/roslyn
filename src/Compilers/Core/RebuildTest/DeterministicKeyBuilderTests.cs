@@ -564,7 +564,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var expected = $@"
 {{
   ""name"": ""mscorlib"",
-  ""version"": ""4.0.0.0"",
+  ""version"": {{
+    ""major"": 4,
+    ""minor"": 0,
+    ""build"": 0,
+    ""revision"": 0
+  }},
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
   ""secondaryModules"": [],
@@ -589,7 +594,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var expected = $@"
 {{
   ""name"": ""mscorlib"",
-  ""version"": ""4.0.0.0"",
+  ""version"": {{
+    ""major"": 4,
+    ""minor"": 0,
+    ""build"": 0,
+    ""revision"": 0
+  }},
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
   ""secondaryModules"": [],
@@ -618,7 +628,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var expected = $@"
 {{
   ""name"": ""mscorlib"",
-  ""version"": ""4.0.0.0"",
+  ""version"": {{
+    ""major"": 4,
+    ""minor"": 0,
+    ""build"": 0,
+    ""revision"": 0
+  }},
   ""publicKey"": ""0000000040000000"",
   ""mvid"": ""{mvid}"",
   ""secondaryModules"": [],
@@ -642,7 +657,12 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var expected = @"
 {
   ""name"": ""MultiModule"",
-  ""version"": ""0.0.0.0"",
+  ""version"": {
+    ""major"": 0,
+    ""minor"": 0,
+    ""build"": 0,
+    ""revision"": 0
+  },
   ""publicKey"": """",
   ""mvid"": ""0f07ef6c-4b63-421d-870e-1358db815764"",
   ""secondaryModules"": [

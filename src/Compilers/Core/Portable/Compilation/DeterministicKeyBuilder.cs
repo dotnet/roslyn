@@ -73,11 +73,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value)
+        protected static void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value)
         {
             var builder = PooledStringBuilder.GetInstance();
             EncodeByteArrayValue(value, builder.Builder);
             writer.Write(name, builder.ToStringAndFree());
+        }
+
+        protected static void WriteVersion(JsonWriter writer, string key, Version version)
+        {
+            writer.WriteKey(key);
+            writer.WriteObjectStart();
+            writer.Write("major", version.Major);
+            writer.Write("minor", version.Minor);
+            writer.Write("build", version.Build);
+            writer.Write("revision", version.Revision);
+            writer.WriteObjectEnd();
         }
 
         protected void WriteType(JsonWriter writer, string key, Type? type)
@@ -320,7 +331,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         var assemblyDef = peReader.GetAssemblyDefinition();
                         writer.Write("name", peReader.GetString(assemblyDef.Name));
-                        writer.Write("version", assemblyDef.Version.ToString());
+                        WriteVersion(writer, "version", assemblyDef.Version);
                         WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
                     }
                     else
