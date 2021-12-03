@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
             // <digit> ::= 0-9
 
             matcher = default;
-            var sb = new StringBuilder();
+            using var _0 = PooledStringBuilder.GetInstance(out var sb);
             sb.Append('^');
 
             // EditorConfig matching depends on the whether or not there are
@@ -52,10 +52,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
             }
 
             var lexer = new Lexer(headerText);
-            var numberRangePairs = ArrayBuilder<(int minValue, int maxValue)>.GetInstance();
+            using var _1 = ArrayBuilder<(int minValue, int maxValue)>.GetInstance(out var numberRangePairs);
             if (!TryCompilePathList(ref lexer, sb, parsingChoice: false, numberRangePairs))
             {
-                numberRangePairs.Free();
                 return false;
             }
 
