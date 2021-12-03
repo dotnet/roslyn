@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         private static readonly char[] s_trimChars = { ' ', '\n', '\r' };
 
+        public static EmitOptions EmitOptions { get; } = new();
         public static SourceHashAlgorithm HashAlgorithm { get; } = SourceHashAlgorithm.Sha256;
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void EmitOptionsDefault()
         {
-            var obj = GetEmitOptionsValue(EmitOptions.Default);
+            var obj = GetEmitOptionsValue(EmitOptions);
             AssertJson(@"
 {
   ""emitMetadataOnly"": false,
@@ -519,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(3, 4)]
         public void EmitOptionsSubsystemVersion(int major, int minor)
         {
-            var emitOptions = EmitOptions.Default.WithSubsystemVersion(SubsystemVersion.Create(major, minor));
+            var emitOptions = EmitOptions.WithSubsystemVersion(SubsystemVersion.Create(major, minor));
             var obj = GetEmitOptionsValue(emitOptions);
             var expected = @$"
 ""subsystemVersion"": {{
@@ -532,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void EmitOptionsPdbFilePathRespectsOptions()
         {
-            var emitOptions = EmitOptions.Default.WithPdbFilePath(@"c:\temp\util.pdb");
+            var emitOptions = EmitOptions.WithPdbFilePath(@"c:\temp\util.pdb");
             var obj = GetEmitOptionsValue(emitOptions, options: DeterministicKeyOptions.IgnorePaths);
             Assert.Equal(@"util.pdb", obj.Value<string>("pdbFilePath"));
         }
@@ -549,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
                 _ => throw new InvalidOperationException(),
             };
-            var emitOptions = EmitOptions.Default.WithPdbFilePath(filePath);
+            var emitOptions = EmitOptions.WithPdbFilePath(filePath);
             var obj = GetEmitOptionsValue(emitOptions, pathMap);
             Assert.Equal(@"c:\src\util.pdb", obj.Value<string>("pdbFilePath"));
         }

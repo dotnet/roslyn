@@ -26,8 +26,8 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
-  # TOOD: file bug before merge
-  "Roslyn.VisualStudio.DiagnosticsWindow"
+  # TOOD: file XLF additional files bug before merge
+  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key"
 )
 
 function Run-Build([string]$rootDir, [string]$logFileName) {
