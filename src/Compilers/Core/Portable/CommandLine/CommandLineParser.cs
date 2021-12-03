@@ -1237,83 +1237,68 @@ namespace Microsoft.CodeAnalysis
 
             IEnumerator<string>? enumerator = null;
             bool yielded = false;
-            try
+            // NOTE: Directory.EnumerateFiles(...) surprisingly treats pattern "." the 
+            //       same way as "*"; as we don't expect anything to be found by this 
+            //       pattern, let's just not search in this case
+            pattern = pattern.Trim(s_searchPatternTrimChars);
+            bool singleDotPattern = string.Equals(pattern, ".", StringComparison.Ordinal);
+
+            if (!singleDotPattern)
             {
-                // NOTE: Directory.EnumerateFiles(...) surprisingly treats pattern "." the 
-                //       same way as "*"; as we don't expect anything to be found by this 
-                //       pattern, let's just not search in this case
-                pattern = pattern.Trim(s_searchPatternTrimChars);
-                bool singleDotPattern = string.Equals(pattern, ".", StringComparison.Ordinal);
-
-                if (!singleDotPattern)
+                while (true)
                 {
-                    while (true)
+                    string? resolvedPath = null;
+                    try
                     {
-                        string? resolvedPath = null;
-                        try
+                        if (enumerator == null)
                         {
-                            if (enumerator == null)
-                            {
-                                enumerator = EnumerateFiles(resolvedDirectoryPath, pattern, searchOption).GetEnumerator();
-                            }
-
-                            if (!enumerator.MoveNext())
-                            {
-                                break;
-                            }
-
-                            resolvedPath = enumerator.Current;
-                        }
-                        catch
-                        {
-                            resolvedPath = null;
+                            enumerator = EnumerateFiles(resolvedDirectoryPath, pattern, searchOption).GetEnumerator();
                         }
 
-                        if (resolvedPath != null)
+                        if (!enumerator.MoveNext())
                         {
-                            // just in case EnumerateFiles returned a relative path
-                            resolvedPath = FileUtilities.ResolveRelativePath(resolvedPath, baseDirectory);
-                        }
-
-                        if (resolvedPath == null)
-                        {
-                            errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InvalidInputFileName, path));
                             break;
                         }
 
-                        yielded = true;
-                        yield return resolvedPath;
+                        resolvedPath = enumerator.Current;
                     }
-                }
-            }
-            finally
-            {
-                if (enumerator != null)
-                {
-                    enumerator.Dispose();
-                }
-            }
-            try
-            {
-                // the pattern didn't match any files:
-                if (!yielded)
-                {
-                    if (searchOption == SearchOption.AllDirectories)
+                    catch
                     {
-                        // handling /recurse
-                        GenerateErrorForNoFilesFoundInRecurse(path, errors);
+                        resolvedPath = null;
                     }
-                    else
+
+                    if (resolvedPath != null)
                     {
-                        // handling wildcard in file spec
-                        errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.ERR_FileNotFound, path));
+                        // just in case EnumerateFiles returned a relative path
+                        resolvedPath = FileUtilities.ResolveRelativePath(resolvedPath, baseDirectory);
                     }
+
+                    if (resolvedPath == null)
+                    {
+                        errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InvalidInputFileName, path));
+                        break;
+                    }
+
+                    yielded = true;
+                    yield return resolvedPath;
                 }
             }
-            catch
+
+            // the pattern didn't match any files:
+            if (!yielded)
             {
-                throw;
+                if (searchOption == SearchOption.AllDirectories)
+                {
+                    // handling /recurse
+                    GenerateErrorForNoFilesFoundInRecurse(path, errors);
+                }
+                else
+                {
+                    // handling wildcard in file spec
+                    errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.ERR_FileNotFound, path));
+                }
             }
+
 
         }
 
