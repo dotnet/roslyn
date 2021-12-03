@@ -29,6 +29,7 @@ steps:
     Contents: |
       **
     TargetFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
+  condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
 
 - task: APIScan@2
   displayName: Run APIScan
