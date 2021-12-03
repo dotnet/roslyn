@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
                 builder.WriteCompilation(
                     writer,
                     compilation.Options,
-                    compilation.SyntaxTrees.SelectAsArray(x => SyntaxTreeKey.Create(x)),
+                    compilation.SyntaxTrees.SelectAsArray(static x => SyntaxTreeKey.Create(x)),
                     compilation.References.AsImmutable(),
                     compilation.Assembly.Identity.PublicKey,
                     pathMap,
@@ -348,8 +348,9 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                throw new NotSupportedException();
+                throw ExceptionUtilities.UnexpectedValue(reference);
             }
+
             writer.WriteObjectEnd();
 
             static void writeMetadataReferenceProperties(JsonWriter writer, MetadataReferenceProperties properties)
@@ -505,19 +506,12 @@ namespace Microsoft.CodeAnalysis
 
             writer.WriteKey("features");
             var features = parseOptions.Features;
-            if (features.Count > 0)
+            writer.WriteObjectStart();
+            foreach (var key in features.Keys.OrderBy(StringComparer.Ordinal))
             {
-                writer.WriteObjectStart();
-                foreach (var key in features.Keys.OrderBy(StringComparer.Ordinal))
-                {
-                    writer.Write(key, features[key]);
-                }
-                writer.WriteObjectEnd();
+                writer.Write(key, features[key]);
             }
-            else
-            {
-                writer.WriteNull();
-            }
+            writer.WriteObjectEnd();
 
             // Skipped values
             // - Errors: not sure if we need that in the key file or not

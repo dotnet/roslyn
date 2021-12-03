@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""specifiedKind"": ""Regular"",
           ""documentationMode"": ""Parse"",
           ""language"": ""C#"",
-          ""features"": null,
+          ""features"": {},
           ""languageVersion"": ""Preview"",
           ""specifiedLanguageVersion"": ""Preview"",
           ""preprocessorSymbols"": []
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedKind"": ""Regular"",
       ""documentationMode"": ""Parse"",
       ""language"": ""C#"",
-      ""features"": null,
+      ""features"": {{}},
       ""languageVersion"": ""Preview"",
       ""specifiedLanguageVersion"": ""Preview"",
       ""preprocessorSymbols"": []
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedKind"": ""Regular"",
       ""documentationMode"": ""None"",
       ""language"": ""C#"",
-      ""features"": null,
+      ""features"": {},
       ""languageVersion"": ""CSharp9"",
       ""specifiedLanguageVersion"": ""CSharp9"",
       ""preprocessorSymbols"": []

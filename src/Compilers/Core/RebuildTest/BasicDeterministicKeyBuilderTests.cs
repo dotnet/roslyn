@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedKind"": ""Regular"",
       ""documentationMode"": ""None"",
       ""language"": ""Visual Basic"",
-      ""features"": null,
+      ""features"": {},
       ""languageVersion"": ""VisualBasic15"",
       ""specifiedLanguageVersion"": ""VisualBasic15"",
       ""preprocessorSymbols"": {

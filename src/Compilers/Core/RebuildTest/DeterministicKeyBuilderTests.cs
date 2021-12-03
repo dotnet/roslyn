@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var obj = GetParseOptionsValue(parseOptions);
             Assert.Equal(sourceCodeKind.ToString(), obj.Value<string>("kind"));
             Assert.Equal(documentationMode.ToString(), obj.Value<string>("documentationMode"));
-            Assert.Null(obj.Value<JObject>("features"));
+            Assert.Empty(obj.Value<JObject>("features")!.Properties());
         }
 
         [Fact]
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var parseOptions = GetParseOptions();
 
-            assert(null);
+            assert("{}");
             assert(@"
 {
   ""key"": ""value""
