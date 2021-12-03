@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 {
                     case '*':
                         {
-                            var nextPos = Position + 1;
-                            if (nextPos < _headerText.Length &&
-                                _headerText[nextPos] == '*')
+                            if (TryPeekNext(out var tokenKind) &&
+                                tokenKind == TokenKind.Star)
                             {
                                 Position += 2;
                                 return TokenKind.StarStar;
