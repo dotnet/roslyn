@@ -4808,13 +4808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
-                                var handlerPlaceholders = operand switch
-                                {
-                                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
-                                    BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
-                                    _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-                                };
-
+                                var handlerPlaceholders = operand.GetInterpolatedStringHandlerData().ArgumentPlaceholders;
                                 if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);

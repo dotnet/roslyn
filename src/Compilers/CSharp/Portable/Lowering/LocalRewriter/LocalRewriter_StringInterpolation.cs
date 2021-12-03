@@ -365,12 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: var operand })
                     {
-                        var data = operand switch
-                        {
-                            BoundInterpolatedString { InterpolationData: { } d } => d,
-                            BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
-                            _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-                        };
+                        var data = operand.GetInterpolatedStringHandlerData();
                         Debug.Assert(((BoundObjectCreationExpression)data.Construction).Arguments.All(
                             a => a is BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter }
                                       or not BoundInterpolatedStringArgumentPlaceholder));

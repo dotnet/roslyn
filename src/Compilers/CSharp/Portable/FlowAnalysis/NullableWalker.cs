@@ -5356,6 +5356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parametersOpt.IsDefault && parametersOpt.Any(p => !p.NotNullIfParameterNotNull.IsEmpty);
             var notNullParametersBuilder = parameterHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
+            var conversionResultsBuilder = ArrayBuilder<VisitResult>.GetInstance(results.Length);
             if (!parametersOpt.IsDefault)
             {
                 // Visit conversions, inbound assignments including pre-conditions
@@ -5405,6 +5406,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterType,
                         parameterAnnotations,
                         results[i],
+                        conversionResultsBuilder,
+                        i,
                         invokedAsExtensionMethod && i == 0);
 
                     _disableDiagnostics = previousDisableDiagnostics;
@@ -5420,6 +5423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            conversionResultsBuilder.Free();
 
             if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
             {
@@ -5590,59 +5595,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var (parameter, _, parameterAnnotations, _) = GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
 
                 BoundExpression argument = arguments[i];
-                InterpolatedStringHandlerData? possibleInterpolationData = argument switch
-                {
-                    BoundInterpolatedString { InterpolationData: { } data } => data,
-                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data,
-                    _ => null
-                };
-
-                bool addedPlaceholders = false;
-                if (possibleInterpolationData is { } interpolationData && interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
-                {
-                    foreach (var placeholder in interpolationData.ArgumentPlaceholders)
-                    {
-                        switch (placeholder.ArgumentIndex)
-                        {
-                            case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
-                            case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
-                            // We presume that all instance parameters were dereferenced by calling the instance method this handler was passed to. This isn't strictly
-                            // true: the handler constructor will be run before the receiver is dereferenced. However, if the dereference isn't safe, that will be a
-                            // much better error to report than a mismatched argument nullability error.
-                            case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                                break;
-                            default:
-                                if (resultsBuilder.Count > placeholder.ArgumentIndex)
-                                {
-                                    EnsurePlaceholdersToResultMap();
-                                    // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
-                                    // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
-                                    // us to miss real warnings.
-                                    _resultForPlaceholdersOpt.Add(placeholder, (Replacement: null, resultsBuilder[placeholder.ArgumentIndex].VisitResult));
-                                    addedPlaceholders = true;
-                                }
-                                break;
-                        }
-                    }
-                }
 
                 // we disable nullable warnings on default arguments
                 _disableDiagnostics = defaultArguments[i] || previousDisableDiagnostics;
                 resultsBuilder.Add(VisitArgumentEvaluate(argument, GetRefKind(refKindsOpt, i), parameterAnnotations));
                 visitedParameters.Add(parameter);
-
-                if (addedPlaceholders)
-                {
-                    Debug.Assert(possibleInterpolationData.HasValue);
-                    Debug.Assert(_resultForPlaceholdersOpt != null);
-                    foreach (var placeholder in possibleInterpolationData.GetValueOrDefault().ArgumentPlaceholders)
-                    {
-                        if (placeholder.ArgumentIndex >= 0)
-                        {
-                            _resultForPlaceholdersOpt.Remove(placeholder);
-                        }
-                    }
-                }
             }
             _disableDiagnostics = previousDisableDiagnostics;
 
@@ -5714,9 +5671,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations parameterType,
             FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
+            ArrayBuilder<VisitResult>? conversionResultsBuilder,
+            int argumentIndex,
             bool extensionMethodThisArgument)
         {
             Debug.Assert(!this.IsConditionalState);
+            Debug.Assert(conversionResultsBuilder == null || conversionResultsBuilder.Count == argumentIndex);
             // Note: we allow for some variance in `in` and `out` cases. Unlike in binding, we're not
             // limited by CLR constraints.
 
@@ -5750,7 +5710,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             assignmentKind: AssignmentKind.Argument,
                             parameterOpt: parameter,
                             extensionMethodThisArgument: extensionMethodThisArgument,
-                            stateForLambda: result.StateForLambda);
+                            stateForLambda: result.StateForLambda,
+                            interpolatedStringArgumentInformation: conversionResultsBuilder == null ? null : (conversionResultsBuilder, argumentIndex));
 
                         // If the parameter has annotations, we perform an additional check for nullable value types
                         if (CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax.Location))
@@ -5758,6 +5719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             LearnFromNonNullTest(argumentNoConversion, ref State);
                         }
                         SetResultType(argumentNoConversion, stateAfterConversion, updateAnalyzedNullability: false);
+                        conversionResultsBuilder?.Add(_visitResult);
                     }
                     break;
                 case RefKind.Ref:
@@ -5778,8 +5740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    conversionResultsBuilder?.Add(result.VisitResult);
                     break;
                 case RefKind.Out:
+                    conversionResultsBuilder?.Add(result.VisitResult);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
@@ -6981,8 +6945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the conversion node for passing to <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, Optional{LocalState}, bool, Location)"/>,
-        /// if one should be passed.
+        /// Gets the conversion node for passing to VisitConversion, if one should be passed.
         /// </summary>
         private static BoundConversion? GetConversionIfApplicable(BoundExpression? conversionOpt, BoundExpression convertedNode)
         {
@@ -7029,10 +6992,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
-            Location? diagnosticLocationOpt = null)
+            Location? diagnosticLocationOpt = null,
+            (ArrayBuilder<VisitResult> PreviousArgumentConverionResults, int ArgumentIndex)? interpolatedStringArgumentInformation = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(conversionOperand != null);
+            Debug.Assert(interpolatedStringArgumentInformation is not { } info || info.PreviousArgumentConverionResults.Count == info.ArgumentIndex);
 
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
@@ -7104,7 +7069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.InterpolatedStringHandler:
-                    // https://github.com/dotnet/roslyn/issues/54583 Handle
+                    visitInterpolatedStringHandlerConstructor();
                     resultState = NullableFlowState.NotNull;
                     break;
 
@@ -7496,6 +7461,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(conversionOperand.Kind);
+                }
+            }
+
+            void visitInterpolatedStringHandlerConstructor()
+            {
+                var handlerData = conversionOperand.GetInterpolatedStringHandlerData(throwOnMissing: false);
+                if (handlerData.IsDefault)
+                {
+                    return;
+                }
+
+                if (interpolatedStringArgumentInformation is not (ArrayBuilder<VisitResult> previousConversionInfo, int argumentIndex))
+                {
+                    Debug.Assert(handlerData.ArgumentPlaceholders.Single().ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter);
+                    VisitRvalue(handlerData.Construction);
+                    return;
+                }
+
+                bool addedPlaceholders = false;
+                foreach (var placeholder in handlerData.ArgumentPlaceholders)
+                {
+                    switch (placeholder.ArgumentIndex)
+                    {
+                        case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                        case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
+                        // We presume that all instance parameters were dereferenced by calling the instance method this handler was passed to. This isn't strictly
+                        // true: the handler constructor will be run before the receiver is dereferenced. However, if the dereference isn't safe, that will be a
+                        // much better error to report than a mismatched argument nullability error.
+                        case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                            break;
+                        default:
+                            if (previousConversionInfo.Count > placeholder.ArgumentIndex)
+                            {
+                                EnsurePlaceholdersToResultMap();
+                                // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
+                                // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
+                                // us to miss real warnings.
+                                _resultForPlaceholdersOpt.Add(placeholder, (Replacement: null, previousConversionInfo[placeholder.ArgumentIndex]));
+                                addedPlaceholders = true;
+                            }
+                            break;
+                    }
+                }
+
+                VisitRvalue(handlerData.Construction);
+
+                if (addedPlaceholders)
+                {
+                    Debug.Assert(_resultForPlaceholdersOpt != null);
+                    foreach (var placeholder in handlerData.ArgumentPlaceholders)
+                    {
+                        if (placeholder.ArgumentIndex >= 0)
+                        {
+                            _resultForPlaceholdersOpt.Remove(placeholder);
+                        }
+                    }
                 }
             }
         }
@@ -8270,7 +8291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
                             parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
-                            extensionMethodThisArgument: false);
+                            conversionResultsBuilder: null, argumentIndex: i, extensionMethodThisArgument: false);
                     }
                 }
 
@@ -9862,6 +9883,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.TypeWithAnnotations,
                 GetParameterAnnotations(parameter),
                 new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations(compilation)), stateForLambda: default),
+                conversionResultsBuilder: null,
+                argumentIndex: 0,
                 extensionMethodThisArgument: true);
         }
 
@@ -9902,12 +9925,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        // https://github.com/dotnet/roslyn/issues/54583
-        // Better handle the constructor propagation
-        //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-        //{
-        //}
-
         public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
             // This is only involved with unbound lambdas or when visiting the source of a converted tuple literal
@@ -9921,6 +9938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitStringInsert(node);
             SetUnknownResultNullability(node);
             return result;
+        }
+
+        protected override void VisitInterpolatedStringHandlerConstructor(BoundExpression? constructor)
+        {
+            // We skip visiting the constructor at this stage. We will visit it manually when VisitConversion is
+            // called on the interpolated string handler
+            // We skip visiting the constructor at this stage. We will visit it manually when VisitConversion is
+            // called on the interpolated string handler
         }
 
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
