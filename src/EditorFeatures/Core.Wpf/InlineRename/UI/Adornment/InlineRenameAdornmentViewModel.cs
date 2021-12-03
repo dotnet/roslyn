@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             set => IsCollapsed = !value;
         }
 
-        public bool IsRenameOverloadsEditable => true;
+        public bool IsRenameOverloadsEditable => !_session.ForceRenameOverloads;;
 
         public void Submit()
         {
