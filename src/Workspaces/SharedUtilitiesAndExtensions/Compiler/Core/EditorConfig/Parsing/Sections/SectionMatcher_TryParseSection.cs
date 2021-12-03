@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                         // This is ambiguous between {num..num} and {item1,item2}
                         // We need to look ahead to disambiguate. Looking for {num..num}
                         // is easier because it can't be recursive.
-                        var rangeOpt = TryParseNumberRange(ref lexer);
-                        if (rangeOpt is null)
+                        var numberRange = TryParseNumberRange(ref lexer);
+                        if (numberRange is null)
                         {
                             // Not a number range. Try a choice expression
                             if (!TryCompileChoice(ref lexer, sb, numberRangePairs))
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                         }
                         else
                         {
-                            var (numStart, numEnd) = rangeOpt.GetValueOrDefault();
+                            var (numStart, numEnd) = numberRange.Value;
                             if (int.TryParse(numStart, out var intStart) && int.TryParse(numEnd, out var intEnd))
                             {
                                 var pair = intStart < intEnd ? (intStart, intEnd) : (intEnd, intStart);
