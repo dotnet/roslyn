@@ -1285,6 +1285,7 @@ namespace Microsoft.CodeAnalysis
                         yield return resolvedPath;
                     }
                 }
+            }
             finally
             {
                 if (enumerator != null)
