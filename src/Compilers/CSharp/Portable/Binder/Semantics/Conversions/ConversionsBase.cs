@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (sourceExpression.GetFunctionType() is { } sourceFunctionType)
             {
-                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo))
+                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo) &&
+                    sourceFunctionType.GetInternalDelegateType() is { })
                 {
                     return Conversion.FunctionType;
                 }
