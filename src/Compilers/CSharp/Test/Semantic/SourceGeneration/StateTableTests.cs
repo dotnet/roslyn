@@ -298,9 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public void Driver_Table_Compacts_State_Tables_And_Drops_Steps_When_Made_Immutable()
         {
             var nodeBuilder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, true);
-            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
-            nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed, TimeSpan.Zero, default, EntryState.Removed);
-            nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified, TimeSpan.Zero, default, EntryState.Modified);
+            var emptyInputSteps = ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>.Empty;
+            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, emptyInputSteps, EntryState.Added);
+            nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed, TimeSpan.Zero, emptyInputSteps, EntryState.Removed);
+            nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified, TimeSpan.Zero, emptyInputSteps, EntryState.Modified);
 
             var newTable = nodeBuilder.ToImmutableAndFree();
 

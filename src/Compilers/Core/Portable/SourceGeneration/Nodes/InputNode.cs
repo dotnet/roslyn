@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis
 
             var builder = graphState.CreateTableBuilder(previousTable, _name);
 
+            // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
+            var noInputStepsStepInfo = builder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
+
             // for each item in the previous table, check if its still in the new items
             int itemIndex = 0;
             foreach (var (oldItem, _, _, _) in previousTable)
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                 if (itemsSet.Remove(oldItem))
                 {
                     // we're iterating the table, so know that it has entries
-                    var usedCache = builder.TryUseCachedEntries(elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty);
+                    var usedCache = builder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
                     Debug.Assert(usedCache);
                 }
                 else if (inputItems.Length == previousTable.Count)
@@ -68,13 +71,13 @@ namespace Microsoft.CodeAnalysis
                     // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                     // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                     // but will perform an extra comparison that is omitted in the pure 'added' case.
-                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, EntryState.Modified);
+                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
                     Debug.Assert(modified);
                     itemsSet.Remove(inputItems[itemIndex]);
                 }
                 else
                 {
-                    var removed = builder.TryRemoveEntries(elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty);
+                    var removed = builder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
                     Debug.Assert(removed);
                 }
                 itemIndex++;
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             // any remaining new items are added
             foreach (var newItem in itemsSet)
             {
-                builder.AddEntry(newItem, EntryState.Added, elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, EntryState.Added);
+                builder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
             }
 
             return builder.ToImmutableAndFree();

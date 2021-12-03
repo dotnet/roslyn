@@ -69,14 +69,16 @@ namespace Microsoft.CodeAnalysis
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
+                // We always have no inputs steps into a SyntaxInputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
+                var noInputStepsStepInfo = _filterTable.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    _filterTable.TryRemoveEntries(TimeSpan.Zero, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, out ImmutableArray<SyntaxNode> removedNodes);
+                    _filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes);
 
                     for (int i = 0; i < removedNodes.Length; i++)
                     {
-                        _transformTable.TryRemoveEntries(TimeSpan.Zero, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty);
+                        _transformTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo);
                     }
 
                 }
@@ -85,11 +87,11 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(model is object);
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
-                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, out ImmutableArray<SyntaxNode> nodes))
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> nodes))
                     {
                         var stopwatch = SharedStopwatch.StartNew();
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, state);
+                        _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
                     }
 
                     // now, using the obtained syntax nodes, run the transform
@@ -99,9 +101,9 @@ namespace Microsoft.CodeAnalysis
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, state))
+                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
                         {
-                            _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty, EntryState.Added);
+                            _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }
                     }
                 }
