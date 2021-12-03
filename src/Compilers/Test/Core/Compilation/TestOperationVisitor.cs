@@ -997,8 +997,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetInConversion(operation));
                 Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetOutConversion(operation));
-                var inConversionInteranl = CSharp.CSharpExtensions.GetInConversion(operation);
-                var outConversionInteranl = CSharp.CSharpExtensions.GetOutConversion(operation);
+                var inConversionInternal = CSharp.CSharpExtensions.GetInConversion(operation);
+                var outConversionInternal = CSharp.CSharpExtensions.GetOutConversion(operation);
             }
             else
             {

@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IThreadingContext>(),
                     GetBraceMatchingService(workspace),
-                    workspace.GetService<IForegroundNotificationService>(),
                     AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();

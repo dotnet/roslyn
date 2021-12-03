@@ -235,7 +235,7 @@
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
   <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</value>
     <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
   </data>
   <data name="Deconstruct_variable_declaration" xml:space="preserve">
@@ -304,5 +304,14 @@
   </data>
   <data name="Remove_unnessary_discard" xml:space="preserve">
     <value>Remove unnecessary discard</value>
+  </data>
+  <data name="Embedded_statements_must_be_on_their_own_line" xml:space="preserve">
+    <value>Embedded statements must be on their own line</value>
+  </data>
+  <data name="Consecutive_braces_must_not_have_a_blank_between_them" xml:space="preserve">
+    <value>Consecutive braces must not have blank line between them</value>
+  </data>
+  <data name="Blank_line_not_allowed_after_constructor_initializer_colon" xml:space="preserve">
+    <value>Blank line not allowed after constructor initializer colon</value>
   </data>
 </root>

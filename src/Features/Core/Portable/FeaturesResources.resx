@@ -363,8 +363,8 @@
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>
-  <data name="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing visibility of a constructor will prevent the debug session from continuing.</value>
+  <data name="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing visibility of {0} will prevent the debug session from continuing.</value>
   </data>
   <data name="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</value>
@@ -407,6 +407,9 @@
   </data>
   <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into a generic type will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
@@ -496,7 +499,7 @@
     <value>Moving '{0}' will prevent the debug session from continuing.</value>
   </data>
   <data name="Deleting_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting '{0}' will prevent the debug session from continuing.</value>
+    <value>Deleting {0} will prevent the debug session from continuing.</value>
   </data>
   <data name="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Deleting '{0}' around an active statement will prevent the debug session from continuing.</value>
@@ -535,9 +538,6 @@
   <data name="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</value>
   </data>
-  <data name="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</value>
-  </data>
   <data name="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
   </data>
@@ -572,7 +572,7 @@
     <value>Updating an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</value>
+    <value>Removing {0} that contains an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_a_new_file_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding a new file will prevent the debug session from continuing.</value>
@@ -656,13 +656,13 @@ Do you want to continue?</value>
     <value>Available</value>
   </data>
   <data name="Not_Available" xml:space="preserve">
-    <value>Not Available</value>
+    <value>Not Available ⚠</value>
   </data>
   <data name="_0_1" xml:space="preserve">
     <value>    {0} - {1}</value>
   </data>
-  <data name="You_can_use_the_navigation_bar_to_switch_context" xml:space="preserve">
-    <value>You can use the navigation bar to switch context.</value>
+  <data name="You_can_use_the_navigation_bar_to_switch_contexts" xml:space="preserve">
+    <value>You can use the navigation bar to switch contexts.</value>
   </data>
   <data name="in_Source" xml:space="preserve">
     <value>in Source</value>
@@ -790,6 +790,9 @@ Do you want to continue?</value>
   </data>
   <data name="constructor" xml:space="preserve">
     <value>constructor</value>
+  </data>
+  <data name="static_constructor" xml:space="preserve">
+    <value>static constructor</value>
   </data>
   <data name="auto_property" xml:space="preserve">
     <value>auto-property</value>
@@ -1888,7 +1891,8 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
+    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</comment>
   </data>
   <data name="_10ths_of_a_second_non_zero" xml:space="preserve">
     <value>10ths of a second (non-zero)</value>
@@ -2787,8 +2791,29 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
     <value>Pull member(s) up to new base class...</value>
   </data>
+  <data name="Operators" xml:space="preserve">
+    <value>Operators</value>
+  </data>
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="Apply_file_header_preferences" xml:space="preserve">
+    <value>Apply file header preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object/collection initialization preferences</value>
+  </data>
+  <data name="Remove_unnecessary_casts" xml:space="preserve">
+    <value>Remove unnecessary casts</value>
+  </data>
+  <data name="Remove_unused_variables" xml:space="preserve">
+    <value>Remove unused variables</value>
+  </data>
+  <data name="Sort_accessibility_modifiers" xml:space="preserve">
+    <value>Sort accessibility modifiers</value>
+  </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
   </data>
   <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
     <value>Error creating instance of CodeFixProvider</value>
@@ -2805,7 +2830,41 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_dash_1" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
+  <data name="member_kind_and_name" xml:space="preserve">
+    <value>{0} '{1}'</value>
+    <comment>e.g. "method 'M'"</comment>
+  </data>
+  <data name="code" xml:space="preserve">
+    <value>code</value>
+  </data>
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
+  </data>
+  <data name="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</value>
+  </data>
+  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding a positional parameter to a record will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Deleting a positional parameter from a record will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
+    <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
+  </data>
+  <data name="Convert_to_record_struct" xml:space="preserve">
+    <value>Convert to record struct</value>
+  </data>
+  <data name="Edit_and_continue_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Edit and continue is not supported by the runtime.</value>
+  </data>
+  <data name="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Making a method an iterator will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Making_a_method_async_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Making a method 'async' will prevent the debug session from continuing.</value>
   </data>
 </root>

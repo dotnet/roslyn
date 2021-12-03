@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpAddObsoleteAttributeCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddObsoleteAttribute), Shared]
     internal class CSharpAddObsoleteAttributeCodeFixProvider
         : AbstractAddObsoleteAttributeCodeFixProvider
     {

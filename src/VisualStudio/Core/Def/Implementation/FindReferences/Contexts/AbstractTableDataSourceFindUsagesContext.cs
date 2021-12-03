@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -85,14 +85,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #endregion
 
+            public sealed override CancellationToken CancellationToken { get; }
+
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 CancellationToken cancellationToken)
             {
                 presenter.AssertIsForeground();
+
+                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+                // caller can cancel our work or we can cancel the work.
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                CancellationToken = _cancellationTokenSource.Token;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -218,10 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-                _cancellationTokenSource.Cancel();
-            }
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+                // Cancel any in flight find work that is going on.
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            }
 
             public void Clear()
             {
@@ -304,23 +317,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
-            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-                var projectName = document.Project.Name;
-                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, projectName, sourceText);
-            }
-
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
@@ -328,8 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var sourceText = await documentSpan.Document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
@@ -339,12 +334,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
-                return new DocumentSpanEntry(
+                return DocumentSpanEntry.TryCreate(
                     this,
                     definitionBucket,
+                    documentSpan,
                     spanKind,
-                    projectName,
-                    guid,
                     mappedDocumentSpan.Value,
                     excerptResult,
                     lineText,
@@ -382,13 +376,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 

@@ -42,6 +42,12 @@
                     
                     <CheckBox x:Name="Use_64bit_analysis_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
+
+                    <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
+
+                    <CheckBox x:Name="Enable_file_logging_for_diagnostics"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -132,6 +138,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
 
@@ -252,6 +260,13 @@
                                   x:Name="ShowHintsForImplicitObjectCreation"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_implicit_object_creation}" />
                     </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin_experimental}">
+                <StackPanel>
+                    <CheckBox x:Uid="ShowInheritanceMargin"
+                              x:Name="ShowInheritanceMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

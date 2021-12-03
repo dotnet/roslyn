@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : CompilingTestBase
+    public class LambdaTests : CSharpTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -568,10 +570,10 @@ class Program
 ";
             var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var csProject = CreateCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
-
-            var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
-            Assert.Equal(1, diagnostics.Count());
-            Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
+            csProject.VerifyDiagnostics(
+                // (6,15): error CS0721: 'GC': static types cannot be used as parameters
+                //         M.F = x=>{};
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "x").WithArguments("System.GC").WithLocation(6, 15));
         }
 
         [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
@@ -592,11 +594,13 @@ class Program
 ";
 
             var csProject = CreateCompilation(csSource);
-
-            var emitResult = csProject.Emit(Stream.Null);
-            Assert.False(emitResult.Success);
-            Assert.True(emitResult.Diagnostics.Any());
-            // TODO: check error code
+            csProject.VerifyEmitDiagnostics(
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "The parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
+                // (9,35): error CS7014: Attributes are not valid in this context.
+                //         Action<int> a = delegate ([ObsoleteAttribute(message)] int x) { };
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
         }
 
         [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
@@ -654,10 +658,12 @@ class Program
 }";
 
             CreateCompilation(csSource).VerifyDiagnostics(
-            // (5,37): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, @"() => x").WithArguments("lambda expression", "string"),
-            // (8,55): error CS0103: The name 'nulF' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, @"nulF").WithArguments("nulF"));
+                // (5,37): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                //     public Program(string x) : this(() => x) { }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => x").WithArguments("lambda expression", "string").WithLocation(5, 37),
+                // (8,55): error CS0103: The name 'nulF' does not exist in the current context
+                //         ((Action<string>)(f => Console.WriteLine(f)))(nulF);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nulF").WithArguments("nulF").WithLocation(8, 55));
         }
 
         [WorkItem(541725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541725")]
@@ -3479,6 +3485,877 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaAttributes_01()
+        {
+            var sourceA =
+@"using System;
+class A : Attribute { }
+class B : Attribute { }
+partial class Program
+{
+    static Delegate D1() => (Action)([A] () => { });
+    static Delegate D2(int x) => (Func<int, int, int>)((int y, [A][B] int z) => x);
+    static Delegate D3() => (Action<int, object>)(([A]_, y) => { });
+    Delegate D4() => (Func<int>)([return: A][B] () => GetHashCode());
+}";
+            var sourceB =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+partial class Program
+{
+    static string GetAttributeString(object a)
+    {
+        return a.GetType().FullName;
+    }
+    static void Report(Delegate d)
+    {
+        var m = d.Method;
+        var forMethod = ToString(""method"", m.GetCustomAttributes(inherit: false));
+        var forReturn = ToString(""return"", m.ReturnTypeCustomAttributes.GetCustomAttributes(inherit: false));
+        var forParameters = ToString(""parameter"", m.GetParameters().SelectMany(p => p.GetCustomAttributes(inherit: false)));
+        Console.WriteLine(""{0}:{1}{2}{3}"", m.Name, forMethod, forReturn, forParameters);
+    }
+    static string ToString(string target, IEnumerable<object> attributes)
+    {
+        var builder = new StringBuilder();
+        foreach (var attribute in attributes)
+            builder.Append($"" [{target}: {attribute}]"");
+        return builder.ToString();
+    }
+    static void Main()
+    {
+        Report(D1());
+        Report(D2(0));
+        Report(D3());
+        Report(new Program().D4());
+    }
+}";
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>();
+            var pairs = exprs.Select(e => (e, model.GetSymbolInfo(e).Symbol)).ToArray();
+            var expectedAttributes = new[]
+            {
+                "[A] () => { }: [method: A]",
+                "(int y, [A][B] int z) => x: [parameter: A] [parameter: B]",
+                "([A]_, y) => { }: [parameter: A]",
+                "[return: A][B] () => GetHashCode(): [method: B] [return: A]",
+            };
+            AssertEx.Equal(expectedAttributes, pairs.Select(p => getAttributesInternal(p.Item1, p.Item2)));
+            AssertEx.Equal(expectedAttributes, pairs.Select(p => getAttributesPublic(p.Item1, p.Item2)));
+
+            CompileAndVerify(comp, expectedOutput:
+@"<D1>b__0_0: [method: A]
+<D2>b__0: [parameter: A] [parameter: B]
+<D3>b__2_0: [parameter: A]
+<D4>b__3_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
+
+            static string getAttributesInternal(LambdaExpressionSyntax expr, ISymbol symbol)
+            {
+                var method = symbol.GetSymbol<MethodSymbol>();
+                return format(expr, method.GetAttributes(), method.GetReturnTypeAttributes(), method.Parameters.SelectMany(p => p.GetAttributes()));
+            }
+
+            static string getAttributesPublic(LambdaExpressionSyntax expr, ISymbol symbol)
+            {
+                var method = (IMethodSymbol)symbol;
+                return format(expr, method.GetAttributes(), method.GetReturnTypeAttributes(), method.Parameters.SelectMany(p => p.GetAttributes()));
+            }
+
+            static string format(LambdaExpressionSyntax expr, IEnumerable<object> methodAttributes, IEnumerable<object> returnAttributes, IEnumerable<object> parameterAttributes)
+            {
+                var forMethod = toString("method", methodAttributes);
+                var forReturn = toString("return", returnAttributes);
+                var forParameters = toString("parameter", parameterAttributes);
+                return $"{expr}:{forMethod}{forReturn}{forParameters}";
+            }
+
+            static string toString(string target, IEnumerable<object> attributes)
+            {
+                var builder = new StringBuilder();
+                foreach (var attribute in attributes)
+                    builder.Append($" [{target}: {attribute}]");
+                return builder.ToString();
+            }
+        }
+
+        [Fact]
+        public void LambdaAttributes_02()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute { }
+class BAttribute : Attribute { }
+class C
+{
+    static void Main()
+    {
+        Action<object, object> a;
+        a = [A, B] (x, y) => { };
+        a = ([A] x, [B] y) => { };
+        a = (object x, [A][B] object y) => { };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = [A, B] (x, y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A, B]").WithArguments("lambda attributes").WithLocation(9, 13),
+                // (10,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = ([A] x, [B] y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 14),
+                // (10,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = ([A] x, [B] y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 21),
+                // (11,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = (object x, [A][B] object y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(11, 24),
+                // (11,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = (object x, [A][B] object y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(11, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaAttributes_03()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute { }
+class BAttribute : Attribute { }
+class C
+{
+    static void Main()
+    {
+        Action<object, object> a = delegate (object x, [A][B] object y) { };
+        Func<object, object> f = [A][B] x => x;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,56): error CS7014: Attributes are not valid in this context.
+                //         Action<object, object> a = delegate (object x, [A][B] object y) { };
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(8, 56),
+                // (8,59): error CS7014: Attributes are not valid in this context.
+                //         Action<object, object> a = delegate (object x, [A][B] object y) { };
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59),
+                // (9,34): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
+                //         Func<object, object> f = [A][B] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(9, 34),
+                // (9,37): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
+                //         Func<object, object> f = [A][B] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[B]").WithLocation(9, 37)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void LambdaAttributes_04()
+        {
+            var sourceA =
+@"namespace N1
+{
+    class A1Attribute : System.Attribute { }
+}
+namespace N2
+{
+    class A2Attribute : System.Attribute { }
+}";
+            var sourceB =
+@"using N1;
+using N2;
+class Program
+{
+    static void Main()
+    {
+        System.Action a1 = [A1] () => { };
+        System.Action<object> a2 = ([A2] object obj) => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaAttributes_05()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        System.Action a1 = [A1] () => { };
+        System.Func<object> a2 = [return: A2] () => null;
+        System.Action<object> a3 = ([A3] object obj) => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,29): error CS0246: The type or namespace name 'A1Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action a1 = [A1] () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A1").WithArguments("A1Attribute").WithLocation(5, 29),
+                // (5,29): error CS0246: The type or namespace name 'A1' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action a1 = [A1] () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A1").WithArguments("A1").WithLocation(5, 29),
+                // (6,43): error CS0246: The type or namespace name 'A2Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> a2 = [return: A2] () => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A2").WithArguments("A2Attribute").WithLocation(6, 43),
+                // (6,43): error CS0246: The type or namespace name 'A2' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> a2 = [return: A2] () => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A2").WithArguments("A2").WithLocation(6, 43),
+                // (7,38): error CS0246: The type or namespace name 'A3Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action<object> a3 = ([A3] object obj) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A3").WithArguments("A3Attribute").WithLocation(7, 38),
+                // (7,38): error CS0246: The type or namespace name 'A3' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action<object> a3 = ([A3] object obj) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A3").WithArguments("A3").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void LambdaAttributes_06()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(Action a) { }
+}
+[A([B] () => { })]
+class BAttribute : Attribute
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+        }
+
+        [Fact]
+        public void LambdaAttributes_BadAttributeLocation()
+        {
+            var source =
+@"using System;
+
+[AttributeUsage(AttributeTargets.Property)]
+class PropAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Method)]
+class MethodAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.ReturnValue)]
+class ReturnAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Parameter)]
+class ParamAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+class TypeParamAttribute : Attribute { }
+
+class Program
+{
+    static void Main()
+    {
+        Action<object> a =
+            [Prop] // 1
+            [Return] // 2
+            [Method]
+            [return: Prop] // 3
+            [return: Return]
+            [return: Method] // 4
+            (
+            [Param]
+            [TypeParam] // 5
+            object o) =>
+        {
+        };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (23,14): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //             [Prop] // 1
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(23, 14),
+                // (24,14): error CS0592: Attribute 'Return' is not valid on this declaration type. It is only valid on 'return' declarations.
+                //             [Return] // 2
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Return").WithArguments("Return", "return").WithLocation(24, 14),
+                // (26,22): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //             [return: Prop] // 3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(26, 22),
+                // (28,22): error CS0592: Attribute 'Method' is not valid on this declaration type. It is only valid on 'method' declarations.
+                //             [return: Method] // 4
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Method").WithArguments("Method", "method").WithLocation(28, 22),
+                // (31,14): error CS0592: Attribute 'TypeParam' is not valid on this declaration type. It is only valid on 'type parameter' declarations.
+                //             [TypeParam] // 5
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeParam").WithArguments("TypeParam", "type parameter").WithLocation(31, 14));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var symbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(symbol);
+
+            verifyAttributes(symbol.GetAttributes(), "PropAttribute", "ReturnAttribute", "MethodAttribute");
+            verifyAttributes(symbol.GetReturnTypeAttributes(), "PropAttribute", "ReturnAttribute", "MethodAttribute");
+            verifyAttributes(symbol.Parameters[0].GetAttributes(), "ParamAttribute", "TypeParamAttribute");
+
+            void verifyAttributes(ImmutableArray<AttributeData> attributes, params string[] expectedAttributeNames)
+            {
+                var actualAttributes = attributes.SelectAsArray(a => a.AttributeClass.GetSymbol());
+                var expectedAttributes = expectedAttributeNames.Select(n => comp.GetTypeByMetadataName(n));
+                AssertEx.Equal(expectedAttributes, actualAttributes);
+            }
+        }
+
+        [Fact]
+        public void LambdaAttributes_AttributeSemanticModel()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute { }
+class BAttribute : Attribute { }
+class CAttribute : Attribute { }
+class DAttribute : Attribute { }
+class Program
+{
+    static void Main()
+    {
+        Action a = [A] () => { };
+        Func<object> b = [return: B] () => null;
+        Action<object> c = ([C] object obj) => { };
+        Func<object, object> d = [D] x => x;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,34): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
+                //         Func<object, object> d = [D] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[D]").WithLocation(13, 34));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>();
+            var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
+            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute", "DAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
+            AssertEx.Equal(expectedAttributes, actualAttributes);
+        }
+
+        [Theory]
+        [InlineData("Action a = [A] () => { };")]
+        [InlineData("Func<object> f = [return: A] () => null;")]
+        [InlineData("Action<int> a = ([A] int i) => { };")]
+        public void LambdaAttributes_SpeculativeSemanticModel(string statement)
+        {
+            string source =
+$@"using System;
+class AAttribute : Attribute {{ }}
+class Program
+{{
+    static void Main()
+    {{
+        {statement}
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var a = (IdentifierNameSyntax)tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
+            Assert.Equal("A", a.Identifier.Text);
+            var attrInfo = model.GetSymbolInfo(a);
+            var attrType = comp.GetMember<NamedTypeSymbol>("AAttribute").GetPublicSymbol();
+            var attrCtor = attrType.GetMember(".ctor");
+            Assert.Equal(attrCtor, attrInfo.Symbol);
+
+            // Assert that this is also true for the speculative semantic model
+            var newTree = SyntaxFactory.ParseSyntaxTree(source + " ");
+            var m = newTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
+
+            a = (IdentifierNameSyntax)newTree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
+            Assert.Equal("A", a.Identifier.Text);
+
+            // If we aren't using the right binder here, the compiler crashes going through the binder factory
+            var info = model.GetSymbolInfo(a);
+            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
+            Assert.Equal(attrType, info.Symbol);
+        }
+
+        [Fact]
+        public void LambdaAttributes_DisallowedAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : Attribute { }
+    public class IsUnmanagedAttribute : Attribute { }
+    public class IsByRefLikeAttribute : Attribute { }
+    public class NullableContextAttribute : Attribute { public NullableContextAttribute(byte b) { } }
+}
+class Program
+{
+    static void Main()
+    {
+        Action a =
+            [IsReadOnly] // 1
+            [IsUnmanaged] // 2
+            [IsByRefLike] // 3
+            [Extension] // 4
+            [NullableContext(0)] // 5
+            () => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //             [IsReadOnly] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(15, 14),
+                // (16,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
+                //             [IsUnmanaged] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(16, 14),
+                // (17,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
+                //             [IsByRefLike] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(17, 14),
+                // (18,14): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
+                //             [Extension] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension").WithLocation(18, 14),
+                // (19,14): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                //             [NullableContext(0)] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(19, 14));
+        }
+
+        [Fact]
+        public void LambdaAttributes_DisallowedSecurityAttributes()
+        {
+            var source =
+@"using System;
+using System.Security;
+class Program
+{
+    static void Main()
+    {
+        Action a =
+            [SecurityCritical] // 1
+            [SecuritySafeCriticalAttribute] // 2
+            async () => { }; // 3
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
+                //             [SecurityCritical] // 1
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(8, 14),
+                // (9,14): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
+                //             [SecuritySafeCriticalAttribute] // 2
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(9, 14),
+                // (10,22): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             async () => { }; // 3
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 22));
+        }
+
+        [Fact]
+        public void LambdaAttributes_ObsoleteAttribute()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Report(Action a)
+    {
+        foreach (var attribute in a.Method.GetCustomAttributes(inherit: false))
+            Console.Write(attribute);
+    }
+    static void Main()
+    {
+        Report([Obsolete] () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "System.ObsoleteAttribute");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("System.ObsoleteAttribute", symbol.GetAttributes().Single().ToString());
+        }
+
+        [Fact]
+        public void LambdaParameterAttributes_Conditional()
+        {
+            var source =
+@"using System;
+using System.Diagnostics;
+class Program
+{
+    static void Report(Action a)
+    {
+    }
+    static void Main()
+    {
+        Report([Conditional(""DEBUG"")] static () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0577: The Conditional attribute is not valid on 'lambda expression' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //         Report([Conditional("DEBUG")] static () => { });
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""DEBUG"")").WithArguments("lambda expression").WithLocation(10, 17));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            Assert.Equal(new[] { "DEBUG" }, lambda.GetAppliedConditionalSymbols());
+        }
+
+        [Fact]
+        public void LambdaAttributes_WellKnownAttributes()
+        {
+            var sourceA =
+@"using System;
+using System.Runtime.InteropServices;
+using System.Security;
+class Program
+{
+    static void Main()
+    {
+        Action a1 = [DllImport(""MyModule.dll"")] static () => { };
+        Action a2 = [DynamicSecurityMethod] () => { };
+        Action a3 = [SuppressUnmanagedCodeSecurity] () => { };
+        Func<object> a4 = [return: MarshalAs((short)0)] () => null;
+    }
+}";
+            var sourceB =
+@"namespace System.Security
+{
+    internal class DynamicSecurityMethodAttribute : Attribute { }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                //         Action a1 = [DllImport("MyModule.dll")] static () => { };
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(8, 22));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(4, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Null(lambdas[0].GetDllImportData()); // [DllImport] is ignored if there are errors.
+            Assert.True(lambdas[1].RequiresSecurityObject);
+            Assert.True(lambdas[2].HasDeclarativeSecurity);
+            Assert.Equal(default, lambdas[3].ReturnValueMarshallingInformation.UnmanagedType);
+        }
+
+        [Fact]
+        public void LambdaAttributes_Permissions()
+        {
+            var source =
+@"#pragma warning disable 618
+using System;
+using System.Security.Permissions;
+class Program
+{
+    static void Main()
+    {
+        Action a1 = [PermissionSet(SecurityAction.Deny)] () => { };
+    }
+}";
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            Assert.NotEmpty(lambda.GetSecurityInformation());
+        }
+
+        [Fact]
+        public void LambdaAttributes_NullableAttributes_01()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Func<object> a1 = [return: MaybeNull][return: NotNull] () => null;
+        Func<object, object> a2 = [return: NotNullIfNotNull(""obj"")] (object obj) => obj;
+        Func<bool> a4 = [MemberNotNull(""x"")][MemberNotNullWhen(false, ""y"")][MemberNotNullWhen(true, ""z"")] () => true;
+    }
+}";
+            var comp = CreateCompilation(
+                new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition, NotNullIfNotNullAttributeDefinition, MemberNotNullAttributeDefinition, MemberNotNullWhenAttributeDefinition },
+                parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(3, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull, lambdas[0].ReturnTypeFlowAnalysisAnnotations);
+            Assert.Equal(new[] { "obj" }, lambdas[1].ReturnNotNullIfParameterNotNull);
+            Assert.Equal(new[] { "x" }, lambdas[2].NotNullMembers);
+            Assert.Equal(new[] { "y" }, lambdas[2].NotNullWhenFalseMembers);
+            Assert.Equal(new[] { "z" }, lambdas[2].NotNullWhenTrueMembers);
+        }
+
+        [Fact]
+        public void LambdaAttributes_NullableAttributes_02()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Func<object> a1 = [return: MaybeNull] () => null;
+        Func<object?> a2 = [return: NotNull] () => null;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // https://github.com/dotnet/roslyn/issues/52827: Report WRN_NullReferenceReturn for a2, not for a1.
+            comp.VerifyDiagnostics(
+                // (8,53): warning CS8603: Possible null reference return.
+                //         Func<object> a1 = [return: MaybeNull] () => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 53));
+        }
+
+        [Fact]
+        public void LambdaAttributes_NullableAttributes_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
+        Action<object?> a2 = ([DisallowNull] x) => { x.ToString(); };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // https://github.com/dotnet/roslyn/issues/52827: Report nullability mismatch warning assigning lambda to a2.
+            comp.VerifyDiagnostics(
+                // (8,50): warning CS8602: Dereference of a possibly null reference.
+                //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 50));
+        }
+
+        [WorkItem(55013, "https://github.com/dotnet/roslyn/issues/55013")]
+        [Fact]
+        public void NullableTypeArraySwitchPattern()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    object? field;
+    string Prop => field switch
+    {
+        string?[] a => ""a""
+    };
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,13): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     object? field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 13),
+                // (5,26): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     string Prop => field switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
+        }
+
+        [Fact]
+        public void LambdaAttributes_DoesNotReturn()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Action a1 = [DoesNotReturn] () => { };
+        Action a2 = [DoesNotReturn] () => throw new Exception();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // https://github.com/dotnet/roslyn/issues/52827: Report warning that lambda expression in a1 initializer returns.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(2, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[0].FlowAnalysisAnnotations);
+            Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[1].FlowAnalysisAnnotations);
+        }
+
+        [Fact]
+        public void LambdaAttributes_UnmanagedCallersOnly()
+        {
+            var source =
+@"using System;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        Action a = [UnmanagedCallersOnly] static () => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         Action a = [UnmanagedCallersOnly] static () => { };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
+        }
+
+        [Fact]
+        public void LambdaParameterAttributes_OptionalAndDefaultValueAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            var parameter = (SourceParameterSymbol)lambda.Parameters[0];
+            Assert.True(parameter.HasOptionalAttribute);
+            Assert.False(parameter.HasExplicitDefaultValue);
+            Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LambdaParameterAttributes_WellKnownAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+class Program
+{
+    static void Main()
+    {
+        Action<object> a1 = ([IDispatchConstant] object obj) => { };
+        Action<object> a2 = ([IUnknownConstant] object obj) => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(2, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.True(lambdas[0].Parameters[0].IsIDispatchConstant);
+            Assert.True(lambdas[1].Parameters[0].IsIUnknownConstant);
+        }
+
+        [Fact]
+        public void LambdaParameterAttributes_NullableAttributes_01()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Action<object> a1 = ([AllowNull][MaybeNullWhen(false)] object obj) => { };
+        Action<object, object> a2 = (object x, [NotNullIfNotNull(""x"")] object y) => { };
+    }
+}";
+            var comp = CreateCompilation(
+                new[] { source, AllowNullAttributeDefinition, MaybeNullWhenAttributeDefinition, NotNullIfNotNullAttributeDefinition },
+                parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(2, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.MaybeNullWhenFalse, lambdas[0].Parameters[0].FlowAnalysisAnnotations);
+            Assert.Equal(new[] { "x" }, lambdas[1].Parameters[1].NotNullIfParameterNotNull);
+        }
+
+        [Fact]
+        public void LambdaParameterAttributes_NullableAttributes_02()
+        {
+            var source =
+@"#nullable enable
+using System.Diagnostics.CodeAnalysis;
+delegate bool D(out object? obj);
+class Program
+{
+    static void Main()
+    {
+        D d = ([NotNullWhen(true)] out object? obj) =>
+            {
+                obj = null;
+                return true;
+            };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NotNullWhenAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // https://github.com/dotnet/roslyn/issues/52827: Should report WRN_ParameterConditionallyDisallowsNull.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambda = GetLambdaSymbol(model, expr);
+            Assert.Equal(FlowAnalysisAnnotations.NotNullWhenTrue, lambda.Parameters[0].FlowAnalysisAnnotations);
+        }
+
+        private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)
+        {
+            return model.GetSymbolInfo(syntax).Symbol.GetSymbol<LambdaSymbol>();
         }
     }
 }

@@ -330,16 +330,19 @@ namespace System.Collections.Generic
         internal override Type GetCompletionProviderType()
             => typeof(DeclarationNameCompletionProvider);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
-        public async Task TreatRecordPositionalParameterAsProperty()
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TreatRecordPositionalParameterAsProperty(string record)
         {
-            var markup = @"
+            var markup = $@"
 public class MyClass
-{
-}
+{{
+}}
 
-public record R(MyClass $$
+public {record} R(MyClass $$
 ";
             await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
         }

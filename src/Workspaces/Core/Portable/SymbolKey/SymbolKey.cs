@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis
     /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
     /// </summary>
+    [DataContract]
     internal partial struct SymbolKey
     {
         /// <summary>
@@ -108,6 +110,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const int FormatVersion = 1;
 
+        [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
 
         /// <summary>

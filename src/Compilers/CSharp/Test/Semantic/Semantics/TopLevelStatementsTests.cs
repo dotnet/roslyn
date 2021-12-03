@@ -8023,8 +8023,9 @@ return default;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                // (1,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, @"System.Console.WriteLine(""Hi!"");").WithLocation(1, 1)
                 );
         }
 
@@ -8035,8 +8036,9 @@ return default;
 
             var comp = CreateCompilation(text, options: TestOptions.ReleaseModule, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                // (1,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, @"System.Console.WriteLine(""Hi!"");").WithLocation(1, 1)
                 );
         }
 
@@ -8685,6 +8687,137 @@ return Task.WhenAll(
                 Assert.Equal(node1.ToString(), node2.ToString());
                 Assert.Equal(node1.ToFullString(), node2.ToFullString());
             }
+        }
+
+        [Fact]
+        public void TopLevelLocalReferencedInClass_IOperation()
+        {
+            var comp = CreateCompilation(@"
+int i = 1;
+class C
+{
+    void M()
+    /*<bind>*/{
+        _ = i;
+    }/*</bind>*/
+}
+", options: TestOptions.ReleaseExe);
+
+            var diagnostics = new[]
+            {
+                // (2,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 5),
+                // (7,13): error CS8801: Cannot use local variable or local function 'i' declared in a top-level statement in this context.
+                //         _ = i;
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "i").WithArguments("i").WithLocation(7, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = i;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: '_ = i')
+        Left: 
+          IDiscardOperation (Symbol: var _) (OperationKind.Discard, Type: var) (Syntax: '_')
+        Right: 
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'i')
+", diagnostics);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = i;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: '_ = i')
+              Left: 
+                IDiscardOperation (Symbol: var _) (OperationKind.Discard, Type: var) (Syntax: '_')
+              Right: 
+                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'i')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+");
+        }
+
+        [Fact]
+        public void TopLevelLocalFunctionReferencedInClass_IOperation()
+        {
+            var comp = CreateCompilation(@"
+_ = """";
+static void M1() {}
+void M2() {}
+class C
+{
+    void M()
+    /*<bind>*/{
+        M1();
+        M2();
+    }/*</bind>*/
+}
+", options: TestOptions.ReleaseExe);
+
+            var diagnostics = new[]
+            {
+                // (3,13): warning CS8321: The local function 'M1' is declared but never used
+                // static void M1() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M1").WithArguments("M1").WithLocation(3, 13),
+                // (4,6): warning CS8321: The local function 'M2' is declared but never used
+                // void M2() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M2").WithArguments("M2").WithLocation(4, 6),
+                // (9,9): error CS8801: Cannot use local variable or local function 'M1' declared in a top-level statement in this context.
+                //         M1();
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "M1").WithArguments("M1").WithLocation(9, 9),
+                // (10,9): error CS8801: Cannot use local variable or local function 'M2' declared in a top-level statement in this context.
+                //         M2();
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "M2").WithArguments("M2").WithLocation(10, 9)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, @"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M1();')
+    Expression: 
+      IInvocationOperation (void M1()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M1()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M2();')
+    Expression: 
+      IInvocationOperation (void M2()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+", diagnostics);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M1();')
+          Expression: 
+            IInvocationOperation (void M1()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M1()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M2();')
+          Expression: 
+            IInvocationOperation (void M2()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+");
         }
     }
 }

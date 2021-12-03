@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Operations;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(RenameTrackingCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
     internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;

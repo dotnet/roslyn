@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -350,7 +349,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
         [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
         public void ArrayInitializationAnonymousTypes()
         {
@@ -395,10 +394,10 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics();
 
-            int analyzed = comp.NullableAnalysisData.Where(pair => pair.Value.RequiredAnalysis).Count();
+            int analyzed = comp.NullableAnalysisData.Data.Where(pair => pair.Value.RequiredAnalysis).Count();
             Assert.Equal(nMethods / 2, analyzed);
         }
 
@@ -424,11 +423,11 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F2");
-            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+            Assert.Equal(1, comp.NullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [Fact]
@@ -453,11 +452,11 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F");
-            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+            Assert.Equal(1, comp.NullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -550,6 +549,73 @@ class Program
                 // (16395,16): warning CS8603: Possible null reference return.
                 //         return value;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "value").WithLocation(16395, 16));
+        }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(IsRelease))]
+        public void NullableAnalysisNestedExpressionsInMethod()
+        {
+            const int nestingLevel = 40;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    C F(int i) => this;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        C c = new C()");
+            for (int i = 0; i < nestingLevel; i++)
+            {
+                builder.AppendLine($"            .F({i})");
+            }
+            builder.AppendLine("            ;");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new(maxRecursionDepth: nestingLevel / 2);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS8078: An expression is too long or complex to compile
+                //         C c = new C()
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(7, 15));
+        }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(IsRelease))]
+        public void NullableAnalysisNestedExpressionsInLocalFunction()
+        {
+            const int nestingLevel = 40;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    C F(int i) => this;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        Local();");
+            builder.AppendLine("        static void Local()");
+            builder.AppendLine("        {");
+            builder.AppendLine("        C c = new C()");
+            for (int i = 0; i < nestingLevel; i++)
+            {
+                builder.AppendLine($"            .F({i})");
+            }
+            builder.AppendLine("            ;");
+            builder.AppendLine("        }");
+            builder.AppendLine("        Local();");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new(maxRecursionDepth: nestingLevel / 2);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS8078: An expression is too long or complex to compile
+                //         C c = new C()
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(10, 15));
         }
     }
 }

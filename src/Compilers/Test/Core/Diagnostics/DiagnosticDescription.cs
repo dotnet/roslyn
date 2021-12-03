@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _startPosition = _location.GetMappedLineSpan().StartLinePosition;
         }
 
+        public DiagnosticDescription WithSquiggledText(string squiggledText)
+        {
+            return new DiagnosticDescription(_code, _isWarningAsError, squiggledText, _arguments, _startPosition, _syntaxPredicate, false, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt, _isSuppressed);
+        }
+
         public DiagnosticDescription WithArguments(params object[] arguments)
         {
             return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt, _isSuppressed);
@@ -224,7 +229,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public object Code => _code;
+        public string SquiggledText => _squiggledText;
         public bool HasLocation => _startPosition != null;
+        public int LocationLine => _startPosition.Value.Line + 1;
+        public int LocationCharacter => _startPosition.Value.Character + 1;
         public bool IsWarningAsError => _isWarningAsError;
         public bool IsSuppressed => _isSuppressed;
         public DiagnosticSeverity? DefaultSeverity => _defaultSeverityOpt;

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The dispatcher method that handles syntax nodes for all stand-alone statements.
         ''' </summary>
-        Public Overridable Function BindStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Overridable Function BindStatement(node As StatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node IsNot Nothing)
             Select Case node.Kind
                 Case SyntaxKind.SimpleAssignmentStatement,
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function
 
-        Private Function BindStandAloneCaseStatement(caseStatement As CaseStatementSyntax, diagnostics As DiagnosticBag) As BoundBadStatement
+        Private Function BindStandAloneCaseStatement(caseStatement As CaseStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundBadStatement
             ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
             ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
             ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadStatement(caseStatement, children.ToImmutableAndFree(), hasErrors:=True)
         End Function
 
-        Private Function BindMethodBlock(methodBlock As MethodBlockBaseSyntax, diagnostics As DiagnosticBag) As BoundBlock
+        Private Function BindMethodBlock(methodBlock As MethodBlockBaseSyntax, diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim statements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance
             Dim locals As ImmutableArray(Of LocalSymbol) = ImmutableArray(Of LocalSymbol).Empty
 
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _binder As Binder
-            Private ReadOnly _diagnostics As DiagnosticBag
+            Private ReadOnly _diagnostics As BindingDiagnosticBag
             Private _containsOnError As Boolean ' The block contains an [On Error] statement. 
             Private _containsTry As Boolean ' The block contains a Try block.
             Private _containsResume As Boolean ' The block contains a [Resume [...]] or an [On Error Resume Next] statement. And this is a syntax node for the first of them.
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _containsAwait As Boolean
             Private ReadOnly _tryOnErrorResume As New ArrayBuilder(Of BoundStatement)
 
-            Private Sub New(binder As Binder, diagnostics As DiagnosticBag)
+            Private Sub New(binder As Binder, diagnostics As BindingDiagnosticBag)
                 _diagnostics = diagnostics
                 _binder = binder
             End Sub
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Shadows Sub VisitBlock(
                 binder As Binder,
                 block As BoundBlock,
-                diagnostics As DiagnosticBag,
+                diagnostics As BindingDiagnosticBag,
                 <Out> ByRef containsAwait As Boolean,
                 <Out> ByRef containsOnError As Boolean,
                 <Out> ByRef containsResume As Boolean,
@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Private Shared Sub ReportNameConfictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportNameConfictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As BindingDiagnosticBag)
             Dim currentBinder As Binder = methodBlockBinder
             Dim bodyBinder As MethodBodyBinder
 
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks> Currently set to 32 because of COM+ array type limits </remarks>
         Public Const ArrayRankLimit = 32
 
-        Private Function BindRedimStatement(node As ReDimStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindRedimStatement(node As ReDimStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim operands = ArrayBuilder(Of BoundRedimClause).GetInstance()
             Dim hasPreserveClause = node.Kind = SyntaxKind.ReDimPreserveStatement
 
@@ -761,7 +761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundRedimStatement(node, operands.ToImmutableAndFree())
         End Function
 
-        Private Function BindEraseStatement(node As EraseStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindEraseStatement(node As EraseStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim clauses = ArrayBuilder(Of BoundAssignmentOperator).GetInstance()
 
             For Each operand As ExpressionSyntax In node.Expressions
@@ -794,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundEraseStatement(node, clauses.ToImmutableAndFree())
         End Function
 
-        Private Function BindGoToStatement(node As GoToStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindGoToStatement(node As GoToStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim symbol As LabelSymbol = Nothing
 
             Dim boundLabelExpression As BoundExpression = BindExpression(node.Label, diagnostics)
@@ -817,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function IsValidLabelForGoto(label As LabelSymbol, labelSyntax As LabelSyntax, diagnostics As DiagnosticBag) As Boolean
+        Private Function IsValidLabelForGoto(label As LabelSymbol, labelSyntax As LabelSyntax, diagnostics As BindingDiagnosticBag) As Boolean
             Dim hasError As Boolean = False
 
             Dim labelParent = DirectCast(label.LabelName.Parent, VisualBasicSyntaxNode)
@@ -892,14 +892,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function BindLabelStatement(node As LabelStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindLabelStatement(node As LabelStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim labelToken As SyntaxToken = node.LabelToken
             Dim labelName = labelToken.ValueText
 
             ' A label symbol will always be found because all labels without syntax errors are put into the 
             ' label map in the blockbasebinder.
             Dim result = LookupResult.GetInstance()
-            Lookup(result, labelName, 0, LookupOptions.LabelsOnly, useSiteDiagnostics:=Nothing)
+            Lookup(result, labelName, 0, LookupOptions.LabelsOnly, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             Debug.Assert(result.HasSingleSymbol AndAlso result.IsGood)
 
             Dim symbol = DirectCast(result.SingleSymbol, SourceLabelSymbol)
@@ -922,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="syntax">The syntax list of the modifiers.</param>
         ''' <param name="diagBag">returns True if any errors are reported</param>
-        Private Sub DecodeLocalModifiersAndReportErrors(syntax As SyntaxTokenList, diagBag As DiagnosticBag)
+        Private Sub DecodeLocalModifiersAndReportErrors(syntax As SyntaxTokenList, diagBag As BindingDiagnosticBag)
 
             Const localModifiersMask = SourceMemberFlags.Const Or SourceMemberFlags.Dim Or SourceMemberFlags.Static
             Dim foundModifiers As SourceMemberFlags = Nothing
@@ -979,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private Function BindLocalDeclaration(node As LocalDeclarationStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindLocalDeclaration(node As LocalDeclarationStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
 
             DecodeLocalModifiersAndReportErrors(node.Modifiers, diagnostics)
 
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindVariableDeclarators(
             declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As ImmutableArray(Of BoundLocalDeclarationBase)
 
             Dim builder = ArrayBuilder(Of BoundLocalDeclarationBase).GetInstance()
@@ -1082,7 +1082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             name As ModifiedIdentifierSyntax,
             asClauseOpt As AsClauseSyntax,
             equalsValueOpt As EqualsValueSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional skipAsNewInitializer As Boolean = False
         ) As BoundLocalDeclaration
 
@@ -1240,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim bag = symbol.GetConstantValueDiagnostics(Me)
                         If bag IsNot Nothing Then
-                            diagnostics.AddRange(bag)
+                            diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
                         End If
                     End If
                 End If
@@ -1268,7 +1268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     equalsValueOpt As EqualsValueSyntax,
                                     <Out()> ByRef valueExpression As BoundExpression,
                                     <Out()> ByRef asClauseType As TypeSymbol,
-                                    diagnostics As DiagnosticBag) As TypeSymbol
+                                    diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             valueExpression = Nothing
 
@@ -1380,7 +1380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If inferredType IsNot Nothing Then
                         ' Infer the type from the expression. When the identifier has modifiers, the expression type
                         ' and the modifiers need to be compatible. Without modifiers just use the expression type.
-                        Dim localDiagnostics As DiagnosticBag = If(inferFrom.HasErrors, New DiagnosticBag(), diagnostics)
+                        Dim localDiagnostics = If(inferFrom.HasErrors, BindingDiagnosticBag.Discarded, diagnostics)
 
                         If modifiedIdentifierOpt IsNot Nothing Then
                             type = InferVariableType(type, modifiedIdentifierOpt, valueSyntax, inferredType, inferFrom, typeDiagnostic, localDiagnostics)
@@ -1432,7 +1432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  <Out()> ByRef fromValueExpression As BoundExpression,
                                  <Out()> ByRef toValueExpression As BoundExpression,
                                  <Out()> ByRef stepValueExpression As BoundExpression,
-                                 diagnostics As DiagnosticBag) As TypeSymbol
+                                 diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             fromValueExpression = Nothing
             toValueExpression = Nothing
@@ -1514,7 +1514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          <Out()> ByRef collectionPlaceholder As BoundRValuePlaceholder,
                          <Out()> ByRef needToDispose As Boolean,
                          <Out()> ByRef isOrInheritsFromOrImplementsIDisposable As Boolean,
-                         diagnostics As DiagnosticBag) As TypeSymbol
+                         diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             collectionExpression = Nothing
             currentType = Nothing
@@ -1584,7 +1584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            valueType As TypeSymbol,
                                            valueExpression As BoundExpression,
                                            getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
-                                           diagnostics As DiagnosticBag) As TypeSymbol
+                                           diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim nameIsArrayType = IsArrayType(name)
             Dim nameHasNullable = name.Nullable.Node IsNot Nothing
@@ -1716,7 +1716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'TODO: override in MethodBodySemanticModel similarly to BindVariableDeclaration.
         Friend Overridable Function BindCatchVariableDeclaration(name As IdentifierNameSyntax,
                                                     asClause As AsClauseSyntax,
-                                                    diagnostics As DiagnosticBag) As BoundLocal
+                                                    diagnostics As BindingDiagnosticBag) As BoundLocal
 
             Dim identifier = name.Identifier
             Dim symbol As LocalSymbol = GetLocalForDeclaration(identifier)
@@ -1735,7 +1735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     type As TypeSymbol,
                                     nameSyntax As VisualBasicSyntaxNode,
                                     identifier As SyntaxToken,
-                                    diagnostics As DiagnosticBag)
+                                    diagnostics As BindingDiagnosticBag)
 
             Dim localForFunctionValue = GetLocalForFunctionValue()
             Dim name = identifier.ValueText
@@ -1748,7 +1748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 Dim result = LookupResult.GetInstance()
-                Lookup(result, identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
+                Lookup(result, identifier.ValueText, 0, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                 ' A local symbol will always be found because all local declarations are put into the 
                 ' local map in the blockbasebinder. 
@@ -1794,7 +1794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             symbol As Symbol,
             nameSyntax As SyntaxNodeOrToken,
             identifier As SyntaxNodeOrToken,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Debug.Assert(symbol.Kind = SymbolKind.Local OrElse symbol.Kind = SymbolKind.RangeVariable OrElse
                          (symbol.Kind = SymbolKind.Parameter AndAlso
@@ -1811,13 +1811,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Do
 
-                Dim namedTypeBinder = TryCast(container, namedTypeBinder)
+                Dim namedTypeBinder = TryCast(container, NamedTypeBinder)
                 If namedTypeBinder IsNot Nothing Then
                     Exit Do
                 End If
 
                 result.Clear()
-                container.LookupInSingleBinder(result, name, 0, Nothing, Me, useSiteDiagnostics:=Nothing)
+                container.LookupInSingleBinder(result, name, 0, Nothing, Me, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                 If result.HasSingleSymbol Then
 
@@ -1875,7 +1875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 End If
 
-                Dim implicitVariableBinder = TryCast(container, implicitVariableBinder)
+                Dim implicitVariableBinder = TryCast(container, ImplicitVariableBinder)
                 If implicitVariableBinder IsNot Nothing AndAlso Not implicitVariableBinder.AllImplicitVariableDeclarationsAreHandled Then
                     ' If an implicit local comes into being later, then report an error here.
                     If symbol.Kind = SymbolKind.Parameter Then
@@ -1895,7 +1895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result.Free()
         End Sub
 
-        Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
+        Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As BindingDiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
@@ -1942,19 +1942,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
 
-                        If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
+                        If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
                             isError = True
                         Else
                             Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-                            If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
-                                IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
+                            If Not IsAccessible(setMethod, useSiteInfo, accessThroughType) AndAlso
+                                   IsAccessible(propertySymbol, useSiteInfo, accessThroughType) Then
                                 ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
                                 isError = True
                             End If
 
-                            diagnostics.Add(node, useSiteDiagnostics)
+                            diagnostics.Add(node, useSiteInfo)
                         End If
                     End If
 
@@ -1975,7 +1975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindAssignment(node As SyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
+        Private Function BindAssignment(node As SyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
             op1 = AdjustAssignmentTarget(node, op1, diagnostics, isError)
@@ -1999,7 +1999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
             operatorKind As BinaryOperatorKind,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
@@ -2025,7 +2025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isError Then
                 ' Suppress all additional diagnostics. This ensures that we still generate the appropriate tree shape
                 ' even in error scenarios
-                diagnostics = New DiagnosticBag()
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
@@ -2041,7 +2041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim stmtListBinder = Me.GetBinder(stmtList)
             Return BindBlock(syntax, stmtList, diagnostics, stmtListBinder)
         End Function
@@ -2049,7 +2049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As BindingDiagnosticBag, stmtListBinder As Binder) As BoundBlock
             Dim boundStatements(stmtList.Count - 1) As BoundStatement
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
@@ -2101,7 +2101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private Function BindAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As DiagnosticBag) As BoundExpressionStatement
+        Private Function BindAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundExpressionStatement
             Debug.Assert(node IsNot Nothing)
 
             Dim op1 As BoundExpression = Me.BindAssignmentTarget(node.Left, diagnostics)
@@ -2167,7 +2167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundExpressionStatement(node, expr.MakeCompilerGenerated())
         End Function
 
-        Private Function BindMidAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As DiagnosticBag) As BoundExpressionStatement
+        Private Function BindMidAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundExpressionStatement
             Debug.Assert(node IsNot Nothing AndAlso node.Kind = SyntaxKind.MidAssignmentStatement AndAlso node.Left.Kind = SyntaxKind.MidExpression)
 
             Dim midExpression = DirectCast(node.Left, MidExpressionSyntax)
@@ -2238,8 +2238,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                   hasErrors:=isError).MakeCompilerGenerated())
         End Function
 
-        Private Function BindAddRemoveHandlerStatement(node As AddRemoveHandlerStatementSyntax, diagnostics As DiagnosticBag) As BoundAddRemoveHandlerStatement
-            Dim eventSymbol As eventSymbol = Nothing
+        Private Function BindAddRemoveHandlerStatement(node As AddRemoveHandlerStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundAddRemoveHandlerStatement
+            Dim eventSymbol As EventSymbol = Nothing
             Dim actualEventAccess As BoundEventAccess = Nothing
             Dim eventAccess As BoundExpression = BindEventAccess(node.EventExpression, diagnostics, actualEventAccess, eventSymbol)
 
@@ -2307,26 +2307,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         hasErrors = True
                     Else
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                         Dim accessThroughType = GetAccessThroughType(actualEventAccess.ReceiverOpt)
-                        If Not Me.IsAccessible(method, useSiteDiagnostics, accessThroughType) Then
+                        If Not Me.IsAccessible(method, useSiteInfo, accessThroughType) Then
                             Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
                             ReportDiagnostic(diagnostics, node.EventExpression, GetInaccessibleErrorInfo(method))
                         End If
 
-                        diagnostics.Add(node.EventExpression, useSiteDiagnostics)
+                        diagnostics.Add(node.EventExpression, useSiteInfo)
 
                         Dim badShape As Boolean = False
-                        Dim useSiteError As DiagnosticInfo = Nothing
 
                         ' Decrease noise in diagnostics, if event is "bad", we already complained about it. 
-                        If eventSymbol.GetUseSiteErrorInfo() Is Nothing Then
-                            useSiteError = method.GetUseSiteErrorInfo()
-                        End If
+                        If eventSymbol.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso
+                           ReportUseSite(diagnostics, node.EventExpression, method.GetUseSiteInfo()) Then
 
-                        If useSiteError IsNot Nothing Then
                             Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
-                            ReportDiagnostic(diagnostics, node.EventExpression, useSiteError)
                             hasErrors = True
 
                         ElseIf method.ParameterCount <> 1 OrElse method.Parameters(0).IsByRef Then
@@ -2367,7 +2363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindEventAccess(node As ExpressionSyntax,
-                                         diagnostics As DiagnosticBag,
+                                         diagnostics As BindingDiagnosticBag,
                                          <Out()> ByRef actualEventAccess As BoundEventAccess,
                                          <Out()> ByRef eventSymbol As EventSymbol) As BoundExpression
 
@@ -2386,9 +2382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If notQualifiedSyntax.Kind <> SyntaxKind.IdentifierName Then
                 ReportDiagnostic(diagnostics, notQualifiedSyntax, ERRID.ERR_AddOrRemoveHandlerEvent)
 
-                Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
-                Dim errorRecovery As BoundExpression = BindRValue(node, ignoreDiagnostics)
-                ignoreDiagnostics.Free()
+                Dim errorRecovery As BoundExpression = BindRValue(node, BindingDiagnosticBag.Discarded)
 
                 Return errorRecovery
             End If
@@ -2400,7 +2394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' when binding a simple name event we know that it must be a member since methods do not declare events
             If notParenthesizedSyntax.Kind = SyntaxKind.IdentifierName Then
-                Dim simpleNameSyntax As simpleNameSyntax = DirectCast(notParenthesizedSyntax, IdentifierNameSyntax)
+                Dim simpleNameSyntax As SimpleNameSyntax = DirectCast(notParenthesizedSyntax, IdentifierNameSyntax)
                 result = BindSimpleName(simpleNameSyntax, False, diagnostics, skipLocalsAndParameters:=True)
             Else
                 result = BindExpression(node, isInvocationOrAddressOf:=False, isOperandOfConditionalBranch:=False, eventContext:=True, diagnostics:=diagnostics)
@@ -2435,7 +2429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function BindRaiseEventStatement(node As RaiseEventStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindRaiseEventStatement(node As RaiseEventStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim hasErrors = False
 
             Dim target As BoundExpression = BindSimpleName(node.Name, False, diagnostics, skipLocalsAndParameters:=True)
@@ -2464,14 +2458,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If eventSym.HasAssociatedField Then
                 ' field is not nothing when event IsFieldLike
                 Dim eventField = eventSym.AssociatedField
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-                If Not IsAccessible(eventField, useSiteDiagnostics, Me.ContainingType) Then
+                If Not IsAccessible(eventField, useSiteInfo, Me.ContainingType) Then
                     ReportDiagnostic(diagnostics, node.Name, ERRID.ERR_CantRaiseBaseEvent)
                     hasErrors = True
                 End If
 
-                diagnostics.Add(node.Name, useSiteDiagnostics)
+                diagnostics.Add(node.Name, useSiteInfo)
 
                 Debug.Assert(TypeSymbol.Equals(targetAsEvent.Type, eventField.Type, TypeCompareKind.ConsiderEverything) OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
 
@@ -2498,7 +2492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 fireMethod = eventType.DelegateInvokeMethod
 
-                If ReportUseSiteError(diagnostics, node.Name, fireMethod) Then
+                If ReportUseSite(diagnostics, node.Name, fireMethod) Then
                     hasErrors = True
                 End If
 
@@ -2519,7 +2513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundBadStatement(node, StaticCast(Of BoundNode).From(boundArguments).Add(target), True)
                 End If
 
-                If ReportUseSiteError(diagnostics, node.Name, fireMethod) Then
+                If ReportUseSite(diagnostics, node.Name, fireMethod) Then
                     hasErrors = True
                 End If
 
@@ -2584,7 +2578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundRaiseEventStatement(node, eventSym, invocation, hasErrors)
         End Function
 
-        Private Function BindExpressionStatement(statement As ExpressionStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindExpressionStatement(statement As ExpressionStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
 
             Dim expression = statement.Expression
 
@@ -2608,7 +2602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundExpressionStatement(statement, boundExpression)
         End Function
 
-        Private Sub WarnOnUnobservedCallThatReturnsAnAwaitable(statement As ExpressionStatementSyntax, boundExpression As BoundExpression, diagnostics As DiagnosticBag)
+        Private Sub WarnOnUnobservedCallThatReturnsAnAwaitable(statement As ExpressionStatementSyntax, boundExpression As BoundExpression, diagnostics As BindingDiagnosticBag)
             If boundExpression.Kind = BoundKind.ConditionalAccess Then
                 WarnOnUnobservedCallThatReturnsAnAwaitable(statement, DirectCast(boundExpression, BoundConditionalAccess).AccessExpression, diagnostics)
                 Return
@@ -2646,18 +2640,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not warn Then
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                     ' 2. 
-                    If IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncAction, useSiteDiagnostics:=Nothing) OrElse
-                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T, useSiteDiagnostics:=Nothing) OrElse
-                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncOperation_T, useSiteDiagnostics:=Nothing) OrElse
-                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2, useSiteDiagnostics:=Nothing) Then
+                    If IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncAction, useSiteInfo:=useSiteInfo) OrElse
+                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T, useSiteInfo:=useSiteInfo) OrElse
+                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncOperation_T, useSiteInfo:=useSiteInfo) OrElse
+                       IsOrInheritsFromOrImplementsInterface(boundExpression.Type, WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2, useSiteInfo:=useSiteInfo) Then
+                        diagnostics.AddDependencies(useSiteInfo)
                         warn = True
 
                     ElseIf IsInAsyncContext() Then
                         ' 3.
-                        Dim diagBag = DiagnosticBag.GetInstance()
+                        Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
                         If Not BindAwait(statement, boundExpression, diagBag, bindAsStatement:=True).HasErrors AndAlso Not diagBag.HasAnyErrors Then
+                            diagnostics.AddDependencies(diagBag)
                             warn = True
                         End If
 
@@ -2671,28 +2668,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function IsOrInheritsFromOrImplementsInterface(derivedType As TypeSymbol, interfaceType As WellKnownType, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Function IsOrInheritsFromOrImplementsInterface(derivedType As TypeSymbol, interfaceType As WellKnownType, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim type As NamedTypeSymbol = Compilation.GetWellKnownType(interfaceType)
             Return Not type.IsErrorType() AndAlso type.IsInterfaceType() AndAlso
-                   IsOrInheritsFromOrImplementsInterface(derivedType, type, useSiteDiagnostics)
+                   IsOrInheritsFromOrImplementsInterface(derivedType, type, useSiteInfo)
         End Function
 
-        Private Function BindPrintStatement(printStmt As PrintStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindPrintStatement(printStmt As PrintStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim boundExpression As BoundExpression = BindRValue(printStmt.Expression, diagnostics)
             Return New BoundExpressionStatement(printStmt, boundExpression)
         End Function
 
-        Private Function BindCallStatement(callStmt As CallStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindCallStatement(callStmt As CallStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim boundInvocation As BoundExpression = BindInvocationExpressionAsStatement(callStmt.Invocation, diagnostics)
 
             Return New BoundExpressionStatement(callStmt, boundInvocation)
         End Function
 
-        Private Function BindInvocationExpressionAsStatement(expression As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpressionAsStatement(expression As ExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return ReclassifyInvocationExpressionAsStatement(BindExpression(expression, diagnostics), diagnostics)
         End Function
 
-        Friend Function ReclassifyInvocationExpressionAsStatement(boundInvocation As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Function ReclassifyInvocationExpressionAsStatement(boundInvocation As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
             Select Case boundInvocation.Kind
                 Case BoundKind.PropertyAccess
                     boundInvocation = MakeRValue(boundInvocation, diagnostics)
@@ -2730,7 +2727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundInvocation
         End Function
 
-        Private Function BindSingleLineIfStatement(node As SingleLineIfStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindSingleLineIfStatement(node As SingleLineIfStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node IsNot Nothing)
 
             Dim condition As BoundExpression
@@ -2746,7 +2743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundIfStatement(node, condition, consequence, alternative)
         End Function
 
-        Private Function BindMultiLineIfBlock(node As MultiLineIfBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindMultiLineIfBlock(node As MultiLineIfBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node IsNot Nothing)
 
             ' We need to bind the conditions and blocks in lexical order (so that Option Explicit binding
@@ -2787,7 +2784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return currentAlternative
         End Function
 
-        Private Function BindDoLoop(node As DoLoopBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindDoLoop(node As DoLoopBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node IsNot Nothing)
 
             Dim topCondition As BoundExpression = Nothing
@@ -2822,7 +2819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             hasErrors:=topCondition IsNot Nothing AndAlso bottomCondition IsNot Nothing)
         End Function
 
-        Private Function BindWhileBlock(node As WhileBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindWhileBlock(node As WhileBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Debug.Assert(node IsNot Nothing)
 
             ' Bind condition
@@ -2840,7 +2837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             exitLabel:=loopBodyBinder.GetExitLabel(SyntaxKind.ExitWhileStatement))
         End Function
 
-        Public Function BindForToBlock(node As ForOrForEachBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindForToBlock(node As ForOrForEachBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             ' For statement has its own binding scope since it may introduce iteration variable
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
@@ -2870,7 +2867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   diagnostics)
         End Function
 
-        Public Function BindForEachBlock(node As ForOrForEachBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindForEachBlock(node As ForOrForEachBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             ' For statement has its own binding scope since it may introduce iteration variable
             ' that is visible through the entire For block. It also needs to support Continue/Exit
             ' Interestingly, control variable is in scope when Limit and Step or the collection are bound,
@@ -2915,7 +2912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            <Out()> ByRef declaredOrInferredLocalOpt As LocalSymbol,
                                            <Out()> ByRef controlVariable As BoundExpression,
                                            <Out()> ByRef isInferredLocal As Boolean,
-                                           diagnostics As DiagnosticBag) As Boolean
+                                           diagnostics As BindingDiagnosticBag) As Boolean
             ' Bind control variable
 
             ' There are two forms of control variables -
@@ -2961,9 +2958,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim identifier = DirectCast(controlVariableSyntax, IdentifierNameSyntax).Identifier
                     Dim name = identifier.ValueText
                     Dim result As LookupResult = LookupResult.GetInstance
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Lookup(result, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                    Lookup(result, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
+                    diagnostics.Add(node, useSiteInfo)
 
                     ' If a local symbol is found then check whether this local corresponds to this identifier.  If it does then
                     ' this is local is an inferred local for the for block.  This local does not have a type yet. Return the 
@@ -3015,7 +3012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As ForOrForEachBlockSyntax,
             <Out()> ByRef nextVariables As ImmutableArray(Of BoundExpression),
             <Out()> ByRef loopBody As BoundBlock,
-            diagnostics As DiagnosticBag)
+            diagnostics As BindingDiagnosticBag)
 
             ' Bind the body of the loop.
             loopBody = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
@@ -3080,7 +3077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             controlVariableOpt As BoundExpression,
             isInferredLocal As Boolean,
             hasErrors As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundForStatement
             Dim forStatement = DirectCast(node.ForOrForEachStatement, ForStatementSyntax)
 
@@ -3168,12 +3165,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim booleanType = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
 
             Dim udfOperators As BoundForToUserDefinedOperators = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
             ' normalize initValue, limit and step to the common type
             If Not hasErrors Then
                 If Not (initialValue.HasErrors OrElse limit.HasErrors OrElse stepValue.HasErrors) AndAlso
-                   targetType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
+                   targetType.CanContainUserDefinedOperators(useSiteInfo) Then
                     ' Bind user-defined operators that we need.
                     Dim syntax As VisualBasicSyntaxNode = node.ForOrForEachStatement
 
@@ -3194,7 +3191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If greaterThanOrEqual IsNot Nothing Then
                         ' Suppress errors if we already reported them for LessThanOrEqual.
                         greaterThanOrEqual = ApplyImplicitConversion(syntax, booleanType, greaterThanOrEqual,
-                                                                     If(lessThanOrEqual IsNot Nothing AndAlso lessThanOrEqual.HasErrors, New DiagnosticBag(), diagnostics),
+                                                                     If(lessThanOrEqual IsNot Nothing AndAlso lessThanOrEqual.HasErrors, BindingDiagnosticBag.Discarded, diagnostics),
                                                                      isOperandOfConditionalBranch:=True).MakeCompilerGenerated()
                     End If
 
@@ -3209,7 +3206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            diagnostics.Add(node, useSiteDiagnostics)
+            diagnostics.Add(node, useSiteInfo)
 
             hasErrors = hasErrors OrElse
                         targetType.IsErrorType OrElse
@@ -3247,20 +3244,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             opCode As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundUserDefinedBinaryOperator
 
             Debug.Assert(opCode = BinaryOperatorKind.Add OrElse opCode = BinaryOperatorKind.Subtract OrElse opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual)
 
             Dim isRelational As Boolean = (opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             Dim userDefinedOperator As OverloadResolution.OverloadResolutionResult = OverloadResolution.ResolveUserDefinedBinaryOperator(left, right, opCode, Me, includeEliminatedCandidates:=False,
-                                                                                                                                         useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                                                                         useSiteInfo:=useSiteInfo)
 
-            If diagnostics.Add(syntax, useSiteDiagnostics) Then
+            If diagnostics.Add(syntax, useSiteInfo) Then
                 ' Suppress additional diagnostics
-                diagnostics = New DiagnosticBag()
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             If userDefinedOperator.ResolutionIsLateBound OrElse Not userDefinedOperator.BestResult.HasValue Then
@@ -3296,9 +3293,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Verify that control variable can actually be used as a control variable
-        Private Shared Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
+        Private Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
                                     targetType As TypeSymbol,
-                                    diagnostics As DiagnosticBag) As Boolean
+                                    diagnostics As BindingDiagnosticBag) As Boolean
 
             ' if it's a nullable type, simply unwrap it (no recursion needed because nullables cannot be nested)
             If targetType.IsNullableType Then
@@ -3313,16 +3310,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-            If targetType.IsIntrinsicOrEnumType OrElse Not targetType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
-                diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
+            If targetType.IsIntrinsicOrEnumType OrElse Not targetType.CanContainUserDefinedOperators(useSiteInfo) Then
+                diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteInfo)
                 ReportDiagnostic(diagnostics, DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, ERRID.ERR_ForLoopType1, targetType)
 
                 Return False
             End If
 
-            diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteDiagnostics)
+            diagnostics.Add(DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable, useSiteInfo)
 
             Return True
         End Function
@@ -3332,7 +3329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             declaredOrInferredLocalOpt As LocalSymbol,
             controlVariableOpt As BoundExpression,
             isInferredLocal As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundForEachStatement
             Dim forEachStatement = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax)
 
@@ -3429,7 +3426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '
                     ' invalid in strict mode.
 
-                    If Conversions.IsIdentityConversion(Conversions.ClassifyConversion(elementType, currentType, useSiteDiagnostics:=Nothing).Key) Then
+                    If Conversions.IsIdentityConversion(Conversions.ClassifyConversion(elementType, currentType, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded).Key) Then
                         boundCurrentPlaceholder = New BoundRValuePlaceholder(collectionSyntax, elementType)
                         boundElement = boundCurrentPlaceholder
                     Else
@@ -3443,7 +3440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If boundElement Is boundCurrentPlaceholder OrElse
-                       Not Conversions.IsIdentityConversion(Conversions.ClassifyConversion(controlVariableType, elementType, useSiteDiagnostics:=Nothing).Key) Then
+                       Not Conversions.IsIdentityConversion(Conversions.ClassifyConversion(controlVariableType, elementType, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded).Key) Then
                         boundCurrentConversion = ApplyConversion(collectionSyntax,
                                                                  controlVariableType,
                                                                  boundElement,
@@ -3483,12 +3480,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' was not Nothing.
 
                     ' create TryCast
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conversionKind As ConversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                    Dim conversionKind As ConversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteInfo)
 
-                    If diagnostics.Add(collectionSyntax, useSiteDiagnostics) Then
+                    If diagnostics.Add(collectionSyntax, useSiteInfo) Then
                         ' Suppress additional diagnostics
-                        diagnostics = New DiagnosticBag()
+                        diagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     boundDisposeCast = New BoundTryCast(collectionSyntax, boundEnumeratorPlaceholder.MakeRValue(), conversionKind, idisposableType, Nothing)
@@ -3530,7 +3527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="variableDeclarator">The variable declarator.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Private Shared Function VerifyForControlVariableDeclaration(variableDeclarator As VariableDeclaratorSyntax, diagnostics As DiagnosticBag) As Boolean
+        Private Shared Function VerifyForControlVariableDeclaration(variableDeclarator As VariableDeclaratorSyntax, diagnostics As BindingDiagnosticBag) As Boolean
             ' Check variable declaration syntax if present
             Debug.Assert(variableDeclarator.Names.Count = 1, "should be exactly one control variable")
             Dim identifier = variableDeclarator.Names(0)
@@ -3564,7 +3561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function TryBindLoopControlVariable(
             controlVariableSyntax As VisualBasicSyntaxNode,
             <Out()> ByRef controlVariable As BoundExpression,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As Boolean
             Debug.Assert(controlVariableSyntax.Kind <> SyntaxKind.VariableDeclarator)
 
@@ -3600,7 +3597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="controlVariable">The control variable.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Private Function VerifyForLoopControlReference(controlVariable As BoundExpression, diagnostics As DiagnosticBag) As Boolean
+        Private Function VerifyForLoopControlReference(controlVariable As BoundExpression, diagnostics As BindingDiagnosticBag) As Boolean
 
             Dim isLValue As Boolean
             ' A property reference is not allowed as the control variable of any
@@ -3636,7 +3633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub New()
             End Sub
 
-            Public Shared Function SeenAwaitIn(node As BoundNode, diagnostics As DiagnosticBag) As Boolean
+            Public Shared Function SeenAwaitIn(node As BoundNode, diagnostics As BindingDiagnosticBag) As Boolean
                 Dim visitor = New SeenAwaitVisitor()
                 Try
                     visitor.Visit(node)
@@ -3692,7 +3689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out()> ByRef collectionPlaceholder As BoundRValuePlaceholder,
             <Out()> ByRef needToDispose As Boolean,
             <Out()> ByRef isOrInheritsFromOrImplementsIDisposable As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             currentType = Nothing
@@ -3723,7 +3720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' because it is more efficient.
 
             Dim interfaceSpecialType As SpecialType = SpecialType.None
-            Dim detailedDiagnostics = DiagnosticBag.GetInstance
+            Dim detailedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             If MatchesForEachCollectionDesignPattern(collectionType, collection,
                                                      currentType,
@@ -3743,16 +3740,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isEnumerable = True
             Else
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
-                Dim ienumerableUseSiteDiagnostics = DiagnosticBag.GetInstance
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
                 Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 If Not collection.IsNothingLiteral AndAlso
                    Not collectionType.IsArrayType AndAlso
-                   IsOrInheritsFromOrImplementsInterface(collectionType, genericIEnumerable, useSiteDiagnostics, matchingInterfaces) Then
+                   IsOrInheritsFromOrImplementsInterface(collectionType, genericIEnumerable, useSiteInfo, matchingInterfaces) Then
 
-                    diagnostics.Add(collectionSyntax, useSiteDiagnostics)
+                    diagnostics.Add(collectionSyntax, useSiteInfo)
 
                     Debug.Assert(matchingInterfaces.Count > 0)
                     isEnumerable = True
@@ -3786,11 +3783,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim ienumerable = GetSpecialType(SpecialType.System_Collections_IEnumerable, collectionSyntax, ienumerableUseSiteDiagnostics)
                     If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> OptionStrict.On) OrElse
-                       (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics, matchingInterfaces)) Then
+                       (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteInfo, matchingInterfaces)) Then
 
                         Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (TypeSymbol.Equals(matchingInterfaces.First, ienumerable, TypeCompareKind.ConsiderEverything) AndAlso matchingInterfaces.Count = 1))
 
-                        diagnostics.Add(collectionSyntax, useSiteDiagnostics)
+                        diagnostics.Add(collectionSyntax, useSiteInfo)
 
                         isEnumerable = True
                         targetCollectionType = ienumerable
@@ -3803,7 +3800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Debug.Assert(collectionType IsNot Nothing OrElse collection.IsNothingLiteral AndAlso Me.OptionStrict = OptionStrict.On)
 
-                        diagnostics.Add(collectionSyntax, useSiteDiagnostics)
+                        diagnostics.Add(collectionSyntax, useSiteInfo)
 
                         If collection.IsNothingLiteral Then
                             ' in case of option strict on we need to reclassify the nothing literal
@@ -3856,7 +3853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         specialTypeMember = GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator,
                                                                  collectionSyntax,
                                                                  diagnostics)
-                        If specialTypeMember IsNot Nothing AndAlso specialTypeMember.GetUseSiteErrorInfo Is Nothing AndAlso Not targetCollectionType.IsErrorType Then
+                        If specialTypeMember IsNot Nothing AndAlso specialTypeMember.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso Not targetCollectionType.IsErrorType Then
                             member = DirectCast(targetCollectionType, SubstitutedNamedType).GetMemberForDefinition(specialTypeMember)
                         Else
                             member = Nothing
@@ -3867,7 +3864,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       diagnostics)
                     End If
 
-                    If member IsNot Nothing AndAlso member.GetUseSiteErrorInfo Is Nothing Then
+                    Dim memberUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+
+                    If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                        diagnostics.AddDependencies(memberUseSiteInfo)
                         collectionPlaceholder = New BoundRValuePlaceholder(collectionSyntax,
                                                                            If(collectionType IsNot Nothing AndAlso collectionType.IsStringType, collectionType, collection.Type))
                         Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup
@@ -3891,7 +3891,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         member = GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                       collectionSyntax,
                                                       diagnostics)
-                        If member IsNot Nothing AndAlso member.GetUseSiteErrorInfo Is Nothing Then
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundMethodGroup(collectionSyntax,
                                                                          Nothing,
                                                                          ImmutableArray.Create(DirectCast(member, MethodSymbol)),
@@ -3912,7 +3914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      collectionSyntax,
                                                                      diagnostics)
 
-                            If specialTypeMember IsNot Nothing AndAlso specialTypeMember.GetUseSiteErrorInfo Is Nothing AndAlso Not enumeratorType.IsErrorType Then
+                            If specialTypeMember IsNot Nothing AndAlso specialTypeMember.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso Not enumeratorType.IsErrorType Then
                                 member = DirectCast(enumeratorType, SubstitutedNamedType).GetMemberForDefinition(specialTypeMember)
                             Else
                                 member = Nothing
@@ -3923,7 +3925,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           diagnostics)
                         End If
 
-                        If member IsNot Nothing AndAlso member.GetUseSiteErrorInfo Is Nothing Then
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundPropertyGroup(collectionSyntax,
                                                                            ImmutableArray.Create(DirectCast(member, PropertySymbol)),
                                                                            LookupResultKind.Good,
@@ -3961,10 +3965,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Not boundGetEnumeratorCall.HasErrors AndAlso Not boundGetEnumeratorCall.Type.IsErrorType Then
 
                     Dim getEnumeratorReturnType = boundGetEnumeratorCall.Type
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conversionKind = Conversions.ClassifyDirectCastConversion(getEnumeratorReturnType, idisposable, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                    Dim conversionKind = Conversions.ClassifyDirectCastConversion(getEnumeratorReturnType, idisposable, useSiteInfo)
 
-                    diagnostics.Add(collectionSyntax, useSiteDiagnostics)
+                    diagnostics.Add(collectionSyntax, useSiteInfo)
 
                     isOrInheritsFromOrImplementsIDisposable = Conversions.IsWideningConversion(conversionKind)
 
@@ -4032,9 +4036,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out()> ByRef boundMoveNextCall As BoundExpression,
             <Out()> ByRef boundCurrentAccess As BoundExpression,
             <Out()> ByRef collectionPlaceholder As BoundRValuePlaceholder,
-            temporaryDiagnostics As DiagnosticBag
+            temporaryDiagnostics As BindingDiagnosticBag
         ) As Boolean
-            Debug.Assert(temporaryDiagnostics.IsEmptyWithoutResolution)
+            Debug.Assert(If(temporaryDiagnostics.DiagnosticBag?.IsEmptyWithoutResolution, True))
 
             currentType = Nothing
             boundGetEnumeratorCall = Nothing
@@ -4085,6 +4089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup = CreateBoundMethodGroup(collectionSyntax,
                                                                                              lookupResult,
                                                                                              LookupOptions.AllMethodsOfAnyArity,
+                                                                                             temporaryDiagnostics.AccumulatesDependencies,
                                                                                              collectionPlaceholder,
                                                                                              Nothing,
                                                                                              QualificationKind.QualifiedViaValue)
@@ -4120,6 +4125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodOrPropertyGroup = CreateBoundMethodGroup(collectionSyntax,
                                                                lookupResult,
                                                                LookupOptions.AllMethodsOfAnyArity,
+                                                               temporaryDiagnostics.AccumulatesDependencies,
                                                                boundEnumeratorPlaceholder,
                                                                Nothing,
                                                                QualificationKind.QualifiedViaValue)
@@ -4184,7 +4190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function CreateBoundInvocationExpressionFromMethodOrPropertyGroup(
             syntax As SyntaxNode,
             methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Dim boundCall = BindInvocationExpression(syntax, syntax,
                                                      TypeCharacter.None,
@@ -4236,15 +4242,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             symbolChecker As Func(Of Symbol, Boolean),
             result As LookupResult,
             syntax As SyntaxNode,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As Boolean
             result.Clear()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+            LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
 
-            diagnostics.Add(syntax, useSiteDiagnostics)
-            useSiteDiagnostics = Nothing
+            diagnostics.Add(syntax, useSiteInfo)
+            useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
 
             If result.IsGood Then
                 For Each candidateSymbol In result.Symbols
@@ -4263,9 +4269,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            name,
                                            0,
                                            LookupOptions.AllMethodsOfAnyArity,
-                                           useSiteDiagnostics)
+                                           useSiteInfo)
 
-                    diagnostics.Add(syntax, useSiteDiagnostics)
+                    diagnostics.Add(syntax, useSiteInfo)
 
                     If result.IsGood Then
                         For Each candidateSymbol In result.Symbols
@@ -4295,7 +4301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="derivedType">The possible derived type.</param>
         ''' <param name="interfaceType">Type of the interface.</param>
-        ''' <param name="useSiteDiagnostics"/> 
+        ''' <param name="useSiteInfo"/> 
         ''' <param name="matchingInterfaces">A list of matching interfaces.</param>
         ''' <returns>
         '''   <c>true</c> if derivedType is, inherits from or implements the interface; otherwise, <c>false</c>.
@@ -4303,7 +4309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IsOrInheritsFromOrImplementsInterface(
             derivedType As TypeSymbol,
             interfaceType As NamedTypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional matchingInterfaces As HashSet(Of NamedTypeSymbol) = Nothing
         ) As Boolean
 
@@ -4320,14 +4326,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' if it has a value type constraint, check if system.valuetype satisfies the requirements
                 If derivedTypeParameter.HasValueTypeConstraint Then
                     Dim valueTypeSymbol = interfaceType.ContainingAssembly.GetSpecialType(SpecialType.System_ValueType)
-                    If IsOrInheritsFromOrImplementsInterface(valueTypeSymbol, interfaceType, useSiteDiagnostics, matchingInterfaces) AndAlso matchingInterfaces Is Nothing Then
+                    If IsOrInheritsFromOrImplementsInterface(valueTypeSymbol, interfaceType, useSiteInfo, matchingInterfaces) AndAlso matchingInterfaces Is Nothing Then
                         Return True
                     End If
                 End If
 
                 ' check if any interface constraint has the appropriate relation to the base type
-                For Each typeConstraint In derivedTypeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    If IsOrInheritsFromOrImplementsInterface(typeConstraint, interfaceType, useSiteDiagnostics, matchingInterfaces) AndAlso matchingInterfaces Is Nothing Then
+                For Each typeConstraint In derivedTypeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
+                    If IsOrInheritsFromOrImplementsInterface(typeConstraint, interfaceType, useSiteInfo, matchingInterfaces) AndAlso matchingInterfaces Is Nothing Then
                         Return True
                     End If
                 Next
@@ -4342,7 +4348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' implements or inherits interface
-                For Each interfaceOfDerived In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                For Each interfaceOfDerived In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     If TypeSymbol.Equals(interfaceOfDerived.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything) Then
                         If matchingInterfaces Is Nothing Then
                             Return True
@@ -4370,12 +4376,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
             Return binder.CreateBoundWithBlock(node, binder, diagnostics)
         End Function
 
-        Protected Overridable Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement
+        Protected Overridable Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundStatement
             Return Me.ContainingBinder.CreateBoundWithBlock(node, boundBlockBinder, diagnostics)
         End Function
 
@@ -4399,7 +4405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''          list_of_statements
         '''      end using
         '''</summary>
-        Public Function BindUsingBlock(node As UsingBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Public Function BindUsingBlock(node As UsingBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim usingBinder = Me.GetBinder(node)
             Debug.Assert(usingBinder IsNot Nothing)
 
@@ -4525,7 +4531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             localSymbol As LocalSymbol,
             iDisposable As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Dim declarationType As TypeSymbol = localSymbol.Type
 
@@ -4561,16 +4567,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             resourceType As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
             iDisposable As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             If Not placeholderInfo.ContainsKey(resourceType) Then
                 ' TODO: add late binding, see statementsemantics.cpp lines 6765++
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversionKind = Conversions.ClassifyDirectCastConversion(resourceType, iDisposable, useSiteDiagnostics)
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                Dim conversionKind = Conversions.ClassifyDirectCastConversion(resourceType, iDisposable, useSiteInfo)
 
-                If diagnostics.Add(syntaxNode, useSiteDiagnostics) Then
+                If diagnostics.Add(syntaxNode, useSiteInfo) Then
                     ' Suppress additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 Dim isValidDispose = Conversions.IsWideningConversion(conversionKind)
@@ -4604,7 +4610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Check the given type of and report WRN_MutableGenericStructureInUsing if needed.</summary>
         ''' <remarks>This function should only be called for a type of a using variable.</remarks>
-        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As BindingDiagnosticBag)
             ' Dev10 #666593: Warn if the type of the variable is not a reference type or an immutable structure.
             If Not type.IsReferenceType Then
                 If type.IsTypeParameter Then
@@ -4688,7 +4694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="node">The node.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Public Function BindSyncLockBlock(node As SyncLockBlockSyntax, diagnostics As DiagnosticBag) As BoundSyncLockStatement
+        Public Function BindSyncLockBlock(node As SyncLockBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundSyncLockStatement
 
             ' bind the expression
             Dim lockExpression As BoundExpression = BindRValue(node.SyncLockStatement.Expression, diagnostics)
@@ -4705,7 +4711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundSyncLockStatement(node, lockExpression, boundBody)
         End Function
 
-        Public Function BindTryBlock(node As TryBlockSyntax, diagnostics As DiagnosticBag) As BoundTryStatement
+        Public Function BindTryBlock(node As TryBlockSyntax, diagnostics As BindingDiagnosticBag) As BoundTryStatement
             Debug.Assert(node IsNot Nothing)
 
             Dim tryBlock As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
@@ -4727,7 +4733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt, tryBinder.GetExitLabel(SyntaxKind.ExitTryStatement))
         End Function
 
-        Public Function BindCatchBlocks(catchClauses As SyntaxList(Of CatchBlockSyntax), diagnostics As DiagnosticBag) As ImmutableArray(Of BoundCatchBlock)
+        Public Function BindCatchBlocks(catchClauses As SyntaxList(Of CatchBlockSyntax), diagnostics As BindingDiagnosticBag) As ImmutableArray(Of BoundCatchBlock)
             Dim n As Integer = catchClauses.Count
             If n = 0 Then
                 Return ImmutableArray(Of BoundCatchBlock).Empty
@@ -4744,7 +4750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return catchBlocks.ToImmutableAndFree
         End Function
 
-        Private Function BindCatchBlock(node As CatchBlockSyntax, previousBlocks As ArrayBuilder(Of BoundCatchBlock), diagnostics As DiagnosticBag) As BoundCatchBlock
+        Private Function BindCatchBlock(node As CatchBlockSyntax, previousBlocks As ArrayBuilder(Of BoundCatchBlock), diagnostics As BindingDiagnosticBag) As BoundCatchBlock
 
             ' we need to compute the following parts
             Dim catchLocal As LocalSymbol = Nothing
@@ -4794,18 +4800,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' type of the catch variable must derive from Exception
                         Debug.Assert(exceptionType IsNot Nothing)
 
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                         If exceptionType.IsErrorType() Then
                             hasError = True
-                        ElseIf Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteDiagnostics) Then
+                        ElseIf Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                             ReportDiagnostic(diagnostics,
                                              If(asClauseOpt IsNot Nothing, asClauseOpt.Type, name),
                                              ERRID.ERR_CatchNotException1,
                                              exceptionType)
                             hasError = True
-                            diagnostics.Add(If(asClauseOpt IsNot Nothing, asClauseOpt.Type, name), useSiteDiagnostics)
                         End If
+
+                        diagnostics.Add(If(asClauseOpt IsNot Nothing, asClauseOpt.Type, name), useSiteInfo)
                     End If
                 End If
             Else
@@ -4818,7 +4825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not hasError Then
-                Debug.Assert(exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, Nothing))
+                Debug.Assert(exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
 
                 For Each previousBlock In previousBlocks
                     If previousBlock.ExceptionFilterOpt IsNot Nothing Then
@@ -4842,10 +4849,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Exit For
                         End If
 
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Dim isBaseType As Boolean = exceptionType.IsOrDerivedFrom(previousType, useSiteDiagnostics)
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                        Dim isBaseType As Boolean = exceptionType.IsOrDerivedFrom(previousType, useSiteInfo)
 
-                        diagnostics.Add(declaration, useSiteDiagnostics)
+                        diagnostics.Add(declaration, useSiteInfo)
 
                         If isBaseType Then
                             ReportDiagnostic(diagnostics, declaration, ERRID.WRN_OverlappingCatch, exceptionType, previousType)
@@ -4865,7 +4872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Function BindExitStatement(node As ExitStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindExitStatement(node As ExitStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim targetLabel As LabelSymbol = GetExitLabel(node.Kind)
 
             If targetLabel Is Nothing Then
@@ -4891,7 +4898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Function BindContinueStatement(node As ContinueStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindContinueStatement(node As ContinueStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim targetLabel As LabelSymbol = GetContinueLabel(node.Kind)
 
             If targetLabel Is Nothing Then
@@ -4911,7 +4918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Function BindBooleanExpression(node As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindBooleanExpression(node As ExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' 11.19 Boolean Expressions
             Dim expr As BoundExpression = Me.BindValue(node, diagnostics, isOperandOfConditionalBranch:=True)
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
@@ -4956,8 +4963,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return methodReturnType
         End Function
 
-        Private Function BindReturn(originalSyntax As ReturnStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = originalSyntax.Expression
+        Private Function BindReturn(originalSyntax As ReturnStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
+            Dim expressionSyntax As ExpressionSyntax = originalSyntax.Expression
 
             ' UNDONE - Handle ERRID_ReturnFromEventMethod
 
@@ -5020,17 +5027,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' and the return expression can't be converted to T but is identical to Task<T>,
                         ' then don't give the normal error message about "there is no conversion from T to Task<T>"
                         ' and instead say "Since this is async, the return expression must be 'T' rather than 'Task<T>'."
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                         If isAsync AndAlso Not retType.IsErrorType() AndAlso methodReturnType.Equals(arg.Type) AndAlso
                             methodReturnType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
-                            Not Conversions.ConversionExists(Conversions.ClassifyConversion(arg, retType, Me, useSiteDiagnostics).Key) Then
+                            Not Conversions.ConversionExists(Conversions.ClassifyConversion(arg, retType, Me, useSiteInfo).Key) Then
 
-                            If Not diagnostics.Add(arg, useSiteDiagnostics) Then
+                            If Not diagnostics.Add(arg, useSiteInfo) Then
                                 ReportDiagnostic(diagnostics, arg.Syntax, ERRID.ERR_BadAsyncReturnOperand1, retType)
                             End If
 
                             arg = MakeRValueAndIgnoreDiagnostics(arg)
                         Else
+                            diagnostics.Add(arg, useSiteInfo)
                             arg = ApplyImplicitConversion(arg.Syntax, retType, arg, diagnostics)
                         End If
                     End If
@@ -5054,7 +5062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetCurrentYieldType(node As YieldStatementSyntax,
-                                             diagnostics As DiagnosticBag) As TypeSymbol
+                                             diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim method As MethodSymbol = TryCast(Me.ContainingMember, MethodSymbol)
 
@@ -5096,8 +5104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorTypeSymbol.UnknownResultType
         End Function
 
-        Private Function BindYield(originalSyntax As YieldStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = originalSyntax.Expression
+        Private Function BindYield(originalSyntax As YieldStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
+            Dim expressionSyntax As ExpressionSyntax = originalSyntax.Expression
             Dim arg As BoundExpression = Me.BindValue(expressionSyntax, diagnostics)
 
             If BindingTopLevelScriptCode Then
@@ -5132,8 +5140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundYieldStatement(originalSyntax, arg)
         End Function
 
-        Private Function BindThrow(node As ThrowStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim expressionSyntax As expressionSyntax = node.Expression
+        Private Function BindThrow(node As ThrowStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
+            Dim expressionSyntax As ExpressionSyntax = node.Expression
             Dim hasError As Boolean = False
 
             If expressionSyntax Is Nothing Then
@@ -5179,13 +5187,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim exceptionType = value.Type
                 If Not exceptionType.IsErrorType Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-                    If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteDiagnostics) Then
+                    If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException, exceptionType)
-                        diagnostics.Add(node, useSiteDiagnostics)
                     End If
+
+                    diagnostics.Add(node, useSiteInfo)
                 Else
                     hasError = True
                 End If
@@ -5194,7 +5203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function BindError(node As ErrorStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindError(node As ErrorStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             Dim value As BoundExpression = ApplyImplicitConversion(node.ErrorNumber,
                                                                    GetSpecialType(SpecialType.System_Int32, node.ErrorNumber, diagnostics),
                                                                    BindValue(node.ErrorNumber, diagnostics),
@@ -5203,7 +5212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundThrowStatement(node, value)
         End Function
 
-        Private Function BindResumeStatement(node As ResumeStatementSyntax, diagnostics As DiagnosticBag) As BoundResumeStatement
+        Private Function BindResumeStatement(node As ResumeStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundResumeStatement
 
             If IsInLambda Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_MultilineLambdasCannotContainOnError)
@@ -5238,7 +5247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindOnErrorStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundOnErrorStatement
+        Private Function BindOnErrorStatement(node As StatementSyntax, diagnostics As BindingDiagnosticBag) As BoundOnErrorStatement
 
             If IsInLambda Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_MultilineLambdasCannotContainOnError)
@@ -5281,7 +5290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundStopStatement(stopStatementSyntax)
         End Function
 
-        Private Function BindEndStatement(endStatementSyntax As StopOrEndStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+        Private Function BindEndStatement(endStatementSyntax As StopOrEndStatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
             If Not Compilation.Options.OutputKind.IsApplication() Then
                 ReportDiagnostic(diagnostics, endStatementSyntax, ERRID.ERR_EndDisallowedInDllProjects)
             End If

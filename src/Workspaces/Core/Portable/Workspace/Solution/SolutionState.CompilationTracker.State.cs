@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -28,9 +30,8 @@ namespace Microsoft.CodeAnalysis
                 public static readonly State Empty = new(
                     compilationWithoutGeneratedDocuments: null,
                     declarationOnlyCompilation: null,
-                    generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
-                    generatedDocumentsAreFinal: false,
-                    unrootedSymbolSet: null);
+                    generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                    generatedDocumentsAreFinal: false);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 /// The best generated documents we have for the current state. <see cref="GeneratedDocumentsAreFinal"/> specifies whether the
                 /// documents are to be considered final and can be reused, or whether they're from a prior snapshot which needs to be recomputed.
                 /// </summary>
-                public ImmutableArray<SourceGeneratedDocumentState> GeneratedDocuments { get; }
+                public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
 
                 /// <summary>
                 /// Whether the generated documents in <see cref="GeneratedDocuments"/> are final and should not be regenerated. It's important
@@ -59,14 +60,6 @@ namespace Microsoft.CodeAnalysis
                 /// confuse our snapshot model -- once the tree has been handed out we can't make a second tree later.
                 /// </summary>
                 public bool GeneratedDocumentsAreFinal { get; }
-
-                /// <summary>
-                /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
-                /// This can be used to determine which project an assembly symbol came from after the fact.  This is
-                /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
-                /// compilation (or any of it's assemblies) may produce new assembly symbols.
-                /// </summary>
-                public readonly UnrootedSymbolSet? UnrootedSymbolSet;
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it depends on contain full information or not. This can return
@@ -84,9 +77,8 @@ namespace Microsoft.CodeAnalysis
                 protected State(
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
                     Compilation? declarationOnlyCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    bool generatedDocumentsAreFinal,
-                    UnrootedSymbolSet? unrootedSymbolSet)
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    bool generatedDocumentsAreFinal)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -95,12 +87,12 @@ namespace Microsoft.CodeAnalysis
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
                     GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
-                    UnrootedSymbolSet = unrootedSymbolSet;
                 }
 
                 public static State Create(
                     Compilation compilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -110,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
                         ? new FullDeclarationState(compilation, generatedDocuments, generatedDocumentsAreFinal: false)
-                        : (State)new InProgressState(compilation, generatedDocuments, intermediateProjects);
+                        : (State)new InProgressState(compilation, generatedDocuments, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -121,30 +113,6 @@ namespace Microsoft.CodeAnalysis
                         ? new WeakValueSource<Compilation>(compilation)
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
-
-                public static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
-                {
-
-                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
-
-                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
-                    // underlying compilation is GC'ed.
-                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
-                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
-
-                    var secondarySymbols = new WeakSet<ISymbol>();
-                    foreach (var reference in compilation.References)
-                    {
-                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                        if (symbol == null)
-                            continue;
-
-                        secondarySymbols.Add(symbol);
-                    }
-
-                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols);
-                }
             }
 
             /// <summary>
@@ -153,22 +121,35 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                /// <summary>
+                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+                /// the state of the project prior to the mutation.
+                /// </summary>
+                public ImmutableArray<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+
+                /// <summary>
+                /// The result of taking the original completed compilation that had generated documents and updating them by
+                /// apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a correct snapshot in that
+                /// the generators have not been rerun, but may be reusable if the generators are later found to give the
+                /// same output.
+                /// </summary>
+                public Compilation? CompilationWithGeneratedDocuments { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatedDocuments,
-                           generatedDocumentsAreFinal: false, // since we have a set of transformations to make, we'll always have to run generators again
-                           GetUnrootedSymbols(inProgressCompilation))
+                           generatedDocumentsAreFinal: false) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
 
                     this.IntermediateProjects = intermediateProjects;
+                    this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
                 }
             }
 
@@ -178,13 +159,12 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
                     : base(compilationWithoutGeneratedDocuments: null,
                            declarationOnlyCompilation,
                            generatedDocuments,
-                           generatedDocumentsAreFinal,
-                           unrootedSymbolSet: null)
+                           generatedDocumentsAreFinal)
                 {
                 }
             }
@@ -196,24 +176,38 @@ namespace Microsoft.CodeAnalysis
             private sealed class FullDeclarationState : State
             {
                 public FullDeclarationState(Compilation declarationCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatedDocuments,
-                           generatedDocumentsAreFinal,
-                           GetUnrootedSymbols(declarationCompilation))
+                           generatedDocumentsAreFinal)
                 {
                 }
             }
 
             /// <summary>
-            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is available,
-            /// as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>.
+            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is
+            /// available, as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>. It is a
+            /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="Solution"/>
+            /// (for example, through <see cref="Project.GetCompilationAsync"/> or <see
+            /// cref="Project.TryGetCompilation"/> must be from a <see cref="FinalState"/>.  This is because <see
+            /// cref="FinalState"/> stores extra information in it about that compilation that the <see
+            /// cref="Solution"/> can be queried for (for example: <see
+            /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
+            /// cref="State"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>
             private sealed class FinalState : State
             {
                 public override bool? HasSuccessfullyLoaded { get; }
+
+                /// <summary>
+                /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
+                /// This can be used to determine which project an assembly symbol came from after the fact.  This is
+                /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
+                /// compilation (or any of it's assemblies) may produce new assembly symbols.
+                /// </summary>
+                public readonly UnrootedSymbolSet UnrootedSymbolSet;
 
                 /// <summary>
                 /// The final compilation, with all references and source generators run. This is distinct from
@@ -224,28 +218,93 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
-                public FinalState(
+                private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    UnrootedSymbolSet? unrootedSymbolSet)
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
-                           generatedDocumentsAreFinal: true, // when we're in a final state, we've ran generators and should not run again
-                           unrootedSymbolSet)
+                           generatedDocumentsAreFinal: true) // when we're in a final state, we've ran generators and should not run again
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
+                    UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (GeneratedDocuments.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
-                        Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
+                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
+                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
+                    }
+                }
+
+                /// <param name="finalCompilation">Not held onto</param>
+                /// <param name="projectId">Not held onto</param>
+                /// <param name="metadataReferenceToProjectId">Not held onto</param>
+                public static FinalState Create(
+                    ValueSource<Optional<Compilation>> finalCompilationSource,
+                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation compilationWithoutGeneratedFiles,
+                    bool hasSuccessfullyLoaded,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation finalCompilation,
+                    ProjectId projectId,
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
+                    // Keep track of information about symbols from this Compilation.  This will help support other APIs
+                    // the solution exposes that allows the user to map back from symbols to project information.
+
+                    var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilation);
+                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+
+                    return new FinalState(
+                        finalCompilationSource,
+                        compilationWithoutGeneratedFilesSource,
+                        compilationWithoutGeneratedFiles,
+                        hasSuccessfullyLoaded,
+                        generatedDocuments, unrootedSymbolSet);
+                }
+
+                private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
+                    RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
+
+                    if (metadataReferenceToProjectId != null)
+                    {
+                        foreach (var (metadataReference, currentID) in metadataReferenceToProjectId)
+                        {
+                            var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                            RecordSourceOfAssemblySymbol(symbol, currentID);
+                        }
+                    }
+                }
+
+                private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
+                {
+                    // TODO: how would we ever get a null here?
+                    if (assemblyOrModuleSymbol == null)
+                    {
+                        return;
+                    }
+
+                    Contract.ThrowIfNull(projectId);
+                    // remember which project is associated with this assembly
+                    if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
+                    {
+                        // use GetValue to avoid race condition exceptions from Add.
+                        // the first one to set the value wins.
+                        s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
+                    }
+                    else
+                    {
+                        // sanity check: this should always be true, no matter how many times
+                        // we attempt to record the association.
+                        Debug.Assert(tmp == projectId);
                     }
                 }
             }

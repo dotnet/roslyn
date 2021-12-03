@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">タプル要素名 '{0}' を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="translated">'{0}' をジェネリック型に追加すると、デバッグ セッションは続行されません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">'{0}' をインターフェイス メソッドに追加すると、デバッグ セッションは続行されません。</target>
@@ -98,6 +103,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
         <target state="translated">'{0}' をインターフェイスに追加すると、デバッグ セッションは続行されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
+        <target state="translated">レコードに位置パラメーターを追加すると、デバッグ セッションが続行されなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -124,6 +134,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">選択条件が捕捉されないため、名前を指定できません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">ファイル ヘッダーの基本設定を適用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">オブジェクト/コレクションの初期化の基本設定を適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="translated">アクティブ ステートメントは元のメソッドから削除されました。変更を元に戻して続行するか、またはデバッグ セッションを再開してください。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -205,6 +230,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="translated">{0} の表示範囲を変更すると、デバッグ セッションを続行できなくなります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} コード スタイルの構成</target>
@@ -250,6 +280,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">レコードへの変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="translated">レコード構造体に変換する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">構造体に変換</target>
@@ -278,6 +313,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">残りをプロパティとして作成して割り当てる</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
+        <target state="translated">レコードから位置パラメーターを削除すると、デバッグ セッションが続行されなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -310,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">プロジェクト '{0}' で変更を行うと、デバッグ セッションは続行されません。{1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="translated">編集して続行は、ランタイムでサポートされていません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
@@ -334,6 +379,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Examples:</source>
         <target state="translated">例:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="translated">明示的に実装されたレコードのメソッドには、コンパイラ生成と同等の '{0}' と一致するパラメーター名が必要です</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -368,6 +418,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' の入力ミスを修正します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">ドキュメントのフォーマット</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -465,6 +520,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' を通じて実装します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
+        <target state="translated">Set アクセサーを含むレコード位置パラメーター '{0}' を読み取り専用として実装すると、デバッグ セッションは続行されなくなります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
+        <target state="translated">Set アクセサーを含むレコード位置パラメーター '{0}' を実装すると、デバッグ セッションは続行されなくなります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">不完全な \p{X} 文字エスケープです</target>
@@ -543,6 +608,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">条件を反転します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="translated">メソッドを反復子にするとデバッグ セッションは続行されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="translated">メソッドを '非同期' にするとデバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -649,6 +724,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Not enough )'s</source>
         <target state="translated">) が足りません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="translated">演算子</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -1830,6 +1910,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'async' 修飾子を削除してください</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">不要なキャストを削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">未使用の変数を削除する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' を '{1}' に置き換える</target>
@@ -1843,6 +1933,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Rude 編集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">アクセシビリティ修飾子を並べ替える</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2070,6 +2165,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">折り返し</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' を NULL または空にすることはできません。</target>
@@ -2257,13 +2357,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">"f" カスタム書式指定子は、秒の小数部分の有効数字最上位桁を表します。つまり、日時値の秒の小数部分を 10 分の 1 秒単位で表します。
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
 
-"f" 書式指定子を他の書式指定子なしで使用すると、"f" 標準日時書式指定子として解釈されます。
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-"f" 書式指定子を、ParseExact、TryParseExact、ParseExact、または TryParseExact メソッドに指定する書式文字列の一部として使用した場合、"f" 書式指定子の数は、文字列を正常に解析するために必要な秒の小数点以下の有効桁数を示します。</target>
-        <note />
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2329,6 +2429,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" カスタム書式指定子 (任意の数の "H" 指定子を追加できます) は、時を 00 から 23 の数字で表します。つまり、午前 0 時からの時間をカウントする、ゼロから始まる 24 時間制で時が表されます。1 桁の時は、先行ゼロ付きで書式設定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="translated">コード</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2459,7 +2564,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="in_0_1_2">
         <source>in {0} ({1} - {2})</source>
-        <target state="translated">{0} 内 ({1} - {2})</target>
+        <target state="translated">{0} ({1} - {2}) 内</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
@@ -2486,6 +2591,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">"T" 標準書式指定子は、特定のカルチャの DateTimeFormatInfo.LongTimePattern プロパティで定義されているカスタム日時書式指定文字列を表します。たとえば、インバリアント カルチャのカスタム書式指定文字列は "HH:mm:ss" です。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="translated">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2939,11 +3049,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Await 式を含む複雑なステートメントを更新すると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">コンストラクターの表示範囲を変更すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">以前にキャプチャされたことのない変数 '{0}' をキャプチャすると、デバッグ セッションは続行されません。</target>
@@ -3150,8 +3255,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' を削除すると、デバッグ セッションは続行されません。</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="translated">{0} を削除すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3167,11 +3272,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a method body will prevent the debug session from continuing.</source>
         <target state="translated">メソッド本体を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">アクティブ ステートメントは元のメソッドから削除されました。変更を元に戻して続行するか、またはデバッグ セッションを再開してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3202,11 +3302,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
         <target state="translated">ジェネリック型の '{0}' の初期化子を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">部分型の '{0}' の初期化子を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -3260,8 +3355,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメンを含む '{0}' を削除すると、デバッグ セッションは続行されません。</target>
+        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">アクティブ ステートメントを含む {0} を削除すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3386,18 +3481,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">無効</target>
+        <source>Not Available ⚠</source>
+        <target state="translated">使用できません ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">{0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3658,6 +3748,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" 書式指定子の目的は、書式設定後の文字列が、日付と時刻の値に基づいて、一貫して昇順または降順に並べ替えられるようにすることです。そのため、"s" 標準書式指定子は、一貫性のある形式で日付と時刻の値を表しますが、書式設定操作によって、書式設定の対象となる日付と時刻のオブジェクトの値が、DateTime.Kind プロパティまたは DateTimeOffset.Offset プロパティを反映するために変更されることはありません。たとえば、2014-11-15T18:32:17+00:00 日時値と 2014-11-15T18:32:17+08:00 日時値を書式設定すると、同じ文字列が生成されます。
 
 この標準書式指定子が使用されている場合、書式設定操作または解析操作では常にインバリアント カルチャが使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="translated">静的コンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

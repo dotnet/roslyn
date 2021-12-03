@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -142,9 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         internal static bool IsStandardCommitCharacter(char c)
             => c == '\t' || c == '\n' || c == '\0';
-
-        internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
-            => session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation);
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.

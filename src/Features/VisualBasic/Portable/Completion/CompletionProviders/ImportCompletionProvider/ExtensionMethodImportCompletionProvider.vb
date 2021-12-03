@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
-        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken)
+        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, usePartialSemantic As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken)
         End Function
 
         Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)

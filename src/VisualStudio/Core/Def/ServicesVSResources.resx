@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -846,12 +846,6 @@ Additional information: {1}</value>
   <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
     <value>type is apparent from assignment expression</value>
   </data>
-  <data name="Get_help_for_0" xml:space="preserve">
-    <value>Get help for '{0}'</value>
-  </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
-  </data>
   <data name="Move_down" xml:space="preserve">
     <value>Move down</value>
   </data>
@@ -1353,13 +1347,6 @@ I agree to all of the foregoing:</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
-  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>C#/Visual Basic Language Server Client</value>
-  </data>
-  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>Live Share C#/Visual Basic Language Server Client</value>
-    <comment>'Live Share' is a product name and does not need to be localized.</comment>
-  </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
   </data>
@@ -1446,9 +1433,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
-  </data>
-  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
-    <value>Razor C# Language Server Client</value>
   </data>
   <data name="All_sources" xml:space="preserve">
     <value>All sources</value>
@@ -1601,5 +1585,163 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
+  </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
+  <data name="New_line_preferences_experimental_colon" xml:space="preserve">
+    <value>New line preferences (experimental):</value>
+  </data>
+  <data name="Require_colon" xml:space="preserve">
+    <value>Require:</value>
+  </data>
+  <data name="Allow_multiple_blank_lines" xml:space="preserve">
+    <value>Allow multiple blank lines</value>
+  </data>
+  <data name="Allow_statement_immediately_after_block" xml:space="preserve">
+    <value>Allow statement immediately after block</value>
+  </data>
+  <data name="Symbols_without_references" xml:space="preserve">
+    <value>Symbols without references</value>
+  </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments (experimental)</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Remove_All" xml:space="preserve">
+    <value>Remove All</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Action to perform on an unused reference, such as remove or keep</comment>
+  </data>
+  <data name="Assemblies" xml:space="preserve">
+    <value>Assemblies</value>
+  </data>
+  <data name="Choose_which_action_you_would_like_to_perform_on_the_unused_references" xml:space="preserve">
+    <value>Choose which action you would like to perform on the unused references.</value>
+  </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Projects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
+    <value>Enable all features in opened files from source generators (experimental)</value>
+  </data>
+  <data name="Remove_Unused_References" xml:space="preserve">
+    <value>Remove Unused References</value>
+  </data>
+  <data name="Analyzing_project_references" xml:space="preserve">
+    <value>Analyzing project references...</value>
+  </data>
+  <data name="Updating_project_references" xml:space="preserve">
+    <value>Updating project references...</value>
+  </data>
+  <data name="No_unused_references_were_found" xml:space="preserve">
+    <value>No unused references were found.</value>
+  </data>
+  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
+    <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
+  </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
+  <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
+    <value>This action cannot be undone. Do you wish to continue?</value>
+  </data>
+  <data name="Show_inheritance_margin" xml:space="preserve">
+    <value>Show inheritance margin</value>
+  </data>
+  <data name="Inheritance_Margin_experimental" xml:space="preserve">
+    <value>Inheritance Margin (experimental)</value>
+  </data>
+  <data name="Analyzers" xml:space="preserve">
+    <value>Analyzers</value>
+  </data>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
+  </data>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Code_Style" xml:space="preserve">
+    <value>Code Style</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="Newline_n" xml:space="preserve">
+    <value>Newline (\\n)</value>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Search_Settings" xml:space="preserve">
+    <value>Search Settings</value>
+  </data>
+  <data name="Multiple_members_are_inherited" xml:space="preserve">
+    <value>Multiple members are inherited</value>
+  </data>
+  <data name="_0_is_inherited" xml:space="preserve">
+    <value>'{0}' is inherited</value>
+  </data>
+  <data name="Navigate_to_0" xml:space="preserve">
+    <value>Navigate to '{0}'</value>
+  </data>
+  <data name="Multiple_members_are_inherited_on_line_0" xml:space="preserve">
+    <value>Multiple members are inherited on line {0}</value>
+    <comment>Line number info is needed for accessibility purpose.</comment>
+  </data>
+  <data name="Implemented_members" xml:space="preserve">
+    <value>Implemented members</value>
+  </data>
+  <data name="Implementing_members" xml:space="preserve">
+    <value>Implementing members</value>
+  </data>
+  <data name="Overriding_members" xml:space="preserve">
+    <value>Overriding members</value>
+  </data>
+  <data name="Overridden_members" xml:space="preserve">
+    <value>Overridden members</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
   </data>
 </root>

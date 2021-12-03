@@ -12,7 +12,7 @@ Particularly for developers who aren't experienced with .NET Core development on
 1. Install [VS Code](https://code.visualstudio.com/Download)
     - After you install VS Code, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
     - Important tip: You can look up editor commands by name by hitting *Ctrl+Shift+P*, or by hitting *Ctrl+P* and typing a `>` character. This will help you get familiar with editor commands mentioned below. On a Mac, use *⌘* instead of *Ctrl*.
-2. Install a recent preview [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core). At time of writing, Roslyn uses .NET 5 preview 8. The exact version in use is recorded in our [global.json](https://github.com/dotnet/roslyn/blob/master/global.json) file.
+2. Install a recent preview [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core). At time of writing, Roslyn uses .NET 5 preview 8. The exact version in use is recorded in our [global.json](https://github.com/dotnet/roslyn/blob/main/global.json) file.
 3. You can build from VS Code by running the *Run Build Task* command, then selecting an appropriate task such as *build* or *build current project* (the latter builds the containing project for the current file you're viewing in the editor).
 4. You can run tests from VS Code by opening a test class in the editor, then using the *Run Tests in Context* and *Debug Tests in Context* editor commands. You may want to bind these commands to keyboard shortcuts that match their Visual Studio equivalents (**Ctrl+R, T** for *Run Tests in Context* and **Ctrl+R, Ctrl+T** for *Debug Tests in Context*).
 
@@ -34,14 +34,14 @@ with it then lldb debugging will be pretty straight forward.
 
 The [dotnet/diagnostics](https://github.com/dotnet/diagnostics) repo has more information:
 
-- [Getting LLDB](https://github.com/dotnet/diagnostics/blob/master/documentation/lldb/linux-instructions.md)
-- [Installing SOS](https://github.com/dotnet/diagnostics/blob/master/documentation/installing-sos-instructions.md)
-- [Using SOS](https://github.com/dotnet/diagnostics/blob/master/documentation/sos-debugging-extension.md)
+- [Getting LLDB](https://github.com/dotnet/diagnostics/blob/main/documentation/lldb/linux-instructions.md)
+- [Installing SOS](https://github.com/dotnet/diagnostics/blob/main/documentation/installing-sos-instructions.md)
+- [Using SOS](https://github.com/dotnet/diagnostics/blob/main/documentation/sos-debugging-extension.md)
 
 CoreCLR also has some guidelines for specific Linux debugging scenarios:
 
-- https://github.com/dotnet/coreclr/blob/master/Documentation/botr/xplat-minidump-generation.md
-- https://github.com/dotnet/coreclr/blob/master/Documentation/building/debugging-instructions.md#debugging-core-dumps-with-lldb.
+- https://github.com/dotnet/coreclr/blob/main/Documentation/botr/xplat-minidump-generation.md
+- https://github.com/dotnet/coreclr/blob/main/Documentation/building/debugging-instructions.md#debugging-core-dumps-with-lldb.
 
 Corrections:
 - LLDB and createdump must be run as root
@@ -58,7 +58,7 @@ environment variables that you want a core dump to be produced. The simplest set
 
 This will cause full memory dumps to be produced which can then be loaded into LLDB.
 
-A preview of [dotnet-dump](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-dump-instructions.md) is also available for interactively creating and analyzing dumps.
+A preview of [dotnet-dump](https://github.com/dotnet/diagnostics/blob/main/documentation/dotnet-dump-instructions.md) is also available for interactively creating and analyzing dumps.
 
 ### GC stress failures
 When you suspect there is a GC failure related to your test then you can use the following environment variables

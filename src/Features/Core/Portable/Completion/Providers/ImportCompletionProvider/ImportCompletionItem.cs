@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
-                 inlineDescription: containingNamespace);
+                 inlineDescription: containingNamespace,
+                 isComplexTextEdit: true);
 
             if (includedInTargetTypeCompletion)
             {
@@ -102,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: attributeItem.Rules,
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
-                 inlineDescription: attributeItem.InlineDescription);
+                 inlineDescription: attributeItem.InlineDescription,
+                 isComplexTextEdit: true);
 
             item.Flags = flags;
             return item;
@@ -134,6 +136,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return CompletionDescription.Empty;
+        }
+
+        public static string GetTypeName(CompletionItem item)
+        {
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName)
+                ? attributeFullName
+                : item.DisplayText;
+
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+            {
+                return typeName + aritySuffix;
+            }
+
+            return typeName;
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)

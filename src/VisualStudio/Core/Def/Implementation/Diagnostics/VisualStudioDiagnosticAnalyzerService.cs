@@ -7,10 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +20,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -68,24 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
             if (menuCommandService != null)
             {
-                AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-                AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-            }
-
-            return;
-
-            // Local functions
-            static OleMenuCommand AddCommand(
-                IMenuCommandService menuCommandService,
-                int commandId,
-                Guid commandGroup,
-                EventHandler invokeHandler,
-                EventHandler beforeQueryStatus)
-            {
-                var commandIdWithGroupId = new CommandID(commandGroup, commandId);
-                var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, commandIdWithGroupId);
-                menuCommandService.AddCommand(command);
-                return command;
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
             }
         }
 
@@ -155,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // We hook up the "Run Code Analysis" menu commands for CPS based managed projects.
             // These commands are already hooked up for csproj based projects in StanCore, but those will eventually go away.
-            var visible = TryGetSelectedProjectHierarchy(out var hierarchy) &&
+            var visible = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&
                 hierarchy.IsCapabilityMatch(".NET");
             var enabled = false;
@@ -169,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);
                 }
 
-                enabled = !IsBuildActive();
+                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive();
             }
 
             if (command.Visible != visible)
@@ -185,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
         {
-            if (TryGetSelectedProjectHierarchy(out var hierarchy))
+            if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
                 RunAnalyzers(hierarchy);
             }
@@ -277,78 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             return null;
-        }
-
-        private bool TryGetSelectedProjectHierarchy([NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy)
-        {
-            hierarchy = null;
-
-            // Get the DTE service and make sure there is an open solution
-            if (!(_serviceProvider?.GetService(typeof(EnvDTE.DTE)) is EnvDTE.DTE dte) ||
-                dte.Solution == null)
-            {
-                return false;
-            }
-
-            var selectionHierarchy = IntPtr.Zero;
-            var selectionContainer = IntPtr.Zero;
-
-            // Get the current selection in the shell
-            if (_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelection)
-            {
-                try
-                {
-                    monitorSelection.GetCurrentSelection(out selectionHierarchy, out var itemId, out var multiSelect, out selectionContainer);
-                    if (selectionHierarchy != IntPtr.Zero)
-                    {
-                        hierarchy = Marshal.GetObjectForIUnknown(selectionHierarchy) as IVsHierarchy;
-                        Debug.Assert(hierarchy != null);
-                        return hierarchy != null;
-                    }
-                }
-                catch (Exception)
-                {
-                    // If anything went wrong, just ignore it
-                }
-                finally
-                {
-                    // Make sure we release the COM pointers in any case
-                    if (selectionHierarchy != IntPtr.Zero)
-                    {
-                        Marshal.Release(selectionHierarchy);
-                    }
-
-                    if (selectionContainer != IntPtr.Zero)
-                    {
-                        Marshal.Release(selectionContainer);
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool IsBuildActive()
-        {
-            // Using KnownUIContexts is faster in case when SBM's package was not loaded yet
-            if (KnownUIContexts.SolutionBuildingContext != null)
-            {
-                return KnownUIContexts.SolutionBuildingContext.IsActive;
-            }
-            else
-            {
-                // Unlikely case that above service is not available, let's try Solution Build Manager
-                if (_serviceProvider?.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager buildManager)
-                {
-                    buildManager.QueryBuildManagerBusy(out var buildBusy);
-                    return buildBusy != 0;
-                }
-                else
-                {
-                    Debug.Fail("Unable to determine whether build is active or not");
-                    return true;
-                }
-            }
         }
 
         private sealed class StatusBarUpdater : IDisposable

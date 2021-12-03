@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -125,10 +123,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
+            if (!item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                // They should always be available from items provided by Roslyn CompletionSource.
+                // Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
@@ -197,8 +196,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            var disallowAddingImports = session.Properties.ContainsProperty(CompletionSource.DisallowAddingImports);
-
             CompletionChange change;
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
@@ -206,7 +203,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // See https://github.com/dotnet/roslyn/issues/38455.
             try
             {
-                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, disallowAddingImports, cancellationToken).WaitAndGetResult(cancellationToken);
+                // Cached items have a span computed at the point they were created.  This span may no 
+                // longer be valid when used again.  In that case, override the span with the latest span
+                // for the completion list itself.
+                if (roslynItem.Flags.IsCached())
+                    roslynItem.Span = completionListSpan;
+
+                change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
             {
@@ -254,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
                     if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
                     {
-                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText.Length));
+                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
                     }
                     else
                     {
@@ -268,15 +271,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // The edit updates the snapshot however other extensions may make changes there.
                     // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
-                    document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                    var formattingService = document?.GetLanguageService<IEditorFormattingService>();
+                    var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var formattingService = currentDocument?.GetRequiredLanguageService<IEditorFormattingService>();
 
-                    if (formattingService != null)
+                    if (currentDocument != null && formattingService != null)
                     {
+                        var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                         var changes = formattingService.GetFormattingChangesAsync(
-                            document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                            currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
                     }
                 }
             }
@@ -357,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        private static CompletionProvider GetCompletionProvider(CompletionService completionService, CompletionItem item)
+        private static CompletionProvider? GetCompletionProvider(CompletionService completionService, CompletionItem item)
         {
             if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
             {

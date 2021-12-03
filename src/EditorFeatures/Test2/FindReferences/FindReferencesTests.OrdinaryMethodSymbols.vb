@@ -394,7 +394,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodOverride_InMetadata(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodOverride_InMetadata_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -411,7 +411,28 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodOverride_InMetadata_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            // Will walk up to Object.ToString
+            public override string {|Definition:To$$String|}() { }
+        }
+        class O
+        {
+            public override string ToString() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -443,7 +464,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -480,11 +501,52 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        class C1 : I1
+        {
+            public void Goo()
+            {
+            }
+        }
+
+        interface I2 : I1
+        {
+            void {|Definition:Goo|}();
+            void Bar();
+        }
+
+        class C2 : I2
+        {
+            public void Bar()
+            {
+                [|Goo$$|]();
+            }
+
+            public void {|Definition:Goo|}();
+            {
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -521,7 +583,48 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Go$$o|}();
+        }
+
+        class C1 : I1
+        {
+            public void {|Definition:Goo|}()
+            {
+            }
+        }
+
+        interface I2 : I1
+        {
+            void Goo();
+            void Bar();
+        }
+
+        class C2 : I2
+        {
+            public void Bar()
+            {
+                [|Goo|]();
+            }
+
+            public void {|Definition:Goo|}();
+            {
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1398,7 +1501,7 @@ End Interface
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1425,12 +1528,44 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.{|Definition:$$F|}() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void F()
+        {
+            F();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1457,12 +1592,44 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.F() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void {|Definition:$$F|}()
+        {
+            [|F|]();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1489,7 +1656,39 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.F() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void {|Definition:F|}()
+        {
+            [|$$F|]();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WorkItem(539046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539046")>
@@ -3378,7 +3577,7 @@ End Class
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodUsedInSourceGenerator(kind As TestKind) As Task
+        Public Async Function TestOrdinaryMethodUsedInSourceGenerator(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3405,8 +3604,187 @@ End Class
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:$$Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : B, I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : B, I1
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void Goo();
+        }
+
+        interface I2
+        {
+            void {|Definition:$$Goo|}();
+        }
+
+        class B : I1
+        {
+            public virtual void Goo() {}
+        }
+
+        class D1 : B, I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : B, I1
+        {
+            public override void Goo() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade3(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:$$Goo|}() {}
+        }
+
+        class D1 : B, I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : B, I1
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void {|Definition:Goo|}();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : B, I1, I2
+        {
+            public override void {|Definition:$$Goo|}() {}
+        }
+
+        class D2 : B, I1
+        {
+            public override void Goo() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade5(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : B, I1, I2
+        {
+            public override void Goo() {}
+        }
+
+        class D2 : B, I1
+        {
+            public override void {|Definition:$$Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
     End Class
 End Namespace

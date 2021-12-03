@@ -165,38 +165,35 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    var classDecl = (ClassDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        classDecl.Identifier.ValueText,
-                        GetTypeParameterSuffix(classDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        classDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Class,
-                        GetAccessibility(classDecl, classDecl.Modifiers),
-                        classDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, classDecl.BaseList),
-                        IsNestedType(classDecl));
-                    return true;
                 case SyntaxKind.RecordDeclaration:
-                    var recordDecl = (RecordDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.StructDeclaration:
+                    var typeDecl = (TypeDeclarationSyntax)node;
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
-                        recordDecl.Identifier.ValueText,
-                        GetTypeParameterSuffix(recordDecl.TypeParameterList),
+                        typeDecl.Identifier.ValueText,
+                        GetTypeParameterSuffix(typeDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        recordDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Record,
-                        GetAccessibility(recordDecl, recordDecl.Modifiers),
-                        recordDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, recordDecl.BaseList),
-                        IsNestedType(recordDecl));
+                        typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        node.Kind() switch
+                        {
+                            SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
+                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
+                            SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
+                            SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+                            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+                            _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+                        },
+                        GetAccessibility(typeDecl, typeDecl.Modifiers),
+                        typeDecl.Identifier.Span,
+                        GetInheritanceNames(stringTable, typeDecl.BaseList),
+                        IsNestedType(typeDecl));
                     return true;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -208,37 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         inheritanceNames: ImmutableArray<string>.Empty,
                         isNestedType: IsNestedType(enumDecl));
                     return true;
-                case SyntaxKind.InterfaceDeclaration:
-                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        interfaceDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Interface,
-                        GetAccessibility(interfaceDecl, interfaceDecl.Modifiers),
-                        interfaceDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, interfaceDecl.BaseList),
-                        IsNestedType(interfaceDecl));
-                    return true;
-                case SyntaxKind.StructDeclaration:
-                    var structDecl = (StructDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        structDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Struct,
-                        GetAccessibility(structDecl, structDecl.Modifiers),
-                        structDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, structDecl.BaseList),
-                        IsNestedType(structDecl));
-                    return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
@@ -253,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
@@ -267,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -280,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -293,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         "this", GetIndexerSuffix(indexerDecl),
                         GetContainerDisplayName(node.Parent),
@@ -306,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         method.Identifier.ValueText, GetMethodSuffix(method),
                         GetContainerDisplayName(node.Parent),
@@ -321,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return true;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         property.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -344,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 
-                        declaredSymbolInfo = new DeclaredSymbolInfo(
+                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
                             stringTable,
                             variableDeclarator.Identifier.ValueText, null,
                             GetContainerDisplayName(fieldDeclaration.Parent),
@@ -494,7 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             switch (node.Parent.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // Anything without modifiers is private if it's in a class/struct declaration.
                     return Accessibility.Private;
                 case SyntaxKind.InterfaceDeclaration:

@@ -178,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Derived types utilizing this helper should provide storage for the lazily calculated
         ''' <see cref="EvaluatedConstant"/> value and should implement the following APIs:
         ''' <see cref="GetLazyConstantTuple()"/>,
-        ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, DiagnosticBag)"/>,
-        ''' <see cref="MakeConstantTuple(ConstantFieldsInProgress.Dependencies, DiagnosticBag)"/>.
+        ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, BindingDiagnosticBag)"/>,
+        ''' <see cref="MakeConstantTuple(ConstantFieldsInProgress.Dependencies, BindingDiagnosticBag)"/>.
         ''' </summary>
         Protected Function GetConstantValueImpl(inProgress As ConstantFieldsInProgress) As ConstantValue
             Dim constantTuple As EvaluatedConstant = GetLazyConstantTuple()
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If GetLazyConstantTuple() Is Nothing Then
                 Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
                 Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim constantTuple As EvaluatedConstant = MakeConstantTuple(dependencies, diagnostics)
                 dependencies.Freeze()
 
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
             Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance()
             valueTuple = MakeConstantTuple(dependencies, diagnostics)
             dependencies.Freeze()
 
@@ -561,14 +561,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
         ''' </summary>
-        Protected Overridable Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+        Protected Overridable Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
         ''' <summary>
         ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
         ''' </summary>
-        Protected Overridable Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+        Protected Overridable Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             Dim specialTypeInt64 = Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)
                             ' NOTE: used from emit, so shouldn't have gotten here if there were errors
-                            Debug.Assert(specialTypeInt64.GetUseSiteErrorInfo() Is Nothing)
+                            Debug.Assert(specialTypeInt64.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
                             Dim compilation = Me.DeclaringCompilation
 
@@ -711,9 +711,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
@@ -723,13 +724,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Me.ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasNonSerializedAttribute = True
                 Else
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.FieldOffsetAttribute) Then
                 Dim offset = attrData.CommonConstructorArguments(0).DecodeValue(Of Integer)(SpecialType.System_Int32)
                 If offset < 0 Then
-                    arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                     offset = 0
                 End If
 
@@ -754,16 +755,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
             Dim constValue As ConstantValue
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If Me.IsConst Then
                 If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
                     constValue = Me.GetConstantValue(ConstantFieldsInProgress.Empty)
 
                     If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
-                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
-                    arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
                 If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
@@ -774,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If constValue <> CodeAnalysis.ConstantValue.Unset Then
                     If constValue <> attrValue Then
-                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
                     data.ConstValue = attrValue

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public string Description { get; }
         public ImmutableArray<string> DiagnosticIds { get; }
 
-        public DiagnosticSet(string description, string[] diagnosticIds)
+        public DiagnosticSet(string description, params string[] diagnosticIds)
         {
             Description = description;
             DiagnosticIds = ImmutableArray.Create(diagnosticIds);

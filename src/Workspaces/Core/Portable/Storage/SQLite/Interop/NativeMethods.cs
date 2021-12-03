@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
         }
 
-        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, string sdb, string table, string col, long rowid, int flags, out Result result)
+        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, utf8z sdb, utf8z table, utf8z col, long rowid, int flags, out Result result)
         {
             using var _ = db.Lease();
 
@@ -81,12 +83,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static string sqlite3_errmsg(SafeSqliteHandle db)
         {
             using var _ = db.Lease();
-            return raw.sqlite3_errmsg(db.DangerousGetWrapper());
+            return raw.sqlite3_errmsg(db.DangerousGetWrapper()).utf8_to_string();
         }
 
         public static string sqlite3_errstr(int rc)
         {
-            return raw.sqlite3_errstr(rc);
+            return raw.sqlite3_errstr(rc).utf8_to_string();
         }
 
         public static int sqlite3_extended_errcode(SafeSqliteHandle db)
@@ -113,10 +115,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return raw.sqlite3_blob_bytes(blob.DangerousGetWrapper());
         }
 
-        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, byte[] b, int n, int offset)
+        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, Span<byte> bytes, int offset)
         {
             using var _ = blob.Lease();
-            return (Result)raw.sqlite3_blob_read(blob.DangerousGetWrapper(), b, n, offset);
+            return (Result)raw.sqlite3_blob_read(blob.DangerousGetWrapper(), bytes, offset);
         }
 
         public static Result sqlite3_reset(SafeSqliteStatementHandle stmt)
@@ -137,16 +139,26 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
         }
 
+        /// <summary>
+        /// <paramref name="val"><see cref="Encoding.UTF8"/> encoded bytes of a text value.  Span
+        /// should not be NUL-terminated.</paramref>
+        /// </summary>
+        public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
+        }
+
         public static Result sqlite3_bind_int64(SafeSqliteStatementHandle stmt, int index, long val)
         {
             using var _ = stmt.Lease();
             return (Result)raw.sqlite3_bind_int64(stmt.DangerousGetWrapper(), index, val);
         }
 
-        public static byte[] sqlite3_column_blob(SafeSqliteStatementHandle stmt, int index)
+        public static Result sqlite3_bind_blob(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> bytes)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_blob(stmt.DangerousGetWrapper(), index);
+            return (Result)raw.sqlite3_bind_blob(stmt.DangerousGetWrapper(), index, bytes);
         }
 
         public static int sqlite3_column_int(SafeSqliteStatementHandle stmt, int index)
@@ -164,7 +176,13 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static string sqlite3_column_text(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index);
+            return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index).utf8_to_string();
+        }
+
+        public static int sqlite3_clear_bindings(SafeSqliteStatementHandle stmt)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_clear_bindings(stmt.DangerousGetWrapper());
         }
     }
 }

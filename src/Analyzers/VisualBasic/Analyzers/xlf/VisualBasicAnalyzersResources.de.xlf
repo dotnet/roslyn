@@ -17,6 +17,11 @@
         <target state="translated">Imports-Anweisung ist unnötig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">Objekterstellung kann vereinfacht werden</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">Das ByVal-Schlüsselwort ist unnötig und kann entfernt werden.</target>

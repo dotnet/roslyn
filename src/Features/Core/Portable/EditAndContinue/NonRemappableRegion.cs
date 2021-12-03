@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal readonly struct NonRemappableRegion
+    internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
     {
         /// <summary>
         /// Pre-remap span.
@@ -33,6 +34,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             LineDelta = lineDelta;
             IsExceptionRegion = isExceptionRegion;
         }
+
+        public override bool Equals(object? obj)
+            => obj is NonRemappableRegion region && Equals(region);
+
+        public bool Equals(NonRemappableRegion other)
+            => Span.Equals(other.Span) &&
+               LineDelta == other.LineDelta &&
+               IsExceptionRegion == other.IsExceptionRegion;
+
+        public override int GetHashCode()
+            => Hash.Combine(Span.GetHashCode(), Hash.Combine(IsExceptionRegion, LineDelta));
+
+        public static bool operator ==(NonRemappableRegion left, NonRemappableRegion right)
+            => left.Equals(right);
+
+        public static bool operator !=(NonRemappableRegion left, NonRemappableRegion right)
+            => !(left == right);
 
         public NonRemappableRegion WithLineDelta(int value)
             => new(Span, value, IsExceptionRegion);

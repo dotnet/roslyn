@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
-        private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, DiagnosticBag diagnostics)
+        private static BoundExpression GetSpeculativelyBoundExpressionHelper(Binder binder, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             Debug.Assert(binder != null);
             Debug.Assert(binder.IsSemanticModelBinder);
@@ -258,12 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundNode;
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace || binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
-                boundNode = binder.BindNamespaceOrType(expression, diagnostics);
+                boundNode = binder.BindNamespaceOrType(expression, BindingDiagnosticBag.Discarded);
             }
             else
             {
                 Debug.Assert(bindingOption == SpeculativeBindingOption.BindAsExpression);
-                boundNode = binder.BindExpression(expression, diagnostics);
+                boundNode = binder.BindExpression(expression, BindingDiagnosticBag.Discarded);
             }
 
             return boundNode;
@@ -295,9 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
-                var unusedDiagnostics = DiagnosticBag.GetInstance();
-                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).Type);
-                unusedDiagnostics.Free();
+                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, BindingDiagnosticBag.Discarded).Type);
                 return null;
             }
             else if (binder.InCref)
@@ -319,18 +317,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
-            var boundNode = GetSpeculativelyBoundExpressionHelper(binder, expression, bindingOption, diagnostics);
-            diagnostics.Free();
+            var boundNode = GetSpeculativelyBoundExpressionHelper(binder, expression, bindingOption);
             return boundNode;
         }
 
         internal static ImmutableArray<Symbol> BindCref(CrefSyntax crefSyntax, Binder binder)
         {
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
             Symbol unusedAmbiguityWinner;
-            var symbols = binder.BindCref(crefSyntax, out unusedAmbiguityWinner, unusedDiagnostics);
-            unusedDiagnostics.Free();
+            var symbols = binder.BindCref(crefSyntax, out unusedAmbiguityWinner, BindingDiagnosticBag.Discarded);
             return symbols;
         }
 
@@ -415,11 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
-            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
-            diagnostics.Free();
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, BindingDiagnosticBag.Discarded);
 
             return boundNode;
         }
@@ -808,12 +800,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = memberModel.GetEnclosingBinder(position);
             if (binder != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, BindingDiagnosticBag.Discarded);
                 var binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
-                diagnostics.Free();
                 return binfo;
             }
             else
@@ -883,12 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = memberModel.GetEnclosingBinder(LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken) ? position : argumentList.OpenParenToken.SpanStart);
             if (binder != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, BindingDiagnosticBag.Discarded);
                 SymbolInfo binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
-                diagnostics.Free();
                 return binfo;
             }
             else
@@ -1657,8 +1645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref discardedUseSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -1730,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lookupResult = LookupResult.GetInstance();
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             binder.LookupSymbolsSimpleName(
                 lookupResult,
                 container,
@@ -1739,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 basesBeingResolved: null,
                 options: options & ~LookupOptions.IncludeExtensionMethods,
                 diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref discardedUseSiteInfo);
 
             if (lookupResult.IsMultiViable)
             {
@@ -1747,9 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // binder.ResultSymbol is defined only for type/namespace lookups
                     bool wasError;
-                    var diagnostics = DiagnosticBag.GetInstance();  // client code never expects a null diagnostic bag.
-                    Symbol singleSymbol = binder.ResultSymbol(lookupResult, name, arity, this.Root, diagnostics, true, out wasError, container, options);
-                    diagnostics.Free();
+                    Symbol singleSymbol = binder.ResultSymbol(lookupResult, name, arity, this.Root, BindingDiagnosticBag.Discarded, true, out wasError, container, options);
 
                     if (!wasError)
                     {
@@ -1843,8 +1829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return binder.IsAccessible(symbol, ref useSiteDiagnostics, null);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return binder.IsAccessible(symbol, ref discardedUseSiteInfo, null);
             }
 
             return false;
@@ -2037,11 +2023,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = lowestBoundNode as BoundPattern ?? highestBoundNode as BoundPattern ?? (highestBoundNode is BoundSubpattern sp ? sp.Pattern : null);
             if (pattern != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref useSiteDiagnostics));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref discardedUseSiteInfo));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2139,6 +2125,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the most pertinent conversion is the pointer conversion 
                     conversion = initializer.ElementPointerTypeConversion;
                 }
+                else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
+                {
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression })
+                    {
+                        // There was an implicit cast.
+                        type = convertedSwitch.NaturalTypeOpt;
+                        convertedType = convertedSwitch.Type;
+                        convertedNullability = convertedSwitch.TopLevelNullability;
+                        conversion = convertedSwitch.Conversion.IsValid ? convertedSwitch.Conversion : Conversion.NoConversion;
+                    }
+                    else
+                    {
+                        // There was an explicit cast on top of this
+                        type = convertedSwitch.NaturalTypeOpt;
+                        (convertedType, convertedNullability) = (type, nullability);
+                        conversion = Conversion.Identity;
+                    }
+                }
+                else if (boundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.ConditionalExpression })
+                    {
+                        // There was an implicit cast.
+                        type = cond.NaturalTypeOpt;
+                        convertedType = cond.Type;
+                        convertedNullability = nullability;
+                        conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
+                    }
+                    else
+                    {
+                        // There was an explicit cast on top of this.
+                        type = cond.NaturalTypeOpt;
+                        (convertedType, convertedNullability) = (type, nullability);
+                        conversion = Conversion.Identity;
+                    }
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);
@@ -2160,8 +2182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
                         var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref useSiteDiagnostics);
+                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref discardedUseSiteInfo);
                     }
                 }
                 else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
@@ -2203,21 +2225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion = exprConversion;
                     type = null;
                     nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
-                }
-                else if (highestBoundExpr is BoundConvertedSwitchExpression e)
-                {
-                    Debug.Assert(boundExpr == highestBoundExpr);
-                    type = e.NaturalTypeOpt;
-                    convertedType = e.Type;
-                    convertedNullability = e.TopLevelNullability;
-                    conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
-                }
-                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
-                {
-                    type = cond.NaturalTypeOpt;
-                    convertedType = cond.Type;
-                    convertedNullability = nullability;
-                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
                 {
@@ -2354,7 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This is used by other binding APIs to invoke the right binder API
-        internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             switch (node)
             {
@@ -2692,10 +2699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
-            diagnostics.Free();
+            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
             speculativeModel = ((SyntaxTreeSemanticModel)this).CreateSpeculativeAttributeSemanticModel(position, attribute, binder, aliasOpt, attributeType);
             return true;
         }
@@ -2777,14 +2782,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                var bnode = binder.BindExpression(expression, diagnostics);
-                diagnostics.Free();
+                var bnode = binder.BindExpression(expression, BindingDiagnosticBag.Discarded);
 
                 if (bnode != null && !cdestination.IsErrorType())
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref discardedUseSiteInfo);
                 }
             }
 
@@ -2830,14 +2833,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                var bnode = binder.BindExpression(expression, diagnostics);
-                diagnostics.Free();
+                var bnode = binder.BindExpression(expression, BindingDiagnosticBag.Discarded);
 
                 if (bnode != null && !destination.IsErrorType())
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref useSiteDiagnostics, forCast: true);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref discardedUseSiteInfo, forCast: true);
                 }
             }
 
@@ -3967,8 +3968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeSymbolOpt.ComImportCoClass.InstanceConstructors :
                         typeSymbolOpt.InstanceConstructors;
 
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    candidateConstructors = binder.FilterInaccessibleConstructors(instanceConstructors, allowProtectedConstructorsOfBaseType: false, useSiteDiagnostics: ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    candidateConstructors = binder.FilterInaccessibleConstructors(instanceConstructors, allowProtectedConstructorsOfBaseType: false, useSiteInfo: ref discardedUseSiteInfo);
 
                     if ((object)constructorOpt == null ? !candidateConstructors.Any() : !candidateConstructors.Contains(constructorOpt))
                     {
@@ -4546,8 +4547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
-                    otherBinder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace,
-                                                             extensionMethods,
+                    otherBinder.GetCandidateExtensionMethods(extensionMethods,
                                                              name,
                                                              arity,
                                                              options,
@@ -4555,11 +4555,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var method in extensionMethods)
                     {
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                         MergeReducedAndFilteredMethodGroupSymbol(
                             methods,
                             filteredMethods,
-                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
+                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteInfo: ref discardedUseSiteInfo),
                             typeArguments,
                             receiver.Type,
                             ref resultKind,

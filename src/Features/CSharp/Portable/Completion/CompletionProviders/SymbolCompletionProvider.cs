@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
-
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
 
         static SymbolCompletionProvider()
         {
@@ -84,20 +81,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            if (context != null)
+            if (context != null && ShouldTriggerInArgumentLists(options))
             {
-                var document = context.Document;
-                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, options))
+                // Avoid preselection & hard selection when triggered via insertion in an argument list.
+                // If an item is hard selected, then a user trying to type MethodCall() will get
+                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
+                if (context.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                    position > 0 &&
+                    await IsTriggerInArgumentListAsync(context.Document, position - 1, cancellationToken).ConfigureAwait(false) == true)
                 {
-                    // Avoid preselection & hard selection when triggered via insertion in an argument list.
-                    // If an item is hard selected, then a user trying to type MethodCall() will get
-                    // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
-                    if (context.Trigger.Kind == CompletionTriggerKind.Insertion &&
-                        position > 0 &&
-                        await IsTriggerInArgumentListAsync(document, position - 1, cancellationToken).ConfigureAwait(false) == true)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -109,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return Workspace.TryGetWorkspace(text.Container, out var workspace) && ShouldTriggerInArgumentLists(workspace, options)
+            return ShouldTriggerInArgumentLists(options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -122,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (result.HasValue)
                     return result.Value;
 
-                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
+                if (ShouldTriggerInArgumentLists(await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
                 {
                     result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
                     if (result.HasValue)
@@ -136,43 +129,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
-        private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
-        {
-            var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
-            if (isTriggerInArgumentListOptionEnabled != null)
-            {
-                return isTriggerInArgumentListOptionEnabled.Value;
-            }
-
-            if (_shouldTriggerCompletionInArgumentListsExperiment == null)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _shouldTriggerCompletionInArgumentListsExperiment =
-                    experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
-            }
-
-            return _shouldTriggerCompletionInArgumentListsExperiment.Value;
-        }
+        private static bool ShouldTriggerInArgumentLists(OptionSet options)
+            => options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
 
         protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
         {
-            if (!IsDot(token, characterPosition))
+            if (!CompletionUtilities.TreatAsDot(token, characterPosition))
                 return false;
 
             // don't want to trigger after a number.  All other cases after dot are ok.
             return token.GetPreviousToken().Kind() != SyntaxKind.NumericLiteralToken;
-        }
-
-        private static bool IsDot(SyntaxToken token, int characterPosition)
-        {
-            if (token.Kind() == SyntaxKind.DotToken)
-                return true;
-
-            // if we're right after the first dot in .. then that's considered completion on dot.
-            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
-                return true;
-
-            return false;
         }
 
         /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
@@ -271,11 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                return insertionText + "()";
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);

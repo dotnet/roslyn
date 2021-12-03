@@ -136,9 +136,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
             Get
                 If _lazyDefaultValue Is ConstantValue.Unset Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     If Interlocked.CompareExchange(_lazyDefaultValue, BindDefaultValue(inProgress, diagnostics), ConstantValue.Unset) Is ConstantValue.Unset Then
-                        DirectCast(ContainingModule, SourceModuleSymbol).AddDiagnostics(diagnostics, CompilationStage.Declare)
+                        DirectCast(ContainingModule, SourceModuleSymbol).AddDeclarationDiagnostics(diagnostics)
                     End If
                     diagnostics.Free()
                 End If
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function BindDefaultValue(inProgress As SymbolsInProgress(Of ParameterSymbol), diagnostics As DiagnosticBag) As ConstantValue
+        Private Function BindDefaultValue(inProgress As SymbolsInProgress(Of ParameterSymbol), diagnostics As BindingDiagnosticBag) As ConstantValue
 
             Dim parameterSyntax = SyntaxNode
             If parameterSyntax Is Nothing Then
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 ordinal As Integer,
                                                 binder As Binder,
                                                 checkModifier As CheckParameterModifierDelegate,
-                                                diagnostics As DiagnosticBag) As ParameterSymbol
+                                                diagnostics As BindingDiagnosticBag) As ParameterSymbol
             Dim getErrorInfo As Func(Of DiagnosticInfo) = Nothing
 
             If binder.OptionStrict = OptionStrict.On Then
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     ' 'touch' the constructor in order to generate proper diagnostics
-                    binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor,
+                    binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor,
                                                                      syntax,
                                                                      diagnostics)
                 End If
@@ -367,12 +367,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Report diagnostic if constructors for datetime and decimal default values are not available
                 Select Case paramType.SpecialType
                     Case SpecialType.System_DateTime
-                        binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                        binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                                                                          syntax.Default,
                                                                          diagnostics)
 
                     Case SpecialType.System_Decimal
-                        binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                        binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                                                                         syntax.Default,
                                                                         diagnostics)
                 End Select

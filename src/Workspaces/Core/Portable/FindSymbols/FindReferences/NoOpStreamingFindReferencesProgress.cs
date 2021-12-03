@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public ValueTask OnCompletedAsync() => default;
         public ValueTask OnStartedAsync() => default;
-        public ValueTask OnDefinitionFoundAsync(ISymbol symbol) => default;
-        public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location) => default;
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group) => default;
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location) => default;
         public ValueTask OnFindInDocumentStartedAsync(Document document) => default;
         public ValueTask OnFindInDocumentCompletedAsync(Document document) => default;
 

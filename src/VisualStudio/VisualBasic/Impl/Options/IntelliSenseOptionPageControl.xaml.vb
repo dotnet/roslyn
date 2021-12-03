@@ -31,6 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.VisualBasic)
 
             Show_items_from_unimported_namespaces.IsChecked = Me.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic)
+            Tab_twice_to_insert_arguments.IsChecked = Me.OptionStore.GetOption(CompletionOptions.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic)
         End Sub
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Checked(sender As Object, e As RoutedEventArgs)
@@ -44,6 +45,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub Show_items_from_unimported_namespaces_CheckedChanged(sender As Object, e As RoutedEventArgs)
             Show_items_from_unimported_namespaces.IsThreeState = False
             Me.OptionStore.SetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, Show_items_from_unimported_namespaces.IsChecked)
+        End Sub
+
+        Private Sub Tab_twice_to_insert_arguments_CheckedChanged(sender As Object, e As RoutedEventArgs)
+            Tab_twice_to_insert_arguments.IsThreeState = False
+            Me.OptionStore.SetOption(CompletionOptions.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, Tab_twice_to_insert_arguments.IsChecked)
         End Sub
     End Class
 End Namespace

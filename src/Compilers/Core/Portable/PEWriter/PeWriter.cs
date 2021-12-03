@@ -337,10 +337,16 @@ namespace Microsoft.Cci
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
             }
 
+            var rawResourcesOpt = module.RawWin32Resources;
+            if (rawResourcesOpt != null)
+            {
+                return new ResourceSectionBuilderFromRaw(rawResourcesOpt);
+            }
+
             return null;
         }
 
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromObj : ResourceSectionBuilder
         {
             private readonly ResourceSection _resourceSection;
 
@@ -356,7 +362,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromResources : ResourceSectionBuilder
         {
             private readonly IEnumerable<IWin32Resource> _resources;
 
@@ -369,6 +375,24 @@ namespace Microsoft.Cci
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
                 NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
+            }
+        }
+
+        private sealed class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
+        {
+            private readonly Stream _resources;
+            public ResourceSectionBuilderFromRaw(Stream resources)
+            {
+                _resources = resources;
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                int value;
+                while ((value = _resources.ReadByte()) >= 0)
+                {
+                    builder.WriteByte((byte)value);
+                }
             }
         }
     }

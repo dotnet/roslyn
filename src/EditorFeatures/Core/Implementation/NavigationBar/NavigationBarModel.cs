@@ -2,25 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
     internal sealed class NavigationBarModel
     {
-        public IList<NavigationBarItem> Types { get; }
+        public ImmutableArray<NavigationBarItem> Types { get; }
 
         /// <summary>
         /// The VersionStamp of the project when this model was computed.
         /// </summary>
         public VersionStamp SemanticVersionStamp { get; }
 
-        public INavigationBarItemService ItemService { get; }
+        public INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess ItemService { get; }
 
-        public NavigationBarModel(IList<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemService itemService)
+        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess itemService)
         {
             Contract.ThrowIfNull(types);
 

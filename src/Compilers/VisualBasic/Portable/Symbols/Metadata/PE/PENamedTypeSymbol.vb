@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyDefaultPropertyName As String
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
             End If
 
             Debug.Assert(Not _mangleName OrElse _name.Length < name.Length)
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return InterfacesNoUseSiteDiagnostics
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             If (Me._flags And TypeAttributes.Interface) = 0 Then
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
 
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Try
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
                 Dim interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(Me._handle)
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return New ExtendedErrorTypeSymbol(diag, True)
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim diag = BaseTypeAnalysis.GetDependencyDiagnosticsForImportedClass(Me)
             If diag IsNot Nothing Then
                 Return CyclicInheritanceError(diag)
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return GetDeclaredBase(Nothing)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
             If (Not Me.IsInterface) Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
@@ -1256,24 +1256,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return method
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfoImpl()
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfoImpl())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
-        Private Function CalculateUseSiteErrorInfoImpl() As DiagnosticInfo
-            Dim diagnostic = CalculateUseSiteErrorInfo()
+        Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo = CalculateUseSiteInfo()
 
-            If diagnostic Is Nothing Then
+            If useSiteInfo.DiagnosticInfo Is Nothing Then
 
                 ' Check if this type Is marked by RequiredAttribute attribute.
                 ' If so mark the type as bad, because it relies upon semantics that are not understood by the VB compiler.
                 If Me.ContainingPEModule.Module.HasRequiredAttributeAttribute(Me.Handle) Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                    Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
                 End If
 
                 Dim typeKind = Me.TypeKind
@@ -1294,7 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      SpecialType.System_MulticastDelegate,
                                      SpecialType.System_ValueType
                                     ' This might be a structure, an enum, or a delegate
-                                    Return missingType.GetUseSiteErrorInfo()
+                                    Return missingType.GetUseSiteInfo()
                             End Select
                         End If
                     End If
@@ -1303,11 +1304,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' Verify type parameters for containing types
                 ' match those on the containing types.
                 If Not MatchesContainingTypeParameters() Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_NestingViolatesCLS1, Me)
+                    Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_NestingViolatesCLS1, Me))
                 End If
             End If
 
-            Return diagnostic
+            Return useSiteInfo
         End Function
 
         ''' <summary>

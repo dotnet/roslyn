@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class DocumentationCommentCommandHandler
-        : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+        : AbstractDocumentationCommentCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,17 +10,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : SourceMethodSymbol
+    internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
     {
+        private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
-        private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
         private TypeWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
+        private readonly BindingDiagnosticBag _declarationDiagnostics;
 
         /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
@@ -36,28 +34,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
-        private static readonly TypeWithAnnotations UnknownReturnType = TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
-
         public LambdaSymbol(
+            Binder binder,
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            TypeWithAnnotations returnType,
-            DiagnosticBag diagnostics)
+            TypeWithAnnotations returnType) :
+            base(unboundLambda.Syntax.GetReference())
         {
+            Debug.Assert(syntaxReferenceOpt is not null);
+            _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
-            _syntax = unboundLambda.Syntax;
             _refKind = refKind;
             _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
+            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
+            _declarationDiagnostics = new BindingDiagnosticBag();
         }
 
         public MessageID MessageID { get { return _messageID; } }
@@ -99,13 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isAsync; }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
-        }
-
-        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
-
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
@@ -139,41 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return default(System.Reflection.MethodImplAttributes); }
         }
 
-        internal override bool RequiresSecurityObject
-        {
-            get { return false; }
-        }
-
-        public override DllImportData GetDllImportData()
-        {
-            return null;
-        }
-
-        public override bool AreLocalsZeroed
-        {
-            get { return AreContainingSymbolLocalsZeroed; }
-        }
-
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
-        {
-            get { return null; }
-        }
-
-        internal override bool HasDeclarativeSecurity
-        {
-            get { return false; }
-        }
-
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-        {
-            return ImmutableArray<string>.Empty;
-        }
-
         public override bool ReturnsVoid
         {
             get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
@@ -188,12 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _returnType; }
         }
-
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         // In error recovery and type inference scenarios we do not know the return type
         // until after the body is bound, but the symbol is created before the body
@@ -222,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get { return null; }
         }
@@ -247,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _parameters; }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Lambda symbols have no "this" parameter
             thisParameter = null;
@@ -263,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<Location>(_syntax.Location);
+                return ImmutableArray.Create<Location>(Syntax.Location);
             }
         }
 
@@ -275,16 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                switch (_syntax.Kind())
+                return Syntax switch
                 {
-                    case SyntaxKind.AnonymousMethodExpression:
-                        return ((AnonymousMethodExpressionSyntax)_syntax).DelegateKeyword.GetLocation();
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        return ((LambdaExpressionSyntax)_syntax).ArrowToken.GetLocation();
-                    default:
-                        return Locations[0];
-                }
+                    AnonymousMethodExpressionSyntax syntax => syntax.DelegateKeyword.GetLocation(),
+                    LambdaExpressionSyntax syntax => syntax.ArrowToken.GetLocation(),
+                    _ => Locations[0]
+                };
             }
         }
 
@@ -292,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>(_syntax.GetReference());
+                return ImmutableArray.Create<SyntaxReference>(syntaxReferenceOpt);
             }
         }
 
@@ -311,17 +258,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool HidesBaseMethodsByName
+        internal SyntaxNode Syntax => syntaxReferenceOpt.GetSyntax();
+
+        internal override Binder SignatureBinder => _binder;
+
+        internal override Binder ParameterBinder => new WithLambdaParametersBinder(this, _binder);
+
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            get { return false; }
+            return Syntax is LambdaExpressionSyntax lambdaSyntax ?
+                OneOrMany.Create(lambdaSyntax.AttributeLists) :
+                default;
         }
+
+        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
+        {
+            foreach (var parameter in _parameters)
+            {
+                parameter.ForceComplete(locationOpt: null, cancellationToken: default);
+            }
+
+            GetAttributes();
+            GetReturnTypeAttributes();
+
+            addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
+        }
+
+        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
+            => _declarationDiagnostics.AddRange(diagnostics);
 
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
-            ImmutableArray<RefKind> parameterRefKinds,
-            DiagnosticBag diagnostics)
+            ImmutableArray<RefKind> parameterRefKinds)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
 
@@ -368,11 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind = RefKind.None;
                 }
 
+                var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
 
                 builder.Add(parameter);
             }
@@ -387,17 +358,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             return symbol is LambdaSymbol lambda
-                && lambda._syntax == _syntax
+                && areEqual(lambda.syntaxReferenceOpt, syntaxReferenceOpt)
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
                 && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
+
+            static bool areEqual(SyntaxReference a, SyntaxReference b)
+            {
+                return (object)a.SyntaxTree == b.SyntaxTree && a.Span == b.Span;
+            }
         }
 
         public override int GetHashCode()
         {
-            return _syntax.GetHashCode();
+            return syntaxReferenceOpt.GetHashCode();
         }
 
         public override bool IsImplicitlyDeclared
@@ -427,5 +403,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+
+        protected override void NoteAttributesComplete(bool forReturnType)
+        {
+        }
     }
 }

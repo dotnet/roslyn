@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeTypeAbstract
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public abstract void [|M|]();
 }",
 @"
-public abstract class Foo
+public abstract class Goo
 {
     public abstract void M();
 }");
@@ -46,12 +46,12 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-class Foo
+class Goo
 {
     public abstract void [|M|]();
 }",
 @"
-abstract class Foo
+abstract class Goo
 {
     public abstract void M();
 }");
@@ -65,7 +65,7 @@ abstract class Foo
 /// <summary>
 /// Some class comment.
 /// </summary>
-public class Foo
+public class Goo
 {
     public abstract void [|M|]();
 }",
@@ -73,7 +73,7 @@ public class Foo
 /// <summary>
 /// Some class comment.
 /// </summary>
-public abstract class Foo
+public abstract class Goo
 {
     public abstract void M();
 }");
@@ -84,12 +84,12 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public abstract object P { [|get|]; }
 }",
 @"
-public abstract class Foo
+public abstract class Goo
 {
     public abstract object P { get; }
 }");
@@ -100,12 +100,12 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public abstract object P { [|set|]; }
 }",
 @"
-public abstract class Foo
+public abstract class Goo
 {
     public abstract object P { set; }
 }");
@@ -116,12 +116,12 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public abstract object this[object o] { [|get|]; }
 }",
 @"
-public abstract class Foo
+public abstract class Goo
 {
     public abstract object this[object o] { get; }
 }");
@@ -132,12 +132,12 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public abstract object this[object o] { [|set|]; }
 }",
 @"
-public abstract class Foo
+public abstract class Goo
 {
     public abstract object this[object o] { set; }
 }");
@@ -148,21 +148,21 @@ public abstract class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public partial class Foo
+public partial class Goo
 {
     public abstract void [|M|]();
 }
 
-public partial class Foo
+public partial class Goo
 {
 }",
 @"
-public partial abstract class Foo
+public partial abstract class Goo
 {
     public abstract void M();
 }
 
-public partial class Foo
+public partial class Goo
 {
 }");
         }
@@ -172,7 +172,7 @@ public partial class Foo
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public abstract event System.EventHandler E { [|add|]; }
 }");
@@ -183,7 +183,7 @@ public class Foo
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public abstract event System.EventHandler E { [|remove|]; }
 }");
@@ -194,7 +194,7 @@ public class Foo
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public abstract int [|M|]() => 3;
 }");
@@ -205,7 +205,7 @@ public class Foo
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public abstract int [|P|] => 3;
 }");
@@ -216,7 +216,7 @@ public class Foo
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public abstract int P
     {
@@ -234,7 +234,7 @@ public class C
 {
     public struct S
     {
-        public abstract void [|Foo|]();
+        public abstract void [|Goo|]();
     }
 }");
         }
@@ -244,7 +244,7 @@ public class C
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public static class Foo
+public static class Goo
 {
     public abstract void [|M|]();
 }");
@@ -255,14 +255,40 @@ public static class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public record Foo
+public record Goo
 {
     public abstract void [|M|]();
 }",
 @"
-public abstract record Foo
+public abstract record Goo
 {
     public abstract void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        public async Task TestRecordClass()
+        {
+            await TestInRegularAndScript1Async(
+@"
+public record class Goo
+{
+    public abstract void [|M|]();
+}",
+@"
+public abstract record class Goo
+{
+    public abstract void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)]
+        public async Task TestRecordStruct()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public record struct Goo
+{
+    public abstract void [|M|]();
 }");
         }
 

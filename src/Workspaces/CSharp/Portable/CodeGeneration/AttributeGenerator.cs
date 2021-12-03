@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool IsCompilerInternalAttribute(AttributeData attribute)
         {
-            // from https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
+            // from https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
             var attrClass = attribute.AttributeClass;
             if (attrClass == null)
                 return false;

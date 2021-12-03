@@ -1,15 +1,15 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
@@ -28,7 +28,8 @@ jobs:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    vmImageName: windows-2019
+    queueName: Build.Windows.10.Amd64.Open
+    buildArguments: "/p:Features=run-nullable-analysis=never"
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -102,6 +103,15 @@ jobs:
     configuration: Release
     testArguments: -testCoreClr
 
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR IOperation Debug'
+    jobName: Test_Windows_CoreClr_IOperation_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
   parameters:
@@ -164,7 +174,7 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
-    - script: eng/test-build-correctness.cmd -configuration Release
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
 
     - template: eng/pipelines/publish-logs.yml
@@ -196,7 +206,7 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-unix-task.yml
 
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --binaryLog --sourceBuild
       displayName: Build
 
     - template: eng/pipelines/publish-logs.yml
@@ -212,3 +222,33 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: Correctness_Rebuild
+  pool:
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+
+    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+      displayName: Run BuildValidator
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BuildValidator debug outputs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Rebuild
+        configuration: Release

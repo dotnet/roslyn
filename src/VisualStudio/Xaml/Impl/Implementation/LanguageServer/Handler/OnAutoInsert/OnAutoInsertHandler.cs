@@ -10,16 +10,15 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(MSLSPMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,12 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override string Method => MSLSPMethods.OnAutoInsertName;
 
-        public async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+
+        public override async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
-
             var document = context.Document;
             if (document == null)
             {

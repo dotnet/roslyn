@@ -68,6 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                     {
                         if (node.Kind() == SyntaxKind.ClassDeclaration ||
                             node.Kind() == SyntaxKind.RecordDeclaration ||
+                            node.Kind() == SyntaxKind.RecordStructDeclaration ||
                             node.Kind() == SyntaxKind.DelegateDeclaration ||
                             node.Kind() == SyntaxKind.EnumDeclaration ||
                             node.Kind() == SyntaxKind.InterfaceDeclaration ||

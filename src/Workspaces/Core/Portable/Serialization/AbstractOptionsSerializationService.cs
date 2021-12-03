@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal abstract class AbstractOptionsSerializationService : IOptionsSerializationService
     {
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        public abstract void WriteTo(ParseOptions options, ObjectWriter writer);
 
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
@@ -162,10 +162,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             strongNameProvider = new DesktopStrongNameProvider();
         }
 
-        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             writer.WriteInt32((int)options.Kind);
             writer.WriteInt32((int)options.DocumentationMode);
 

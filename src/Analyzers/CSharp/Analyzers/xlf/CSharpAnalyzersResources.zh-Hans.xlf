@@ -9,7 +9,17 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">向“{0}”报表添加大括号。</target>
+        <target state="translated">向 “{0}” 语句添加大括号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">构造函数初始值设定项冒号后面不允许有空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">连续大括号之间不能有空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -30,6 +40,11 @@
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
         <target state="translated">可删除放弃项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">嵌入的语句必须放在其自己的行上</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -69,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
-        <target state="translated">请使用求反表达式(更改语义)</target>
+        <target state="translated">使用求反表达式(更改语义)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
-        <target state="translated">请删除运算符(保留语义)</target>
+        <target state="translated">删除运算符(保留语义)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -98,13 +113,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct 包含对构造函数之外的 "this" 的赋值。使只读字段可写</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Struct 包含对构造函数之外的 "this" 的赋值。使只读字段可写。</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
         <source>Suppression operator has no effect and can be misinterpreted</source>
-        <target state="translated">请禁止使用不起任何作用且可能被误解的运算符</target>
+        <target state="translated">抑制运算符不起任何作用且可能被误解</target>
         <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
@@ -269,12 +284,12 @@
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'可以简化 "default" 表达式</target>
+        <target state="translated">可以简化 "default" 表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">可简化“If”语句</target>
+        <target state="translated">可简化 "if" 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">

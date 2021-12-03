@@ -93,12 +93,12 @@ namespace BuildActionTelemetryTable
         {
             var table = new StringBuilder();
 
-            table.AppendLine("let actions = datatable(ActionName: string, Prefix: string, Suffix: string)");
+            table.AppendLine("let actions = datatable(ActionName: string, StringHash: string, FnvHash: string)");
             table.AppendLine("[");
 
-            foreach (var (actionTypeName, prefix, suffix) in telemetryInfos)
+            foreach (var (actionTypeName, stringHash, fnvHash) in telemetryInfos)
             {
-                table.AppendLine(@$"  ""{actionTypeName}"", ""{prefix}"", ""{suffix}"",");
+                table.AppendLine(@$"  ""{actionTypeName}"", ""{stringHash}"", ""{fnvHash}"",");
             }
 
             table.Append("];");

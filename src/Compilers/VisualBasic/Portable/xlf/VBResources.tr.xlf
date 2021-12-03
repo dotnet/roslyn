@@ -57,6 +57,11 @@
         <target state="translated">Paylaşılan WithEvents değişkenlerinin olayları farklı türdeki metotlar tarafından işlenemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">'UnmanagedCallersOnly' özniteliği desteklenmez.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">satır devamı sonrası açıklamalar</target>

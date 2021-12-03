@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -83,6 +84,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
             nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
+
+        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
+
+        public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
+            new(nameof(FeatureOnOffOptions),
+                nameof(ShowInheritanceMargin),
+                defaultValue: false,
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
+
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+            nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
+
     }
 
     [ExportOptionProvider, Shared]
@@ -112,6 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.UseEnhancedColors,
-            FeatureOnOffOptions.AddImportsOnPaste);
+            FeatureOnOffOptions.AddImportsOnPaste,
+            FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            FeatureOnOffOptions.ShowInheritanceMargin,
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }

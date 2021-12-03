@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -411,9 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 

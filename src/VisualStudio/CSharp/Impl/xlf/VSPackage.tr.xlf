@@ -279,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -289,22 +290,23 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma Listeleri;
-Bir karakter yazıldıktan sonra tamamlanma listesini göster;
-Bir karakter silindikten sonra tamamlanma listesini göster;
-Bağımsız değişken listelerinde tamamlanma listelerini otomatik olarak göster (deneysel);
-Tamamlanma listesi öğelerinin eşleşen kısımlarını vurgula;
-Tamamlanma öğesi filtrelerini göster;
+        <target state="translated">Tamamlama listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlama Listeleri;
+Bir karakter yazıldıktan sonra tamamlama listesini göster;
+Bir karakter silindikten sonra tamamlama listesini göster;
+Bağımsız değişken listelerinde tamamlama listelerini otomatik olarak göster (deneysel);
+Tamamlama listesi öğelerinin eşleşen kısımlarını vurgula;
+Tamamlama öğesi filtrelerini göster;
+Deyimi noktalı virgülle otomatik olarak tamamla;
 Kod parçacığı davranışı;
 Kod parçacıklarını hiçbir zaman dahil etme;
 Kod parçacıklarını her zaman dahil et;
-Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et;
+Bir tanımlayıcıdan sonra ?- yazılıp Sekme tuşuna basılırsa kod parçacıklarını dahil et;
 Enter tuşu davranışı;
 Enter tuşuna basıldığında hiçbir zaman yeni satır ekleme;
 Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle;
 Enter tuşuna basıldığında her zaman yeni satır ekle;
 Ad önerilerini göster;
-İçeri aktarılmamış ad alanlarından öğeleri göster (deneysel);</target>
+İçeri aktarılmamış ad alanlarındaki öğeleri göster (deneysel);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

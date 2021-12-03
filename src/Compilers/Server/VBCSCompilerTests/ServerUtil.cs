@@ -24,13 +24,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     internal static class ProtocolUtil
     {
         internal static readonly BuildRequest EmptyCSharpBuildRequest = new BuildRequest(
-            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
             BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         internal static readonly BuildRequest EmptyBasicBuildRequest = new BuildRequest(
-            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.VisualBasicCompile,
             BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
@@ -158,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             TextWriter textWriter = null,
             int? timeoutOverride = null)
         {
-            compileFunc = compileFunc ?? GetCompileFunc(language);
-            textWriter = textWriter ?? new StringWriter();
+            compileFunc ??= GetCompileFunc(language);
+            textWriter ??= new StringWriter();
             return new BuildClient(language, compileFunc, logger, timeoutOverride: timeoutOverride);
         }
 

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -270,15 +270,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
-                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == primaryCtor.GetSyntax().PrimaryConstructorBaseType)
+                primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl)
             {
-                var binder = this.GetEnclosingBinder(position);
-                if (binder != null)
+                Debug.Assert(recordDecl.Kind() == SyntaxKind.RecordDeclaration);
+                if (Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseTypeIfClass)
                 {
-                    binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-                    binder = new ExecutableCodeBinder(constructorInitializer, primaryCtor, binder);
-                    speculativeModel = CreateSpeculative(parentModel, primaryCtor, constructorInitializer, binder, position);
-                    return true;
+                    var binder = this.GetEnclosingBinder(position);
+                    if (binder != null)
+                    {
+                        binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+                        binder = new ExecutableCodeBinder(constructorInitializer, primaryCtor, binder);
+                        speculativeModel = CreateSpeculative(parentModel, primaryCtor, constructorInitializer, binder, position);
+                        return true;
+                    }
                 }
             }
 

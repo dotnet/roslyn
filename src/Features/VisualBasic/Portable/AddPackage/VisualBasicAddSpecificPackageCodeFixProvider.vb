@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddPackage
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddPackage), [Shared]>
     Friend Class VisualBasicAddSpecificPackageCodeFixProvider
         Inherits AbstractAddSpecificPackageCodeFixProvider
 

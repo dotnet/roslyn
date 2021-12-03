@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,7 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     /// Caches suggested action sets between calls to <see cref="CodeActionsHandler"/> and
     /// <see cref="CodeActionResolveHandler"/>.
     /// </summary>
-    [Export(typeof(CodeActionsCache)), Shared]
     internal class CodeActionsCache
     {
         /// <summary>
@@ -37,12 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Current list of cached items.
         /// </summary>
         private readonly List<CodeActionsCacheItem> _cachedItems = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsCache()
-        {
-        }
 
         public async Task UpdateActionSetsAsync(
             Document document,

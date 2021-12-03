@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Utilities;
@@ -319,33 +320,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
-        // Generating symbol trees for metadata can be expensive (in large metadata cases).  And it's
-        // common for us to have many threads to want to search the same metadata simultaneously.
-        // As such, we want to only allow one thread to produce the tree for some piece of metadata
-        // at a time.  
-        //
-        // AsyncLazy would normally be an ok choice here.  However, in the case where all clients
-        // cancel their request, we don't want ot keep the AsyncLazy around.  It may capture a lot
-        // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
-        // only cache results (the symbol tree infos) if they successfully compute to completion.
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new();
-        private static readonly ConditionalWeakTable<MetadataId, Task<SymbolTreeInfo>> s_metadataIdToInfo =
-            new();
-
-        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
-            _ => new SemaphoreSlim(1);
+        /// <summary>
+        /// Cache the symbol tree infos for assembly symbols that share the same underlying metadata. Generating symbol
+        /// trees for metadata can be expensive (in large metadata cases).  And it's common for us to have many threads
+        /// to want to search the same metadata simultaneously. As such, we use an AsyncLazy to compute the value that
+        /// can be shared among all callers.
+        /// </summary>
+        private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
 
         private static Task<SpellChecker> GetSpellCheckerAsync(
-            Solution solution, Checksum checksum, string filePath,
-            ImmutableArray<Node> sortedNodes)
+            Workspace workspace, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(
-                solution, checksum, filePath, sortedNodes));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(workspace, solutionKey, checksum, filePath, sortedNodes));
         }
 
         private static Task<SpellChecker> CreateSpellCheckerAsync(
@@ -502,19 +492,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, Checksum checksum,
+            Workspace workspace, SolutionKey solutionKey, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
-                solution, checksum, filePath, sortedNodes);
+                workspace, solutionKey, checksum, filePath, sortedNodes);
 
             return new SymbolTreeInfo(
-                checksum,
-                sortedNodes, createSpellCheckerTask, inheritanceMap,
-                simpleMethods);
+                checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

@@ -374,8 +374,8 @@ return 0;
                 FixedCode = code,
                 ExpectedDiagnostics =
                 {
-                    // error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805"),
+                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 10),
                 },
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
@@ -400,8 +400,8 @@ return 0;
                 },
                 ExpectedDiagnostics =
                 {
-                    // error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805"),
+                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 10),
                     // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
                     DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
                 },

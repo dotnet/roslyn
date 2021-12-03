@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -80,6 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
         protected internal Binder? Next { get; }
+
+        /// <summary>
+        /// Get the next binder in which to look up a name, if not found by this binder, asserting if `Next` is null.
+        /// </summary>
+        protected internal Binder NextRequired
+        {
+            get
+            {
+                Debug.Assert(Next is not null);
+                return Next;
+            }
+        }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
@@ -394,12 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            RoslynDebug.Assert(Next is object);
-            return Next.GetImports(basesBeingResolved);
-        }
-
         protected virtual bool InExecutableBinder
         {
             get
@@ -516,56 +523,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
+        internal static void Error(BindingDiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, Location location)
+        internal static void Error(BindingDiagnosticBag diagnostics, DiagnosticInfo info, Location location)
         {
             diagnostics.Add(new CSDiagnostic(info, location));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), syntax.Location));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax, params object[] args)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, CSharpSyntaxNode syntax, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), syntax.Location));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxToken token)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), token.GetLocation()));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxToken token, params object[] args)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxToken token, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), token.GetLocation()));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
         {
             var location = syntax.GetLocation();
             RoslynDebug.Assert(location is object);
             Error(diagnostics, code, location);
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();
             RoslynDebug.Assert(location is object);
             Error(diagnostics, code, location, args);
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, Location location)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code), location));
         }
 
-        internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
+        internal static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), location));
         }
@@ -603,7 +610,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfObsolete(DiagnosticBag diagnostics, Conversion conversion, SyntaxNodeOrToken node, bool hasBaseReceiver)
+        internal void ReportDiagnosticsIfObsolete(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool hasBaseReceiver)
+        {
+            if (diagnostics.DiagnosticBag is object)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics.DiagnosticBag, symbol, node, hasBaseReceiver);
+            }
+        }
+
+        internal void ReportDiagnosticsIfObsolete(BindingDiagnosticBag diagnostics, Conversion conversion, SyntaxNodeOrToken node, bool hasBaseReceiver)
         {
             if (conversion.IsValid && conversion.Method is object)
             {
@@ -677,6 +692,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void ReportDiagnosticsIfObsolete(
+            BindingDiagnosticBag diagnostics,
+            Symbol symbol,
+            SyntaxNodeOrToken node,
+            bool hasBaseReceiver,
+            Symbol? containingMember,
+            NamedTypeSymbol? containingType,
+            BinderFlags location)
+        {
+            if (diagnostics.DiagnosticBag is object)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics.DiagnosticBag, symbol, node, hasBaseReceiver, containingMember, containingType, location);
+            }
+        }
+
         internal static ObsoleteDiagnosticKind ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol? containingMember, BinderFlags location)
         {
             RoslynDebug.Assert(diagnostics != null);
@@ -703,7 +733,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind;
         }
 
-        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(DiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
+        internal static void ReportDiagnosticsIfObsoleteInternal(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        {
+            if (diagnostics.DiagnosticBag is object)
+            {
+                ReportDiagnosticsIfObsoleteInternal(diagnostics.DiagnosticBag, symbol, node, containingMember, location);
+            }
+        }
+
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(BindingDiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
         {
             var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
             if (unmanagedCallersOnlyAttributeData != null)
@@ -724,18 +762,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
-            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
+            return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteInfo);
         }
 
         internal bool IsSymbolAccessibleConditional(
             Symbol symbol,
             NamedTypeSymbol within,
-            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             TypeSymbol? throughTypeOpt = null)
         {
-            return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
+            return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteInfo, throughTypeOpt);
         }
 
         internal bool IsSymbolAccessibleConditional(
@@ -743,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol within,
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
-            ref HashSet<DiagnosticInfo>? useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConsList<TypeSymbol>? basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
@@ -752,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+            return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
         }
 
         /// <summary>
@@ -761,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void ReportUseSiteDiagnosticForSynthesizedAttribute(
             CSharpCompilation compilation,
             WellKnownMember attributeMember,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Location? location = null,
             CSharpSyntaxNode? syntax = null)
         {
@@ -772,6 +810,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOptional = WellKnownMembers.IsSynthesizedAttributeOptional(attributeMember);
 
             GetWellKnownTypeMember(compilation, attributeMember, diagnostics, location, syntax, isOptional);
+        }
+
+        public CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo(BindingDiagnosticBag futureDestination)
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(futureDestination, Compilation.Assembly);
         }
 
 #if DEBUG

@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             ThisCanBeCalledOnAnyThread();
 
-            BrowserHelper.StartBrowser(KeybindingsFwLink);
+            VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options

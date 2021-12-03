@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editing
         internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
-        internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 
@@ -1551,8 +1550,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
-        internal SyntaxToken InterpolatedStringTextToken(string content)
-            => SyntaxGeneratorInternal.InterpolatedStringTextToken(content);
+        internal SyntaxToken InterpolatedStringTextToken(string content, string value)
+            => SyntaxGeneratorInternal.InterpolatedStringTextToken(content, value);
         internal SyntaxNode InterpolatedStringText(SyntaxToken textToken)
             => SyntaxGeneratorInternal.InterpolatedStringText(textToken);
         internal SyntaxNode Interpolation(SyntaxNode syntaxNode)

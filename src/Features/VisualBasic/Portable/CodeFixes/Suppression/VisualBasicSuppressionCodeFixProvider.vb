@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
-    <ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
+    <ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSuppressionCodeFixProvider
         Inherits AbstractSuppressionCodeFixProvider
 

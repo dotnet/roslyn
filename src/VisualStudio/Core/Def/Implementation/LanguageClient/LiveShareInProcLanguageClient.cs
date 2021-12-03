@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -39,14 +40,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider,
             IThreadingContext threadingContext)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
-        protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+        {
+            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
+            var isLspEditorEnabled = experimentationService.IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+
+            // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
+            // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
+            if (isLspEditorEnabled)
+            {
+                return new VSServerCapabilities
+                {
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        OpenClose = false,
+                        Change = TextDocumentSyncKind.None,
+                    }
+                };
+            }
+
+            return _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+        }
     }
 }

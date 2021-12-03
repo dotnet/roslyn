@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsReadOnly => _constructedFrom.IsReadOnly;
         public override bool IsInitOnly => _constructedFrom.IsInitOnly;
 
+        public override System.Reflection.MethodImplAttributes MethodImplementationFlags => _constructedFrom.MethodImplementationFlags;
+
         public override IMethodSymbol OverriddenMethod =>
                 // TODO(cyrusn): Construct this.
                 _constructedFrom.OverriddenMethod;
@@ -99,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol PartialImplementationPart =>
                 // TODO(cyrusn): Construct this.
                 _constructedFrom.PartialImplementationPart;
+
+        public override bool IsPartialDefinition => _constructedFrom.IsPartialDefinition;
 
         protected override CodeGenerationSymbol Clone()
             => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);

@@ -57,6 +57,11 @@
         <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行继续符之后的注释</target>
@@ -5534,7 +5539,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'New' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"New" 不能用于元组类型。请改用元组文本表达式。</target>
+        <target state="translated">"New" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeMustBeStruct">

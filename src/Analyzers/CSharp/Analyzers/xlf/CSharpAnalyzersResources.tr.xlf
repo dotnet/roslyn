@@ -12,6 +12,16 @@
         <target state="translated">'{0}' deyimine küme ayracı ekleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">Oluşturucu başlatıcı iki noktadan sonra boş satıra izin verilmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Ardışık ayraçlar arasında boş çizgi olmamalıdır</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Switch deyimini ifadeye dönüştür</target>
@@ -30,6 +40,11 @@
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
         <target state="translated">Atma işlemi kaldırılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Katıştırılmış deyimler kendi satırına yerleştirilmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -98,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct, oluşturucu dışında 'this' öğesine yönelik atama içeriyor. Salt okunur alanları yazılabilir yapın</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Struct, oluşturucu dışında 'this' öğesine yönelik atama içeriyor. Salt okunur alanları yazılabilir yapın.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">

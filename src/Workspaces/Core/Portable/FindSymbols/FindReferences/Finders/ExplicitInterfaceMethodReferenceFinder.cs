@@ -14,15 +14,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            // An explicit interface method will cascade to all the methods that it implements.
-            return Task.FromResult(ImmutableArray<ISymbol>.CastUp(symbol.ExplicitInterfaceImplementations));
+            if (!cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up))
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
+
+            // An explicit interface method will cascade to all the methods that it implements in the up direction.
+            return Task.FromResult(
+                symbol.ExplicitInterfaceImplementations.SelectAsArray(m => ((ISymbol)m, FindReferencesCascadeDirection.Up)));
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

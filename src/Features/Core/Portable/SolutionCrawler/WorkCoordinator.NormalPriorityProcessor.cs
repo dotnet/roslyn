@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // using later version of solution is always fine since, as long as there is new work item in the queue,
                         // solution crawler will eventually call the last workitem with the lastest solution
                         // making everything to catch up
-                        var solution = Processor.CurrentSolution;
+                        var solution = Processor._registration.GetSolutionToAnalyze();
                         try
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -522,7 +522,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+                            await Processor.RunAnalyzersAsync(
+                                Analyzers,
+                                Processor._registration.GetSolutionToAnalyze(),
+                                workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
@@ -538,7 +541,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         bool IsSolutionChanged()
                         {
-                            var currentSolution = Processor.CurrentSolution;
+                            var currentSolution = Processor._registration.GetSolutionToAnalyze();
                             var oldSolution = _lastSolution;
 
                             if (currentSolution == oldSolution)
@@ -577,7 +580,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor.CurrentSolution, Processor._logAggregator, Analyzers);
+                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetSolutionToAnalyze(), Processor._logAggregator, Analyzers);
 
                         _workItemQueue.Dispose();
 

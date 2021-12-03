@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                    async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
+                    async () => await connection);
 
                 // Create server and try again
                 Assert.True(TryCreateServer(pipeName));

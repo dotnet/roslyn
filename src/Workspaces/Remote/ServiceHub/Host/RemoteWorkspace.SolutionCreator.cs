@@ -84,6 +84,18 @@ namespace Microsoft.CodeAnalysis.Remote
                             newSolutionChecksums.AnalyzerReferences, _cancellationToken).ConfigureAwait(false));
                     }
 
+                    // The old solution should never have any frozen source generated documents -- those are only created and forked off of
+                    // a workspaces's CurrentSolution
+                    Contract.ThrowIfFalse(solution.State.FrozenSourceGeneratedDocumentState == null);
+
+                    if (newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null && newSolutionChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
+                    {
+                        var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity, _cancellationToken).ConfigureAwait(false);
+                        var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(newSolutionChecksums.FrozenSourceGeneratedDocumentText, _cancellationToken).ConfigureAwait(false);
+                        var sourceText = await serializableSourceText.GetTextAsync(_cancellationToken).ConfigureAwait(false);
+                        solution = solution.WithFrozenSourceGeneratedDocument(identity, sourceText).Project.Solution;
+                    }
+
 #if DEBUG
                     // make sure created solution has same checksum as given one
                     await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
@@ -230,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.DocumentStates.Values,
+                        project.State.DocumentStates.States,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         (solution, documents) => solution.AddDocuments(documents),
@@ -242,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AdditionalDocumentStates.Values,
+                        project.State.AdditionalDocumentStates.States,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         (solution, documents) => solution.AddAdditionalDocuments(documents),
@@ -254,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AnalyzerConfigDocumentStates.Values,
+                        project.State.AnalyzerConfigDocumentStates.States,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),

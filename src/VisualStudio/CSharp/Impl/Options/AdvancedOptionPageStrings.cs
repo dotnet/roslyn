@@ -264,5 +264,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static SchemeName Color_Scheme_VisualStudio2017_Tag
             => SchemeName.VisualStudio2017;
+
+        public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+            => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
+
+        public static string Enable_all_features_in_opened_files_from_source_generators_experimental
+            => ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental;
+
+        public static string Option_Enable_file_logging_for_diagnostics
+            => ServicesVSResources.Enable_file_logging_for_diagnostics;
+
+        public static string Show_inheritance_margin
+            => ServicesVSResources.Show_inheritance_margin;
+
+        public static string Inheritance_Margin_experimental
+            => ServicesVSResources.Inheritance_Margin_experimental;
     }
 }

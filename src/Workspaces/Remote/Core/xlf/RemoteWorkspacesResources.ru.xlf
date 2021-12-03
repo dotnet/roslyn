@@ -38,8 +38,13 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
-        <target state="translated">Выделения в документе</target>
+        <source>Document highlights</source>
+        <target state="translated">Основные моменты документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Изменить и продолжить</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -62,6 +67,11 @@
         <target state="translated">Доставка глобальных уведомлений</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Граница наследования</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Отсутствует обнаружение импорта</target>
@@ -70,6 +80,11 @@
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Перейти к</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Панель навигации</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -110,6 +125,11 @@
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">Обнаружение комментариев TODO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Анализ неиспользуемых ссылок</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

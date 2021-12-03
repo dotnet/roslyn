@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Lazy<HashSet<DeclaredSymbolInfo>> _declaredSymbolInfoSet;
 
         private SyntaxTreeIndex(
-            Checksum checksum,
+            Checksum? checksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
@@ -42,8 +40,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
         }
 
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new();
-        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex?> s_documentToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex?> s_documentIdToIndex = new();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
@@ -68,11 +66,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
+        public static async ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
+        {
+            var index = await GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(index);
+            return index;
+        }
+
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
             => GetIndexAsync(document, loadOnly: false, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SyntaxTreeIndex> GetIndexAsync(
+        public static async ValueTask<SyntaxTreeIndex?> GetIndexAsync(
             Document document,
             bool loadOnly,
             CancellationToken cancellationToken)
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return index;
         }
 
-        private static async Task<SyntaxTreeIndex> GetIndexWorkerAsync(
+        private static async Task<SyntaxTreeIndex?> GetIndexWorkerAsync(
             Document document,
             bool loadOnly,
             CancellationToken cancellationToken)
@@ -108,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Check if we have an index for a previous version of this document.  If our
             // checksums match, we can just use that.
             if (s_documentIdToIndex.TryGetValue(document.Id, out var index) &&
-                index.Checksum == checksum)
+                index?.Checksum == checksum)
             {
                 // The previous index we stored with this documentId is still valid.  Just
                 // return that.

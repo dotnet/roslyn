@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class ReturnStatementSyntax
     {
         public ReturnStatementSyntax Update(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, returnKeyword, expression, semicolonToken);
+            => Update(AttributeLists, returnKeyword, expression, semicolonToken);
     }
 }
 

@@ -126,12 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             // Get the ITextBuffer for the secondary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
-            var secondaryVsTextBuffer = (IVsTextBuffer)secondaryTextLines;
-            SubjectBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(secondaryVsTextBuffer);
+            SubjectBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(secondaryTextLines)!;
 
             // Get the ITextBuffer for the primary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
-            DataBuffer = _editorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)primaryTextLines);
+            DataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryTextLines)!;
 
             // Create our tagger
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();

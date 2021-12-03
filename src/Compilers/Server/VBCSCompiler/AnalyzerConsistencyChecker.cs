@@ -10,6 +10,8 @@ using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -19,16 +21,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
-            ICompilerServerLogger? logger = null)
+            ICompilerServerLogger? logger = null) => Check(baseDirectory, analyzerReferences, loader, logger, out var _);
+
+        public static bool Check(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger,
+            [NotNullWhen(false)]
+            out List<string>? errorMessages)
         {
             try
             {
                 logger?.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader, logger);
+                return CheckCore(baseDirectory, analyzerReferences, loader, logger, out errorMessages);
             }
             catch (Exception e)
             {
                 logger?.LogException(e, "Analyzer Consistency Check");
+                errorMessages = new List<string>();
+                errorMessages.Add(e.Message);
                 return false;
             }
             finally
@@ -41,8 +53,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string baseDirectory,
             IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
             IAnalyzerAssemblyLoader loader,
-            ICompilerServerLogger? logger)
+            ICompilerServerLogger? logger,
+            [NotNullWhen(false)]
+            out List<string>? errorMessages)
         {
+            errorMessages = null;
             var resolvedPaths = new List<string>();
 
             foreach (var analyzerReference in analyzerReferences)
@@ -84,12 +99,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    logger?.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
-                    return false;
+                    var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'";
+                    errorMessages ??= new List<string>();
+                    errorMessages.Add(message);
                 }
             }
 
-            return true;
+            return errorMessages == null;
         }
     }
 }

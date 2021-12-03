@@ -52,15 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
-        private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
+        private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
+        private readonly string _workspaceKind;
 
-        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
+            _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
             this.AdditionalDocuments = new List<TestHostDocument>();
@@ -273,6 +275,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 case ApplyChangesKind.AddDocument:
                 case ApplyChangesKind.RemoveDocument:
+                    return KindSupportsAddRemoveDocument();
+
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
@@ -297,6 +301,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     return false;
             }
         }
+
+        private bool KindSupportsAddRemoveDocument()
+            => _workspaceKind switch
+            {
+                WorkspaceKind.MiscellaneousFiles => false,
+                WorkspaceKind.Interactive => false,
+                _ => true
+            };
 
         protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
         {
@@ -493,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 path,
                 mappedCaretLocation,
                 mappedSpans,
-                textBuffer: projectionBuffer);
+                textBuffer: (ITextBuffer2)projectionBuffer);
 
             this.ProjectionDocuments.Add(projectionDocument);
             return projectionDocument;
@@ -716,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return true;
         }
 
-        internal ITextBuffer GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
+        internal ITextBuffer2 GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
         {
             // If we don't have a file path we'll just make something up for the purpose of this dictionary so all
             // buffers are still held onto. This isn't a file name used in the workspace itself so it's unobservable.

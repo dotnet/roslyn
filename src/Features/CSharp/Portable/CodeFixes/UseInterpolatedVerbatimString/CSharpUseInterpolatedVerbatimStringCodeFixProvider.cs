@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
     /// <summary>
     /// Converts a verbatim interpolated string @$"" to an interpolated verbatim string $@""
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseInterpolatedVerbatimString), Shared]
     internal partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null
             };
 
@@ -354,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null,
             };
 

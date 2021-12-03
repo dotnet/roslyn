@@ -11,5 +11,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
         public const string XamlLanguageName = "Xaml";
 
         public const string XamlFileExtension = ".xaml";
+
+        public const string EnableLspIntelliSense = "Xaml.EnableLspIntelliSense";
+
+        public const string CreateEventHandlerCommand = "Xaml.CreateEventHandler";
+
+        public const string RetriggerCompletionCommand = "editor.action.triggerSuggest";
     }
 }

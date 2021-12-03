@@ -11221,6 +11221,96 @@ public class C
             Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
         }
 
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, false)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_01(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    {GetSkipLocalsInit(skipLocalsMethod)} static void Main()
+    {{
+        Action a = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<Main>b__0_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        [Theory]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(true, true, false)]
+        public void SkipLocalsInit_Lambda_02(bool skipLocalsType, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        // [SkipLocalsInit] on constructor is ignored
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, true)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_03(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    {GetSkipLocalsInit(skipLocalsMethod)} Program() {{ }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        private static string GetSkipLocalsInit(bool skipLocalsInit) => skipLocalsInit ? "[SkipLocalsInit]" : "";
+
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
         public void SkipLocalsInit_Module_TopLevelStatements()
         {

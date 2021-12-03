@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpRequiredLanguageVersion(LanguageVersion version)
         {
-            Version = (version == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()) ? LanguageVersion.Preview : version;
+            Version = version;
         }
 
         public override string ToString() => Version.ToDisplayString();

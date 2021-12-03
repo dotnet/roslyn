@@ -718,7 +718,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var fieldName = GeneratedNames.MakeDynamicCallSiteFieldName(_callSiteIdDispenser++);
             var delegateTypeOverContainerTypeParameters = methodToContainerTypeParametersMap.SubstituteNamedType(delegateTypeOverMethodTypeParameters);
-            var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T).Construct(new[] { delegateTypeOverContainerTypeParameters });
+            var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
+            _factory.Diagnostics.ReportUseSite(callSiteType, _factory.Syntax);
+            callSiteType = callSiteType.Construct(new[] { delegateTypeOverContainerTypeParameters });
             var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, isPublic: true, isStatic: true);
             _factory.AddField(containerDefinition, field);
             Debug.Assert(_currentDynamicCallSiteContainer is { });
@@ -756,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateType = _factory.Compilation.GetWellKnownType(wkDelegateType);
                     if (!delegateType.HasUseSiteError)
                     {
+                        _factory.Diagnostics.AddDependencies(delegateType);
                         return delegateType.Construct(delegateSignature);
                     }
                 }

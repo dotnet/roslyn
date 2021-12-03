@@ -7482,18 +7482,31 @@ struct C
 {
    ~$$
 }";
+            await VerifyItemIsAbsentAsync(markup, "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task RecordDestructor(string record)
+        {
+            var markup = $@"
+{record} C
+{{
+   ~$$
+}}";
             await VerifyItemExistsAsync(markup, "C");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RecordDestructor()
+        public async Task RecordStructDestructor()
         {
-            var markup = @"
-record C
-{
+            var markup = $@"
+record struct C
+{{
    ~$$
-}";
-            await VerifyItemExistsAsync(markup, "C");
+}}";
+            await VerifyItemIsAbsentAsync(markup, "C");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7544,7 +7557,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7575,7 +7588,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7609,7 +7622,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7647,7 +7660,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "DoGStuff", expectedDescription);
         }
@@ -7702,7 +7715,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
@@ -9585,7 +9598,7 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
             // should not crash
-            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
@@ -10759,8 +10772,10 @@ class C
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10778,27 +10793,29 @@ class Program
     {
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo();
-    }
+    {{
+        Foo(){commitChar}
+    }}
     
     private void Foo(int i)
-    {
-    }
+    {{
+    }}
 
     private void Foo(int i, int c)
-    {
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    {{
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonInNestedMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithSemicolonInNestedMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10813,24 +10830,26 @@ class Program
         return 1;
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo(Foo(););
-    }
+    {{
+        Foo(Foo(){commitChar});
+    }}
     
     private int Foo(int i)
-    {
+    {{
         return 1;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForDelegateInferredType()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForDelegateInferredType(char commitChar)
         {
             var markup = @"
 using System;
@@ -10847,26 +10866,28 @@ class Program
 
     void Bar2(Action t) { }
 }";
-            var expected = @"
+            var expected = $@"
 using System;
 class Program
-{
+{{
     private void Bar()
-    {
-        Bar2(Foo;);
-    }
+    {{
+        Bar2(Foo{commitChar});
+    }}
     
     private void Foo()
-    {
-    }
+    {{
+    }}
 
-    void Bar2(Action t) { }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    void Bar2(Action t) {{ }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForConstructor(char commitChar)
         {
             var markup = @"
 class Program
@@ -10876,19 +10897,21 @@ class Program
         var o = new P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = new Program();
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = new Program(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCharForTypeUnderNonObjectCreationContext(char commitChar)
         {
             var markup = @"
 class Program
@@ -10898,19 +10921,21 @@ class Program
         var o = P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = Program;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = Program{commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForAliasConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForAliasConstructor(char commitChar)
         {
             var markup = @"
 using String2 = System.String;
@@ -10924,19 +10949,19 @@ namespace Bar1
         }
     }
 }";
-            var expected = @"
+            var expected = $@"
 using String2 = System.String;
 namespace Bar1
-{
+{{
     class Program
-    {
+    {{
         private static void Bar()
-        {
-            var o = new String2();
-        }
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
+        {{
+            var o = new String2(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: commitChar);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -11227,6 +11252,46 @@ $@"public class C
                 markup, "Bar",
                 expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
                 matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesNotSuggestedInDeclarationDeconstruction()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C
+{
+    int M()
+    {
+        var (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalDeclaredBeforeDeconstructionSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        int y;
+        (var x, $$) = (0, 0);
+    }
+}", "y");
         }
     }
 }

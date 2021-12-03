@@ -224,6 +224,7 @@
   </data>
   <data name="Remove_Me_qualification" xml:space="preserve">
     <value>Remove 'Me' qualification</value>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Name_can_be_simplified" xml:space="preserve">
     <value>Name can be simplified</value>
@@ -1226,7 +1227,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
-    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Import"}</comment>
   </data>
   <data name="Add_Shadows" xml:space="preserve">
     <value>Add 'Shadows'</value>
@@ -1239,6 +1240,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
   </data>
+  <data name="Apply_Me_qualification_preferences" xml:space="preserve">
+    <value>Apply Me qualification preferences</value>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Apply_Imports_directive_placement_preferences" xml:space="preserve">
+    <value>Apply Imports directive placement preferences</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_private_field_ReadOnly_when_possible" xml:space="preserve">
+    <value>Make private field ReadOnly when possible</value>
+    <comment>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Organize_Imports" xml:space="preserve">
+    <value>Organize Imports</value>
+    <comment>{Locked="Import"}</comment>
+  </data>
   <data name="Change_to_DirectCast" xml:space="preserve">
     <value>Change to 'DirectCast'</value>
   </data>
@@ -1248,5 +1265,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Remove_shared_keyword_from_module_member" xml:space="preserve">
     <value>Remove 'Shared' keyword from Module member</value>
     <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_Events" xml:space="preserve">
+    <value>({0} Events)</value>
+  </data>
+  <data name="Shared_constructor" xml:space="preserve">
+    <value>Shared constructor</value>
   </data>
 </root>

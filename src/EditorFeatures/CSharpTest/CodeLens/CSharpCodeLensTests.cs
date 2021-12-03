@@ -215,35 +215,38 @@ public class A
             await RunMethodReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        public async Task TestFullyQualifiedName()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [InlineData("class")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestFullyQualifiedName(string typeKind)
         {
-            const string input = @"<Workspace>
+            var input = $@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|A.C: public void C()
-    {
+public {typeKind} A
+{{
+    {{|A.C: public void C()
+    {{
         C();
-    }|}
+    }}|}}
 
-    public class B
-    {
-        {|A+B.C: public void C()
-        {
+    public {typeKind} B
+    {{
+        {{|A+B.C: public void C()
+        {{
             C();
-        }|}
+        }}|}}
 
-        public class D
-        {
-            {|A+B+D.C: public void C()
-            {
+        public {typeKind} D
+        {{
+            {{|A+B+D.C: public void C()
+            {{
                 C();
-            }|}
-        }
-    }
-}
+            }}|}}
+        }}
+    }}
+}}
 ]]>
         </Document>
     </Project>
@@ -349,6 +352,37 @@ public class B
     </Project>
 </Workspace>";
             await RunReferenceTest(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
+        public async Task TestMethodRefSourceGeneratedDocument()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""Program.cs""><![CDATA[
+namespace ConsoleSample
+{
+    class Program
+    {
+        {|1:public Program()
+        {
+        }|}
+    }
+}]]>
+        </Document>
+        <DocumentFromSourceGenerator><![CDATA[
+namespace ConsoleSample
+{
+    internal partial class Program
+    {
+        public static CreateProgram() => new Program();
+    }
+}]]>
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>";
+            await RunMethodReferenceTest(input);
         }
     }
 }

@@ -174,13 +174,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private class ChecksumJsonConverter : BaseJsonConverter<Checksum>
         {
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
-            {
-                var value = (string)reader.Value;
-                return value == null ? null : Checksum.FromSerialized(Convert.FromBase64String(value));
-            }
+                => Checksum.FromBase64String((string)reader.Value);
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
-                => writer.WriteValue(value?.ToString());
+                => writer.WriteValue(value?.ToBase64String());
         }
 
         private class PinnedSolutionInfoJsonConverter : BaseJsonConverter<PinnedSolutionInfo>

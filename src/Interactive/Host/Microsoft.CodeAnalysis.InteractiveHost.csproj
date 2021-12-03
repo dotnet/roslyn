@@ -24,6 +24,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />
     <InternalsVisibleTo Include="InteractiveHost64" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />

@@ -7,6 +7,11 @@
         <target state="translated">대상 배열이 컬렉션의 모든 항목을 복사하기에 충분히 길지 않습니다. 배열 인덱스와 길이를 확인하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">IComparer.Compare() 메서드가 일관성 없는 결과를 반환하므로 정렬할 수 없습니다. 값이 자신과 같은지 비교하지 않거나 한 값이 다른 값과 반복해서 비교되어 다른 결과를 생성합니다. IComparer: '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">해시 테이블 용량에 오버플로가 발생하여 음수가 되었습니다. 로드 비율, 용량 및 테이블의 현재 크기를 확인하십시오.</target>
@@ -19,12 +24,12 @@
       </trans-unit>
       <trans-unit id="Arg_LongerThanDestArray">
         <source>Destination array was not long enough. Check the destination index, length, and the array's lower bounds.</source>
-        <target state="translated">대상 배열의 길이가 짧습니다. 대상 인덱스, 길이 및 배열의 하한을 확인하십시오.</target>
+        <target state="translated">대상 배열의 길이가 짧습니다. 대상 인덱스, 길이, 배열의 하한을 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arg_LongerThanSrcArray">
         <source>Source array was not long enough. Check the source index, length, and the array's lower bounds.</source>
-        <target state="translated">소스 배열의 길이가 짧습니다. 소스 인덱스, 길이 및 배열의 하한을 확인하십시오.</target>
+        <target state="translated">소스 배열의 길이가 짧습니다. 소스 인덱스, 길이, 배열의 하한을 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arg_NonZeroLowerBound">
@@ -99,7 +104,7 @@
       </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
-        <target state="translated">비 동시 컬렉션을 변경하는 작업에는 단독 액세스 권한이 있어야 합니다. 이 컬렉션에 대해 동시 업데이트가 수행되어 해당 상태가 손상되었습니다. 컬렉션의 상태가 더 이상 올바르지 않습니다.</target>
+        <target state="translated">비동시 컬렉션을 변경하는 작업에는 단독 액세스 권한이 있어야 합니다. 이 컬렉션에 대해 동시 업데이트가 수행되어 해당 상태가 손상되었습니다. 컬렉션의 상태가 더 이상 올바르지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperation_EnumFailedVersion">

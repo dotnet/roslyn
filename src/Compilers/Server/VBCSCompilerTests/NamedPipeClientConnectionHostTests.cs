@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task CallBeforeListen()
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync());
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             _host.BeginListening();
             var task = _host.GetNextClientConnectionAsync();
-            using var clientStream = await ConnectAsync().ConfigureAwait(false);
-            await task.ConfigureAwait(false);
+            using var clientStream = await ConnectAsync();
+            await task;
             Assert.NotNull(_host.GetNextClientConnectionAsync());
             _host.EndListening();
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var task = _host.GetNextClientConnectionAsync();
             _host.EndListening();
 
-            Assert.ThrowsAsync<OperationCanceledException>(() => task).ConfigureAwait(false);
+            Assert.ThrowsAsync<OperationCanceledException>(() => task);
         }
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             _host.BeginListening();
             var task = _host.GetNextClientConnectionAsync();
-            using var clientStream = await ConnectAsync().ConfigureAwait(false);
-            using var namedPipeClientConnection = (NamedPipeClientConnection)(await task.ConfigureAwait(false));
+            using var clientStream = await ConnectAsync();
+            using var namedPipeClientConnection = (NamedPipeClientConnection)(await task);
             _host.EndListening();
             Assert.False(namedPipeClientConnection.IsDisposed);
         }
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 list.Add(ConnectAsync());
             }
 
-            await Task.WhenAll(list).ConfigureAwait(false);
+            await Task.WhenAll(list);
 
             for (int i = 0; i < count; i++)
             {
-                var clientConnection = await _host.GetNextClientConnectionAsync().ConfigureAwait(false);
+                var clientConnection = await _host.GetNextClientConnectionAsync();
                 clientConnection.Dispose();
             }
 
@@ -126,16 +126,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 list.Add(ConnectAsync());
             }
 
-            await Task.WhenAll(list).ConfigureAwait(false);
+            await Task.WhenAll(list);
 
             _host.EndListening();
 
             var buffer = new byte[10];
             foreach (var streamTask in list)
             {
-                using var stream = await streamTask.ConfigureAwait(false);
+                using var stream = await streamTask;
                 AssertEx.NotNull(stream);
-                var readCount = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                var readCount = await stream.ReadAsync(buffer, 0, buffer.Length);
                 Assert.Equal(0, readCount);
                 Assert.False(stream.IsConnected);
             }
@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 _host.BeginListening();
                 Assert.True(_host.IsListening);
-                using var client = await ConnectAsync().ConfigureAwait(false);
-                using var server = await _host.GetNextClientConnectionAsync().ConfigureAwait(false);
+                using var client = await ConnectAsync();
+                using var server = await _host.GetNextClientConnectionAsync();
                 _host.EndListening();
                 Assert.False(_host.IsListening);
             }

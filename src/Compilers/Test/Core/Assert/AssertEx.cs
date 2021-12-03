@@ -732,25 +732,6 @@ namespace Roslyn.Test.Utilities
                 expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        public static void Throws<TException>(Action action, Action<TException> checker = null)
-            where TException : Exception
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception e)
-            {
-                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
-                {
-                    e = agg.InnerExceptions[0];
-                }
-
-                Assert.Equal(typeof(TException), e.GetType());
-                checker?.Invoke((TException)e);
-            }
-        }
-
         public static void Equal(bool[,] expected, Func<int, int, bool> getResult, int size)
         {
             Equal<bool>(expected, getResult, (b1, b2) => b1 == b2, b => b ? "true" : "false", "{0,-6:G}", size);

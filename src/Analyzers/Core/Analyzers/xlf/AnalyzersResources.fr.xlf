@@ -47,6 +47,11 @@
         <target state="translated">Éviter la cible de format hérité dans 'SuppressMessageAttribute'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="translated">Éviter plusieurs lignes vides</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">Évitez les assignations de valeurs inutiles dans votre code, car elles représentent probablement des calculs de valeurs redondants. Si un calcul de valeur n'est pas redondant et si vous souhaitez conserver l'assignation, remplacez la cible de l'assignation par une variable locale dont le nom commence par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
@@ -56,6 +61,16 @@
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">Évitez les paramètres inutilisés dans votre code. Évitez les paramètres inutilisés dans votre code. Si vous ne pouvez pas supprimer un paramètre, changez son nom en le faisant commencer par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="translated">Ligne vide nécessaire entre le bloc et l'instruction qui suit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="translated">Changer namespace pour le faire correspondre à la structure de dossiers</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
@@ -147,6 +162,16 @@
         <target state="translated">Les modificateurs ne sont pas ordonnés</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="translated">Le namespace "{0}" ne correspond pas à la structure de dossiers. Résultat attendu : "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="translated">Le namespace ne correspond pas à la structure de dossiers</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
         <target state="translated">Styles d'affectation de noms</target>
@@ -203,13 +228,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Vous pouvez supprimer le membre privé '{0}', car la valeur qui lui est attribuée n'est jamais lue.</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">Vous pouvez supprimer le membre privé '{0}', car la valeur qui lui est affectée n'est jamais lue</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Le membre privé '{0}' n'est pas utilisé.</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">Le membre privé '{0}' n'est pas utilisé</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -270,6 +295,11 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Supprimer les membres privés non utilisés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="translated">Simplifier l'expression LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

@@ -16,6 +16,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Utilities;
@@ -89,67 +90,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var metadataId = GetMetadataIdNoThrow(reference);
             if (metadataId == null)
-            {
                 return CreateEmpty(checksum);
-            }
 
-            // Try to acquire the data outside the lock.  That way we can avoid any sort of 
-            // allocations around acquiring the task for it.  Note: once ValueTask is available
-            // (and enabled in the language), we'd likely want to use it here. (Presuming 
-            // the lock is not being held most of the time).
             if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
             {
-                var info = await infoTask.ConfigureAwait(false);
+                var info = await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (info.Checksum == checksum)
-                {
                     return info;
-                }
             }
 
             var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
-            {
                 return CreateEmpty(checksum);
-            }
+
+            // If the data isn't in the table, and the client only wants the data if already loaded, then bail out as we
+            // have no results to give.  The data will eventually populate in memory due to
+            // SymbolTreeInfoIncrementalAnalyzer eventually getting around to loading it.
+            if (loadOnly)
+                return null;
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution, reference, checksum, loadOnly, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Workspace, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
-            Solution solution, PortableExecutableReference reference, Checksum checksum,
-            bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
+            Workspace workspace,
+            SolutionKey solutionKey,
+            PortableExecutableReference reference,
+            Checksum checksum,
+            Metadata metadata,
+            CancellationToken cancellationToken)
         {
-            // Find the lock associated with this piece of metadata.  This way only one thread is
-            // computing a symbol tree info for a particular piece of metadata at a time.
-            var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
-            using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out var infoTask))
-                {
-                    var oldInfo = await infoTask.ConfigureAwait(false);
-                    if (oldInfo.Checksum == checksum)
-                    {
-                        return oldInfo;
-                    }
-                }
+            cancellationToken.ThrowIfCancellationRequested();
 
-                var info = await TryLoadOrCreateMetadataSymbolTreeInfoAsync(
-                    solution, reference, checksum, loadOnly, cancellationToken).ConfigureAwait(false);
-                if (info == null && loadOnly)
-                {
-                    return CreateEmpty(checksum);
-                }
+            // Important: this captured async lazy may live a long time *without* computing the final results. As such,
+            // it is important that it note capture any large state.  For example, it should not hold onto a Solution
+            // instance.
+            var asyncLazy = s_metadataIdToInfo.GetValue(
+                metadata.Id,
+                id => new AsyncLazy<SymbolTreeInfo>(
+                    c => TryCreateMetadataSymbolTreeInfoAsync(workspace, solutionKey, reference, checksum, c),
+                    cacheResult: true));
 
-                // Cache the result in our dictionary.  Store it as a completed task so that 
-                // future callers don't need to allocate to get the result back.
-                infoTask = Task.FromResult(info);
-                s_metadataIdToInfo.Remove(metadata.Id);
-                s_metadataIdToInfo.Add(metadata.Id, infoTask);
-
-                return info;
-            }
+            return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
@@ -184,32 +167,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             });
         }
 
-        private static Task<SymbolTreeInfo> TryLoadOrCreateMetadataSymbolTreeInfoAsync(
-            Solution solution,
+        private static Task<SymbolTreeInfo> TryCreateMetadataSymbolTreeInfoAsync(
+            Workspace workspace,
+            SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
-            bool loadOnly,
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
 
             var result = TryLoadOrCreateAsync(
-                solution,
+                workspace,
+                solutionKey,
                 checksum,
-                loadOnly,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
+                loadOnly: false,
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(workspace, solutionKey, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(workspace, solutionKey, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
-            Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
+            Contract.ThrowIfNull(result != null);
             return result;
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            Solution solution, Checksum checksum,
-            PortableExecutableReference reference)
+            Workspace workspace, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
         {
-            var creator = new MetadataInfoCreator(solution, checksum, reference);
+            var creator = new MetadataInfoCreator(workspace, solutionKey, checksum, reference);
             return Task.FromResult(creator.Create());
         }
 
@@ -218,7 +201,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
-            private readonly Solution _solution;
+            private readonly Workspace _workspace;
+            private readonly SolutionKey _solutionKey;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
 
@@ -243,9 +227,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                Solution solution, Checksum checksum, PortableExecutableReference reference)
+                Workspace workspace, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
             {
-                _solution = solution;
+                _workspace = workspace;
+                _solutionKey = solutionKey;
                 _checksum = checksum;
                 _reference = reference;
                 _metadataReader = null;
@@ -313,7 +298,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
 
                 return CreateSymbolTreeInfo(
-                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
+                    _workspace, _solutionKey, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
             }
 
             public void Dispose()

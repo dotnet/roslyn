@@ -57,6 +57,11 @@
         <target state="translated">Ereignisse freigegebener WithEvents-Variablen können nicht von Methoden in einem anderen Typ behandelt werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Das Attribut "UnmanagedCallersOnly" wird nicht unterstützt.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">Kommentare nach Zeilenfortsetzung</target>

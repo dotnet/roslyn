@@ -88,14 +88,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(
-                    LogType.Trace,
-                    m =>
-                    {
-                        m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services);
-                        m["ServerGC"] = RemoteHostOptions.IsServiceHubProcessServerGC(services);
-                    }));
-
 #pragma warning disable ISB001    // Dispose of proxies
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
                 var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);

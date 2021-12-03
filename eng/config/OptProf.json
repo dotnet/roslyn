@@ -177,10 +177,6 @@
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
@@ -214,10 +210,6 @@
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
             {

@@ -655,7 +655,7 @@ End Class
         'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
 
-        Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
+        Dim err = c2.GetEmitDiagnostics().Single()
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
@@ -2307,6 +2307,107 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
 </errors>)
+    End Sub
+
+    <Theory>
+    <MemberData(NameOf(AllProviderParseOptions))>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    Public Sub IVT_Circularity(parseOptions As VisualBasicParseOptions)
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="HasIVTToCompilation">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
+Public MustInherit Class TestBaseClass
+    Friend Overridable ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        other.VerifyDiagnostics()
+
+        Dim c2 As VisualBasicCompilation = CreateCompilation(
+<compilation name="WantsIVTAccess">
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Inherits TestBaseClass
+
+    Friend Overrides ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+    <file name="b.vb"><![CDATA[
+<assembly: Class1>
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        c2.AssertTheseDiagnostics(<error><![CDATA[
+BC31504: 'Class1' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+<assembly: Class1>
+           ~~~~~~
+]]></error>)
+    End Sub
+
+    <Theory>
+    <MemberData(NameOf(AllProviderParseOptions))>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    Public Sub IVT_Circularity_AttributeReferencesProperty(parseOptions As VisualBasicParseOptions)
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="HasIVTToCompilation">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
+Public MustInherit Class TestBaseClass
+    Friend Overridable ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(s As String)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        other.VerifyDiagnostics()
+
+        Dim c2 As VisualBasicCompilation = CreateCompilation(
+<compilation name="WantsIVTAccess">
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Inherits TestBaseClass
+
+    Friend Const Constant As String = "text"
+
+    Friend Overrides ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+    <file name="b.vb"><![CDATA[
+<assembly: MyAttribute(Class1.Constant)>
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        c2.AssertNoDiagnostics()
     End Sub
 
 End Class

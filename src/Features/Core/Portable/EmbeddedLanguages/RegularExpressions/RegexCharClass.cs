@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
 
     /// <summary>
-    /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
+    /// Minimal copy of https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
     /// Used to accurately determine if something is a WordChar according to the .NET regex engine.
     /// </summary>
     internal static class RegexCharClass

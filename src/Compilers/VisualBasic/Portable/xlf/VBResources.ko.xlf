@@ -57,6 +57,11 @@
         <target state="translated">공유 WithEvents 변수의 이벤트는 다른 형식의 메서드에서 처리할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">'UnmanagedCallersOnly' 특성은 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">줄 연속 뒤 주석</target>
