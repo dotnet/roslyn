@@ -249,11 +249,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
     }
 
+    /// <summary>
+    /// The severity of the error, see the enum members for a description of when to use each. This is metadata that's included
+    /// in a non-fatal fault report, which we can take advantage of on the backend to automatically triage bugs. For example,
+    /// a critical severity issue we can open with a lower bug count compared to a low priority one.
+    /// </summary>
     internal enum ErrorSeverity
     {
+        /// <summary>
+        /// The severity hasn't been categorized. Don't use this in new code.
+        /// </summary>
         Uncategorized,
+
+        /// <summary>
+        /// Something failed, but the user is unlikely to notice. Especially useful for background things that we can silently recover
+        /// from, like bugs in caching systems.
+        /// </summary>
         Diagnostic,
+
+        /// <summary>
+        /// Something failed, and the user might notice, but they're still likely able to carry on. For example, if the user
+        /// asked for some information from the IDE (find references, completion, etc.) and we were able to give partial results.
+        /// </summary>
         General,
+
+        /// <summary>
+        /// Something failed, and the user likely noticed. For example, the user pressed a button to do an action, and
+        /// we threw an exception so we completely failed to do that in an unrecoverable way. This may also be used
+        /// for back-end systems where a failure is going to result in a highly broken experience, for example if parsing a file
+        /// catastrophically failed.
+        /// </summary>
         Critical
     }
 }
