@@ -7474,7 +7474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (interpolatedStringArgumentInformation is not (ArrayBuilder<VisitResult> previousConversionInfo, int argumentIndex))
                 {
-                    Debug.Assert(handlerData.ArgumentPlaceholders.Single().ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter);
+                    Debug.Assert(handlerData.ArgumentPlaceholders.IsEmpty
+                                 || handlerData.ArgumentPlaceholders.Single().ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter);
                     VisitRvalue(handlerData.Construction);
                     return;
                 }
