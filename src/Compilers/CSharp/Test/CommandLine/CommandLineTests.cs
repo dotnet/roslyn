@@ -1410,7 +1410,7 @@ class C
             Assert.Equal("blah", args.Win32Manifest);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58077")]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;
