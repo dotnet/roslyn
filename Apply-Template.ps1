@@ -22,6 +22,6 @@ robocopy /mir $PSScriptRoot/.github $Path/.github
 robocopy /mir $PSScriptRoot/.vscode $Path/.vscode
 robocopy /mir $PSScriptRoot/tools $Path/tools
 robocopy $PSScriptRoot $Path Directory.Build.* global.json init.* azure-pipelines.yml .gitignore .gitattributes .editorconfig
-robocopy $PSScriptRoot/src $Path/src Directory.Build.* .editorconfig
+robocopy $PSScriptRoot/src $Path/src Directory.Build.* .editorconfig AssemblyInfo.cs
 robocopy $PSScriptRoot/test $Path/test Directory.Build.* .editorconfig
 Remove-Item $Path/azure-pipelines/expand-template.yml
