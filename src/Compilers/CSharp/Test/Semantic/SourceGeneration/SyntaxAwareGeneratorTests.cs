@@ -1411,16 +1411,17 @@ class C
             // make a change to the syntax tree
             compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
 
-            // when we run it again, we get cached steps because the comparer has suppressed the modification
+            // when we run it again, we get cached steps with the original values because the comparer has suppressed the modification.
+            // the original value is preserved to ensure that separate runs of the generator have the same output when the user-provided comparer returns true.
             driver = driver.RunGenerators(compilation);
             results = driver.GetRunResult();
             Assert.Collection(results.Results[0].TrackedSteps["Fields"],
                 step => Assert.Collection(step.Outputs,
-                    output => Assert.Equal(("fieldD", IncrementalStepRunReason.Unchanged), output)),
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Unchanged), output)),
                 step => Assert.Collection(step.Outputs,
-                    output => Assert.Equal(("fieldE", IncrementalStepRunReason.Unchanged), output)),
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Unchanged), output)),
                 step => Assert.Collection(step.Outputs,
-                    output => Assert.Equal(("fieldF", IncrementalStepRunReason.Unchanged), output)));
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Unchanged), output)));
         }
 
         [Fact]
