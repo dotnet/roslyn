@@ -9945,8 +9945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We skip visiting the constructor at this stage. We will visit it manually when VisitConversion is
             // called on the interpolated string handler
-            // We skip visiting the constructor at this stage. We will visit it manually when VisitConversion is
-            // called on the interpolated string handler
         }
 
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
