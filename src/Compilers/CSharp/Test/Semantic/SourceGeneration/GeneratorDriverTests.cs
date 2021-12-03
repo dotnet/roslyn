@@ -1891,7 +1891,7 @@ class C { }
                         });
                 });
 
-            // edit the additional texts, and verify that the step output is considered "unchanged".
+            // edit the additional texts, and verify that the step output is considered "unchanged" and that the value is the same as the previous value.
             driver = driver.RemoveAdditionalTexts(texts.ToImmutableArray());
             driver = driver.RunGenerators(compilation);
             runResult = driver.GetRunResult().Results[0];
@@ -1915,13 +1915,13 @@ class C { }
                         {
                             var value = ((Compilation, ImmutableArray<AdditionalText>))output.Value;
                             Assert.Equal(compilation, value.Item1);
-                            Assert.Empty(value.Item2);
+                            Assert.Equal(texts[0], value.Item2.Single());
                             Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason);
                         });
                 });
 
-            // Verify that a step that consumes the result of the Combine step gets the new value as an input,
-            // but considers the value cached.
+            // Verify that a step that consumes the result of the Combine step gets the old value as an input
+            // and considers the value cached.
             Assert.Collection(runResult.TrackedSteps["Step2"],
                 step =>
                 {
@@ -1930,7 +1930,7 @@ class C { }
                         {
                             var value = ((Compilation, ImmutableArray<AdditionalText>))source.Source.Outputs[source.OutputIndex].Value;
                             Assert.Equal(compilation, value.Item1);
-                            Assert.Empty(value.Item2);
+                            Assert.Equal(texts[0], value.Item2.Single());
                             Assert.Equal(IncrementalStepRunReason.Unchanged, source.Source.Outputs[source.OutputIndex].Reason);
                         });
                     Assert.Collection(step.Outputs,
@@ -2714,7 +2714,7 @@ class C { }
             Assert.Contains(WellKnownGeneratorOutputs.SourceOutput, runResult.TrackedOutputSteps.Keys);
             Assert.Contains(WellKnownGeneratorOutputs.ImplementationSourceOutput, runResult.TrackedOutputSteps.Keys);
 
-            Assert.Equal(7, runResult.TrackedSteps.Count);
+            Assert.Equal(8, runResult.TrackedSteps.Count);
             Assert.Equal(2, runResult.TrackedOutputSteps.Count);
         }
 
