@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var reference in references)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                WriteMetadataReference(writer, reference, options, cancellationToken);
+                WriteMetadataReference(writer, reference, pathMap, options, cancellationToken);
             }
             writer.WriteArrayEnd();
             writer.WriteObjectEnd();
@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis
         internal void WriteMetadataReference(
             JsonWriter writer,
             MetadataReference reference,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions deterministicKeyOptions,
             CancellationToken cancellationToken)
         {
@@ -341,8 +342,7 @@ namespace Microsoft.CodeAnalysis
                     compilation.SyntaxTrees.SelectAsArray(x => SyntaxTreeKey.Create(x)),
                     compilation.References.AsImmutable(),
                     compilation.Assembly.Identity.PublicKey,
-                    // PROTOTYPE: path through path map here
-                    default,
+                    pathMap,
                     deterministicKeyOptions,
                     cancellationToken);
             }

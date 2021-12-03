@@ -79,7 +79,7 @@ function Get-BinDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
   $objDir = Get-ObjDir $rootDir
-  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json $objDir) {
+  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json,*.key $objDir) {
     $filePath = $item.FullName
     $fileName = Split-Path -leaf $filePath
     $relativeDirectory = Split-Path -parent $filePath
