@@ -24,8 +24,12 @@ if ($help) {
 # makes them non-deterministic.
 $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
-  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll"
+  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
+
+  # TOOD: file bug before merge
+  "Roslyn.VisualStudio.DiagnosticsWindow"
 )
+
 function Run-Build([string]$rootDir, [string]$logFileName) {
 
   # Clean out the previous run
