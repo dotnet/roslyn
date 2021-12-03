@@ -7784,7 +7784,7 @@ public class C
         [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
         public void NoStdLib02()
         {
-#region "source"
+            #region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -7836,9 +7836,9 @@ namespace System.Collections
     }
 }
 ";
-#endregion
+            #endregion
 
-#region "mslib"
+            #region "mslib"
             var mslib = @"
 namespace System
 {
@@ -7903,7 +7903,7 @@ namespace System
     }
 }
 ";
-#endregion
+            #endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
