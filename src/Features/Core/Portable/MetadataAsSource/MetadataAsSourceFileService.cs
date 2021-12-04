@@ -180,9 +180,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     _rootTemporaryPathWithGuid = null;
                 }
 
-                foreach (var lazyProvider in _providers)
+                // Only cleanup for providers that have actually generated a file. This keeps us from
+                // accidentally loading lazy providers on cleanup that weren't used
+                foreach (var provider in _tempFileToProviderMap.Values.Distinct())
                 {
-                    var provider = lazyProvider.Value;
                     provider.CleanupGeneratedFiles(_workspace);
                 }
 
