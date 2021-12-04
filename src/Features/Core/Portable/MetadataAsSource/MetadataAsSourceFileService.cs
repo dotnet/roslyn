@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private Mutex? _mutex;
         private string? _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
-        private readonly ImmutableArray<IMetadataAsSourceFileProvider> _providers;
+        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
         {
-            _providers = ExtensionOrderer.Order(providers).Select(lz => lz.Value).ToImmutableArray();
+            _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
         }
 
@@ -90,8 +90,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
-                foreach (var provider in _providers)
+                foreach (var lazyProvider in _providers)
                 {
+                    var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
                     var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
@@ -179,8 +180,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     _rootTemporaryPathWithGuid = null;
                 }
 
-                foreach (var provider in _providers)
+                foreach (var lazyProvider in _providers)
                 {
+                    var provider = lazyProvider.Value;
                     provider.CleanupGeneratedFiles(_workspace);
                 }
 
