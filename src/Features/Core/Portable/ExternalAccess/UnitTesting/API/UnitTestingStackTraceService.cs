@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using System.Collections.Immutable;
-using System;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
 {
@@ -19,21 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
         public UnitTestingStackTraceService(HostWorkspaceServices services)
             => _stackTraceService = services.GetRequiredService<IStackTraceExplorerService>();
 
-        public async Task<Frame?> TryParseAsync(string line, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Frame>> TryParseAsync(string input, CancellationToken cancellationToken)
         {
-            var result = await StackTraceAnalyzer.AnalyzeAsync(line, cancellationToken).ConfigureAwait(false);
-
-            if (result.ParsedFrames.Length == 0)
-            {
-                return null;
-            }
-
-            if (result.ParsedFrames.Length > 1)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return new Frame(result.ParsedFrames.Single(), _stackTraceService);
+            var result = await StackTraceAnalyzer.AnalyzeAsync(input, cancellationToken).ConfigureAwait(false);
+            return result.ParsedFrames.SelectAsArray(p => new Frame(p, _stackTraceService));
         }
 
         public readonly struct Frame
