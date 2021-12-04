@@ -515,8 +515,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
-        System_Index__op_Implicit_FromInt32,
-
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
