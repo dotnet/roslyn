@@ -66,3 +66,14 @@ Those types can be used with implicit Index indexer and list patterns.
         if (i is { Length: -1 }) {} // error: impossible under assumption of non-negative length
     }
     ```
+
+5. Starting with Visual Studio 17.1, format specifiers in interpolated strings can not contain curly braces (either `{` or `}`). In previous versions `{{` was interpreted as an escaped `{` and `}}` was interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation, and any `{` char is an error.
+https://github.com/dotnet/roslyn/issues/5775
+
+```csharp
+using System;
+
+Console.WriteLine($"{{{12:X}}}");
+
+//prints now: "{C}" - not "{X}}"
+```
