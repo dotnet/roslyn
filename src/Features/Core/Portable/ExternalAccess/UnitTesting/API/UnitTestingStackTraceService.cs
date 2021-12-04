@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
     {
         private readonly IStackTraceExplorerService _stackTraceService;
 
-        public UnitTestingStackTraceService(HostWorkspaceServices services)
-            => _stackTraceService = services.GetRequiredService<IStackTraceExplorerService>();
+        public UnitTestingStackTraceService(Workspace workspace)
+            => _stackTraceService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
 
         public async Task<ImmutableArray<Frame>> TryParseAsync(string input, CancellationToken cancellationToken)
         {
