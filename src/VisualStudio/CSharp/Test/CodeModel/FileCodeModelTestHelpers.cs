@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                     visualStudioWorkspaceMock,
                     workspace.ExportProvider.GetExportedValue<ProjectCodeModelFactory>());
 
-                var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
+                var codeModel = FileCodeModel.Create(state, null, document, isSourceGeneratorOutput: false, new MockTextManagerAdapter()).Handle;
 
                 return (workspace, codeModel);
             }

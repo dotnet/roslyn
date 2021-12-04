@@ -33,9 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             CodeModelState state,
             object? parent,
             DocumentId documentId,
+            bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
-            return new FileCodeModel(state, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
+            return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
         private readonly ComHandle<object?, object?> _parentHandle;
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// Don't use directly. Instead, call <see cref="GetDocumentId()"/>.
         /// </summary>
         private DocumentId? _documentId;
+        private readonly bool _isSourceGeneratedOutput;
 
         // Note: these are only valid when the underlying file is being renamed. Do not use.
         private ProjectId? _incomingProjectId;
@@ -67,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             CodeModelState state,
             object? parent,
             DocumentId documentId,
+            bool isSourceGeneratedOutput,
             ITextManagerAdapter textManagerAdapter)
             : base(state)
         {
@@ -75,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _parentHandle = new ComHandle<object?, object?>(parent);
             _documentId = documentId;
+            _isSourceGeneratedOutput = isSourceGeneratedOutput;
             TextManagerAdapter = textManagerAdapter;
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
@@ -262,6 +266,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void InitializeEditor()
         {
+            // If this is a source generated file, we can't edit it, so just block this at the very start.
+            // E_FAIL is probably as a good as anything else, is and is also what we use files that go missing
+            // so it's consistent for "this file isn't something you can use."
+            if (_isSourceGeneratedOutput)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
             _editCount++;
 
             if (_editCount == 1)
@@ -387,6 +399,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
+            }
+            else if (_isSourceGeneratedOutput)
+            {
+                document = State.ThreadingContext.JoinableTaskFactory.Run(
+                    () => Workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(GetDocumentId(), CancellationToken.None).AsTask());
             }
             else
             {

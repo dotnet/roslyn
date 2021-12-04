@@ -218,6 +218,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
+        public EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument)
+            => GetProjectCodeModel(sourceGeneratedDocument.Project.Id).CreateFileCodeModel(sourceGeneratedDocument);
+
         public void ScheduleDeferredCleanupTask(Action<CancellationToken> a)
         {
             _ = _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>

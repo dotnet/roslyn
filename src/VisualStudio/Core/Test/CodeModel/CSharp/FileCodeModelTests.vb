@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1253,6 +1254,36 @@ class C
                     ' so the underlying node key is still valid.
                     Assert.Equal("D", codeElement.Name)
                 End Sub)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub CanAccessPartialPartsInSourceGeneratedFiles()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <Document>partial class C { }</Document>
+        <DocumentFromSourceGenerator>partial class C { void M() { } }</DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim fileCodeModel = state.FileCodeModel
+
+                Dim codeClass = DirectCast(Assert.Single(fileCodeModel.CodeElements()), EnvDTE80.CodeClass2)
+                Dim parts = codeClass.Parts.Cast(Of EnvDTE.CodeClass).ToList()
+                Assert.Equal(2, parts.Count)
+
+                ' Grab the part that isn't the one we started with
+                Dim generatedPart = Assert.Single(parts, Function(p) p IsNot codeClass)
+
+                ' Confirm we can inspect members
+                Dim member = DirectCast(Assert.Single(generatedPart.Members), EnvDTE.CodeFunction)
+                Assert.Equal("M", member.Name)
+
+                ' We are unable to change things in generated files
+                Assert.Throws(Of COMException)(Sub() member.AddParameter("Test", "System.Object"))
+            End Using
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

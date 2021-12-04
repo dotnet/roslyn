@@ -340,13 +340,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var documentFilePath = GetFilePath(documentId);
-            if (documentFilePath == null)
+            var document = _threadingContext.JoinableTaskFactory.Run(() => CurrentSolution.GetDocumentAsync(documentId, includeSourceGenerated: true).AsTask());
+            if (document == null)
             {
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, documentFilePath);
+            if (document is SourceGeneratedDocument sourceGeneratedDocument)
+            {
+                return _projectCodeModelFactory.Value.CreateFileCodeModel(sourceGeneratedDocument);
+            }
+            else
+            {
+                return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath);
+            }
         }
 
         internal override bool TryApplyChanges(
