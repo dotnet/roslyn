@@ -439,6 +439,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanFormatSpecifier()
             {
+                /*
+                ## Grammar from spec:
+                
+                interpolation_format
+                    : ':' interpolation_format_character+
+                ; 
+                interpolation_format_character
+                    : '<Any character except \" (U+0022), : (U+003A), { (U+007B) and } (U+007D)>'
+                ;
+                 */
+
                 Debug.Assert(_lexer.TextWindow.PeekChar() == ':');
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
@@ -467,28 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (ch == '{')
                     {
-                        var pos = _lexer.TextWindow.Position;
+                        TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_UnexpectedCharacter, ch));
                         _lexer.TextWindow.AdvanceChar();
-                        // ensure any { characters are doubled up
-                        if (_lexer.TextWindow.PeekChar() == '{')
-                        {
-                            _lexer.TextWindow.AdvanceChar(); // {
-                        }
-                        else
-                        {
-                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{"));
-                        }
                     }
                     else if (ch == '}')
                     {
-                        if (_lexer.TextWindow.PeekChar(1) == '}')
-                        {
-                            _lexer.TextWindow.AdvanceChar(2); // }}
-                        }
-                        else
-                        {
-                            return; // end of interpolation
-                        }
+                        return; // end of interpolation
                     }
                     else if (IsAtEnd())
                     {
