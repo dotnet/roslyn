@@ -12,6 +12,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal sealed class InferredDelegateTypeData
+    {
+        internal int InferredDelegateCount;
+    }
+
     /// <summary>
     /// A <see cref="TypeSymbol"/> implementation that represents the inferred signature of a
     /// lambda expression or method group. This is implemented as a <see cref="TypeSymbol"/>
@@ -71,7 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_expression is { });
 
                 var delegateType = _calculateDelegate(_binder, _expression);
-                Interlocked.CompareExchange(ref _lazyDelegateType, delegateType, Uninitialized);
+                var result = Interlocked.CompareExchange(ref _lazyDelegateType, delegateType, Uninitialized);
+
+                if (_binder.Compilation.CompilationData is InferredDelegateTypeData data &&
+                    (object?)result == Uninitialized)
+                {
+                    Interlocked.Increment(ref data.InferredDelegateCount);
+                }
             }
 
             return _lazyDelegateType;

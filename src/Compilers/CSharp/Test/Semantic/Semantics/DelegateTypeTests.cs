@@ -9630,6 +9630,102 @@ class Program
         }
 
         [Fact]
+        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        public void InferDelegateType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        int x = 0;
+        F(x, (int y) => { });
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Action<int, int> y) { }
+    static void F<T>(int x, Func<T> y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.CompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(0, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        public void InferDelegateType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        F(x, (int y) => { });
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Action<int, int> y) { }
+    static void F<T>(int x, Func<T> y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.CompilationData = data;
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, (int y) => { });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 11));
+            Assert.Equal(0, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void InferDelegateType_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        int x = 0;
+        F(x, (int y) => { });
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Delegate y) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.CompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(1, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void InferDelegateType_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        F(x, (int y) => { });
+    }
+    static void F(int x, Action<int> y) { }
+    static void F<T>(int x, T y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.CompilationData = data;
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, (int y) => { });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 11));
+            Assert.Equal(1, data.InferredDelegateCount);
+        }
+
+        [Fact]
         public void TaskRunArgument()
         {
             var source =

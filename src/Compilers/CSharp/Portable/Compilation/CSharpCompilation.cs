@@ -140,23 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         /// <summary>
-        /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes.
-        /// The data is collected during testing only.
+        /// Optional data collected during testing only.
         /// </summary>
-        internal NullableData? NullableAnalysisData;
-
-        internal sealed class NullableData
-        {
-            internal readonly int MaxRecursionDepth;
-            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
-
-            internal NullableData(int maxRecursionDepth = -1)
-            {
-                MaxRecursionDepth = maxRecursionDepth;
-                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
-            }
-        }
+        internal object? CompilationData;
 
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
