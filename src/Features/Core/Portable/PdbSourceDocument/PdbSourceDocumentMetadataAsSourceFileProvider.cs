@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,16 +31,21 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
+        private readonly IPdbSourceDocumentLogger? _logger;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
         private readonly Dictionary<string, (DocumentId documentId, Encoding encoding)> _fileToDocumentMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentMetadataAsSourceFileProvider(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
+        public PdbSourceDocumentMetadataAsSourceFileProvider(
+            IPdbFileLocatorService pdbFileLocatorService,
+            IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
+            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _pdbFileLocatorService = pdbFileLocatorService;
             _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
+            _logger = logger;
         }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, string tempPath, CancellationToken cancellationToken)
@@ -67,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, _logger, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
@@ -93,13 +99,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 defaultEncoding = Encoding.GetEncoding(fallbackEncodingString);
             }
 
-            // Get text loaders for our documents. We do this here because if we can't load any of the files, then
-            // we can't provide any results, so there is no point adding a project to the workspace etc.
-            var textLoaderTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, defaultEncoding, cancellationToken)).ToArray();
-            var textLoaders = await Task.WhenAll(textLoaderTasks).ConfigureAwait(false);
-            if (textLoaders.Where(t => t is null).Any())
-                return null;
-
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
                 // Get the project info now, so we can dispose the documentDebugInfoReader sooner
@@ -114,64 +113,44 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 _assemblyToProjectMap.Add(assemblyName, projectId);
             }
 
+            var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString());
+            // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
+            // to retry this a few times.
+            var loopCount = 0;
+            while (!Directory.Exists(tempFilePath))
+            {
+                // Protect against infinite loops.
+                if (loopCount++ > 10)
+                    return null;
+
+                IOUtilities.PerformIO(() => Directory.CreateDirectory(tempFilePath));
+            }
+
+            // Get text loaders for our documents. We do this here because if we can't load any of the files, then
+            // we can't provide any results, so there is no point adding a project to the workspace etc.
+            var encoding = defaultEncoding ?? Encoding.UTF8;
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, _logger, cancellationToken)).ToArray();
+            var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
+            if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
+                return null;
+
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
-            Contract.ThrowIfFalse(sourceDocuments.Length == textLoaders.Length);
-
-            // Combine text loaders and file paths. Task.WhenAll ensures order is preserved.
-            var filePathsAndTextLoaders = sourceDocuments.Select((sd, i) => (sd.FilePath, textLoaders[i]!)).ToImmutableArray();
-            var documentInfos = CreateDocumentInfos(filePathsAndTextLoaders, navigateProject);
+            var documentInfos = CreateDocumentInfos(sourceFileInfos, navigateProject);
             if (documentInfos.Length > 0)
             {
                 workspace.OnDocumentsAdded(documentInfos);
                 navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
             }
 
-            var documentPath = filePathsAndTextLoaders[0].FilePath;
+            var documentPath = sourceFileInfos[0]!.FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(documentPath, StringComparison.OrdinalIgnoreCase) ?? false);
 
-            // TODO: Can we avoid writing a temp file, and convince Visual Studio to open a file that doesn't exist on disk? https://github.com/dotnet/roslyn/issues/55834
-            var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString(), Path.GetFileName(documentPath));
-
-            // We might already know about this file, but lets make sure it still exists too
-            if (!_fileToDocumentMap.ContainsKey(tempFilePath) || !File.Exists(tempFilePath))
+            // In order to open documents in VS we need to understand the link from temp file to document and its encoding
+            if (!_fileToDocumentMap.ContainsKey(documentPath))
             {
-                // We have the content, so write it out to disk
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
-                // to retry this a few times.
-                var directoryToCreate = Path.GetDirectoryName(tempFilePath)!;
-                var loopCount = 0;
-                while (!Directory.Exists(directoryToCreate))
-                {
-                    // Protect against infinite loops.
-                    if (loopCount++ > 10)
-                        return null;
-
-                    try
-                    {
-                        Directory.CreateDirectory(directoryToCreate);
-                    }
-                    catch (DirectoryNotFoundException)
-                    {
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                    }
-                }
-
-                var encoding = text.Encoding ?? Encoding.UTF8;
-                using (var textWriter = new StreamWriter(tempFilePath, append: false, encoding: encoding))
-                {
-                    text.Write(textWriter, cancellationToken);
-                }
-
-                // Mark read-only
-                new FileInfo(tempFilePath).IsReadOnly = true;
-
-                _fileToDocumentMap[tempFilePath] = (document.Id, encoding);
+                _fileToDocumentMap[documentPath] = (document.Id, encoding);
             }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
@@ -183,7 +162,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 navigateDocument!.Name,
                 FeaturesResources.from_metadata);
 
-            return new MetadataAsSourceFile(tempFilePath, navigateLocation, documentName, navigateDocument.FilePath);
+            return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, navigateDocument.FilePath);
         }
 
         private static ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)
@@ -211,23 +190,25 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(ImmutableArray<(string FilePath, TextLoader Loader)> filePaths, Project project)
+        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Project project)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
-            foreach (var sourceDocument in filePaths)
+            foreach (var info in sourceFileInfos)
             {
+                Contract.ThrowIfNull(info);
+
                 // If a document has multiple symbols then we would already know about it
-                if (project.Documents.Contains(d => d.FilePath?.Equals(sourceDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
+                if (project.Documents.Contains(d => d.FilePath?.Equals(info.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
                     continue;
 
                 var documentId = DocumentId.CreateNewId(project.Id);
 
                 documents.Add(DocumentInfo.Create(
                     documentId,
-                    Path.GetFileName(sourceDocument.FilePath),
-                    filePath: sourceDocument.FilePath,
-                    loader: sourceDocument.Loader));
+                    Path.GetFileName(info.FilePath),
+                    filePath: info.FilePath,
+                    loader: info.Loader));
             }
 
             return documents.ToImmutable();
@@ -280,5 +261,5 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         }
     }
 
-    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes);
+    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
 }

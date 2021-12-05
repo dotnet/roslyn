@@ -396,11 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we need to handle properties and event in a special way even in an RValue case because of getters
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
+                case BoundKind.ImplicitIndexerAccess when ((BoundImplicitIndexerAccess)expr).IndexerOrSliceAccess.Kind == BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
-
-                case BoundKind.ImplicitIndexerAccess:
-                    var implicitIndexer = (BoundImplicitIndexerAccess)expr;
-                    return CheckValueKind(node, implicitIndexer.IndexerOrSliceAccess, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
@@ -472,26 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
-                    {
-                        if (RequiresRefAssignableVariable(valueKind))
-                        {
-                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
-                            return false;
-                        }
-
-                        var boundAccess = (BoundArrayAccess)expr;
-                        if (boundAccess.Indices.Length == 1 &&
-                            TypeSymbol.Equals(
-                                boundAccess.Indices[0].Type,
-                                Compilation.GetWellKnownType(WellKnownType.System_Range),
-                                TypeCompareKind.ConsiderEverything))
-                        {
-                            // Range indexer is an rvalue
-                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
-                            return false;
-                        }
-                        return true;
-                    }
+                    return checkArrayAccessValueKind(node, valueKind, ((BoundArrayAccess)expr).Indices, diagnostics);
 
                 // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
@@ -571,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
-                    return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
+                    return CheckMethodReturnValueKind(call.Method, call.Syntax, node, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.FunctionPointerInvocation:
                     return CheckMethodReturnValueKind(((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature,
@@ -582,7 +560,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                 case BoundKind.ImplicitIndexerAccess:
-                    throw ExceptionUtilities.Unreachable;
+                    var implicitIndexer = (BoundImplicitIndexerAccess)expr;
+                    switch (implicitIndexer.IndexerOrSliceAccess)
+                    {
+                        case BoundArrayAccess arrayAccess:
+                            return checkArrayAccessValueKind(node, valueKind, arrayAccess.Indices, diagnostics);
+
+                        case BoundCall sliceAccess:
+                            return CheckMethodReturnValueKind(sliceAccess.Method, sliceAccess.Syntax, node, valueKind, checkingReceiver, diagnostics);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(implicitIndexer.IndexerOrSliceAccess.Kind);
+                    }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     break;
@@ -622,6 +611,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
             return false;
+
+            bool checkArrayAccessValueKind(SyntaxNode node, BindValueKind valueKind, ImmutableArray<BoundExpression> indices, BindingDiagnosticBag diagnostics)
+            {
+                if (RequiresRefAssignableVariable(valueKind))
+                {
+                    Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                    return false;
+                }
+
+                if (indices.Length == 1 &&
+                    TypeSymbol.Equals(
+                        indices[0].Type,
+                        Compilation.GetWellKnownType(WellKnownType.System_Range),
+                        TypeCompareKind.ConsiderEverything))
+                {
+                    // Range indexer is an rvalue
+                    Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                    return false;
+                }
+                return true;
+            }
         }
 
         private static bool CheckNotNamespaceOrType(BoundExpression expr, BindingDiagnosticBag diagnostics)
@@ -987,9 +997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
-
-        private bool CheckCallValueKind(BoundCall call, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
-            => CheckMethodReturnValueKind(call.Method, call.Syntax, node, valueKind, checkingReceiver, diagnostics);
 
         protected bool CheckMethodReturnValueKind(
             MethodSymbol methodSymbol,
@@ -2096,56 +2103,108 @@ moreArguments:
                     return GetRefEscape(eventAccess.ReceiverOpt, scopeOfTheContainingExpression);
 
                 case BoundKind.Call:
-                    var call = (BoundCall)expr;
-
-                    var methodSymbol = call.Method;
-                    if (methodSymbol.RefKind == RefKind.None)
                     {
-                        break;
-                    }
+                        var call = (BoundCall)expr;
 
-                    return GetInvocationEscapeScope(
-                        call.Method,
-                        call.ReceiverOpt,
-                        methodSymbol.Parameters,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        call.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: true);
+                        var methodSymbol = call.Method;
+                        if (methodSymbol.RefKind == RefKind.None)
+                        {
+                            break;
+                        }
+
+                        return GetInvocationEscapeScope(
+                            call.Method,
+                            call.ReceiverOpt,
+                            methodSymbol.Parameters,
+                            call.Arguments,
+                            call.ArgumentRefKindsOpt,
+                            call.ArgsToParamsOpt,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: true);
+                    }
 
                 case BoundKind.FunctionPointerInvocation:
-                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
-
-                    methodSymbol = ptrInvocation.FunctionPointer.Signature;
-                    if (methodSymbol.RefKind == RefKind.None)
                     {
-                        break;
+                        var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+
+                        var methodSymbol = ptrInvocation.FunctionPointer.Signature;
+                        if (methodSymbol.RefKind == RefKind.None)
+                        {
+                            break;
+                        }
+
+                        return GetInvocationEscapeScope(
+                            methodSymbol,
+                            receiverOpt: null,
+                            methodSymbol.Parameters,
+                            ptrInvocation.Arguments,
+                            ptrInvocation.ArgumentRefKindsOpt,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: true);
                     }
 
-                    return GetInvocationEscapeScope(
-                        methodSymbol,
-                        receiverOpt: null,
-                        methodSymbol.Parameters,
-                        ptrInvocation.Arguments,
-                        ptrInvocation.ArgumentRefKindsOpt,
-                        argsToParamsOpt: default,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: true);
-
                 case BoundKind.IndexerAccess:
-                    var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    {
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        var indexerSymbol = indexerAccess.Indexer;
 
-                    return GetInvocationEscapeScope(
-                        indexerSymbol,
-                        indexerAccess.ReceiverOpt,
-                        indexerSymbol.Parameters,
-                        indexerAccess.Arguments,
-                        indexerAccess.ArgumentRefKindsOpt,
-                        indexerAccess.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: true);
+                        return GetInvocationEscapeScope(
+                            indexerSymbol,
+                            indexerAccess.ReceiverOpt,
+                            indexerSymbol.Parameters,
+                            indexerAccess.Arguments,
+                            indexerAccess.ArgumentRefKindsOpt,
+                            indexerAccess.ArgsToParamsOpt,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: true);
+                    }
+
+                case BoundKind.ImplicitIndexerAccess:
+                    var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+
+                    // Note: the Argument and LengthOrCountAccess use is purely local
+
+                    switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                    {
+                        case BoundIndexerAccess indexerAccess:
+                            var indexerSymbol = indexerAccess.Indexer;
+
+                            return GetInvocationEscapeScope(
+                                indexerSymbol,
+                                implicitIndexerAccess.Receiver,
+                                indexerSymbol.Parameters,
+                                indexerAccess.Arguments,
+                                indexerAccess.ArgumentRefKindsOpt,
+                                indexerAccess.ArgsToParamsOpt,
+                                scopeOfTheContainingExpression,
+                                isRefEscape: true);
+
+                        case BoundArrayAccess:
+                            // array elements are readwrite variables
+                            return Binder.ExternalScope;
+
+                        case BoundCall call:
+                            var methodSymbol = call.Method;
+                            if (methodSymbol.RefKind == RefKind.None)
+                            {
+                                break;
+                            }
+
+                            return GetInvocationEscapeScope(
+                                call.Method,
+                                implicitIndexerAccess.Receiver,
+                                methodSymbol.Parameters,
+                                call.Arguments,
+                                call.ArgumentRefKindsOpt,
+                                call.ArgsToParamsOpt,
+                                scopeOfTheContainingExpression,
+                                isRefEscape: true);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                    }
+                    break;
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -2295,55 +2354,113 @@ moreArguments:
                     return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.Call:
-                    var call = (BoundCall)expr;
-
-                    var methodSymbol = call.Method;
-                    if (methodSymbol.RefKind == RefKind.None)
                     {
-                        break;
-                    }
+                        var call = (BoundCall)expr;
 
-                    return CheckInvocationEscape(
-                        call.Syntax,
-                        methodSymbol,
-                        call.ReceiverOpt,
-                        methodSymbol.Parameters,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        call.ArgsToParamsOpt,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: true);
+                        var methodSymbol = call.Method;
+                        if (methodSymbol.RefKind == RefKind.None)
+                        {
+                            break;
+                        }
+
+                        return CheckInvocationEscape(
+                            call.Syntax,
+                            methodSymbol,
+                            call.ReceiverOpt,
+                            methodSymbol.Parameters,
+                            call.Arguments,
+                            call.ArgumentRefKindsOpt,
+                            call.ArgsToParamsOpt,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: true);
+                    }
 
                 case BoundKind.IndexerAccess:
-                    var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
-
-                    if (indexerSymbol.RefKind == RefKind.None)
                     {
-                        break;
-                    }
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        var indexerSymbol = indexerAccess.Indexer;
 
-                    return CheckInvocationEscape(
-                        indexerAccess.Syntax,
-                        indexerSymbol,
-                        indexerAccess.ReceiverOpt,
-                        indexerSymbol.Parameters,
-                        indexerAccess.Arguments,
-                        indexerAccess.ArgumentRefKindsOpt,
-                        indexerAccess.ArgsToParamsOpt,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: true);
+                        if (indexerSymbol.RefKind == RefKind.None)
+                        {
+                            break;
+                        }
+
+                        return CheckInvocationEscape(
+                            indexerAccess.Syntax,
+                            indexerSymbol,
+                            indexerAccess.ReceiverOpt,
+                            indexerSymbol.Parameters,
+                            indexerAccess.Arguments,
+                            indexerAccess.ArgumentRefKindsOpt,
+                            indexerAccess.ArgsToParamsOpt,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: true);
+                    }
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
-                    // Note: the LengthOrCountAccess use is purely local
-                    return CheckRefEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                    // Note: the Argument and LengthOrCountAccess use is purely local
+
+                    switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                    {
+                        case BoundIndexerAccess indexerAccess:
+                            var indexerSymbol = indexerAccess.Indexer;
+
+                            if (indexerSymbol.RefKind == RefKind.None)
+                            {
+                                break;
+                            }
+
+                            return CheckInvocationEscape(
+                                indexerAccess.Syntax,
+                                indexerSymbol,
+                                implicitIndexerAccess.Receiver,
+                                indexerSymbol.Parameters,
+                                indexerAccess.Arguments,
+                                indexerAccess.ArgumentRefKindsOpt,
+                                indexerAccess.ArgsToParamsOpt,
+                                checkingReceiver,
+                                escapeFrom,
+                                escapeTo,
+                                diagnostics,
+                                isRefEscape: true);
+
+                        case BoundArrayAccess:
+                            // array elements are readwrite variables
+                            return true;
+
+                        case BoundCall call:
+                            var methodSymbol = call.Method;
+                            if (methodSymbol.RefKind == RefKind.None)
+                            {
+                                break;
+                            }
+
+                            return CheckInvocationEscape(
+                                call.Syntax,
+                                methodSymbol,
+                                implicitIndexerAccess.Receiver,
+                                methodSymbol.Parameters,
+                                call.Arguments,
+                                call.ArgumentRefKindsOpt,
+                                call.ArgsToParamsOpt,
+                                checkingReceiver,
+                                escapeFrom,
+                                escapeTo,
+                                diagnostics,
+                                isRefEscape: true);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                    }
+                    break;
 
                 case BoundKind.FunctionPointerInvocation:
                     var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
@@ -2538,17 +2655,19 @@ moreArguments:
                     return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
 
                 case BoundKind.Call:
-                    var call = (BoundCall)expr;
+                    {
+                        var call = (BoundCall)expr;
 
-                    return GetInvocationEscapeScope(
-                        call.Method,
-                        call.ReceiverOpt,
-                        call.Method.Parameters,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        call.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                        return GetInvocationEscapeScope(
+                            call.Method,
+                            call.ReceiverOpt,
+                            call.Method.Parameters,
+                            call.Arguments,
+                            call.ArgumentRefKindsOpt,
+                            call.ArgsToParamsOpt,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
 
                 case BoundKind.FunctionPointerInvocation:
                     var ptrInvocation = (BoundFunctionPointerInvocation)expr;
@@ -2565,18 +2684,20 @@ moreArguments:
                         isRefEscape: false);
 
                 case BoundKind.IndexerAccess:
-                    var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    {
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        var indexerSymbol = indexerAccess.Indexer;
 
-                    return GetInvocationEscapeScope(
-                        indexerSymbol,
-                        indexerAccess.ReceiverOpt,
-                        indexerSymbol.Parameters,
-                        indexerAccess.Arguments,
-                        indexerAccess.ArgumentRefKindsOpt,
-                        indexerAccess.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                        return GetInvocationEscapeScope(
+                            indexerSymbol,
+                            indexerAccess.ReceiverOpt,
+                            indexerSymbol.Parameters,
+                            indexerAccess.Arguments,
+                            indexerAccess.ArgumentRefKindsOpt,
+                            indexerAccess.ArgsToParamsOpt,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     return ((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape;
@@ -2589,8 +2710,42 @@ moreArguments:
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
-                    // Note: the LengthOrCountAccess use is purely local
-                    return GetValEscape(implicitIndexerAccess.IndexerOrSliceAccess, scopeOfTheContainingExpression);
+
+                    // Note: the Argument and LengthOrCountAccess use is purely local
+
+                    switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                    {
+                        case BoundIndexerAccess indexerAccess:
+                            var indexerSymbol = indexerAccess.Indexer;
+
+                            return GetInvocationEscapeScope(
+                                indexerSymbol,
+                                implicitIndexerAccess.Receiver,
+                                indexerSymbol.Parameters,
+                                indexerAccess.Arguments,
+                                indexerAccess.ArgumentRefKindsOpt,
+                                indexerAccess.ArgsToParamsOpt,
+                                scopeOfTheContainingExpression,
+                                isRefEscape: false);
+
+                        case BoundArrayAccess:
+                            // only possible in error cases (if possible at all)
+                            return scopeOfTheContainingExpression;
+
+                        case BoundCall call:
+                            return GetInvocationEscapeScope(
+                                call.Method,
+                                implicitIndexerAccess.Receiver,
+                                call.Method.Parameters,
+                                call.Arguments,
+                                call.ArgumentRefKindsOpt,
+                                call.ArgsToParamsOpt,
+                                scopeOfTheContainingExpression,
+                                isRefEscape: false);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                    }
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -2943,22 +3098,24 @@ moreArguments:
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, true, diagnostics);
 
                 case BoundKind.Call:
-                    var call = (BoundCall)expr;
-                    var methodSymbol = call.Method;
+                    {
+                        var call = (BoundCall)expr;
+                        var methodSymbol = call.Method;
 
-                    return CheckInvocationEscape(
-                        call.Syntax,
-                        methodSymbol,
-                        call.ReceiverOpt,
-                        methodSymbol.Parameters,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        call.ArgsToParamsOpt,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: false);
+                        return CheckInvocationEscape(
+                            call.Syntax,
+                            methodSymbol,
+                            call.ReceiverOpt,
+                            methodSymbol.Parameters,
+                            call.Arguments,
+                            call.ArgumentRefKindsOpt,
+                            call.ArgsToParamsOpt,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+                    }
 
                 case BoundKind.FunctionPointerInvocation:
                     var ptrInvocation = (BoundFunctionPointerInvocation)expr;
@@ -2979,22 +3136,24 @@ moreArguments:
                         isRefEscape: false);
 
                 case BoundKind.IndexerAccess:
-                    var indexerAccess = (BoundIndexerAccess)expr;
-                    var indexerSymbol = indexerAccess.Indexer;
+                    {
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        var indexerSymbol = indexerAccess.Indexer;
 
-                    return CheckInvocationEscape(
-                        indexerAccess.Syntax,
-                        indexerSymbol,
-                        indexerAccess.ReceiverOpt,
-                        indexerSymbol.Parameters,
-                        indexerAccess.Arguments,
-                        indexerAccess.ArgumentRefKindsOpt,
-                        indexerAccess.ArgsToParamsOpt,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: false);
+                        return CheckInvocationEscape(
+                            indexerAccess.Syntax,
+                            indexerSymbol,
+                            indexerAccess.ReceiverOpt,
+                            indexerSymbol.Parameters,
+                            indexerAccess.Arguments,
+                            indexerAccess.ArgumentRefKindsOpt,
+                            indexerAccess.ArgsToParamsOpt,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+                    }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
@@ -3022,8 +3181,52 @@ moreArguments:
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
-                    // Note: the LengthOrCountAccess use is purely local
-                    return CheckValEscape(node, implicitIndexerAccess.IndexerOrSliceAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                    // Note: the Argument and LengthOrCountAccess use is purely local
+
+                    switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                    {
+                        case BoundIndexerAccess indexerAccess:
+                            var indexerSymbol = indexerAccess.Indexer;
+
+                            return CheckInvocationEscape(
+                                indexerAccess.Syntax,
+                                indexerSymbol,
+                                implicitIndexerAccess.Receiver,
+                                indexerSymbol.Parameters,
+                                indexerAccess.Arguments,
+                                indexerAccess.ArgumentRefKindsOpt,
+                                indexerAccess.ArgsToParamsOpt,
+                                checkingReceiver,
+                                escapeFrom,
+                                escapeTo,
+                                diagnostics,
+                                isRefEscape: false);
+
+                        case BoundArrayAccess:
+                            // only possible in error cases (if possible at all)
+                            return false;
+
+                        case BoundCall call:
+                            var methodSymbol = call.Method;
+
+                            return CheckInvocationEscape(
+                                call.Syntax,
+                                methodSymbol,
+                                implicitIndexerAccess.Receiver,
+                                methodSymbol.Parameters,
+                                call.Arguments,
+                                call.ArgumentRefKindsOpt,
+                                call.ArgsToParamsOpt,
+                                checkingReceiver,
+                                escapeFrom,
+                                escapeTo,
+                                diagnostics,
+                                isRefEscape: false);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                    }
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;

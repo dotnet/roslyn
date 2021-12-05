@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
         }
 
         public async Task<bool> ApplyAsync(
-            Workspace workspace, Document fromDocument,
+            Workspace workspace, Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
             CancellationToken cancellationToken)

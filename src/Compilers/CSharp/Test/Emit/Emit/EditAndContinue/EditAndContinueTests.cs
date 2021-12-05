@@ -4932,7 +4932,7 @@ class C
 struct S
 {
     int a = 1;
-    int b;
+    int b = 2;
 }
 ";
             var source1 =
@@ -4940,11 +4940,11 @@ struct S
 struct S
 {
     int a = 1;
-    int b;
+    int b = 2;
 
     public S()
     {
-        b = 2;
+        b = 3;
     }
 }
 ";

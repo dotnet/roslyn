@@ -52,9 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (indexerAccess)
                     {
+                        // array[Range]
                         case BoundArrayAccess arrayAccess:
                             return arrayAccess.Expression.Type;
 
+                        // array[Index]
                         case BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess arrayAccess }:
                             return arrayAccess.Expression.Type;
 
