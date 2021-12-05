@@ -300,6 +300,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Windows";
     }
 
+    public class WindowsOrMacOSOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => PathUtilities.IsUnixLikePlatform && !ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on Linux";
+    }
+
     public class WindowsOrLinuxOnly : ExecutionCondition
     {
         public override bool ShouldSkip => ExecutionConditionUtil.IsMacOS;
