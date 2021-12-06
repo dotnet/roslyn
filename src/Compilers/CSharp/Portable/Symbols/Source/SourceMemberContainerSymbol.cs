@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsReservedTypeName(string? name)
         {
-            return name is { Length: > 0 } && name.All(c => char.IsLower(c) && c < 128);
+            return name is { Length: > 0 } && name.All(c => c >= 'a' && c <= 'z');
         }
 
         internal static void ReportReservedTypeName(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
