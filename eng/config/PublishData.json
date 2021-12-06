@@ -208,7 +208,7 @@
       "version": "4.1.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.1",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.1p2]"
     },
