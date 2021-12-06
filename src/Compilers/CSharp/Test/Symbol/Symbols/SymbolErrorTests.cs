@@ -21176,7 +21176,7 @@ class \u007c { }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u0060").WithLocation(15, 7),
                 // (15,7): error CS1056: Unexpected character '\u0060'
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\u0060").WithLocation(15, 7),
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u0060").WithLocation(15, 7),
                 // (15,14): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class \u0060 { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(15, 14),
@@ -21194,7 +21194,7 @@ class \u007c { }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u007c").WithLocation(18, 7),
                 // (18,7): error CS1056: Unexpected character '\u007c'
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\u007c").WithLocation(18, 7),
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u007c").WithLocation(18, 7),
                 // (18,7): error CS0101: The namespace '<global namespace>' already contains a definition for ''
                 // class \u007c { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "").WithArguments("", "<global namespace>").WithLocation(18, 7)
