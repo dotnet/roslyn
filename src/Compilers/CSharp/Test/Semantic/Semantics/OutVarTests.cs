@@ -33107,7 +33107,7 @@ public class C
         {
             var source =
 @"
-using @alias1 = System.Int32;
+using alias1 = System.Int32;
 using @var = System.Int32;
 
 public class C
@@ -33165,7 +33165,7 @@ public class C
         {
             var source =
 @"
-enum @alias1 : long {}
+enum alias1 : long {}
 class @var {}
 
 public class C
