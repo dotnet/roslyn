@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         /// <summary>
         /// Lazy import ISourceLinkService because it can cause debugger 
+        /// binaries to be eagerly loaded even if they are never used.
         /// </summary>
         private readonly Lazy<ISourceLinkService?> _sourceLinkService;
 
