@@ -41,14 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalText = originalToken.ValueText; // this is actually the source text
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
-            var isVerbatim = (originalText[0] == '$' && originalText[1] == '@') ||
-                             (originalText[0] == '@' && originalText[1] == '$');
-
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the close quote can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
 
-            rescanInterpolation(out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
+            rescanInterpolation(out var kind, out var error, out var openQuoteRange, interpolations, out var closeQuoteRange);
 
             var result = SyntaxFactory.InterpolatedStringExpression(
                 getOpenQuote(openQuoteRange), getContent(interpolations), getCloseQuote(closeQuoteRange));
@@ -62,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;
 
-            void rescanInterpolation(out SyntaxDiagnosticInfo error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
+            void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out openQuoteRange, interpolations, out closeQuoteRange);
+                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             }
 
             SyntaxToken getOpenQuote(Range openQuoteRange)
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var openQuoteText = originalText[openQuoteRange];
                 return SyntaxFactory.Token(
                     originalToken.GetLeadingTrivia(),
-                    isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
+                    kind is Lexer.InterpolatedStringKind.Verbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken,
                     openQuoteText, openQuoteText, trailing: null);
             }
 
@@ -90,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var text = originalText[new Range(openQuoteRange.End, closeQuoteRange.Start)];
                     if (text.Length > 0)
                     {
-                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, isVerbatim)));
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, kind)));
                     }
                 }
                 else
@@ -105,18 +102,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             interpolation.OpenBraceRange.Start)];
                         if (text.Length > 0)
                         {
-                            builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, isVerbatim)));
+                            builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(text, kind)));
                         }
 
-                        builder.Add(ParseInterpolation(this.Options, originalText, interpolation, isVerbatim));
+                        builder.Add(ParseInterpolation(this.Options, originalText, interpolation, kind));
                     }
 
                     // Add a token for text following the last interpolation
                     var lastText = originalText[new Range(interpolations[^1].CloseBraceRange.End, closeQuoteRange.Start)];
                     if (lastText.Length > 0)
                     {
-                        var token = MakeInterpolatedStringTextToken(lastText, isVerbatim);
-                        builder.Add(SyntaxFactory.InterpolatedStringText(token));
+                        builder.Add(SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(lastText, kind)));
                     }
                 }
 
@@ -130,32 +126,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Make a token for the close quote " (even if it was missing)
                 var closeQuoteText = originalText[closeQuoteRange];
                 return closeQuoteText == ""
-                    ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
-                    : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
+                    ? SyntaxFactory.MissingToken(leading: null, SyntaxKind.InterpolatedStringEndToken, trailing: originalToken.GetTrailingTrivia())
+                    : SyntaxFactory.Token(leading: null, SyntaxKind.InterpolatedStringEndToken, closeQuoteText, closeQuoteText, originalToken.GetTrailingTrivia());
             }
         }
 
-        private static InterpolationSyntax ParseInterpolation(CSharpParseOptions options, string text, Lexer.Interpolation interpolation, bool isVerbatim)
+        private static InterpolationSyntax ParseInterpolation(
+            CSharpParseOptions options,
+            string text,
+            Lexer.Interpolation interpolation,
+            Lexer.InterpolatedStringKind kind)
         {
-            // Grab from before the { all the way to the start of the } (or the start of the : if present).  The parsing
-            // of the colon and/or close curly is specially handled in ParseInterpolation below.
-            var parsedText = text[new Range(
-                interpolation.OpenBraceRange.Start,
+            // Grab the text from after the { all the way to the start of the } (or the start of the : if present). This
+            // will be used to parse out the expression of the interpolation.
+            //
+            // The parsing of the open brace, close brace and colon is specially handled in ParseInterpolation below.
+            var expressionText = text[new Range(
+                interpolation.OpenBraceRange.End,
                 interpolation.HasColon ? interpolation.ColonRange.Start : interpolation.CloseBraceRange.Start)];
 
-            // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
-            using var tempLexer = new Lexer(SourceText.From(parsedText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
+            using var tempLexer = new Lexer(SourceText.From(expressionText), options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon);
+
+            // First grab any trivia right after the {, it will be trailing trivia for the { token.
+            var openTokenTrailingTrivia = tempLexer.LexSyntaxTrailingTrivia().Node;
+            var openTokenText = text[interpolation.OpenBraceRange];
+
+            // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
-            var result = tempParser.ParseInterpolation(text, interpolation, isVerbatim);
+            var result = tempParser.ParseInterpolation(
+                text, interpolation, kind,
+                SyntaxFactory.Token(leading: null, SyntaxKind.OpenBraceToken, openTokenText, openTokenText, openTokenTrailingTrivia));
 
             Debug.Assert(text[new Range(interpolation.OpenBraceRange.Start, interpolation.CloseBraceRange.End)] == result.ToFullString()); // yield from text equals yield from node
             return result;
         }
 
-        private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
+        private InterpolationSyntax ParseInterpolation(
+            string text,
+            Lexer.Interpolation interpolation,
+            Lexer.InterpolatedStringKind kind,
+            SyntaxToken openBraceToken)
         {
-            var openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
             var (expression, alignment) = getExpressionAndAlignment();
             var (format, closeBraceToken) = getFormatAndCloseBrace();
 
@@ -185,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var formatText = text[new Range(interpolation.ColonRange.End, interpolation.CloseBraceRange.Start)];
                     var format = SyntaxFactory.InterpolationFormatClause(
                         SyntaxFactory.Token(leading, SyntaxKind.ColonToken, colonText, colonText, trailing: null),
-                        MakeInterpolatedStringTextToken(formatText, isVerbatim));
+                        MakeInterpolatedStringTextToken(formatText, kind));
                     return (format, getInterpolationCloseBraceToken(leading: null));
                 }
                 else
@@ -207,11 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Interpret the given raw text from source as an InterpolatedStringTextToken.
         /// </summary>
-        /// <param name="text">The text for the string literal's contents</param>
-        /// <param name="isVerbatim">True if the string contents should be scanned using the rules for verbatim strings</param>
-        private SyntaxToken MakeInterpolatedStringTextToken(string text, bool isVerbatim)
+        /// <param name="text">The text for the full string literal, including the quotes and contents</param>
+        /// <param name="kind">The kind of the interpolation</param>
+        private SyntaxToken MakeInterpolatedStringTextToken(string text, Lexer.InterpolatedStringKind kind)
         {
-            var prefix = isVerbatim ? "@\"" : "\"";
+            var prefix = kind is Lexer.InterpolatedStringKind.Verbatim ? "@\"" : "\"";
             var fakeString = prefix + text + "\"";
             using var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false);
 

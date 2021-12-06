@@ -303,14 +303,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression makeUnloweredIndexArgument(int index)
                 {
                     // LocalRewriter.MakePatternIndexOffsetExpression understands this format
+                    var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+
                     if (index < 0)
                     {
-                        var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
                         return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
                             methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
                     }
 
-                    return _factory.Convert(_factory.WellKnownType(WellKnownType.System_Index), _factory.Literal(index));
+                    return _factory.New(ctor, _factory.Literal(index), _factory.Literal(false));
                 }
 
                 BoundExpression makeUnloweredRangeArgument(BoundDagSliceEvaluation e)
