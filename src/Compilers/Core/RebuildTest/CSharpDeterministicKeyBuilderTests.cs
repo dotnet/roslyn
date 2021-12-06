@@ -145,13 +145,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         [Theory]
-        [InlineData(@"c:\code\file.cs", @"file.cs", (int)DeterministicKeyOptions.IgnorePaths)]
-        [InlineData(@"c:\code\file.cs", @"c:\code\file.cs", (int)DeterministicKeyOptions.Default)]
-        [InlineData(@"/code/file.cs", @"file.cs", (int)DeterministicKeyOptions.IgnorePaths)]
-        [InlineData(@"/code/file.cs", @"/code/file.cs", (int)DeterministicKeyOptions.Default)]
-        public void SyntaxTreeFilePath(string path, string expectedPath, int optionsRaw)
+        [CombinatorialData]
+        public void SyntaxTreeFilePath(bool ignoreFilePaths)
         {
-            var options = (DeterministicKeyOptions)optionsRaw;
+            var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? @"c:\code\file.cs"
+                : @"/code/file.cs";
+            var (expectedPath, options) = ignoreFilePaths
+                ? ("file.cs", DeterministicKeyOptions.IgnorePaths)
+                : (path, DeterministicKeyOptions.Default);
+
             var source = CSharpTestBase.Parse(
                 @"System.Console.WriteLine(""Hello World"");",
                 filename: path,
@@ -407,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ", compiler);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CSharpPublicKey()
         {
             var keyFilePath = @"c:\windows\key.snk";

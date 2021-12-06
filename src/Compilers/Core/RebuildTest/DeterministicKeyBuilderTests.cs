@@ -533,7 +533,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void EmitOptionsPdbFilePathRespectsOptions()
         {
-            var emitOptions = EmitOptions.WithPdbFilePath(@"c:\temp\util.pdb");
+            var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? @"c:\temp\util.pdb"
+                : "/temp/util.pdb";
+            var emitOptions = EmitOptions.WithPdbFilePath(path);
             var obj = GetEmitOptionsValue(emitOptions, options: DeterministicKeyOptions.IgnorePaths);
             Assert.Equal(@"util.pdb", obj.Value<string>("pdbFilePath"));
         }
