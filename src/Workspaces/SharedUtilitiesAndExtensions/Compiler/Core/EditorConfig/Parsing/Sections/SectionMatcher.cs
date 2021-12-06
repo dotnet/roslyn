@@ -71,7 +71,10 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 
         public SectionMatch GetPathMatchKind(string relativePath)
         {
-            var language = relativePath.GetLanguageFromFilePath();
+            if (!relativePath.TryGetLanguageFromFilePath(out var language))
+            {
+                return SectionMatch.NoMatch;
+            }
 
             if (IsExactLanguageMatch(language))
             {

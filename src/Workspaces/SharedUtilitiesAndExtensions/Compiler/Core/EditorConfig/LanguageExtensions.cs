@@ -9,20 +9,22 @@ using static Microsoft.CodeAnalysis.EditorConfig.LanguageConstants;
 
 internal static class LanguageExtensions
 {
-    public static Language GetLanguageFromFilePath(this string filePath)
+    public static bool TryGetLanguageFromFilePath(this string filePath, out Language language)
     {
-        var language = default(Language);
+        language = default;
         var fileExtension = Path.GetExtension(filePath);
         if (fileExtension == DefaultCSharpExtension)
         {
             language = Language.CSharp;
+            return true;
         }
 
         if (fileExtension == DefaultVisualBasicExtension)
         {
             language = Language.VisualBasic;
+            return true;
         }
 
-        return language;
+        return false;
     }
 }

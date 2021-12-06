@@ -126,7 +126,12 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 return SectionMatch.NoMatch;
             }
 
-            var language = codeFilePath.GetLanguageFromFilePath();
+            if (!codeFilePath.TryGetLanguageFromFilePath(out var language))
+            {
+                // the file is from an unknown language
+                return SectionMatch.NoMatch;
+            }
+
             var languageMatchKind = matcher.GetLanguageMatchKind(language);
             if (_containingDirectory is null)
             {
