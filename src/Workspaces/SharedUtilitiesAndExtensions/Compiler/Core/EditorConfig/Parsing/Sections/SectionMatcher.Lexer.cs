@@ -23,59 +23,35 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
 
             public TokenKind Lex()
             {
-                switch (_headerText[Position])
+                var tokenKind = GetTokenKindAtPosition(_headerText, Position);
+                switch (tokenKind)
                 {
-                    case '*':
-                        {
-                            if (TryPeekNext(out var tokenKind) &&
-                                tokenKind == TokenKind.Star)
-                            {
-                                Position += 2;
-                                return TokenKind.StarStar;
-                            }
-                            else
-                            {
-                                Position++;
-                                return TokenKind.Star;
-                            }
-                        }
-
-                    case '?':
-                        Position++;
-                        return TokenKind.Question;
-
-                    case '{':
-                        Position++;
-                        return TokenKind.OpenCurly;
-
-                    case ',':
-                        Position++;
-                        return TokenKind.Comma;
-
-                    case '}':
-                        Position++;
-                        return TokenKind.CloseCurly;
-
-                    case '[':
-                        Position++;
-                        return TokenKind.OpenBracket;
-
-                    case '\\':
+                    case TokenKind.StarStar:
+                        Position += 2;
+                        break;
+                    case TokenKind.SimpleCharacter:
+                        if (_headerText[Position] == '\\')
                         {
                             // Backslash escapes the next character
                             Position++;
-                            if (IsDone)
-                            {
-                                return TokenKind.BadToken;
-                            }
-
-                            return TokenKind.SimpleCharacter;
                         }
 
-                    default:
                         // Don't increment position, since caller needs to fetch the character
-                        return TokenKind.SimpleCharacter;
+                        break;
+                    case TokenKind.Question:
+                    case TokenKind.OpenCurly:
+                    case TokenKind.Comma:
+                    case TokenKind.OpenBracket:
+                    case TokenKind.CloseCurly:
+                    case TokenKind.Star:
+                        Position++;
+                        break;
+                    case TokenKind.BadToken:
+                    default:
+                        break;
                 }
+
+                return tokenKind;
             }
 
             public bool TryPeekNext(out TokenKind kind)
@@ -112,9 +88,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 {
                     case '*':
                         {
-                            var nextPos = position + 1;
-                            if (nextPos < headerText.Length &&
-                                headerText[nextPos] == '*')
+                            position++;
+                            if (position < headerText.Length &&
+                                headerText[position] == '*')
                             {
                                 return TokenKind.StarStar;
                             }
@@ -215,7 +191,6 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
             OpenCurly,
             CloseCurly,
             Comma,
-            DoubleDot,
             OpenBracket,
         }
     }
