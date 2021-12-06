@@ -670,9 +670,6 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
-  $env:TEMP=$TempDir
-  $env:TMP=$TempDir
-
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
@@ -709,6 +706,8 @@ try {
   }
 
   Push-Location $RepoRoot
+
+  Subst-TempDir
 
   if ($ci) {
     List-Processes
@@ -779,5 +778,7 @@ finally {
   if ($ci) {
     Stop-Processes
   }
+
+  Unsubst-TempDir
   Pop-Location
 }
