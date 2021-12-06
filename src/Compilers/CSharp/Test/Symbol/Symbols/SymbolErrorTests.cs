@@ -21141,6 +21141,8 @@ using cédille = System.Console;
 class a { }
 class z { }
 
+class abcdefghijklmnopqrstuvwxyz { }
+
 class A { }
 class Z { }
 
@@ -21149,12 +21151,6 @@ class \u00B5 { }
 
 // first upper-case letter outside ascii range
 class \u00c0 { }
-
-// backtick, before 'a'
-class \u0060 { }
-
-// pipe, after 'z' and '{'
-class \u007c { }
 ";
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
@@ -21165,39 +21161,63 @@ class \u007c { }
                 // (3,7): warning CS8981: The type name 'z' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class z { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "z").WithArguments("z").WithLocation(3, 7),
-                // (15,7): error CS1001: Identifier expected
+                // (5,7): warning CS8981: The type name 'abcdefghijklmnopqrstuvwxyz' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class abcdefghijklmnopqrstuvwxyz { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "abcdefghijklmnopqrstuvwxyz").WithArguments("abcdefghijklmnopqrstuvwxyz").WithLocation(5, 7)
+                );
+
+            text = @"
+// backtick, before 'a'
+class \u0060 { }
+";
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(
+                // (3,7): error CS1001: Identifier expected
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\u0060").WithLocation(15, 7),
-                // (15,7): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\u0060").WithLocation(3, 7),
+                // (3,7): error CS1514: { expected
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\u0060").WithLocation(15, 7),
-                // (15,7): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\u0060").WithLocation(3, 7),
+                // (3,7): error CS1513: } expected
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u0060").WithLocation(15, 7),
-                // (15,7): error CS1056: Unexpected character '\u0060'
+                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u0060").WithLocation(3, 7),
+                // (3,7): error CS1056: Unexpected character '\u0060'
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u0060").WithLocation(15, 7),
-                // (15,14): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u0060").WithLocation(3, 7),
+                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(15, 14),
-                // (15,14): error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(3, 14),
+                // (3,14): error CS8805: Program using top-level statements must be an executable.
                 // class \u0060 { }
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "{ }").WithLocation(15, 14),
-                // (18,7): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "{ }").WithLocation(3, 14)
+                );
+
+            text = @"
+// pipe, after 'z' and '{'
+class \u007c { }
+";
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(
+                // (3,7): error CS1001: Identifier expected
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\u007c").WithLocation(18, 7),
-                // (18,7): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\u007c").WithLocation(3, 7),
+                // (3,7): error CS1514: { expected
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\u007c").WithLocation(18, 7),
-                // (18,7): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\u007c").WithLocation(3, 7),
+                // (3,7): error CS1513: } expected
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u007c").WithLocation(18, 7),
-                // (18,7): error CS1056: Unexpected character '\u007c'
+                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\u007c").WithLocation(3, 7),
+                // (3,7): error CS1056: Unexpected character '\u007c'
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u007c").WithLocation(18, 7),
-                // (18,7): error CS0101: The namespace '<global namespace>' already contains a definition for ''
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\u007c").WithLocation(3, 7),
+                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class \u007c { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "").WithArguments("", "<global namespace>").WithLocation(18, 7)
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(3, 14),
+                // (3,14): error CS8805: Program using top-level statements must be an executable.
+                // class \u007c { }
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "{ }").WithLocation(3, 14)
                 );
         }
     }
