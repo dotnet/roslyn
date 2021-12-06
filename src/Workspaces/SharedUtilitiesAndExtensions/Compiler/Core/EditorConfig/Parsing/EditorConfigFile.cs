@@ -20,20 +20,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
         where T : EditorConfigOption
     {
 
-        private ImmutableArray<Section> _sections;
+        private readonly Lazy<ImmutableArray<Section>> _sections = new(() => Options.SelectAsArray(x => x.Section).Distinct());
 
-        public ImmutableArray<Section> Sections
-        {
-            get
-            {
-                if (_sections == default)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _sections, Options.SelectAsArray(x => x.Section).Distinct());
-                }
-
-                return _sections;
-            }
-        }
+        public ImmutableArray<Section> Sections => _sections.Value;
 
         /// <summary>
         /// Attempts to find a section of the editorconfig file that is an exact match for the given language.
