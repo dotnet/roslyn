@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
         /// Matches the file pattern according to the editorconfig specification but is a superset of an exact language match.
         /// </summary>
         /// <remarks>
-        /// Patterns such as [*] or [*s] would match for C# in this case (being a superset of *.cs)
+        /// Patterns such as [*c*] or [*s] would match for C# in this case (being a superset of *.cs)
         /// </remarks>
         SupersetFilePatternMatch = 3,
         /// <summary>
