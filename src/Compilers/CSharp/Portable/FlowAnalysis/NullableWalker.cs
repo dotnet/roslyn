@@ -462,13 +462,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression expression, VisitResult result)
+        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression? expression, VisitResult result)
         {
 #if DEBUG
             Debug.Assert(AreCloseEnough(placeholder.Type, result.RValueType.Type));
+            Debug.Assert(expression != null || placeholder.Kind == BoundKind.InterpolatedStringArgumentPlaceholder);
 #endif
 
-            _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression Replacement, VisitResult Result)>.GetInstance();
+            _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression? Replacement, VisitResult Result)>.GetInstance();
             _resultForPlaceholdersOpt.Add(placeholder, (expression, result));
         }
 
@@ -4232,7 +4233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression is BoundValuePlaceholderBase placeholder)
             {
                 if (_resultForPlaceholdersOpt != null &&
-                    _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value)&&
+                    _resultForPlaceholdersOpt.TryGetValue(placeholder, out var value) &&
                     value.Replacement != null)
                 {
                     expression = value.Replacement;
@@ -5452,7 +5453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         conversionResultsBuilder,
-                        i,
                         invokedAsExtensionMethod && i == 0);
 
                     _disableDiagnostics = previousDisableDiagnostics;
@@ -5639,11 +5639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var (parameter, _, parameterAnnotations, _) = GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
 
-                BoundExpression argument = arguments[i];
-
                 // we disable nullable warnings on default arguments
                 _disableDiagnostics = defaultArguments[i] || previousDisableDiagnostics;
-                resultsBuilder.Add(VisitArgumentEvaluate(argument, GetRefKind(refKindsOpt, i), parameterAnnotations));
+                resultsBuilder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
                 visitedParameters.Add(parameter);
             }
             _disableDiagnostics = previousDisableDiagnostics;
@@ -5717,11 +5715,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
             ArrayBuilder<VisitResult>? conversionResultsBuilder,
-            int argumentIndex,
             bool extensionMethodThisArgument)
         {
             Debug.Assert(!this.IsConditionalState);
-            Debug.Assert(conversionResultsBuilder == null || conversionResultsBuilder.Count == argumentIndex);
             // Note: we allow for some variance in `in` and `out` cases. Unlike in binding, we're not
             // limited by CLR constraints.
 
@@ -5756,7 +5752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameterOpt: parameter,
                             extensionMethodThisArgument: extensionMethodThisArgument,
                             stateForLambda: result.StateForLambda,
-                            interpolatedStringArgumentInformation: conversionResultsBuilder == null ? null : (conversionResultsBuilder, argumentIndex));
+                            previousArgumentConversionResults: conversionResultsBuilder);
 
                         // If the parameter has annotations, we perform an additional check for nullable value types
                         if (CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax.Location))
@@ -7038,11 +7034,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
             Location? diagnosticLocationOpt = null,
-            (ArrayBuilder<VisitResult> PreviousArgumentConverionResults, int ArgumentIndex)? interpolatedStringArgumentInformation = null)
+            ArrayBuilder<VisitResult>? previousArgumentConversionResults = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(conversionOperand != null);
-            Debug.Assert(interpolatedStringArgumentInformation is not { } info || info.PreviousArgumentConverionResults.Count == info.ArgumentIndex);
 
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
@@ -7517,7 +7512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (interpolatedStringArgumentInformation is not (ArrayBuilder<VisitResult> previousConversionInfo, int argumentIndex))
+                if (previousArgumentConversionResults == null)
                 {
                     Debug.Assert(handlerData.ArgumentPlaceholders.IsEmpty
                                  || handlerData.ArgumentPlaceholders.Single().ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter);
@@ -7538,13 +7533,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             break;
                         default:
-                            if (previousConversionInfo.Count > placeholder.ArgumentIndex)
+                            if (previousArgumentConversionResults.Count > placeholder.ArgumentIndex)
                             {
-                                EnsurePlaceholdersToResultMap();
                                 // We intentionally do not give a replacement bound node for this placeholder, as we do not propagate any post conditions from the constructor
                                 // to the original location of the node. This is because the nullable walker is not a true evaluation-order walker, and doing so would cause
                                 // us to miss real warnings.
-                                _resultForPlaceholdersOpt.Add(placeholder, (Replacement: null, previousConversionInfo[placeholder.ArgumentIndex]));
+                                AddPlaceholderReplacement(placeholder, expression: null, previousArgumentConversionResults[placeholder.ArgumentIndex]);
                                 addedPlaceholders = true;
                             }
                             break;
@@ -8337,7 +8331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
                             parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
-                            conversionResultsBuilder: null, argumentIndex: i, extensionMethodThisArgument: false);
+                            conversionResultsBuilder: null, extensionMethodThisArgument: false);
                     }
                 }
 
@@ -9928,7 +9922,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetParameterAnnotations(parameter),
                 new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations(compilation)), stateForLambda: default),
                 conversionResultsBuilder: null,
-                argumentIndex: 0,
                 extensionMethodThisArgument: true);
         }
 
@@ -10128,12 +10121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertPlaceholderAllowedWithoutRegistration(node);
             SetNotNullResult(node);
             return null;
-        }
-
-        [MemberNotNull(nameof(_resultForPlaceholdersOpt))]
-        private void EnsurePlaceholdersToResultMap()
-        {
-            _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression Replacement, VisitResult Result)>.GetInstance();
         }
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
