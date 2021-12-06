@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
 
             // Verify that we do not crash when computing fixes.
-            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: false, cancellationToken: CancellationToken.None);
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
 
             // Verify that code fix is invoked with both the diagnostics in the context,
             // i.e. duplicate diagnostics are not silently discarded by the CodeFixService.
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
 
             // Verify registered configuration code actions do not have duplicates.
-            var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
+            var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
             var codeActions = fixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).ToImmutableArray();
             Assert.Equal(7, codeActions.Length);
             var uniqueTitles = new HashSet<string>();
@@ -122,6 +122,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Assert.True(codeAction is AbstractConfigurationActionWithNestedActions);
                 Assert.True(uniqueTitles.Add(codeAction.Title));
             }
+        }
+
+        [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
+        public async Task TestGetFixesAsyncForFixableAndNonFixableAnalyzersAsync()
+        {
+            var codeFix = new MockFixer();
+            var analyzerWithFix = new MockAnalyzerReference.MockDiagnosticAnalyzer();
+            Assert.Equal(codeFix.FixableDiagnosticIds.Single(), analyzerWithFix.SupportedDiagnostics.Single().Id);
+
+            var analyzerWithoutFix = new MockAnalyzerReference.MockDiagnosticAnalyzer("AnalyzerWithoutFixId", "Category");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzerWithFix, analyzerWithoutFix);
+            var analyzerReference = new MockAnalyzerReference(codeFix, analyzers);
+
+            // Verify no callbacks received at initialization.
+            Assert.False(analyzerWithFix.ReceivedCallback);
+            Assert.False(analyzerWithoutFix.ReceivedCallback);
+
+            var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: true);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+
+            // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                priority: CodeActionRequestPriority.Normal, isBlocking: false,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(analyzerWithFix.ReceivedCallback);
+            Assert.False(analyzerWithoutFix.ReceivedCallback);
+
+            // Verify both analyzerWithFix and analyzerWithoutFix are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Lowest'.
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                priority: CodeActionRequestPriority.Lowest, isBlocking: false,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(analyzerWithFix.ReceivedCallback);
+            Assert.True(analyzerWithoutFix.ReceivedCallback);
         }
 
         [Fact]
@@ -203,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var reference = new MockAnalyzerReference(codefix, ImmutableArray.Create(diagnosticAnalyzer));
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             document = project.Documents.Single();
-            var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
+            var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
 
             if (exception)
             {
@@ -387,6 +421,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 {
                 }
 
+                public bool ReceivedCallback { get; private set; }
+
                 private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                 {
                     var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
@@ -405,6 +441,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 {
                     context.RegisterSyntaxTreeAction(c =>
                     {
+                        this.ReceivedCallback = true;
+
                         foreach (var descriptor in SupportedDiagnostics)
                         {
                             c.ReportDiagnostic(Diagnostic.Create(descriptor, c.Tree.GetLocation(TextSpan.FromBounds(0, 0))));
@@ -581,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
 
             var document = project.Documents.Single();
-            return await fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: false, cancellationToken: CancellationToken.None);
+            return await fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
         }
 
         private sealed class NuGetCodeFixProvider : AbstractNuGetOrVsixCodeFixProvider
