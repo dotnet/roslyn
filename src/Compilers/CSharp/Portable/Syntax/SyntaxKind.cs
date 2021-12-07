@@ -874,10 +874,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         SingleLineRawStringLiteralExpression = 9074,
         MultiLineRawStringLiteralExpression = 9075,
 
-        SingleLineRawInterpolatedStringStartToken = 9080,   // $"""
-        SingleLineRawInterpolatedStringEndToken = 9081,     // """
-        MultiLineRawInterpolatedStringStartToken = 9082,    // $"""<whitespace><newline>
-        MultiLineRawInterpolatedStringEndToken = 9083,      // <newline><whitespace>"""
+        InterpolatedSingleLineRawStringStartToken = 9080,   // $"""
+        InterpolatedSingleLineRawStringEndToken = 9081,     // """
+        InterpolatedMultiLineRawStringStartToken = 9082,    // $"""<whitespace><newline>
+        InterpolatedMultiLineRawStringEndToken = 9083,      // <newline><whitespace>"""
         RawInterpolationOpenToken = 9084,                   // {{{
         RawInterpolationCloseToken = 9085,                  // }}}
     }

@@ -1942,8 +1942,8 @@
     <Field Name="StringStartToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringStartToken"/>
       <Kind Name="InterpolatedVerbatimStringStartToken"/>
-      <Kind Name="SingleLineRawInterpolatedStringStartToken"/>
-      <Kind Name="MultiLineRawInterpolatedStringStartToken"/>
+      <Kind Name="InterpolatedSingleLineRawStringStartToken"/>
+      <Kind Name="InterpolatedMultiLineRawStringStartToken"/>
       <PropertyComment>
         <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
       </PropertyComment>
@@ -1955,8 +1955,8 @@
     </Field>
     <Field Name="StringEndToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringEndToken"/>
-      <Kind Name="SingleLineRawInterpolatedStringEndToken"/>
-      <Kind Name="MultiLineRawInterpolatedStringEndToken"/>
+      <Kind Name="InterpolatedSingleLineRawStringEndToken"/>
+      <Kind Name="InterpolatedMultiLineRawStringEndToken"/>
       <PropertyComment>
         <summary>The closing quote of the interpolated string.</summary>
       </PropertyComment>

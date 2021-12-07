@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Only bother reporting an issue for raw string literals if we didn't already report above that
                 // interpolated strings are not allowed.
-                if (node.StringStartToken.Kind() is SyntaxKind.SingleLineRawInterpolatedStringStartToken or SyntaxKind.MultiLineRawInterpolatedStringStartToken)
+                if (node.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
                 {
                     CheckFeatureAvailability(node, MessageID.IDS_FeatureRawStringLiterals, diagnostics);
                 }

@@ -3529,15 +3529,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringStartToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringStartToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             switch (stringEndToken.Kind())
             {
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringEndToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringEndToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
             return (InterpolatedStringExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringExpression((Syntax.InternalSyntax.SyntaxToken)stringStartToken.Node!, contents.Node.ToGreenList<Syntax.InternalSyntax.InterpolatedStringContentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)stringEndToken.Node!).CreateRed();

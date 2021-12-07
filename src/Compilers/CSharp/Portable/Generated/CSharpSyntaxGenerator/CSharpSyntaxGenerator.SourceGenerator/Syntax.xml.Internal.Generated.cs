@@ -37110,16 +37110,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringStartToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringStartToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             if (stringEndToken == null) throw new ArgumentNullException(nameof(stringEndToken));
             switch (stringEndToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringEndToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringEndToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
 #endif
@@ -42137,16 +42137,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringStartToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringStartToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             if (stringEndToken == null) throw new ArgumentNullException(nameof(stringEndToken));
             switch (stringEndToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.SingleLineRawInterpolatedStringEndToken:
-                case SyntaxKind.MultiLineRawInterpolatedStringEndToken: break;
+                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
 #endif

@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         Lexer.InterpolatedStringKind.Normal => SyntaxKind.InterpolatedStringStartToken,
                         Lexer.InterpolatedStringKind.Verbatim => SyntaxKind.InterpolatedVerbatimStringStartToken,
-                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.SingleLineRawInterpolatedStringStartToken,
-                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.MultiLineRawInterpolatedStringStartToken,
+                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.InterpolatedSingleLineRawStringStartToken,
+                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.InterpolatedMultiLineRawStringStartToken,
                         _ => throw ExceptionUtilities.UnexpectedValue(kind),
                     },
                     originalText[openQuoteRange],
@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         Lexer.InterpolatedStringKind.Normal => SyntaxKind.InterpolatedStringEndToken,
                         Lexer.InterpolatedStringKind.Verbatim => SyntaxKind.InterpolatedStringEndToken,
-                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.SingleLineRawInterpolatedStringEndToken,
-                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.MultiLineRawInterpolatedStringEndToken,
+                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.InterpolatedSingleLineRawStringEndToken,
+                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.InterpolatedMultiLineRawStringEndToken,
                         _ => throw ExceptionUtilities.UnexpectedValue(kind),
                     },
                     originalText[closeQuoteRange],
