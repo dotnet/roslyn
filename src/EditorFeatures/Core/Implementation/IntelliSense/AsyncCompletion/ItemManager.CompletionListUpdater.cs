@@ -711,17 +711,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
                 else
                 {
-                    // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
-                    // -- as far as the pattern matcher is concerned -- equivalent items (items with identical PatternMatch.Kind and IsCaseSensitive).
-                    // Find the last items in the range and use that to limit the items searched for from the defaults list.          
                     var selectedItemMatch = items[intialSelection.SelectedItemIndex].PatternMatch;
 
-                    // it's possible that an item doesn't match filter text but still ended up being selected, this is because we just always keep all the
+                    // It's possible that an item doesn't match filter text but still ended up being selected, this is because we just always keep all the
                     // items in the list in some cases. For example, user brought up completion with ctrl-j or through deletion.
-                    // Don't bother changing the selection in such cases.
+                    // Don't bother changing the selection in such cases (since there's no match to the filter text in the list)
                     if (!selectedItemMatch.HasValue)
                         return intialSelection;
 
+                    // Because the items are sorted based on pattern-matching score, the selectedIndex is in the middle of a range of
+                    // -- as far as the pattern matcher is concerned -- equivalent items (items with identical PatternMatch.Kind and IsCaseSensitive).
+                    // Find the last items in the range and use that to limit the items searched for from the defaults list.     
                     inferiorItemIndex = intialSelection.SelectedItemIndex;
                     while (++inferiorItemIndex < items.Count)
                     {
@@ -748,6 +748,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
+                // Don't change the original selection since there's no match to the defaults provided.
                 return intialSelection;
             }
 
@@ -755,8 +756,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 private readonly ImmutableArray<CompletionFilterWithState> _nonExpanderFilterStates;
                 private readonly ImmutableArray<CompletionFilter> _selectedNonExpanderFilters;
-                private readonly bool _needToFilter;
                 private readonly ImmutableArray<CompletionFilter> _unselectedExpanders;
+                private readonly bool _needToFilter;
                 private readonly bool _needToFilterExpanded;
 
                 // For telemetry
@@ -764,7 +765,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 public FilterStateHelper(ImmutableArray<CompletionFilterWithState> filtersWithState)
                 {
-                    // We need to filter if 
+                    // The filter state list contains two kinds of "filters": regular filter and expander.
+                    // The difference between them is they have different semantics.
+                    // - When all filters or no filter is selected, everything should be inclued.
+                    //   But when a strict subset of filters is selected, only items correspding to the selected filters should be included.
+                    // - When expander is selected, all expanded items should be included, otherwise, expanded items should be excluded.
+                    //   expander state has no affect on non-expanded items.
+                    //   For example, right now we only have one expander for items from unimported namespaces, selecting/unselecting expander would
+                    //   include/exclude those items from completion list, but in-scope items would be shown regardless.
+                    // 
+                    // Therefore, we need to filter if 
                     // 1. a non-empty strict subset of filters are selected
                     // 2. a non-empty set of expanders are unselected
                     _nonExpanderFilterStates = filtersWithState.WhereAsArray(f => f.Filter is not CompletionExpander);
