@@ -4683,5 +4683,130 @@ class C
             CompileAndVerify(compilation, expectedOutput: "014")
                 .VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_01()
+        {
+            var source = @"
+class C
+{
+    void M1<T>()
+    {
+        if (T is new()) { } // 1
+        if (T is new T()) { } // 2, 3
+    }
+
+    void M2<T>() where T : new()
+    {
+        if (T is new()) { } // 4
+        if (T is new T()) { } // 5
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new()) { } // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 13),
+                // (7,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new T()) { } // 2, 3
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(7, 13),
+                // (7,18): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //         if (T is new T()) { } // 2, 3
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(7, 18),
+                // (12,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new()) { } // 4
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(12, 13),
+                // (13,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new T()) { } // 5
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 13)
+                );
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void M(int x)
+    {
+        Console.Write(x);
+        if (x is new()) { Console.Write(2); }
+        if (x is new int()) { Console.Write(3); }
+    }
+
+    static void Main()
+    {
+        M(0);
+        M(1);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0231");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_03()
+        {
+            var source = @"
+namespace SomeNamespace{
+	public class Class1 {
+		public T Something<T>() { // 1
+			if (T is new()) { // 2
+
+}
+		}
+	}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0161: 'Class1.Something<T>()': not all code paths return a value
+                // 		public T Something<T>() { // 1
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Something").WithArguments("SomeNamespace.Class1.Something<T>()").WithLocation(4, 12),
+                // (5,8): error CS0119: 'T' is a type, which is not valid in the given context
+                // 			if (T is new()) { // 2
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(5, 8));
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_04()
+        {
+            var source = @"
+class C
+{
+    void M1<T>(T t)
+    {
+        if (t is new()) { } // 1
+        if (t is new T()) { } // 2
+    }
+
+    void M2<T>(T t) where T : new()
+    {
+        if (t is new()) { } // 3
+        if (t is new T()) { } // 4
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0150: A constant value is expected
+                //         if (t is new()) { } // 1
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(6, 18),
+                // (7,18): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //         if (t is new T()) { } // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(7, 18),
+                // (12,18): error CS0150: A constant value is expected
+                //         if (t is new()) { } // 3
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(12, 18),
+                // (13,18): error CS0150: A constant value is expected
+                //         if (t is new T()) { } // 4
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
+                );
+        }
     }
 }

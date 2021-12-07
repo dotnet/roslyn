@@ -3520,7 +3520,7 @@ class C
             VerifyOperationTree(compilation, initializerOperation.Parent.Parent, @"
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ':base(TakeO ... && x1 >= 5)')
   Expression: 
-    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(TakeOutPar ... && x1 >= 5)')
+    IOperation:  (OperationKind.None, Type: System.Void, IsImplicit) (Syntax: '(TakeOutPar ... && x1 >= 5)')
       Children(1):
           IInvocationOperation ( C..ctor(System.Boolean b)) (OperationKind.Invocation, Type: System.Void) (Syntax: ':base(TakeO ... && x1 >= 5)')
             Instance Receiver: 
@@ -35071,7 +35071,7 @@ class C
             var decl = GetOutVarDeclaration(tree, name);
             var refs = GetReferences(tree, name).ToArray();
             Assert.Equal(2, refs.Length);
-            VerifyModelForOutVar(model, decl, refs[0]);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false, references: refs[0]);
             VerifyNotInScope(model, refs[1]);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());

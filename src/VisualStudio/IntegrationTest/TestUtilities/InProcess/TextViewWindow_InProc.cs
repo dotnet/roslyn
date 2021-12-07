@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
@@ -69,11 +70,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
                 var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
+                var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
                 object? obj = null;
                 shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
             });
@@ -356,17 +356,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var activeSession = broker.GetSession(view);
-            if (activeSession == null || !activeSession.IsExpanded)
+            if (activeSession == null)
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
-            {
-                actionSets = Array.Empty<SuggestedActionSet>();
-            }
-
+            var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view);
             return await SelectActionsAsync(actionSets);
         }
 
@@ -450,9 +446,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     broker.DismissSession(view);
                 }
 
-                action.Invoke(CancellationToken.None);
-                return !(action is SuggestedAction suggestedAction)
-                    || suggestedAction.GetTestAccessor().IsApplied;
+                if (action is not SuggestedAction suggestedAction)
+                    return true;
+
+                broker.DismissSession(view);
+                var threadOperationExecutor = GetComponentModelService<IUIThreadOperationExecutor>();
+                var guardedOperations = GetComponentModelService<IGuardedOperations2>();
+                threadOperationExecutor.Execute(
+                    title: "Execute Suggested Action",
+                    defaultDescription: Accelerator.StripAccelerators(action.DisplayText, '_'),
+                    allowCancellation: true,
+                    showProgress: true,
+                    action: context =>
+                    {
+                        guardedOperations.CallExtensionPoint(
+                            errorSource: suggestedAction,
+                            call: () => suggestedAction.Invoke(context),
+                            exceptionGuardFilter: e => e is not OperationCanceledException);
+                    });
+
+                return true;
             };
         }
 

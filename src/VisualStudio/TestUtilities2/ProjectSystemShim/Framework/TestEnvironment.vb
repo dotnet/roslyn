@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
@@ -66,9 +67,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(VsMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(MockDiagnosticUpdateSourceRegistrationService),
                 GetType(HostDiagnosticUpdateSource),
-                GetType(HierarchyItemToProjectIdMap))
+                GetType(HierarchyItemToProjectIdMap),
+                GetType(DiagnosticService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
@@ -105,15 +106,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                            exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
 
-            Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
+            Public Overrides Sub DisplayReferencedSymbols(solution As Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
                 Throw New NotImplementedException()
             End Sub
 
-            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function TryGoToDefinitionAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean)
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
             End Function
 
@@ -166,9 +171,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <Export>
         <Export(GetType(SVsServiceProvider))>
         Friend Class MockServiceProvider
-            Implements System.IServiceProvider
+            Implements IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
-            Implements Shell.IAsyncServiceProvider
+            Implements IAsyncServiceProvider
 
             Private ReadOnly _exportProvider As Composition.ExportProvider
             Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
@@ -181,7 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 _exportProvider = exportProvider
             End Sub
 
-            Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
+            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
                         ' Return a loose mock that just is a big no-op
@@ -208,7 +213,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 End Select
             End Function
 
-            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements Shell.IAsyncServiceProvider.GetServiceAsync
+            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements IAsyncServiceProvider.GetServiceAsync
                 Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
             End Function
 
@@ -269,14 +274,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Friend Sub RaiseFileChange(path As String)
+        Friend Async Function GetFileChangeServiceAsync() As Task(Of MockVsFileChangeEx)
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
-            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
-            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
-            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
-            mockFileChangeService.FireUpdate(path)
-        End Sub
+            Dim mockFileChangeService = Assert.IsType(Of MockVsFileChangeEx)(ServiceProvider.GetService(GetType(SVsFileChangeEx)))
+            Await ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync()
+            Return mockFileChangeService
+        End Function
+
+        Friend Async Function RaiseFileChangeAsync(path As String) As Task
+            Dim service = Await GetFileChangeServiceAsync()
+            service.FireUpdate(path)
+        End Function
+
+        ''' <inheritdoc cref="MockVsFileChangeEx.FireStaleUpdate(String, Action)" />
+        Friend Async Function RaiseStaleFileChangeAsync(path As String, unsubscribingAction As Action) As Task
+            Dim service = Await GetFileChangeServiceAsync()
+            service.FireStaleUpdate(path, unsubscribingAction)
+        End Function
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope

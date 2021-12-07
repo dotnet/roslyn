@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
-                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
 
             if (operation == null)

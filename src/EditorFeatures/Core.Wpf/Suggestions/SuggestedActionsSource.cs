@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -41,14 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
 
+            public readonly IGlobalOptionService GlobalOptions;
+
             protected SuggestedActionsSource(
                 IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
                 : base(threadingContext)
             {
+                GlobalOptions = globalOptions;
+
                 _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
                 _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
@@ -131,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     operationContext.UserCancellationToken);
             }
 
-            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+            private ImmutableArray<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 IUIThreadOperationContext? operationContext,
@@ -173,21 +179,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
-                    var fixes = GetCodeFixesAsync(
+                    var fixesTask = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
-                    var refactorings = GetRefactoringsAsync(
-                        state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
-                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                        addOperationScope, CodeActionRequestPriority.None,
+                        isBlocking: true, cancellationToken);
+                    var refactoringsTask = GetRefactoringsAsync(
+                        state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken);
 
-                    return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
+                    Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
+
+                    return ConvertToSuggestedActionSets(
+                        state, selection,
+                        fixesTask.WaitAndGetResult(cancellationToken),
+                        refactoringsTask.WaitAndGetResult(cancellationToken),
+                        currentActionCount: 0);
                 }
             }
 
-            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            protected ImmutableArray<SuggestedActionSet> ConvertToSuggestedActionSets(
+                ReferenceCountedDisposable<State> state,
+                TextSpan? selection,
+                ImmutableArray<UnifiedSuggestedActionSet> fixes,
+                ImmutableArray<UnifiedSuggestedActionSet> refactorings,
+                int currentActionCount)
             {
-                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
+                return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
             [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
@@ -195,22 +213,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                 if (unifiedSuggestedActionSet == null)
-                {
                     return null;
-                }
-
-                using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
-                foreach (var action in unifiedSuggestedActionSet.Actions)
-                {
-                    suggestedActions.Add(ConvertToSuggestedAction(action));
-                }
 
                 return new SuggestedActionSet(
-                    categoryName: unifiedSuggestedActionSet.CategoryName,
-                    actions: suggestedActions,
-                    title: unifiedSuggestedActionSet.Title,
-                    priority: ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
-                    applicableToSpan: unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
+                    unifiedSuggestedActionSet.CategoryName,
+                    unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
+                    unifiedSuggestedActionSet.Title,
+                    ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
+                    unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
                 // Local functions
                 ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)
@@ -287,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
+                IGlobalOptionService globalOptions,
                 Workspace workspace,
                 Document document,
                 TextSpan? selection,
@@ -302,9 +313,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
-                if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
+                if (!globalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
+                {
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
+                }
+
+                // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
+                // No code refactoring should have this request priority.
+                if (priority == CodeActionRequestPriority.Lowest)
                 {
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
@@ -434,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     state.Target.Owner._codeRefactoringService != null &&
                     state.Target.SubjectBuffer.SupportsRefactorings())
                 {

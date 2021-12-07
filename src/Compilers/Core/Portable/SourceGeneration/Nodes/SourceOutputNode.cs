@@ -21,13 +21,16 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IncrementalGeneratorOutputKind _outputKind;
 
-        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind)
+        private readonly string _sourceExtension;
+
+        public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
         {
             _source = source;
             _action = action;
 
             Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
             _outputKind = outputKind;
+            _sourceExtension = sourceExtension;
         }
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     // the diagnostics and sources produced and compare them, to see if they are any different 
                     // than before.
 
-                    var sourcesBuilder = ArrayBuilder<GeneratedSourceText>.GetInstance();
+                    var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
                     var diagnostics = DiagnosticBag.GetInstance();
 
                     SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);

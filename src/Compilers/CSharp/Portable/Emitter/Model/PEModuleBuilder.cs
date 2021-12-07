@@ -208,6 +208,121 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
+        public sealed override IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
+        {
+            var typesToProcess = ArrayBuilder<Cci.ITypeDefinition>.GetInstance();
+            var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
+            var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
+
+            var namespacesAndTopLevelTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace);
+            while (namespacesAndTopLevelTypesToProcess.Count > 0)
+            {
+                var symbol = namespacesAndTopLevelTypesToProcess.Pop();
+
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        var location = GetSmallestSourceLocationOrNull(symbol);
+
+                        // filtering out synthesized symbols not having real source 
+                        // locations such as anonymous types, etc...
+                        if (location != null)
+                        {
+                            foreach (var member in symbol.GetMembers())
+                            {
+                                switch (member.Kind)
+                                {
+                                    case SymbolKind.Namespace:
+                                    case SymbolKind.NamedType:
+                                        namespacesAndTopLevelTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        break;
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                                }
+                            }
+                        }
+                        break;
+                    case SymbolKind.NamedType:
+                        Debug.Assert(debugDocuments.Count == 0);
+                        Debug.Assert(methodDocumentList.Count == 0);
+                        Debug.Assert(typesToProcess.Count == 0);
+
+                        var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
+                        typesToProcess.Push(typeDefinition);
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context);
+
+                        foreach (var loc in symbol.Locations)
+                        {
+                            if (!loc.IsInSource)
+                            {
+                                continue;
+                            }
+
+                            var span = loc.GetLineSpan();
+                            var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
+
+                            // If we have a debug document that is already referenced by method debug info in this type, or a nested type,
+                            // then we don't need to include it. Since its impossible to declare a nested type without also including
+                            // a declaration for its containing type, we don't need to consider nested types in this method itself.
+                            if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
+                            {
+                                debugDocuments.Add(debugDocument);
+                            }
+                        }
+
+                        if (debugDocuments.Count > 0)
+                        {
+                            yield return (typeDefinition, debugDocuments.ToImmutable());
+                        }
+
+                        debugDocuments.Clear();
+                        methodDocumentList.Clear();
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                }
+            }
+
+            namespacesAndTopLevelTypesToProcess.Free();
+            debugDocuments.Free();
+            methodDocumentList.Free();
+            typesToProcess.Free();
+        }
+
+        /// <summary>
+        /// Gets a list of documents from the method definitions in the types in <paramref name="typesToProcess"/> or any
+        /// nested types of those types.
+        /// </summary>
+        private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
+        {
+            while (typesToProcess.Count > 0)
+            {
+                var definition = typesToProcess.Pop();
+
+                var typeMethods = definition.GetMethods(context);
+                foreach (var method in typeMethods)
+                {
+                    var body = method.GetBody(context);
+                    if (body is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var point in body.SequencePoints)
+                    {
+                        documentList.Add(point.Document);
+                    }
+                }
+
+                var nestedTypes = definition.GetNestedTypes(context);
+                foreach (var nestedTypeDefinition in nestedTypes)
+                {
+                    typesToProcess.Push(nestedTypeDefinition);
+                }
+            }
+        }
+
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
@@ -380,6 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
             return ImmutableArray<AnonymousTypeKey>.Empty;
+        }
+
+        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousSynthesizedDelegates()
+        {
+            return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
 
         internal virtual int GetNextAnonymousTypeIndex()
@@ -1412,17 +1532,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal NamedTypeSymbol GetFixedImplementationType(FieldSymbol field)
-        {
-            // Note that this method is called only after ALL fixed buffer types have been placed in the map.
-            // At that point the map is all filled in and will not change further.  Therefore it is safe to
-            // pull values from the map without locking.
-            NamedTypeSymbol result;
-            var found = _fixedImplementationTypes.TryGetValue(field, out result);
-            Debug.Assert(found);
-            return result;
-        }
-
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter();
@@ -1656,6 +1765,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureNullableAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
+        }
+
+        internal void EnsureNullableContextAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute);
         }
 
         internal void EnsureNativeIntegerAttributeExists()

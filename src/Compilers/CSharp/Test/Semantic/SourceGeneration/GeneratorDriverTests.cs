@@ -456,7 +456,7 @@ class C { }
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the exceptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
+        [Fact]
         public void Generator_HintName_MustBe_Unique()
         {
             var source = @"
@@ -483,6 +483,47 @@ class C { }
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify();
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        public void Generator_HintName_MustBe_Unique_Across_Outputs()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+
+                    // throws immediately, because we're within the same output node
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
+
+                    // throws for .cs too
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test.cs", SourceText.From("public class D{}", Encoding.UTF8)));
+                });
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    // will not throw at this point, because we have no way of knowing what the other outputs added
+                    // we *will* throw later in the driver when we combine them however (this is a change for V2, but not visible from V1)
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "The hintName 'test.cs' of the added source file must be unique within a generator. (Parameter 'hintName')").WithLocation(1, 1)
+                );
+            Assert.Equal(1, outputCompilation.SyntaxTrees.Count());
         }
 
         [Fact]
@@ -1242,16 +1283,13 @@ class C { }
             }
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Preview)]
-        public void GeneratorDriver_Prefers_Incremental_Generators(LanguageVersion langVer)
+        [Fact]
+        public void GeneratorDriver_Prefers_Incremental_Generators()
         {
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(langVer);
+            var parseOptions = TestOptions.Regular;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1270,29 +1308,24 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
 
-            // ran generator 1 always
+            // ran individual incremental and source generators
             Assert.Equal(1, initCount);
             Assert.Equal(1, executeCount);
+            Assert.Equal(1, incrementalInitCount);
 
-            // ran the incremental generator if in preview
-            Assert.Equal(langVer == LanguageVersion.Preview ? 1 : 0, incrementalInitCount);
-
-            // ran the combined generator only as an IIncrementalGenerator if in preview, or as an ISourceGenerator when not
-            Assert.Equal(langVer == LanguageVersion.Preview ? 0 : 1, dualInitCount);
-            Assert.Equal(langVer == LanguageVersion.Preview ? 0 : 1, dualExecuteCount);
-            Assert.Equal(langVer == LanguageVersion.Preview ? 1 : 0, dualIncrementalInitCount);
+            // ran the combined generator only as an IIncrementalGenerator
+            Assert.Equal(0, dualInitCount);
+            Assert.Equal(0, dualExecuteCount);
+            Assert.Equal(1, dualIncrementalInitCount);
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Preview)]
-        public void GeneratorDriver_Initializes_Incremental_Generators(LanguageVersion langVer)
+        [Fact]
+        public void GeneratorDriver_Initializes_Incremental_Generators()
         {
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(langVer);
+            var parseOptions = TestOptions.Regular;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1305,7 +1338,7 @@ class C { }
             driver.RunGenerators(compilation);
 
             // ran the incremental generator
-            Assert.Equal((langVer == LanguageVersion.Preview) ? 1 : 0, incrementalInitCount);
+            Assert.Equal(1, incrementalInitCount);
         }
 
         [Fact]
@@ -2045,7 +2078,48 @@ class C { }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
+        }
 
+        [Fact]
+        public void Metadata_References_Provider()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var metadataRefs = new[] {
+                MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
+                MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
+            };
+            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, references: metadataRefs);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<string?> referenceList = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.MetadataReferencesProvider, (spc, r) => { referenceList.Add(r.Display); });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(referenceList[0], metadataRefs[0].Display);
+            Assert.Equal(referenceList[1], metadataRefs[1].Display);
+
+            // re-run and check we didn't see anything new
+            referenceList.Clear();
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(referenceList);
+
+            // Modify the reference
+            var modifiedRef = metadataRefs[0].WithAliases(new[] { "Alias " });
+            metadataRefs[0] = modifiedRef;
+            compilation = compilation.WithReferences(metadataRefs);
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Single(referenceList, modifiedRef.Display);
         }
     }
 }

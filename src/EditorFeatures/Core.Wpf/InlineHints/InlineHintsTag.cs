@@ -36,13 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         public const string TagId = "inline hints";
 
-        private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
         private readonly SnapshotSpan _span;
         private readonly InlineHint _hint;
-        private readonly IThreadingContext _threadingContext;
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private InlineHintsTag(
             FrameworkElement adornment,
@@ -59,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _subjectBuffer = subjectBuffer;
             _span = span;
             _hint = hint;
-            _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
-            _threadingContext = taggerProvider.ThreadingContext;
-            _toolTipService = taggerProvider.ToolTipService;
+            _taggerProvider = taggerProvider;
 
             // Sets the tooltip to a string so that the tool tip opening event can be triggered
             // Tooltip value does not matter at this point because it immediately gets overwritten by the correct
@@ -104,7 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (!taggedText.IsDefaultOrEmpty)
                 {
-                    var context = new IntellisenseQuickInfoBuilderContext(document, _threadingContext, _streamingPresenter);
+                    var context = new IntellisenseQuickInfoBuilderContext(
+                        document,
+                        _taggerProvider.ThreadingContext,
+                        _taggerProvider.OperationExecutor,
+                        _taggerProvider.AsynchronousOperationListener,
+                        _taggerProvider.StreamingFindUsagesPresenter);
                     return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(taggedText, context);
                 }
             }
@@ -123,14 +124,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
             // well with VS at any zoom level or font size.
-
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
                 FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
-
                 // Adds a little bit of padding to the left of the text relative to the border to make the text seem
                 // more balanced in the border
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
@@ -152,8 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 block.Inlines.Add(run);
             }
 
-            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
+            block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
+            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
             // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
             // left or right side.
             var left = leftPadding * 5;
@@ -168,10 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Margin = new Thickness(left, top: 0, right, bottom: 0),
             };
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             // gets pixel distance of baseline to top of the font height
             var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-
             var dockPanel = new DockPanel
             {
                 Height = dockPanelHeight,
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return !(mousePoint.X > hintUIElement.ActualWidth || mousePoint.X < 0 || mousePoint.Y > hintUIElement.ActualHeight || mousePoint.Y < 0);
             }
 
-            var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
+            var toolTipPresenter = _taggerProvider.ToolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
             _ = StartToolTipServiceAsync(toolTipPresenter);
         }
 
@@ -258,8 +256,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
-            var uiList = await Task.Run(() => CreateDescriptionAsync(_threadingContext.DisposalToken)).ConfigureAwait(false);
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+            var threadingContext = _taggerProvider.ThreadingContext;
+            var uiList = await Task.Run(() => CreateDescriptionAsync(threadingContext.DisposalToken)).ConfigureAwait(false);
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
         }

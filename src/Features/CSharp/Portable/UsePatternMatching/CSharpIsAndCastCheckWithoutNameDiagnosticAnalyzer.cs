@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
+        private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
 
         public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
             var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            return diagnostics.Any(d => d.Id == CS0165);
+            return diagnostics.Any(d => d.Id is CS0165 or CS0103);
         }
 
         public static SemanticModel ReplaceMatches(

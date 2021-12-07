@@ -3227,9 +3227,6 @@ class Test : Base
                 // (11,21): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         object o = (P p) => 0;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
-                // (11,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         object o = (P p) => 0;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(P p) => 0").WithArguments("lambda expression", "object"),
                 // (12,17): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         int x = P.X;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
@@ -7358,7 +7355,7 @@ unsafe public class MyClass
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1,2]')
   Children(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
@@ -18150,25 +18147,7 @@ x = typeof((int a, int b)); // 5
 x = typeof((int a, string? b)); // 6
 x = typeof(ValueTuple<int, int>); // ok
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,9): warning CS8959: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // var x = typeof(List<dynamic>); // 1
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<dynamic>)").WithArguments("List<dynamic>").WithLocation(7, 9),
-                // (8,5): warning CS8959: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(nint); // 2
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(nint)").WithArguments("nint").WithLocation(8, 5),
-                // (9,5): warning CS8959: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(List<nint>); // 3
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<nint>)").WithArguments("List<nint>").WithLocation(9, 5),
-                // (10,5): warning CS8959: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(List<string?>); // 4
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<string?>)").WithArguments("List<string?>").WithLocation(10, 5),
-                // (11,5): warning CS8959: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof((int a, int b)); // 5
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, int b))").WithArguments("(int a, int b)").WithLocation(11, 5),
-                // (12,5): warning CS8959: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof((int a, string? b)); // 6
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, string? b))").WithArguments("(int a, string? b)").WithLocation(12, 5));
+            CreateCompilation(source).VerifyDiagnostics();
 
             CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
         }
@@ -23782,9 +23761,9 @@ class Program
                 // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
 
@@ -23809,10 +23788,10 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
-    //         var x1 = p.P1 ?.ToString;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
-               );
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                //         var x1 = p.P1 ?.ToString;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
+                );
         }
 
 
@@ -23907,10 +23886,10 @@ class Program
 
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         var p = intPtr?.ToPointer();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
-               );
+                // (9,24): error CS8977: 'void*' cannot be made nullable.
+                //         var p = intPtr?.ToPointer();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
+                );
         }
 
         [Fact]
@@ -24308,15 +24287,15 @@ public ref struct S2
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
-                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),
+                // (12,19): error CS8977: 'S2' cannot be made nullable.
                 //         var y = o?.F() ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
-                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(12, 19),
+                // (14,19): error CS8977: 'S1' cannot be made nullable.
                 //         var z = o?.F().field ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F().field").WithArguments("S1").WithLocation(14, 19)
                );
         }
 

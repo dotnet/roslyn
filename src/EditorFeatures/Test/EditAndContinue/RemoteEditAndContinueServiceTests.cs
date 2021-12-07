@@ -15,16 +15,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -34,18 +35,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     [UseExportProvider]
     public class RemoteEditAndContinueServiceTests
     {
-        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
-        internal sealed class MockEncServiceFactory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public MockEncServiceFactory()
-            {
-            }
-
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new MockEditAndContinueWorkspaceService();
-        }
+        private static string Inspect(DiagnosticData d)
+            => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
+                (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
+                $" {d.Message}";
 
         [Theory, CombinatorialData]
         public async Task Proxy(TestHost testHost)
@@ -53,10 +46,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEncServiceFactory));
+                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
+
+            var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
 
             MockEditAndContinueWorkspaceService mockEncService;
             var clientProvider = (InProcRemoteHostClientProvider?)localWorkspace.Services.GetService<IRemoteHostClientProvider>();
@@ -69,7 +64,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             else
             {
                 Assert.NotNull(clientProvider);
-                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEncServiceFactory) };
+                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace).ConfigureAwait(false);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
@@ -108,7 +103,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 instructionId1,
                 documentName: "test.cs",
                 span1.ToSourceSpan(),
-                flags: ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.PartiallyExecuted);
+                flags: ActiveStatementFlags.LeafFrame | ActiveStatementFlags.PartiallyExecuted);
 
             var methodId2 = new ManagedModuleMethodId(token: 0x06000002, version: 1);
 
@@ -120,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var document1 = localWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
             var activeSpans1 = ImmutableArray.Create(
-                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.IsNonLeafFrame, document.Id));
+                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, document.Id));
 
             var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
             {
@@ -133,7 +128,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // StartDebuggingSession
 
-            IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
+            IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
             var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
             {
@@ -150,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 localWorkspace.CurrentSolution,
                 debuggerService: new MockManagedEditAndContinueDebuggerService()
                 {
-                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"),
+                    IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
                 captureMatchingDocuments: ImmutableArray.Create(document1.Id),
@@ -160,14 +155,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             Contract.ThrowIfNull(sessionProxy);
 
-            // BreakStateEntered
+            // BreakStateChanged
 
-            mockEncService.BreakStateEnteredImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze) =>
             {
+                Assert.True(inBreakState);
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.BreakStateEnteredAsync(mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.BreakStateOrCapabilitiesChangedAsync(mockDiagnosticService, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();
@@ -176,7 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             Assert.Equal(as1.Flags, activeStatement.Flags);
 
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
+            Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
             // HasChanges
 
@@ -215,15 +211,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
                 var documentDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "some error" });
                 var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" });
+                var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
                 var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Ready, deltas);
                 var diagnostics = ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
                 var documentsWithRudeEdits = ImmutableArray.Create((document1.Id, ImmutableArray<RudeEditDiagnostic>.Empty));
 
-                return new(updates, diagnostics, documentsWithRudeEdits);
+                return new(updates, diagnostics, documentsWithRudeEdits, syntaxError);
             };
 
-            var (updates, _, _) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            var (updates, _, _, syntaxErrorData) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            AssertEx.Equal($"[{project.Id}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(syntaxErrorData!));
 
             VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
 
@@ -236,14 +234,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 $"[{project.Id}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
                 $"[{project.Id}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
-            },
-            emitDiagnosticsUpdated.Select(update =>
-            {
-                var d = update.GetPushDiagnostics(localWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Single();
-                return $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
-                       (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
-                       $" {d.Message}";
-            }));
+            }, emitDiagnosticsUpdated.Select(update => Inspect(update.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Single())));
 
             emitDiagnosticsUpdated.Clear();
 
@@ -310,7 +301,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetBaseActiveStatementSpans
 
-            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
+            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
 
             mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
             {

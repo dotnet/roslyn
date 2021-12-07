@@ -123,13 +123,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (actions.Value.actions.Length > 0)
             {
                 context.RegisterRefactoring(new CodeActionWithNestedActions(
-                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
+                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), textSpan);
             }
 
             if (actions.Value.actionsAllOccurrences.Length > 0)
             {
                 context.RegisterRefactoring(new CodeActionWithNestedActions(
-                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false,
+                    priority: CodeActionPriority.Low), textSpan);
             }
         }
 
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 foreach (var (document, invocations) in projectCallSites)
                 {
                     var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
-                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
+                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                 }
             }
 

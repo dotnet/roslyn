@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -19,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IWpfTextView _textView;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
+        private readonly IDashboardColorUpdater? _dashboardColorUpdater;
+
         private readonly IAdornmentLayer _adornmentLayer;
 
         private static readonly ConditionalWeakTable<InlineRenameSession, DashboardViewModel> s_createdViewModels =
@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public DashboardAdornmentManager(
             InlineRenameService renameService,
             IEditorFormatMapService editorFormatMapService,
+            IDashboardColorUpdater? dashboardColorUpdater,
             IWpfTextView textView)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
+            _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
 
             _adornmentLayer = textView.GetAdornmentLayer(DashboardAdornmentProvider.AdornmentLayerName);
@@ -60,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_renameService.ActiveSession != null &&
                 ViewIncludesBufferFromWorkspace(_textView, _renameService.ActiveSession.Workspace))
             {
+                _dashboardColorUpdater?.UpdateColors();
+
                 var newAdornment = new Dashboard(
                     s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
                     _editorFormatMapService,
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                        .Any();
         }
 
-        private static Workspace GetWorkspace(SourceTextContainer textContainer)
+        private static Workspace? GetWorkspace(SourceTextContainer textContainer)
         {
             Workspace.TryGetWorkspace(textContainer, out var workspace);
             return workspace;

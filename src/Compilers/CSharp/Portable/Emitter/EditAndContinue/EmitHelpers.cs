@@ -140,12 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,

@@ -154,33 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
             Debug.Assert(node.InterpolatedStringHandlerData is not null);
             var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-            while (true)
-            {
-                addReversedParts((BoundInterpolatedString)node.Right);
-
-                if (node.Left is BoundBinaryOperator next)
+            node.VisitBinaryOperatorInterpolatedString(partsBuilder,
+                static (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
                 {
-                    node = next;
-                }
-                else
-                {
-                    addReversedParts((BoundInterpolatedString)node.Left);
-                    break;
-                }
-            }
-
-            partsBuilder.ReverseContents();
-
-            ImmutableArray<BoundExpression> parts = partsBuilder.ToImmutableAndFree();
-            return parts;
-
-            void addReversedParts(BoundInterpolatedString boundInterpolated)
-            {
-                for (int i = boundInterpolated.Parts.Length - 1; i >= 0; i--)
-                {
-                    partsBuilder.Add(boundInterpolated.Parts[i]);
-                }
-            }
+                    partsBuilder.AddRange(interpolatedString.Parts);
+                    return true;
+                });
+            return partsBuilder.ToImmutableAndFree();
         }
 
         private BoundExpression MakeBinaryOperator(
@@ -737,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
+                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false, markAsChecked: true); // The conversion was checked in binding
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, constrainedToTypeOpt: null, LookupResultKind.Viable, boolean)

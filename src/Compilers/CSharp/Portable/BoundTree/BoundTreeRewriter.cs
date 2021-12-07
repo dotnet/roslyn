@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int RecursionDepth => _recursionDepth;
 
+        [return: NotNullIfNotNull("node")]
         public override BoundNode? Visit(BoundNode? node)
         {
             var expression = node as BoundExpression;

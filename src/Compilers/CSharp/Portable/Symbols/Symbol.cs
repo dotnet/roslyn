@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the token for this symbol as it appears in metadata. Most of the time this is 0,
+        /// as it is when the symbol is not loaded from metadata.
+        /// </summary>
+        public virtual int MetadataToken => 0;
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
         public abstract SymbolKind Kind { get; }
@@ -653,6 +659,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool Equals(object obj)
         {
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
+        }
+
+        public bool Equals(Symbol other)
+        {
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
         }
 
         bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
@@ -1509,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value != containingValue;
         }
 
+#nullable enable
         /// <summary>
         /// True if the symbol is declared outside of the scope of the containing
         /// symbol
@@ -1569,6 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+#nullable disable
 
         bool ISymbolInternal.IsStatic
         {

@@ -12,8 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
@@ -86,7 +84,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal abstract AbstractPersistentStorageService GetStorageService(
-            OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
+            IMefHostExportProvider exportProvider,
+            IPersistentStorageConfiguration configuration,
+            IPersistentStorageFaultInjector? faultInjector,
+            string rootFolder);
 
         public void Dispose()
         {
@@ -817,11 +818,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         [Fact, WorkItem(1174219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1174219")]
         public void CacheDirectoryShouldNotBeAtRoot()
         {
-            var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(typeof(TestPersistentStorageLocationService)).GetHostServices());
+            var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.GetHostServices());
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), new VersionStamp(), @"D:\git\PCLCrypto\PCLCrypto.sln"));
 
-            var locationService = workspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            var location = locationService.TryGetStorageLocation(workspace.CurrentSolution);
+            var configuration = workspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+            var location = configuration.TryGetStorageLocation(SolutionKey.ToSolutionKey(workspace.CurrentSolution));
             Assert.False(location?.StartsWith("/") ?? false);
         }
 
@@ -843,19 +844,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 stream.ReadByte();
                 stream.ReadByte();
             }
-        }
-
-        [PartNotDiscoverable]
-        [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: ServiceLayer.Test), Shared]
-        private class TestPersistentStorageLocationService : DefaultPersistentStorageLocationService
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestPersistentStorageLocationService()
-            {
-            }
-
-            public override bool IsSupported(Workspace workspace) => true;
         }
 
         private void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)
@@ -950,16 +938,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal async Task<IChecksummedPersistentStorage> GetStorageAsync(
-            Solution solution, IPersistentStorageFaultInjector? faultInjector = null)
+            Solution solution,
+            IPersistentStorageFaultInjector? faultInjector = null,
+            bool throwOnFailure = true)
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
-            var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
+            var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path, throwOnFailure);
 
-            _storageService = GetStorageService(
-                solution.Options, (IMefHostExportProvider)solution.Workspace.Services.HostServices,
-                 locationService, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(solution, checkBranchId: true, CancellationToken.None);
+            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
+            var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
@@ -975,11 +963,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
-            var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
+            var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
-            _storageService = GetStorageService(
-                workspace.Options, (IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(workspace, solutionKey, checkBranchId: true, CancellationToken.None);
+            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
+            var storage = await _storageService.GetStorageAsync(solutionKey, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
@@ -990,23 +977,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return storage;
         }
 
-        private class MockPersistentStorageLocationService : IPersistentStorageLocationService2
+        private class MockPersistentStorageConfiguration : IPersistentStorageConfiguration
         {
             private readonly SolutionId _solutionId;
             private readonly string _storageLocation;
+            private readonly bool _throwOnFailure;
 
-            public MockPersistentStorageLocationService(SolutionId solutionId, string storageLocation)
+            public MockPersistentStorageConfiguration(SolutionId solutionId, string storageLocation, bool throwOnFailure)
             {
                 _solutionId = solutionId;
                 _storageLocation = storageLocation;
+                _throwOnFailure = throwOnFailure;
             }
 
-            public bool IsSupported(Workspace workspace) => true;
+            public bool ThrowOnFailure => _throwOnFailure;
 
-            public string? TryGetStorageLocation(Solution solution)
-                => solution.Id == _solutionId ? _storageLocation : null;
-
-            public string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey)
+            public string? TryGetStorageLocation(SolutionKey solutionKey)
                 => solutionKey.Id == _solutionId ? _storageLocation : null;
         }
 

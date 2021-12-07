@@ -1940,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    InternalSyntax.Feature.InitOnlySettersUsage)
                         End If
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, setMethod, node)
 
                         If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
                             isError = True

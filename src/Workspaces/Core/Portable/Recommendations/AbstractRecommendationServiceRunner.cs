@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
             var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
+            if (!(syntaxFactsService.IsAnonymousFunctionExpression(lambdaSyntax) &&
                   syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
                   syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {

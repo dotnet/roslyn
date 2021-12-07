@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                if (!(GetContainingScope() is ExpressionSyntax node))
+                if (GetContainingScope() is not ExpressionSyntax node)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

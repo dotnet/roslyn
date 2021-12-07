@@ -308,13 +308,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor);
         }
 
         public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor, arg0);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -550,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedLocalWithValEscape(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
-                SynthesizedLocalKind.InterpolatedStringHandler,
+                SynthesizedLocalKind.LoweringTemp,
                 valEscapeScope,
                 syntax
 #if DEBUG
@@ -571,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
-            return new BoundAsOperator(this.Syntax, operand, Type(type), Conversion.ExplicitReference, type) { WasCompilerGenerated = true };
+            return new BoundAsOperator(this.Syntax, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
@@ -580,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
             // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
             Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, ref discardedUseSiteInfo);
-            return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
+            return new BoundIsOperator(this.Syntax, operand, Type(type), c.Kind, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
@@ -802,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type!.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) || left.Type.IsErrorType());
             Debug.Assert(left.Type.IsReferenceType);
 
-            return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
+            return new BoundNullCoalescingOperator(Syntax, left, right, leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement? elseClauseOpt = null)
@@ -1283,9 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteInfo);
             Debug.Assert(c.Exists);
             Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
-
-            // If this happens, we should probably check if the method has ObsoleteAttribute.
-            Debug.Assert(c.Method is null, "Why are we synthesizing a user-defined conversion after initial binding?");
 
             return Convert(type, arg, c);
         }

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -908,7 +909,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var recommendations = await Recommender.GetRecommendedSymbolsAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, options: null, cancellationToken).ConfigureAwait(false);
+            var recommender = document.GetRequiredLanguageService<IRecommendationService>();
+
+            var options = RecommendationServiceOptions.From(document.Project);
+            var recommendations = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 

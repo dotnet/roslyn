@@ -739,7 +739,7 @@ class C
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetAllSymbols(
                 compilation.GetSemanticModel(compilation.SyntaxTrees.Single()),
-                n => n is CSharp.Syntax.MemberAccessExpressionSyntax || n is CSharp.Syntax.InvocationExpressionSyntax);
+                n => n is CSharp.Syntax.MemberAccessExpressionSyntax or CSharp.Syntax.InvocationExpressionSyntax);
 
             var tested = false;
             foreach (var symbol in symbols)

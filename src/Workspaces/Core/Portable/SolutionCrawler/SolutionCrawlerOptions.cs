@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
         internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new(
             "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
 
         /// <summary>
         /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.

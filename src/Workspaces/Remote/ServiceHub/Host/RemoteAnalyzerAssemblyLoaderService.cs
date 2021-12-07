@@ -34,27 +34,5 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
             => options.ShadowCopy ? _shadowCopyLoader : _loader;
-
-        // For analyzers shipped in Roslyn, different set of assemblies might be used when running
-        // in-proc and OOP e.g. in-proc (VS) running on desktop clr and OOP running on ServiceHub .Net6
-        // host. We need to make sure to use the ones from the same location as the remote.
-        private class RemoteAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
-        {
-            private readonly string _baseDirectory;
-
-            protected override Assembly LoadImpl(string fullPath)
-                => base.LoadImpl(FixPath(fullPath));
-
-            public RemoteAnalyzerAssemblyLoader(string baseDirectory)
-            {
-                _baseDirectory = baseDirectory;
-            }
-
-            private string FixPath(string fullPath)
-            {
-                var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(fullPath)));
-                return File.Exists(fixedPath) ? fixedPath : fullPath;
-            }
-        }
     }
 }

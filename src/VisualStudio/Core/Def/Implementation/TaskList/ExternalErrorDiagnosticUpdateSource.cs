@@ -875,7 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 void RecordProjectContainsErrors()
                 {
-                    RoslynDebug.Assert(key is DocumentId || key is ProjectId);
+                    RoslynDebug.Assert(key is DocumentId or ProjectId);
                     var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
 
                     // New errors reported for project, need to refresh live errors.

@@ -435,8 +435,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
                     new CodeGenerationOptions(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    _cancellationToken).ConfigureAwait(false);
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                 var updatedSolution = solution.WithDocumentSyntaxRoot(generateTypeOptionsResult.ExistingDocument.Id, newRoot, PreservationMode.PreserveIdentity);
 

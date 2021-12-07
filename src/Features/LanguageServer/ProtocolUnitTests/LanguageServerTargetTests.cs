@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,34 +27,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerQueueEmptyOnShutdownMessage()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc, out var listenerProvider);
+            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
             AssertServerAlive(languageServerTarget);
 
             await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
             Assert.False(jsonRpc.IsDisposed);
         }
 
         [Fact]
         public async Task LanguageServerCleansUpOnExitMessage()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc, out var listenerProvider);
+            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
             AssertServerAlive(languageServerTarget);
 
             await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
             await languageServerTarget.ExitAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
             Assert.True(jsonRpc.IsDisposed);
         }
 
         [Fact]
         public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc, out var listenerProvider);
+            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
             AssertServerAlive(languageServerTarget);
 
             jsonRpc.Dispose();
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
             Assert.True(jsonRpc.IsDisposed);
         }
 
@@ -63,22 +64,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.False(server.GetTestAccessor().GetQueueAccessor().IsComplete());
         }
 
-        private static async Task AssertServerQueueClosed(LanguageServerTarget server, IAsynchronousOperationListenerProvider listenerProvider)
+        private static async Task AssertServerQueueClosed(LanguageServerTarget server)
         {
-            await listenerProvider.GetWaiter(FeatureAttribute.LanguageServer).ExpeditedWaitAsync();
+            await server.GetTestAccessor().GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
             Assert.True(server.HasShutdownStarted);
             Assert.True(server.GetTestAccessor().GetQueueAccessor().IsComplete());
         }
 
-        private LanguageServerTarget CreateLanguageServer(out JsonRpc serverJsonRpc, out IAsynchronousOperationListenerProvider listenerProvider)
+        private LanguageServerTarget CreateLanguageServer(out JsonRpc serverJsonRpc)
         {
             using var workspace = TestWorkspace.CreateCSharp("", composition: Composition);
 
             var (_, serverStream) = FullDuplexStream.CreatePair();
-            var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
-            listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var dispatcherFactory = workspace.GetService<RequestDispatcherFactory>();
+            var lspWorkspaceRegistrationService = workspace.GetService<LspWorkspaceRegistrationService>();
+            var capabilitiesProvider = workspace.GetService<DefaultCapabilitiesProvider>();
+            var globalOptions = workspace.GetService<IGlobalOptionService>();
+            var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
             serverJsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream))
             {
@@ -90,6 +92,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 serverJsonRpc,
                 capabilitiesProvider,
                 lspWorkspaceRegistrationService,
+                new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
+                globalOptions,
                 listenerProvider,
                 NoOpLspLogger.Instance,
                 ProtocolConstants.RoslynLspLanguages,

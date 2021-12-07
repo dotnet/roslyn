@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
 
-                if (!(diagnosticNode is StructDeclarationSyntax structDeclaration))
+                if (diagnosticNode is not StructDeclarationSyntax structDeclaration)
                 {
                     continue;
                 }

@@ -227,11 +227,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 ExecuteCommand("commit transaction");
                 return result;
             }
-            catch (SqlException ex) when (ex.Result == Result.FULL ||
-                                          ex.Result == Result.IOERR ||
-                                          ex.Result == Result.BUSY ||
-                                          ex.Result == Result.LOCKED ||
-                                          ex.Result == Result.NOMEM)
+            catch (SqlException ex) when (ex.Result is Result.FULL or
+                                          Result.IOERR or
+                                          Result.BUSY or
+                                          Result.LOCKED or
+                                          Result.NOMEM)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
                 // If certain kinds of errors occur within a transaction, the transaction 

@@ -25,7 +25,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -59,7 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("F", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -93,7 +91,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("M", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -140,7 +137,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -191,7 +187,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("Goo", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -238,7 +233,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("Z", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -276,7 +270,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -310,7 +303,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("C.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -335,7 +327,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -369,7 +360,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
@@ -403,7 +393,6 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
                     New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)

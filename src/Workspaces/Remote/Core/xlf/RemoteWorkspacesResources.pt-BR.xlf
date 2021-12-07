@@ -17,6 +17,11 @@
         <target state="translated">Referências CodeLens</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="new">Project semantics availability</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Converter a tupla em refatoração de struct</target>
@@ -87,6 +92,11 @@
         <target state="translated">Barra de navegação</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Telemetria de processo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Coleção de telemetria do projeto</target>
@@ -112,6 +122,11 @@
         <target state="translated">Provedor de ativos</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
         <target state="translated">Localizador de símbolo</target>
@@ -134,7 +149,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">Rastreamento de Valor</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

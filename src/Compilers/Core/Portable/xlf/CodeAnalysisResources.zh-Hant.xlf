@@ -41,12 +41,12 @@
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
-        <target state="new">The hintName '{0}' contains an invalid character '{1}' at position {2}.</target>
+        <target state="translated">位置 {2} 的 hintName {0} 包含無效的字元 '{1}'。</target>
         <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
       </trans-unit>
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
-        <target state="new">The hintName '{0}' of the added source file must be unique within a generator.</target>
+        <target state="translated">新增來源檔案的 hintName '{0}' 在產生器中必須是唯一的。</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
-        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <target state="translated">具有 hintName '{0}' 的 SourceText 必須有明確的編碼集。</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">

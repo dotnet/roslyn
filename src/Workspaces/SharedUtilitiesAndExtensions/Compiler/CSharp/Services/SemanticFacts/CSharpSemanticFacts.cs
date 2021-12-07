@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
-            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
+            if (oldNode is not BaseMethodDeclarationSyntax oldMethod || newNode is not BaseMethodDeclarationSyntax newMethod || oldMethod.Body == null)
             {
                 speculativeModel = null;
                 return false;

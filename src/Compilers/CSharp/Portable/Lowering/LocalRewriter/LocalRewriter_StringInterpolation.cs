@@ -32,10 +32,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, conversion.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, conversion.Type);
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Helper method to generate a lowered conversion from the given <paramref name="rewrittenOperand"/> to the given <paramref name="rewrittenType"/>.
+        /// </summary>
+        private BoundExpression MakeImplicitConversionForInterpolatedString(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
+        {
+            Debug.Assert(rewrittenOperand.Type is object);
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            _diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
+            if (!conversion.IsImplicit)
+            {
+                // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                _diagnostics.Add(
+                    ErrorCode.ERR_NoImplicitConv,
+                    rewrittenOperand.Syntax.Location,
+                    rewrittenOperand.Type,
+                    rewrittenType);
+
+                return _factory.NullOrDefault(rewrittenType);
+            }
+
+            // The lack of checks is unlikely to create problems because we are operating on types coming from well-known APIs.
+            // It is not worth adding complexity of performing them.
+            conversion.MarkUnderlyingConversionsCheckedRecursive();
+
+            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
         }
 
         /// <summary>
@@ -43,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// local temp.
         /// </summary>
         /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
-        private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
+        private InterpolationHandlerResult RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
         {
             Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
             var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, syntax);
@@ -55,7 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal? appendShouldProceedLocal = null;
             if (data.HasTrailingHandlerValidityParameter)
             {
-                Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
+#if DEBUG
+                for (int i = construction.ArgumentRefKindsOpt.Length - 1; i >= 0; i--)
+                {
+                    if (construction.ArgumentRefKindsOpt[i] == RefKind.Out)
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(construction.ArgumentRefKindsOpt[i] == RefKind.None);
+                    Debug.Assert(construction.DefaultArguments[i]);
+                }
+#endif
 
                 BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
                 TypeSymbol localType = trailingParameter.Type;
@@ -119,44 +159,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : _factory.LogicalAnd(currentExpression, actualCall);
                 }
 
-                resultExpressions.Clear();
-
                 Debug.Assert(currentExpression != null);
 
-                var sequence = _factory.Sequence(
-                    appendShouldProceedLocal is not null
-                        ? ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol)
-                        : ImmutableArray<LocalSymbol>.Empty,
-                    ImmutableArray.Create<BoundExpression>(handlerConstructionAssignment),
-                    currentExpression);
-
-                resultExpressions.Add(sequence);
+                resultExpressions.Clear();
+                resultExpressions.Add(handlerConstructionAssignment);
+                resultExpressions.Add(currentExpression);
             }
             else if (appendShouldProceedLocal is not null && resultExpressions.Count > 0)
             {
-                // appendCalls Sequence ending in true
-                var appendCallsSequence = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, resultExpressions.ToImmutableAndClear(), _factory.Literal(value: true));
+                // appendCalls as expressionStatements
+                var appendCallsStatements = resultExpressions.SelectAsArray(static (appendCall, @this) => (BoundStatement)@this._factory.ExpressionStatement(appendCall), this);
+                resultExpressions.Free();
 
-                resultExpressions.Add(handlerConstructionAssignment);
+                // if (appendShouldProceedLocal) { appendCallsStatements }
+                var resultIf = _factory.If(appendShouldProceedLocal, _factory.StatementList(appendCallsStatements));
 
-                // appendShouldProceedLocal && sequence
-                var appendAnd = _factory.LogicalAnd(appendShouldProceedLocal, appendCallsSequence);
-                var result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
-
-                resultExpressions.Add(result);
-            }
-            else if (appendShouldProceedLocal is not null)
-            {
-                // Odd case of no append calls, but with an out param. We don't need to generate any jumps checking the local because there's
-                // nothing to short circuit and avoid, but we do need a sequence to hold the lifetime of the local
-                resultExpressions.Add(_factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), ImmutableArray<BoundExpression>.Empty, handlerConstructionAssignment));
+                return new InterpolationHandlerResult(ImmutableArray.Create(_factory.ExpressionStatement(handlerConstructionAssignment), resultIf), builderTemp, appendShouldProceedLocal.LocalSymbol, this);
             }
             else
             {
                 resultExpressions.Insert(0, handlerConstructionAssignment);
             }
 
-            return (resultExpressions, builderTemp);
+            return new InterpolationHandlerResult(resultExpressions.ToImmutableAndFree(), builderTemp, appendShouldProceedLocal?.LocalSymbol, this);
         }
 
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
@@ -276,7 +301,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we need to test for null and ensure "" if it is.
                 if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
                 {
-                    result = _factory.Coalesce(result!, _factory.StringLiteral(""));
+                    Debug.Assert(result is not null);
+                    Debug.Assert(result.Type is not null);
+                    Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
+                    var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
+                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
                 }
             }
             else
@@ -308,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversion(result, node.Type);
+                result = MakeImplicitConversionForInterpolatedString(result, node.Type);
             }
             return result;
         }
@@ -316,15 +345,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type)
         {
             // If we can lower to the builder pattern, do so.
-            (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerTemp) = RewriteToInterpolatedStringHandlerPattern(data, parts, syntax);
+            InterpolationHandlerResult result = RewriteToInterpolatedStringHandlerPattern(data, parts, syntax);
 
             // resultTemp = builderTemp.ToStringAndClear();
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
             BoundExpression toStringAndClearCall = toStringAndClear is not null
-                ? BoundCall.Synthesized(syntax, handlerTemp, toStringAndClear)
+                ? BoundCall.Synthesized(syntax, result.HandlerTemp, toStringAndClear)
                 : new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
 
-            return _factory.Sequence(ImmutableArray.Create(handlerTemp.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
+            return result.WithFinalResult(toStringAndClearCall);
         }
 
         [Conditional("DEBUG")]
@@ -351,6 +380,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(arguments.All(arg => arg is not BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, ExplicitCastInCode: false }));
+            }
+        }
+
+        private readonly struct InterpolationHandlerResult
+        {
+            private readonly ImmutableArray<BoundStatement> _statements;
+            private readonly ImmutableArray<BoundExpression> _expressions;
+            private readonly LocalRewriter _rewriter;
+            private readonly LocalSymbol? _outTemp;
+
+            public readonly BoundLocal HandlerTemp;
+
+            public InterpolationHandlerResult(ImmutableArray<BoundStatement> statements, BoundLocal handlerTemp, LocalSymbol outTemp, LocalRewriter rewriter)
+            {
+                _statements = statements;
+                _expressions = default;
+                _outTemp = outTemp;
+                HandlerTemp = handlerTemp;
+                _rewriter = rewriter;
+            }
+
+            public InterpolationHandlerResult(ImmutableArray<BoundExpression> expressions, BoundLocal handlerTemp, LocalSymbol? outTemp, LocalRewriter rewriter)
+            {
+                _statements = default;
+                _expressions = expressions;
+                _outTemp = outTemp;
+                HandlerTemp = handlerTemp;
+                _rewriter = rewriter;
+            }
+
+            public BoundExpression WithFinalResult(BoundExpression result)
+            {
+                Debug.Assert(_statements.IsDefault ^ _expressions.IsDefault);
+                var locals = _outTemp != null
+                    ? ImmutableArray.Create(HandlerTemp.LocalSymbol, _outTemp)
+                    : ImmutableArray.Create(HandlerTemp.LocalSymbol);
+
+                if (_statements.IsDefault)
+                {
+                    return _rewriter._factory.Sequence(locals, _expressions, result);
+                }
+                else
+                {
+                    _rewriter._needsSpilling = true;
+                    return _rewriter._factory.SpillSequence(locals, _statements, result);
+                }
             }
         }
     }

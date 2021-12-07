@@ -5630,7 +5630,7 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(text);
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(text, parseOptions: TestOptions.Regular9);
             Assert.NotNull(semanticInfo);
             Assert.Null(semanticInfo.Type);
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);

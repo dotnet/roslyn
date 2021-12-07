@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,6 +18,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     {
         protected override bool CanFind(INamedTypeSymbol symbol)
             => symbol.TypeKind != TypeKind.Error;
+
+        protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamedTypeSymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
+        }
 
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
@@ -45,22 +51,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamedTypeSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+
+            await AddDocumentsToSearchAsync(symbol.Name, project, documents, result, cancellationToken).ConfigureAwait(false);
+            if (globalAliases != null)
+            {
+                foreach (var alias in globalAliases)
+                    await AddDocumentsToSearchAsync(alias, project, documents, result, cancellationToken).ConfigureAwait(false);
+            }
+
+            result.AddRange(await FindDocumentsAsync(
+                project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false));
+
+            result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+                project, documents, cancellationToken).ConfigureAwait(false));
+
+            return result.ToImmutable();
+        }
+
+        /// <summary>
+        /// Looks for documents likely containing <paramref name="throughName"/> in them.  That name will either be the actual
+        /// name of the named type we're looking for, or it might be a global alias to it.
+        /// </summary>
+        private static async Task AddDocumentsToSearchAsync(
+            string throughName,
+            Project project,
+            IImmutableSet<Document>? documents,
+            ArrayBuilder<Document> result,
+            CancellationToken cancellationToken)
+        {
             var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
-            var documentsWithType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(
+                project, documents, cancellationToken, throughName).ConfigureAwait(false);
 
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, syntaxFacts, out var simpleName)
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
-            return documentsWithName.Concat(documentsWithType, documentsWithAttribute, documentsWithGlobalAttributes);
+            result.AddRange(documentsWithName);
+            result.AddRange(documentsWithAttribute);
         }
 
         private static bool IsPotentialReference(
@@ -75,32 +111,87 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
+
+            // First find all references to this type, either with it's actual name, or through potential
+            // global alises to it.
+            await AddReferencesToTypeOrGlobalAliasToItAsync(namedType, globalAliases, document, semanticModel, initialReferences, cancellationToken).ConfigureAwait(false);
+
+            // This named type may end up being locally aliased as well.  If so, now find all the references
+            // to the local alias.
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, namedType, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences, suppressionReferences);
+
+            initialReferences.AddRange(await FindLocalAliasReferencesAsync(
+                initialReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false));
+
+            initialReferences.AddRange(await FindPredefinedTypeReferencesAsync(
+                namedType, document, semanticModel, cancellationToken).ConfigureAwait(false));
+
+            initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                document, semanticModel, namedType, cancellationToken).ConfigureAwait(false));
+
+            return initialReferences.ToImmutable();
         }
 
-        internal static async ValueTask<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
-            INamedTypeSymbol symbol,
+        internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(
+            INamedTypeSymbol namedType,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
+            ArrayBuilder<FinderLocation> nonAliasReferences,
             CancellationToken cancellationToken)
         {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            await AddNonAliasReferencesAsync(
+                namedType, namedType.Name, document, semanticModel,
+                nonAliasReferences, cancellationToken).ConfigureAwait(false);
+
+            if (globalAliases != null)
+            {
+                foreach (var globalAlias in globalAliases)
+                {
+                    // ignore the cases where the global alias might match the type name (i.e.
+                    // global alias Console = System.Console).  We'll already find those references
+                    // above.
+                    if (syntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
+                        continue;
+
+                    await AddNonAliasReferencesAsync(
+                        namedType, globalAlias, document, semanticModel,
+                        nonAliasReferences, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
+        /// only if it referenced though <paramref name="name"/> (which might be the actual name
+        /// of the type, or a global alias to it).
+        /// </summary>
+        private static async ValueTask AddNonAliasReferencesAsync(
+            INamedTypeSymbol symbol,
+            string name,
+            Document document,
+            SemanticModel semanticModel,
+            ArrayBuilder<FinderLocation> nonAliasesReferences,
+            CancellationToken cancellationToken)
+        {
+            nonAliasesReferences.AddRange(await FindOrdinaryReferencesAsync(
+                symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false));
+
+            nonAliasesReferences.AddRange(await FindAttributeReferencesAsync(
+                symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false));
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
+            string name,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -113,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                namedType, namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
+                namedType, name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
@@ -137,14 +228,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
+            string name,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null, document.Project.Solution, cancellationToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(namedType, simpleName, document, semanticModel, symbolsMatch, cancellationToken)
+            return TryGetNameWithoutAttributeSuffix(name, syntaxFacts, out var nameWithoutSuffix)
+                ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, document, semanticModel, symbolsMatch, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }

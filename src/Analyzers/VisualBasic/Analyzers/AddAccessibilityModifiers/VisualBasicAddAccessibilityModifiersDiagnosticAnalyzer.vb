@@ -14,8 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
-        Private Shared ReadOnly Property SyntaxFacts As VisualBasicSyntaxFacts = VisualBasicSyntaxFacts.Instance
-
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
                 [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             Dim name As SyntaxToken = Nothing
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(SyntaxFacts, member, [option].Value, name) Then
+            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name) Then
                 Return
             End If
 

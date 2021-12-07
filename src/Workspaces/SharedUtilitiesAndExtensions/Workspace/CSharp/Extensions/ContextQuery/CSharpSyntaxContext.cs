@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLocalFunctionDeclarationContext;
 
         private CSharpSyntaxContext(
-            Workspace? workspace,
+            Document document,
             SemanticModel semanticModel,
             int position,
             SyntaxToken leftToken,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isFunctionPointerTypeArgumentContext,
             bool isLocalFunctionDeclarationContext,
             CancellationToken cancellationToken)
-            : base(workspace, semanticModel, position, leftToken, targetToken,
+            : base(document, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext, isPreProcessorExpressionContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         }
 
-        public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => CreateContextWorker(workspace, semanticModel, position, cancellationToken);
+        public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CreateContextWorker(document, semanticModel, position, cancellationToken);
 
-        private static CSharpSyntaxContext CreateContextWorker(Workspace? workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static CSharpSyntaxContext CreateContextWorker(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
 
             return new CSharpSyntaxContext(
-                workspace: workspace,
+                document: document,
                 semanticModel: semanticModel,
                 position: position,
                 leftToken: leftToken,
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
-                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, leftToken),
+                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, cancellationToken),
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
@@ -274,13 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
                 isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
                 cancellationToken: cancellationToken);
-        }
-
-        public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            var inferenceService = new CSharpTypeInferenceService();
-            _ = inferenceService.InferTypes(semanticModel, position, cancellationToken);
-            return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
         private static new bool IsWithinAsyncMethod()
@@ -385,9 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
-            => new CSharpTypeInferenceService();
-
         /// <summary>
         /// Is this a possible position for an await statement (`await using` or `await foreach`)?
         /// </summary>
@@ -437,6 +427,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (node.IsKind(SyntaxKind.QueryExpression))
                     {
+                        // There are some cases where "await" is allowed in a query context. See error CS1995 for details:
+                        // error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
+                        if (TargetToken.IsKind(SyntaxKind.InKeyword))
+                        {
+                            return TargetToken.Parent switch
+                            {
+                                FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause => queryExpression.FromClause == fromClause,
+                                JoinClauseSyntax => true,
+                                _ => false,
+                            };
+                        }
+
                         return false;
                     }
 

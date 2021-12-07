@@ -205,6 +205,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Table_Caches_Previous_Object_When_Modification_Considered_Cached()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
+            var previousTable = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added));
+            AssertTableEntries(previousTable, expected);
+
+            builder = previousTable.ToBuilder();
+            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default));           // ((1, EntryState.Cached))
+            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default));           // ((4, EntryState.Modified))
+            Assert.True(builder.TryModifyEntry(5, new LambdaComparer<int>((i, j) => true))); // ((3, EntryState.Cached))
+            var newTable = builder.ToImmutableAndFree();
+
+            expected = ImmutableArray.Create((1, EntryState.Cached), (4, EntryState.Modified), (3, EntryState.Cached));
+            AssertTableEntries(newTable, expected);
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;
@@ -408,8 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
-                    enableIncremental: true,
-                    disabledOutputs: IncrementalGeneratorOutputKind.None);
+                    disabledOutputs: IncrementalGeneratorOutputKind.None,
+                    runtime: TimeSpan.Zero);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
         }

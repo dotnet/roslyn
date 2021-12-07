@@ -4983,5 +4983,32 @@ class C<T> where T : class {}
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "C<short>").WithArguments("C<T>", "T", "short").WithLocation(3001, 14)
                 );
         }
+
+        [Fact]
+        public void GetSpeculativeAliasInfo_01()
+        {
+            var globalUsings1 = @"
+global using alias1 = C1;
+
+class C1 {}
+";
+
+            var source = @"
+class C2 {}
+";
+
+            var comp = CreateCompilation(new[] { globalUsings1, source }, parseOptions: TestOptions.RegularPreview);
+            var alias1 = SyntaxFactory.IdentifierName("alias1");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsExpression).ToTestDisplayString());
+            Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsTypeOrNamespace).ToTestDisplayString());
+
+            tree = comp.SyntaxTrees[1];
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsExpression).ToTestDisplayString());
+            Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsTypeOrNamespace).ToTestDisplayString());
+        }
     }
 }

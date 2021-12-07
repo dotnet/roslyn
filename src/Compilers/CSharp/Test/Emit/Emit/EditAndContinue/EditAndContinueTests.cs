@@ -39,6 +39,76 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         [Fact]
+        public void Diagnostics_Nullable()
+        {
+            var source0 = @"
+class C
+{
+    string _str;
+    C(int x) { _str = ""a""; }
+    static string F() => ""a"";
+}
+class D
+{
+    string _str = ""a"";
+}
+[A(""a"")]
+class A : System.Attribute
+{
+    public A(string x = ""a"") {}
+}
+";
+            var source1 = @"
+class C
+{
+    string _str;
+    C(int x) { }
+    static string F() => null;
+}
+class D
+{
+    string _str;
+}
+[A(null)]
+class A : System.Attribute
+{
+    public A(string x = null) {}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
+            var compilation1 = compilation0.WithSource(source1);
+
+            var ctorC0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors[0];
+            var ctorC1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors[0];
+            var ctorD0 = compilation0.GetMember<NamedTypeSymbol>("D").InstanceConstructors[0];
+            var ctorD1 = compilation1.GetMember<NamedTypeSymbol>("D").InstanceConstructors[0];
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var a0 = compilation0.GetMember<NamedTypeSymbol>("A");
+            var a1 = compilation1.GetMember<NamedTypeSymbol>("A");
+
+            using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
+
+            var diff1 = compilation1.EmitDifference(
+                EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, ctorC0, ctorC1),
+                    SemanticEdit.Create(SemanticEditKind.Update, ctorD0, ctorD1),
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1),
+                    SemanticEdit.Create(SemanticEditKind.Update, a0, a1)));
+
+            // Nullable diagnostics not reported, except for attribute and default parameter values. 
+            // The compiler doesn't have the necessary emit context when analyzing these.
+            diff1.EmitResult.Diagnostics.Verify(
+                // (12,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [A(null)]
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 4),
+                // (15,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public A(string x = null) {}
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 25));
+        }
+
+        [Fact]
         public void DeltaHeapsStartWithEmptyItem()
         {
             var source0 =
@@ -453,200 +523,177 @@ class Bad : Bad
         [Fact]
         public void ModifyMethod_WithAttributes1()
         {
-            var source0 =
-@"class C
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: @"
+class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
     static string F() { return null; }
-}";
-            var source1 =
-@"class C
+}",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("Main", "F", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*DescriptionAttribute*/".ctor");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 4);
+                    })
+
+                .AddGeneration(
+                    source: @"
+class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method"")]
     static string F() { return string.Empty; }
-}";
-            var source2 =
-@"[System.ComponentModel.Browsable(false)]
+}",
+                    edits: new[] { Edit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+                        g.VerifyMemberRefNames( /*DescriptionAttribute*/".ctor", /*String.*/"Empty");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 1);
+                        g.VerifyEncLog(new[]
+                        {
+                            Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default) // Row 4, so updating existing CustomAttribute
+                        });
+                        g.VerifyEncMap(new[]
+                        {
+                            Handle(7, TableIndex.TypeRef),
+                            Handle(8, TableIndex.TypeRef),
+                            Handle(9, TableIndex.TypeRef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MemberRef),
+                            Handle(7, TableIndex.MemberRef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.AssemblyRef)
+                        });
+                    })
+
+                // Add attribute to method, and to class
+                .AddGeneration(
+                    source: @"
+[System.ComponentModel.Browsable(false)]
 class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
-}";
-            var source3 =
-@"[System.ComponentModel.Browsable(false)]
+}",
+                    edits: new[] {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("C");
+                        g.VerifyMethodDefNames("F");
+                        g.VerifyMemberRefNames( /*DescriptionAttribute*/".ctor", /*BrowsableAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 3);
+                        g.VerifyEncLog(new[] {
+                            Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 4, updating the existing custom attribute
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 5, adding a new CustomAttribute
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default) // Row 6 adding a new CustomAttribute
+                        });
+                        g.VerifyEncMap(new[] {
+                            Handle(10, TableIndex.TypeRef),
+                            Handle(11, TableIndex.TypeRef),
+                            Handle(12, TableIndex.TypeRef),
+                            Handle(13, TableIndex.TypeRef),
+                            Handle(14, TableIndex.TypeRef),
+                            Handle(2, TableIndex.TypeDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(8, TableIndex.MemberRef),
+                            Handle(9, TableIndex.MemberRef),
+                            Handle(10, TableIndex.MemberRef),
+                            Handle(11, TableIndex.MemberRef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(3, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.AssemblyRef)
+                        });
+                    })
+
+                // Add attribute before existing attributes
+                .AddGeneration(
+                    source: @"
+[System.ComponentModel.Browsable(false)]
 class C
 {
     static void Main() { }
     [System.ComponentModel.Browsable(false), System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
-}";
-
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
-            var compilation3 = compilation2.WithSource(source3);
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-
-            // Verify full metadata contains expected rows.
-            var bytes0 = compilation0.EmitToArray();
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var reader0 = md0.MetadataReader;
-
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*DescriptionAttribute*/".ctor");
-
-            Assert.Equal(4, reader0.CustomAttributes.Count);
-
-            var generation0 = EmitBaseline.CreateInitialBaseline(
-                md0,
-                EmptyLocalsProvider);
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
-
-            // Verify delta metadata contains expected rows.
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
-
-            EncValidation.VerifyModuleMvid(1, reader0, reader1);
-
-            CheckNames(readers, reader1.GetTypeDefNames());
-            CheckNames(readers, reader1.GetMethodDefNames(), "F");
-            CheckNames(readers, reader1.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*String.*/"Empty");
-
-            Assert.Equal(1, reader1.CustomAttributes.Count);
-
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, so updating existing CustomAttribute
-
-            CheckEncMap(reader1,
-                Handle(7, TableIndex.TypeRef),
-                Handle(8, TableIndex.TypeRef),
-                Handle(9, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(6, TableIndex.MemberRef),
-                Handle(7, TableIndex.MemberRef),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
-
-            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, compilation1.GetMember("C"), compilation2.GetMember("C")),
-                    SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
-
-            // Verify delta metadata contains expected rows.
-            using var md2 = diff2.GetMetadata();
-            var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
-
-            CheckNames(readers, reader2.GetTypeDefNames(), "C");
-            CheckNames(readers, reader2.GetMethodDefNames(), "F");
-            CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*BrowsableAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
-
-            Assert.Equal(3, reader2.CustomAttributes.Count);
-
-            CheckEncLog(reader2,
-                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 4, updating the existing custom attribute
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 5, adding a new CustomAttribute
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 6 adding a new CustomAttribute
-
-            CheckEncMap(reader2,
-                Handle(10, TableIndex.TypeRef),
-                Handle(11, TableIndex.TypeRef),
-                Handle(12, TableIndex.TypeRef),
-                Handle(13, TableIndex.TypeRef),
-                Handle(14, TableIndex.TypeRef),
-                Handle(2, TableIndex.TypeDef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(8, TableIndex.MemberRef),
-                Handle(9, TableIndex.MemberRef),
-                Handle(10, TableIndex.MemberRef),
-                Handle(11, TableIndex.MemberRef),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(5, TableIndex.CustomAttribute),
-                Handle(6, TableIndex.CustomAttribute),
-                Handle(3, TableIndex.StandAloneSig),
-                Handle(3, TableIndex.AssemblyRef));
-
-            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
-            var diff3 = compilation3.EmitDifference(
-                diff2.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3)));
-
-            // Verify delta metadata contains expected rows.
-            using var md3 = diff3.GetMetadata();
-            var reader3 = md3.Reader;
-            readers = new[] { reader0, reader1, reader2, reader3 };
-
-            CheckNames(readers, reader3.GetTypeDefNames());
-            CheckNames(readers, reader3.GetMethodDefNames(), "F");
-            CheckNames(readers, reader3.GetMemberRefNames(), /*BrowsableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
-
-            CheckEncLog(reader3,
-                Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for the method being emitted
-
-            CheckEncMap(reader3,
-                Handle(15, TableIndex.TypeRef),
-                Handle(16, TableIndex.TypeRef),
-                Handle(17, TableIndex.TypeRef),
-                Handle(18, TableIndex.TypeRef),
-                Handle(19, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(12, TableIndex.MemberRef),
-                Handle(13, TableIndex.MemberRef),
-                Handle(14, TableIndex.MemberRef),
-                Handle(15, TableIndex.MemberRef),
-                Handle(4, TableIndex.CustomAttribute),
-                Handle(5, TableIndex.CustomAttribute),
-                Handle(7, TableIndex.CustomAttribute),
-                Handle(4, TableIndex.StandAloneSig),
-                Handle(4, TableIndex.AssemblyRef));
+}",
+                    edits: new[] {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("F");
+                        g.VerifyMemberRefNames( /*BrowsableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 3);
+                        g.VerifyEncLog(new[] {
+                            Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)  // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for the method being emitted
+                        });
+                        g.VerifyEncMap(new[] {
+                            Handle(15, TableIndex.TypeRef),
+                            Handle(16, TableIndex.TypeRef),
+                            Handle(17, TableIndex.TypeRef),
+                            Handle(18, TableIndex.TypeRef),
+                            Handle(19, TableIndex.TypeRef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(12, TableIndex.MemberRef),
+                            Handle(13, TableIndex.MemberRef),
+                            Handle(14, TableIndex.MemberRef),
+                            Handle(15, TableIndex.MemberRef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(4, TableIndex.StandAloneSig),
+                            Handle(4, TableIndex.AssemblyRef)
+                        });
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -1061,6 +1108,171 @@ class D
                 Handle(4, TableIndex.AssemblyRef));
         }
 
+        [Fact]
+        public void Lambda_Attributes()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(int a) => a</N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>[System.Obsolete](int a) => a</N:0>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+            CheckAttributes(reader0,
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(4, TableIndex.MemberRef)));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0");
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(8, TableIndex.MemberRef)));
+
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // row 5 = new custom attribute
+
+            CheckEncMapDefinitions(reader1,
+                Handle(1, TableIndex.MethodDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig));
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => a</N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => b</N:0>;
+
+        var y = <N:1>(int a, ref int b) => a</N:1>;
+
+        var z = <N:2>(int _1, int _2, int _3, int _4, int _5, int _6, ref int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { }</N:2>;
+    }
+}");
+            var source2 = MarkedSource(@"
+class C
+{
+    void F()
+    {
+        var x = <N:0>(ref int a, int b) => b</N:0>;
+
+        var y = <N:1>(int a, ref int b) => b</N:1>;
+
+        var z = <N:2>(int _1, int _2, int _3, int _4, int _5, int _6, ref int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, int _17, int _18, int _19, int _20, int _21, int _22, int _23, int _24, int _25, int _26, int _27, int _28, int _29, int _30, int _31, int _32, ref int _33) => { _1.ToString(); }</N:2>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>F{00000001}`3", "C", "<>c");       // <>F{00000001}`3 is the synthesized delegate for the lambda
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>A{00001000,00000001}`33", "<>F{00000004}`3");                              // new synthesized delegate for the new lambda
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", ".ctor", "Invoke", "<F>b__0_1#1", "<F>b__0_2#1");
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());                                     // No new delegate added, reusing from gen 0 and 1
+            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#1");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
+        }
+
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
@@ -1405,6 +1617,201 @@ delegate void D([A]int x);
                 Handle(4, TableIndex.CustomAttribute),
                 Handle(5, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
+        public void TypePropertyField_Attributes()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: @"
+enum E
+{
+    A
+}
+
+class C
+{
+    private int _x;
+    public int X { get; }
+}
+
+delegate int D(int x);
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "E", "C", "D");
+                        g.VerifyMethodDefNames("get_X", ".ctor", ".ctor", "Invoke", "BeginInvoke", "EndInvoke");
+                        g.VerifyPropertyDefNames("X");
+                        g.VerifyFieldDefNames("value__", "A", "_x", "<X>k__BackingField");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                    })
+
+                .AddGeneration(
+                    source: @"
+using System.ComponentModel;
+
+[Description(""E"")]
+enum E
+{
+    [Description(""A"")]
+    A
+}
+
+[Description(""C"")]
+class C
+{
+    [Description(""_x"")]
+    private int _x;
+    [Description(""X"")]
+    public int X { get; }
+}
+
+[Description(""D"")]
+delegate int D(int x);
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("D"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("E", "C", "D");
+                        g.VerifyMethodDefNames();
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                        g.VerifyCustomAttributes(new[]
+                        {
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(7, TableIndex.MemberRef)), // C.X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // E.A
+                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // E
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // C._x
+                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // C
+                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef))   // D
+                        });
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Constant, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(2, TableIndex.TypeDef),
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(2, TableIndex.Constant),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.MethodSemantics)
+                        });
+                    })
+
+                .AddGeneration(
+                    source: @"
+using System.ComponentModel;
+
+[Description(""E_2"")]
+enum E
+{
+    [Description(""A_2"")]
+    A
+}
+
+[Description(""C_2"")]
+class C
+{
+    [Description(""_x_2"")]
+    private int _x;
+    [Description(""X_2"")]
+    public int X { get; }
+}
+
+[Description(""D_2"")]
+delegate int D(int x);
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("D"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("E", "C", "D");
+                        g.VerifyMethodDefNames();
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                        g.VerifyCustomAttributes(new[]
+                        {
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(8, TableIndex.MemberRef)), // C.X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // E.A
+                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // E
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // C._x
+                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // C
+                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef))   // D
+                        });
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Constant, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),   // Same row numbers as previous gen
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(2, TableIndex.TypeDef),
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(3, TableIndex.Constant),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics)
+                        });
+                    })
+
+                .Verify();
         }
 
         /// <summary>
@@ -4525,7 +4932,7 @@ class C
 struct S
 {
     int a = 1;
-    int b;
+    int b = 2;
 }
 ";
             var source1 =
@@ -4533,11 +4940,11 @@ struct S
 struct S
 {
     int a = 1;
-    int b;
+    int b = 2;
 
     public S()
     {
-        b = 2;
+        b = 3;
     }
 }
 ";
@@ -7283,7 +7690,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "C.<>o__0#1: {<>p__0}",
-                "C: {<>o__0#1, <>c}",
+                "C: {<>c, <>o__0#1}",
                 "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3#1, <>9__0_4#1, <>9__0_3, <>9__0_6#1, <>9__0_4, <>9__0_5, <>9__0_6, <>9__0_10#1, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3#1, <F>b__0_4#1, <F>b__0_3, <F>b__0_6#1, <F>b__0_4, <F>b__0_5, <F>b__0_6, <F>b__0_10#1}",
                 "<>f__AnonymousType4<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
                 "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
@@ -11584,7 +11991,7 @@ public class Program
                     SemanticEdit.Create(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "Program: {<>c__DisplayClass2_0, <>c}",
+                "Program: {<>c, <>c__DisplayClass2_0}",
                 "Program.<>c__DisplayClass2_0: {x, <N>b__1}",
                 "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
@@ -11656,7 +12063,7 @@ public class Program
 
             diff2.VerifySynthesizedMembers(
                 "Program.<>c__DisplayClass2_0: {x, <N>b__1}",
-                "Program: {<>c__DisplayClass2_0, <>c}",
+                "Program: {<>c, <>c__DisplayClass2_0}",
                 "Program.<>c: {<>9__2_0, <N>b__2_0}");
 
             diff2.VerifyIL("Program.N()", @"

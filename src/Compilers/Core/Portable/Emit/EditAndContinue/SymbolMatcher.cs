@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
+                synthesizedDelegates: MapSynthesizedDelegates(baseline.SynthesizedDelegates),
                 synthesizedMembers: mappedSynthesizedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
@@ -103,13 +104,25 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
 
-            foreach (var pair in anonymousTypeMap)
+            foreach (var (key, value) in anonymousTypeMap)
             {
-                var key = pair.Key;
-                var value = pair.Value;
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
                 RoslynDebug.Assert(type != null);
                 result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+            }
+
+            return result;
+        }
+
+        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapSynthesizedDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates)
+        {
+            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+
+            foreach (var (key, value) in synthesizedDelegates)
+            {
+                var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
+                RoslynDebug.Assert(delegateTypeDef != null);
+                result.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
             }
 
             return result;

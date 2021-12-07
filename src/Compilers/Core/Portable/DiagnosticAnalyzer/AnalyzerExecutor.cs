@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -676,18 +677,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            CompilationEvent compilationUnitCompletedEvent,
+            CompilationUnitCompletedEvent compilationUnitCompletedEvent,
             AnalysisScope analysisScope,
             AnalysisState? analysisState,
             bool isGeneratedCode)
         {
+            Debug.Assert(!compilationUnitCompletedEvent.FilterSpan.HasValue || _isCompilerAnalyzer!(analyzer), "Only compiler analyzer supports span-based semantic model action callbacks");
+
             AnalyzerStateData? analyzerState = null;
 
             try
             {
                 if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisState, out analyzerState))
                 {
-                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, isGeneratedCode);
+                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, analysisScope, isGeneratedCode);
                     analysisState?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
                     return true;
                 }
@@ -705,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
             AnalyzerStateData? analyzerState,
+            AnalysisScope analysisScope,
             bool isGeneratedCode)
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -724,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic, _cancellationToken);
+                        isSupportedDiagnostic, analysisScope.FilterSpanOpt, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -1714,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == AnalyzerDriverExceptionDiagnosticId)
             {
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
+                foreach (var tag in diagnostic.Descriptor.ImmutableCustomTags)
                 {
                     if (tag == WellKnownDiagnosticTags.AnalyzerException)
                     {

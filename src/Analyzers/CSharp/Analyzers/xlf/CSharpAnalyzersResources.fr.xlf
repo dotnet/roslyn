@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
-        <target state="new">Convert to block scoped namespace</target>
+        <target state="translated">Convertir en namespace bloc inclus dans l'étendue</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_file_scoped_namespace">
         <source>Convert to file-scoped namespace</source>
-        <target state="new">Convert to file-scoped namespace</target>
+        <target state="translated">Convertir en namespace inclus dans l'étendue de fichier</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -99,12 +99,17 @@
       </trans-unit>
       <trans-unit id="Null_check_can_be_clarified">
         <source>Null check can be clarified</source>
-        <target state="new">Null check can be clarified</target>
+        <target state="translated">La vérification null peut être précisée</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Préférer la vérification « null » à la vérification de type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="new">Property pattern can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -130,6 +135,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Simplifier l'expression 'default'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="new">Simplify property pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -257,6 +267,11 @@
         <target state="translated">Utiliser les critères spéciaux</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">Utiliser la correspondance de modèle (peut modifier la signification du code)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Utiliser l'opérateur de plage</target>
@@ -270,6 +285,11 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="translated">Utiliser l'expression 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_tuple_to_swap_values">
+        <source>Use tuple to swap values</source>
+        <target state="new">Use tuple to swap values</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
-                Debug.Assert(statements.Count == 1 || statements.Count == 2);
+                Debug.Assert(statements.Count is 1 or 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
                 return Visit(statements[0]);
             }

@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -403,6 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return HasNameInMetadata ? _name : string.Empty;
             }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal ParameterAttributes Flags
@@ -810,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 switch (name)
                 {
                     case null:
-                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor }:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }:
                         // Invalid data, bail
                         builder.Free();
                         return default;

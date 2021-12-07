@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             // it could be null if the caller is invoked as arrow function
             var statementContainsInvocation = calleeInvocationNode.GetAncestors()
-                .TakeWhile(node => !_syntaxFacts.IsAnonymousFunction(node) && !_syntaxFacts.IsLocalFunction(node))
+                .TakeWhile(node => !_syntaxFacts.IsAnonymousFunctionExpression(node) && !_syntaxFacts.IsLocalFunctionStatement(node))
                 .FirstOrDefault(node => node is TStatementSyntax) as TStatementSyntax;
 
             var methodParametersInfo = await GetMethodParametersInfoAsync(
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     return fieldSymbol;
                 }
 
-                if (_syntaxFacts.IsAnonymousFunction(node))
+                if (_syntaxFacts.IsAnonymousFunctionExpression(node))
                 {
                     return semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
                 }

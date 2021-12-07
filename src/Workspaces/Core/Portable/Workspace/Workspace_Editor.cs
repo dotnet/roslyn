@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var newSolution = withTextDocumentTextLoader(oldSolution, documentId, reloader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);

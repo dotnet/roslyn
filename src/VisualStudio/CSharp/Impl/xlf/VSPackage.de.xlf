@@ -83,13 +83,14 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Inlinehinweise anzeigen;
+        <target state="translated">Neu zugewiesene Variablen unterstreichen;
+Inlinehinweise anzeigen;
 Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben;
 Zugehörige Komponenten unter dem Cursor markieren;
 Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
-Editor-Funktionsanalyse in externem Prozess ausführen ;
+Editor-Funktionsanalyse in externem Prozess ausführen;
 Navigation zu dekompilierten Quellen aktivieren;
 using-Anweisungen;
 Systemanweisungen beim Sortieren von using-Anweisungen an erster Stelle platzieren;
@@ -130,7 +131,8 @@ automatische Eigenschaften bevorzugen;
 regex;
 regulärer Ausdruck;
 Erweiterte Farben verwenden;
-Editor-Farbschema;</target>
+Editor-Farbschema;
+Vererbungsrand;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

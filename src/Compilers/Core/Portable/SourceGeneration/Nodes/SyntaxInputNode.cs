@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (state == EntryState.Removed)
                 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<SyntaxNode> nodes;
                     if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
                     {
-                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc, cancellationToken);
+                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
                         _filterTable.AddEntries(nodes, EntryState.Added);
                     }
 
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis
                     foreach (var node in nodes)
                     {
                         var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = ImmutableArray.Create(_owner._transformFunc(value, cancellationToken));
+                        var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntries(transformed, _owner._comparer))
+                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer))
                         {
-                            _transformTable.AddEntries(transformed, EntryState.Added);
+                            _transformTable.AddEntry(transformed, EntryState.Added);
                         }
                     }
                 }

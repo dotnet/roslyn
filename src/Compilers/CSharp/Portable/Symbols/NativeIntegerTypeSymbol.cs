@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> makeMembers(ImmutableArray<Symbol> underlyingMembers)
             {
                 var builder = ArrayBuilder<Symbol>.GetInstance();
-                builder.Add(new SynthesizedInstanceConstructor(this));
                 foreach (var underlyingMember in underlyingMembers)
                 {
                     Debug.Assert(_underlyingType.Equals(underlyingMember.ContainingSymbol));
@@ -101,6 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         default:
                                             builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                             break;
+                                    }
+                                    break;
+
+                                case MethodKind.Constructor:
+                                    if (underlyingMethod.ParameterCount == 0)
+                                    {
+                                        builder.Add(new NativeIntegerMethodSymbol(this, underlyingMethod, associatedSymbol: null));
                                     }
                                     break;
                             }

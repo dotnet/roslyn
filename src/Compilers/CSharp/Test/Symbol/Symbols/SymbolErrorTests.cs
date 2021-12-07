@@ -16508,22 +16508,7 @@ class A : Attribute
     public Type T;
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (6,8): warning CS8959: Type 'dynamic[]' cannot be used in this context because it cannot be represented in metadata.
-                // [A(T = typeof(dynamic[]))]     // Dev11 reports error, but this should be ok
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(dynamic[])").WithArguments("dynamic[]").WithLocation(6, 8),
-                // (7,8): warning CS8959: Type 'C<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // [A(T = typeof(C<dynamic>))]
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>)").WithArguments("C<dynamic>").WithLocation(7, 8),
-                // (8,8): warning CS8959: Type 'C<dynamic>[]' cannot be used in this context because it cannot be represented in metadata.
-                // [A(T = typeof(C<dynamic>[]))]
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>[])").WithArguments("C<dynamic>[]").WithLocation(8, 8),
-                // (9,8): warning CS8959: Type 'C<dynamic>.D[]' cannot be used in this context because it cannot be represented in metadata.
-                // [A(T = typeof(C<dynamic>.D[]))]
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>.D[])").WithArguments("C<dynamic>.D[]").WithLocation(9, 8),
-                // (10,8): warning CS8959: Type 'C<dynamic>.D*[]' cannot be used in this context because it cannot be represented in metadata.
-                // [A(T = typeof(C<dynamic>.D*[]))]
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(C<dynamic>.D*[])").WithArguments("C<dynamic>.D*[]").WithLocation(10, 8));
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [Fact]

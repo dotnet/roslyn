@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (m.Kind is SymbolKind.Field)
+                if (m.Kind is SymbolKind.Field && m is not TupleErrorFieldSymbol)
                 {
                     return true;
                 }

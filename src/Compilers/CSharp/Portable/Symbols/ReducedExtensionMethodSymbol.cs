@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                compilation,
                 conversions,
                 method,
                 arguments.AsImmutable(),

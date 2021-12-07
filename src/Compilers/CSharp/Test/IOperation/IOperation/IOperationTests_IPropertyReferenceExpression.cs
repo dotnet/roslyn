@@ -269,7 +269,7 @@ IPropertyReferenceOperation: C C.this[System.Int32 i] { get; set; } (OperationKi
   Instance Receiver: 
     IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
       Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+          IOperation:  (OperationKind.None, Type: C, IsInvalid) (Syntax: 'C')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -309,7 +309,7 @@ IPropertyReferenceOperation: C C.this[System.Int32 i] { get; set; } (OperationKi
   Instance Receiver: 
     IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
       Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
+          IOperation:  (OperationKind.None, Type: C, IsInvalid) (Syntax: 'C')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')

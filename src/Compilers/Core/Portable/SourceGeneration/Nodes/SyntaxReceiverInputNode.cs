@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (_walker is object && state != EntryState.Removed)
                 {
                     Debug.Assert(model is object);
                     try
                     {
-                        _walker.VisitWithModel(model, root);
+                        _walker.VisitWithModel(model, root.Value);
                     }
                     catch (Exception e)
                     {

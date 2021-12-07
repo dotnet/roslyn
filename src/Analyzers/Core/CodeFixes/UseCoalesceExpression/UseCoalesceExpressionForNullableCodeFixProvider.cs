@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
@@ -36,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -50,11 +46,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 

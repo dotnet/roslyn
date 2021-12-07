@@ -344,6 +344,9 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
                         case ErrorCode.WRN_AnalyzerReferencesFramework:
+                        case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                        case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                        case ErrorCode.WRN_MethGrpToNonDel:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -367,7 +370,6 @@ class X
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_PartialMethodTypeDifference:
-                        case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -432,8 +434,7 @@ class X
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
-                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
-                    ErrorCode.WRN_AttrDependentTypeNotAllowed,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

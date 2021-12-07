@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static IEnumerable<BaseNamespaceDeclarationSyntax> GetNamespacesToReplace(Document document, CompilationUnitSyntax root, DocumentOptionSet optionSet)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsNamespaceDeclaration(node)).OfType<BaseNamespaceDeclarationSyntax>();
+            var declarations = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>();
 
-            foreach (var declaration in typeDeclarations)
+            foreach (var declaration in declarations)
             {
                 // Passing in forAnalyzer: true means we'll only get a result if the declaration doesn't match the preferences
                 if (ConvertNamespaceAnalysis.CanOfferUseBlockScoped(optionSet, declaration, forAnalyzer: true) ||

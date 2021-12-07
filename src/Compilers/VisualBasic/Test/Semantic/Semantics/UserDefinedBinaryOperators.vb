@@ -2804,6 +2804,145 @@ BC33010: 'operator' parameters cannot be declared 'Optional'.
 </expected>)
         End Sub
 
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_1()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of C(Of T), C(Of T), C(Of T)))) =
+            Function ()
+                Return Function(x, y) x AndAlso y
+            End Function
+            
+        func().Compile()(Nothing, Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    
+    Public Shared Operator IsTrue(c As C(Of T)) As Boolean
+        Console.Write("1")
+        Return False
+    End Operator
+    
+    Public Shared Operator IsFalse(c As C(Of T)) As Boolean
+        Console.Write("2")
+        Return False
+    End Operator
+
+    Public Shared Operator And(c1 As C(Of T), c2 As C(Of T)) As C(Of T)
+        Console.Write("3")
+        Return c1
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="23")
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_2()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of C(Of T), C(Of T), C(Of T)))) =
+            Function ()
+                Return Function(x, y) x OrElse y
+            End Function
+            
+        func().Compile()(Nothing, Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    
+    Public Shared Operator IsTrue(c As C(Of T)) As Boolean
+        Console.Write("1")
+        Return False
+    End Operator
+    
+    Public Shared Operator IsFalse(c As C(Of T)) As Boolean
+        Console.Write("2")
+        Return False
+    End Operator
+
+    Public Shared Operator Or(c1 As C(Of T), c2 As C(Of T)) As C(Of T)
+        Console.Write("3")
+        Return c1
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="13")
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedBinaryOperatorInGenericExpressionTree_3()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of C(Of T), C(Of T), C(Of T)))) =
+            Function ()
+                Return Function(x, y) x + y
+            End Function
+            
+        func().Compile()(Nothing, Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    Public Shared Operator +(c1 As C(Of T), c2 As C(Of T)) As C(Of T)
+        Console.Write("Run")
+        Return c1
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="Run")
+        End Sub
+
     End Class
 
 End Namespace

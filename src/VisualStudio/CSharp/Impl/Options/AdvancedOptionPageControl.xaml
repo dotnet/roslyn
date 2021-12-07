@@ -27,6 +27,18 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
+                    <StackPanel>
+                        <CheckBox x:Name="DisplayDiagnosticsInline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="at_the_end_of_the_line_of_code"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="on_the_right_edge_of_the_editor_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                        </StackPanel>
+                    </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     
@@ -224,7 +236,7 @@
             </GroupBox>
 
             <GroupBox x:Uid="InlineHintsGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints}">
                 <StackPanel>
                     <CheckBox x:Name="DisplayAllHintsWhilePressingAltF1"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Alt_F1}" />
@@ -261,6 +273,10 @@
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  x:Name="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_argument_matches_parameter_name}" />
                     </StackPanel>
                     
                     <CheckBox x:Name="DisplayInlineTypeHints"
@@ -280,11 +296,14 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin_experimental}">
+            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
                               x:Name="ShowInheritanceMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
+                    <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
+                              x:Name="InheritanceMarginCombinedWithIndicatorMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -132,6 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
+        public static bool IsValidNullableTypeArgument(this TypeSymbol type)
+        {
+            return type is { IsValueType: true }
+                   && !type.IsNullableType()
+                   && !type.IsPointerOrFunctionPointer()
+                   && !type.IsRestrictedType();
+        }
+
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
         {
             return type.GetNullableUnderlyingTypeWithAnnotations().Type;
@@ -383,34 +391,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// return true if the type is constructed from System.Linq.Expressions.Expression`1
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter.
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol type)
         {
             return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && isGenericType;
         }
 
+        /// <summary>
+        /// Returns true if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
         public static bool IsNonGenericExpressionType(this TypeSymbol type)
         {
             return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && !isGenericType;
         }
 
+        /// <summary>
+        /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
+        /// with one type parameter, or if the type is a non-generic type named "System.Linq.Expressions.Expression"
+        /// or "System.Linq.Expressions.LambdaExpression".
+        /// </summary>
         public static bool IsGenericOrNonGenericExpressionType(this TypeSymbol _type, out bool isGenericType)
         {
-            if (_type.OriginalDefinition is NamedTypeSymbol type &&
-                type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName))
+            if (_type.OriginalDefinition is NamedTypeSymbol type)
             {
-                if (type.Arity == 0)
+                switch (type.Name)
                 {
-                    isGenericType = false;
-                    return true;
-                }
-                if (type.Arity == 1 &&
-                    type.MangleName)
-                {
-                    isGenericType = true;
-                    return true;
+                    case "Expression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName))
+                        {
+                            if (type.Arity == 0)
+                            {
+                                isGenericType = false;
+                                return true;
+                            }
+                            if (type.Arity == 1 &&
+                                type.MangleName)
+                            {
+                                isGenericType = true;
+                                return true;
+                            }
+                        }
+                        break;
+                    case "LambdaExpression":
+                        if (IsNamespaceName(type.ContainingSymbol, s_expressionsNamespaceName) &&
+                            type.Arity == 0)
+                        {
+                            isGenericType = false;
+                            return true;
+                        }
+                        break;
                 }
             }
             isGenericType = false;
@@ -446,8 +478,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
-        private static bool CheckFullName(Symbol symbol, string[] names)
+        private static bool IsNamespaceName(Symbol symbol, string[] names)
         {
+            if (symbol.Kind != SymbolKind.Namespace)
+            {
+                return false;
+            }
+
             for (int i = 0; i < names.Length; i++)
             {
                 if ((object)symbol == null || symbol.Name != names[i]) return false;
@@ -466,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
             var invokeMethod = type.DelegateInvokeMethod();
-            if ((object)invokeMethod == null)
+            if (invokeMethod is null)
             {
                 return default(ImmutableArray<ParameterSymbol>);
             }
@@ -499,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
+        public static MethodSymbol? DelegateInvokeMethod(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
             RoslynDebug.Assert(type.IsDelegateType() || type.IsExpressionTree());

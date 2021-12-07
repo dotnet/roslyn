@@ -155,6 +155,56 @@ var (a1, a3) = (1, () => { return 8; });
         }
 
         [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed1()
+        {
+            var src1 = @"int a; (var z1, a) = (1, 2);";
+            var src2 = @"int a; (var z1, a, var z3) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, a) = (1, 2);]@9 -> [(var z1, a, var z3) = (1, 2, 5);]@9",
+                "Insert [z3]@25");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed2()
+        {
+            var src1 = @"int a; (var z1, var z2) = (1, 2);";
+            var src2 = @"int a; (var z1, var z2, a) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, var z2) = (1, 2);]@9 -> [(var z1, var z2, a) = (1, 2, 5);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed1()
+        {
+            var src1 = @"int a; (var y1, var y2, a) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, var y2) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, var y2, a) = (1, 2, 7);]@9 -> [(var y1, var y2) = (1, 4);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed2()
+        {
+            var src1 = @"int a; (var y1, a, var y3) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, a) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, a, var y3) = (1, 2, 7);]@9 -> [(var y1, a) = (1, 4);]@9",
+                "Delete [y3]@25");
+        }
+
+        [Fact]
         public void VariableDeclaraions_Reorder()
         {
             var src1 = @"var (a, b) = (1, 2); var (c, d) = (3, 4);";
@@ -164,6 +214,18 @@ var (a1, a3) = (1, () => { return 8; });
 
             edits.VerifyEdits(
                 "Reorder [var (c, d) = (3, 4);]@23 -> @2");
+        }
+
+        [Fact]
+        public void VariableDeclaraions_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2); (int c, int d) = (3, 4);";
+            var src2 = @"int a; (int c, int d) = (3, 4); (a, int b) = (1, 2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [(int c, int d) = (3, 4);]@30 -> @9");
         }
 
         [Fact]
@@ -177,6 +239,18 @@ var (a1, a3) = (1, () => { return 8; });
             edits.VerifyEdits(
                 "Update [var (a, b) = (1, 2);]@2 -> [var (b, a) = (2, 1);]@2",
                 "Reorder [b]@10 -> @7");
+        }
+
+        [Fact]
+        public void VariableNames_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2);";
+            var src2 = @"int a; (int b, a) = (2, 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a, int b) = (1, 2);]@9 -> [(int b, a) = (2, 1);]@9");
         }
 
         [Fact]
@@ -1900,6 +1974,29 @@ foreach (var (a, b) in e1) { }
         #region Lambdas
 
         [Fact]
+        public void Lambdas_AddAttribute()
+        {
+            var src1 = "Func<int, int> x = (a) => a;";
+            var src2 = "Func<int, int> x = [A][return:A]([A]a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a) => a]@21 -> [[A][return:A]([A]a) => a]@21",
+                "Update [a]@22 -> [[A]a]@35");
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter));
+
+            GetTopEdits(edits).VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
         public void Lambdas_InVariableDeclarator()
         {
             var src1 = "Action x = a => a, y = b => b;";
@@ -3047,6 +3144,18 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Signature_ReturnType2()
+        {
+            var src1 = "var x = int (int a) => a;";
+            var src2 = "var x = long (int a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int a)", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -7045,6 +7154,51 @@ class Program
         }
 
         [Fact]
+        public void LocalFunctions_Update()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            if (x > 3)
+            {
+                x.ToString();
+            }
+            else
+            {
+                N(x - 1);
+            }
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            Console.WriteLine(""Hello"");
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
         public void LocalFunction_In_Parameter_InsertWhole()
         {
             var src1 = @"class Test { void M() { } }";
@@ -7618,7 +7772,6 @@ interface I
                 "Reorder [B]@11 -> @9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
@@ -7634,7 +7787,6 @@ interface I
                 "Update [A]@9 -> [C]@11");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 

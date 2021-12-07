@@ -5140,7 +5140,7 @@ using System.Threading.Tasks;
 
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main(string[] args)
     {
@@ -5159,16 +5159,15 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (7,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
-                // class Program
-                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(7, 7),
-                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                // (9,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static void Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(9, 17),
-                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(9, 17),
+                // (14,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(14, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(14, 23)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -5181,7 +5180,7 @@ using System.Threading.Tasks;
 await Task.Factory.StartNew(() => 5);
 System.Console.Write(""Hi!"");
 
-class Program
+class Program2
 {
     static void Main()
     {
@@ -5199,16 +5198,15 @@ class Program
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (8,7): error CS0260: Missing partial modifier on declaration of type 'Program'; another partial declaration of this type exists
-                // class Program
-                Diagnostic(ErrorCode.ERR_MissingPartial, "Program").WithArguments("Program").WithLocation(8, 7),
-                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main()' entry point.
+                // (10,17): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main()' entry point.
                 //     static void Main()
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main()").WithLocation(10, 17),
-                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point.
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main()").WithLocation(10, 17),
+                // (15,23): warning CS7022: The entry point of the program is global code; ignoring 'Program2.Main(string[])' entry point.
                 //     static async Task Main(string[] args)
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program.Main(string[])").WithLocation(15, 23)
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Program2.Main(string[])").WithLocation(15, 23)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -5266,16 +5264,23 @@ class Helpers
         public void ExplicitMain_10()
         {
             var text = @"
-System.Console.Write(42);
+using System.Threading.Tasks;
 
-partial class Program
+System.Console.Write(""Hi!"");
+
+class Program2
 {
     static void Main()
     {
     }
+
+    static async Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => 5);
+    }
 }
 
-class Program2
+class Program3
 {
     static void Main(string[] args)
     {
@@ -5283,11 +5288,14 @@ class Program2
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program2"), parseOptions: DefaultParseOptions);
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
+                // (12,23): warning CS8892: Method 'Program2.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program2.Main()' was found.
+                //     static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program2.Main(string[])", "Program2.Main()").WithLocation(12, 23)
                 );
         }
 
@@ -7738,7 +7746,9 @@ return;
   <methods>
     <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""33"" offset=""76"" />
@@ -7757,6 +7767,10 @@ return;
         <entry offset=""0xa9"" hidden=""true"" document=""1"" />
         <entry offset=""0xc1"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xd6"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
         <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
@@ -7801,7 +7815,9 @@ return 11;
   <methods>
     <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""20"" offset=""2"" />
@@ -7821,6 +7837,10 @@ return 11;
         <entry offset=""0xac"" hidden=""true"" document=""1"" />
         <entry offset=""0xc6"" hidden=""true"" document=""1"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xdc"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
         <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />

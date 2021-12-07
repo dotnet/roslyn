@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
+    internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind.IsPropertyAccessor();
@@ -30,8 +31,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol, Project project, IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
+            Project project,
+            IImmutableSet<Document>? documents,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
         {
             // First, find any documents with the full name of the accessor (i.e. get_Goo).
             // This will find explicit calls to the method (which can happen when C# references
@@ -46,18 +51,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // referenced.  So we also need to include documents with our property's name. Just
                 // defer to the Property finder to find these docs and combine them with the result.
                 propertyDocuments = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
-                    property, project, documents,
+                    property, globalAliases, project, documents,
                     options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
             }
 
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
             return documentsWithName.Concat(propertyDocuments, documentsWithGlobalAttributes);
         }
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol symbol, Document document, SemanticModel semanticModel,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
+            Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
@@ -66,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, document, semanticModel,
+                    property, globalAliases, document, semanticModel,
                     options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
 

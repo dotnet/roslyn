@@ -295,7 +295,7 @@ class C
         }
 
         [Fact]
-        public void Syntax_Receiver_Is_Not_Reused_Between_Invocations()
+        public void Syntax_Receiver_Is_Not_Reused_Between_Non_Cached_Invocations()
         {
             var source = @"
 class C 
@@ -333,6 +333,10 @@ class C
             Assert.Equal(1, testReceiver.Tag);
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
+
+            // update the compilation. In v1 we always re-created the receiver, but in v2 we only re-create
+            // it if the compilation has changed.
+            compilation = compilation.WithAssemblyName("modified");
 
             var previousReceiver = receiver;
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
@@ -1320,6 +1324,16 @@ class C
     string fieldC = null;
 }
 ";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldD = null; 
+    string fieldE = null;
+    string fieldF = null;
+}
+";
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
@@ -1328,7 +1342,7 @@ class C
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => true));
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     calledFor.Add(fieldName);
@@ -1339,11 +1353,13 @@ class C
             driver = driver.RunGenerators(compilation);
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
 
-            // when we run it again, we get the same fields called for
-            // even though they were cached, because of our comparer
+            // make a change to the syntax tree
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
+
+            // when we run it again, we get no output because the comparer has suppressed the modification
             calledFor.Clear();
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
+            Assert.Empty(calledFor);
         }
 
         [Fact]
@@ -1397,6 +1413,16 @@ class C
     string fieldC = null;
 }
 ";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldD = null; 
+    string fieldE = null;
+    string fieldF = null;
+}
+";
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
@@ -1419,7 +1445,7 @@ class C
                     noCompareCalledFor.Add(fieldName);
                 });
 
-                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => true));
                 context.RegisterSourceOutput(comparerSource, (spc, fieldName) =>
                 {
                     compareCalledFor.Add(fieldName);
@@ -1434,14 +1460,17 @@ class C
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, noCompareCalledFor);
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
 
-            // now, when we re-run, both transforms will run, but only the comparer output will re-run
+            // make a change to the syntax tree
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
+
+            // now, when we re-run, both transforms will run, but the comparer will suppress the modified output
             syntaxCalledFor.Clear();
             noCompareCalledFor.Clear();
             compareCalledFor.Clear();
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
-            Assert.Empty(noCompareCalledFor);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
+            Assert.Equal(new[] { "fieldD", "fieldE", "fieldF", "fieldD", "fieldE", "fieldF" }, syntaxCalledFor);
+            Assert.Equal(new[] { "fieldD", "fieldE", "fieldF" }, noCompareCalledFor);
+            Assert.Empty(compareCalledFor);
         }
 
         [Fact]

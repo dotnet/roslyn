@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
-        protected void NavigateToPosition(Workspace workspace, DocumentId? documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+        protected void NavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             ITextVersion textVersion,
             CancellationToken cancellationToken)
         {
-            // If the item points to a location in this document, then just determine the current location
-            // of that item and go directly to it.
-            var navigationSpan = item.TryGetNavigationSpan(textVersion);
-            if (navigationSpan != null)
+            if (symbolItem.Location.InDocumentInfo != null)
             {
-                return Task.FromResult((document.Id, navigationSpan.Value.Start, 0));
+                // If the item points to a location in this document, then just determine the where that span currently
+                // is (in case recent edits have moved it) and navigate there.
+                var navigationSpan = item.GetCurrentItemSpan(textVersion, symbolItem.Location.InDocumentInfo.Value.navigationSpan);
+                return Task.FromResult((document.Id, navigationSpan.Start, 0));
             }
             else
             {

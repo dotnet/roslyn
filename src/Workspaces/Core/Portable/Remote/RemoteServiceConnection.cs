@@ -12,20 +12,6 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Abstracts a connection to a legacy remote service.
-    /// </summary>
-    internal abstract class RemoteServiceConnection : IDisposable
-    {
-        public abstract void Dispose();
-
-        public abstract Task RunRemoteAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
-        public abstract Task<T> RunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken);
-
-        public Task<T> RunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-            => RunRemoteAsync<T>(targetName, solution, arguments, dataReader: null, cancellationToken);
-    }
-
-    /// <summary>
     /// Abstracts a connection to a service implementing type <typeparamref name="TService"/>.
     /// </summary>
     /// <typeparam name="TService">Remote interface type of the service.</typeparam>

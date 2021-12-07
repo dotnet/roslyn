@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -99,6 +97,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                Contract.ThrowIfNull(statement);
+
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
                 semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(editor.OriginalRoot, currentRoot);

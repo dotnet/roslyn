@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             // able to create the right sort of block body (i.e. with a return-statement or
             // expr-statement).  So, if we can't figure out what lambda type this is, we should not
             // proceed.
-            if (!(semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is INamedTypeSymbol lambdaType) || lambdaType.DelegateInvokeMethod == null)
+            if (semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is not INamedTypeSymbol lambdaType || lambdaType.DelegateInvokeMethod == null)
             {
                 return false;
             }

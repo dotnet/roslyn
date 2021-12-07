@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private sealed class UnidirectionalSymbolSet : SymbolSet
         {
-            private readonly HashSet<ISymbol> _initialAndDownSymbols;
+            private readonly MetadataUnifyingSymbolHashSet _initialAndDownSymbols;
 
             /// <summary>
             /// When we're doing a unidirectional find-references, the initial set of up-symbols can never change.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             private readonly ImmutableHashSet<ISymbol> _upSymbols;
 
-            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
+            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet initialSymbols, HashSet<ISymbol> upSymbols)
                 : base(engine)
             {
                 _initialAndDownSymbols = initialSymbols;

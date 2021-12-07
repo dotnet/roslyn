@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -24,32 +27,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSourceExperimental
+        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
         {
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
-                : base(threadingContext, owner, textView, textBuffer, suggestedActionCategoryRegistry)
+                : base(threadingContext, globalOptions, owner, textView, textBuffer, suggestedActionCategoryRegistry)
             {
             }
 
-            public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
+            public async Task GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+                using var _ = ArrayBuilder<ISuggestedActionSetCollector>.GetInstance(out var completedCollectors);
+                try
+                {
+                    await GetSuggestedActionsWorkerAsync(
+                        requestedActionCategories, range, collectors, completedCollectors, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Always ensure that all the collectors are marked as complete so we don't hang the UI.
+                    foreach (var collector in collectors)
+                    {
+                        if (!completedCollectors.Contains(collector))
+                            collector.Complete();
+                    }
+                }
+            }
 
+            private async Task GetSuggestedActionsWorkerAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
+                CancellationToken cancellationToken)
+            {
+                AssertIsForeground();
                 using var state = SourceState.TryAddReference();
                 if (state is null)
-                    yield break;
+                    return;
 
                 var workspace = state.Target.Workspace;
                 if (workspace is null)
-                    yield break;
+                    return;
 
                 var selection = TryGetCodeRefactoringSelection(state, range);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -58,21 +87,70 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document is null)
-                        yield break;
+                        return;
 
-                    // Compute and return the high pri set of fixes and refactorings first so the user
-                    // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in highPriSet)
-                        yield return set;
+                    // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
+                    // this as each priority level will both sort and inline actions.  However, we don't want to
+                    // inline actions at each priority if it's going to make the total number of actions too high.
+                    // This does mean we might inline actions from a higher priority group, and then disable 
+                    // inlining for lower pri groups.  However, intuitively, that is what we want.  More important
+                    // items should be pushed higher up, and less important items shouldn't take up that much space.
+                    var currentActionCount = 0;
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in lowPriSet)
-                        yield return set;
+                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+
+                    // Collectors are in priority order.  So just walk them from highest to lowest.
+                    foreach (var collector in collectors)
+                    {
+                        var priority = collector.Priority switch
+                        {
+                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
+                            _ => (CodeActionRequestPriority?)null,
+                        };
+
+                        if (priority != null)
+                        {
+                            var allSets = GetCodeFixesAndRefactoringsAsync(
+                                state, requestedActionCategories, document,
+                                range, selection,
+                                addOperationScope: _ => null,
+                                priority.Value,
+                                currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                            await foreach (var set in allSets)
+                            {
+                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
+                                {
+                                    // if we're processing the high pri bucket, but we get action sets for lower pri
+                                    // groups, then keep track of them and add them in later when we get to that group.
+                                    lowPrioritySets.Add(set);
+                                }
+                                else
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
+                            }
+
+                            if (priority == CodeActionRequestPriority.Normal)
+                            {
+                                // now, add any low pri items we've been waiting on to the final group.
+                                foreach (var set in lowPrioritySets)
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
+                            }
+                        }
+
+                        // Ensure we always complete the collector even if we didn't add any items to it.
+                        // This ensures that we unblock the UI from displaying all the results for that
+                        // priority class.
+                        collector.Complete();
+                        completedCollectors.Add(collector);
+                    }
                 }
             }
 
@@ -84,6 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
+                int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
@@ -93,42 +172,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
-                    state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                if (priority == CodeActionRequestPriority.High)
-                {
-                    // in a high pri scenario, return data as soon as possible so that the user can interact with them.
-                    // this is especially important for state-machine oriented refactorings (like rename) where the user
-                    // should always have access to them effectively synchronously.
-                    var firstTask = await Task.WhenAny(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    var secondTask = firstTask == fixesTask ? refactoringsTask : fixesTask;
+                await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 
-                    var orderedTasks = new[] { firstTask, secondTask };
-                    foreach (var task in orderedTasks)
-                    {
-                        if (task == fixesTask)
-                        {
-                            var fixes = await fixesTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, ImmutableArray<UnifiedSuggestedActionSet>.Empty))
-                                yield return set;
-                        }
-                        else
-                        {
-                            Contract.ThrowIfFalse(task == refactoringsTask);
-
-                            var refactorings = await refactoringsTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, ImmutableArray<UnifiedSuggestedActionSet>.Empty, refactorings))
-                                yield return set;
-                        }
-                    }
-                }
-                else
-                {
-                    var actionsArray = await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: actionsArray[0], refactorings: actionsArray[1]))
-                        yield return set;
-                }
+                var fixes = await fixesTask.ConfigureAwait(false);
+                var refactorings = await refactoringsTask.ConfigureAwait(false);
+                foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, refactorings, currentActionCount))
+                    yield return set;
             }
         }
     }

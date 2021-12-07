@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 && x.Id == y.Id
                 && x.IsEnabledByDefault == y.IsEnabledByDefault
                 && x.Title!.Equals(y.Title)
-                && x.CustomTags.SequenceEqual(y.CustomTags));
+                && x.ImmutableCustomTags.SequenceEqual(y.ImmutableCustomTags));
         }
 
         public int GetHashCode(DiagnosticDescriptor obj)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(obj.Id!.GetHashCode(),
                 Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
                 Hash.Combine(obj.Title!.GetHashCode(),
-                Hash.CombineValues(obj.CustomTags))))))));
+                Hash.CombineValues(obj.ImmutableCustomTags))))))));
         }
     }
 }

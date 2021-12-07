@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Dim cursorPosition = document.CursorPosition.Value
 
             view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, cursorPosition))
-            Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
+            Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
         End Function
 
         Private Shared Function GetWorkspace(code As String) As TestWorkspace
@@ -62,10 +63,10 @@ End Class
 Interface IGoo
     Sub TestSub()
 End Interface")
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)))
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic), False)
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()

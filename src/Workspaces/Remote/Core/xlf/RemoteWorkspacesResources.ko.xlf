@@ -17,6 +17,11 @@
         <target state="translated">CodeLens 참조</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="new">Project semantics availability</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">튜플을 구조체 리팩터링으로 변환</target>
@@ -87,6 +92,11 @@
         <target state="translated">탐색 모음</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">프로세스 원격 측정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">프로젝트 원격 분석 컬렉션</target>
@@ -112,6 +122,11 @@
         <target state="translated">자산 공급자</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
         <target state="translated">기호 찾기</target>
@@ -134,7 +149,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">값 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

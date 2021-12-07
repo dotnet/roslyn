@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
+                synthesizedDelegates: ((IPEDeltaAssemblyBuilder)module).GetSynthesizedDelegates(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
                 debugInformationProvider: _previousGeneration.DebugInformationProvider,

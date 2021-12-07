@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -33,18 +34,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly CompletionHelper _defaultCompletionHelper;
 
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
         /// For telemetry.
         /// </summary>
         private readonly object _targetTypeCompletionFilterChosenMarker = new();
 
-        internal ItemManager(RecentItemsManager recentItemsManager)
+        internal ItemManager(RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
         {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
             _recentItemsManager = recentItemsManager;
+            _globalOptions = globalOptions;
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We need to filter if 
             // 1. a non-empty strict subset of filters are selected
             // 2. a non-empty set of expanders are unselected
-            var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => !(f.Filter is CompletionExpander));
+            var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => f.Filter is not CompletionExpander);
 
             var selectedNonExpanderFilters = nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
             var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();
-            var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
+            var completionRules = completionService?.GetRules(CompletionOptions.From(document!.Project)) ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
             // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
@@ -174,8 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            var options = document?.Project.Solution.Options;
-            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document?.Project.Language) ?? false;
+            var highlightMatchingPortions = _globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, document?.Project.Language);
             // Nothing to highlight if user hasn't typed anything yet.
             highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // to `MatchResult` to achieve this.
                 initialListOfItemsToBeIncluded.Sort(MatchResult<VSCompletionItem>.SortingComparer);
 
-                var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document?.Project.Language) ?? true;
+                var showCompletionItemFilters = _globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, document?.Project.Language);
 
                 var updatedFilters = showCompletionItemFilters
                     ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
@@ -242,10 +244,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
                 if (completionService == null)
                 {
-                    filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
+                    filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches, text);
                 }
                 else
                 {
+                    Contract.ThrowIfNull(document);
                     filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
                 }
 
@@ -578,14 +581,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         /// <summary>
         /// Given multiple possible chosen completion items, pick the one that has the
-        /// best MRU index.
+        /// best MRU index, or the one with highest MatchPriority if none in MRU.
         /// </summary>
         private static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
             ImmutableArray<RoslynCompletionItem> chosenItems, ImmutableArray<string> recentItems)
         {
+            Debug.Assert(chosenItems.Length > 0);
+
             // Try to find the chosen item has been most recently used.
-            var bestItem = chosenItems.First();
-            for (int i = 0, n = chosenItems.Length; i < n; i++)
+            var bestItem = chosenItems[0];
+            for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
                 var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);

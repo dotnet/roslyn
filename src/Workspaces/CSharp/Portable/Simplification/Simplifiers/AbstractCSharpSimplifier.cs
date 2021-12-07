@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 symbol = symbol.ContainingType;
             }
 
-            if (node is QualifiedNameSyntax || node is AliasQualifiedNameSyntax)
+            if (node is QualifiedNameSyntax or AliasQualifiedNameSyntax)
             {
                 SyntaxAnnotation aliasAnnotationInfo = null;
 
@@ -239,6 +239,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     existingVal != aliasName)
                 {
                     return false;
+                }
+            }
+
+            // If something is dotting off the node we need to make sure the name couldn't
+            // be a different symbol that has a different type to the alias.
+            if (node.IsLeftSideOfDot())
+            {
+                var aliasIdentifier = SyntaxFactory.IdentifierName(aliasName);
+
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsExpression);
+                if (symbolInfo.Symbol is not INamespaceOrTypeSymbol)
+                {
+                    // We bound the alias to something other than a namespace or a type, which is normally not good, but if the
+                    // types are the same then it is okay.
+                    var typeInfo = semanticModel.GetSpeculativeTypeInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsExpression);
+                    if (!symbol.Equals(typeInfo.Type))
+                    {
+                        return false;
+                    }
                 }
             }
 
