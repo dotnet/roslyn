@@ -2666,16 +2666,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (destination is FunctionTypeSymbol destinationFunctionType)
             {
-                if (!HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo))
-                {
-                    return false;
-                }
+                return HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo);
             }
-            else if (!IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo))
-            {
-                return false;
-            }
-            return source.GetInternalDelegateType() is { };
+
+            return IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo) &&
+                source.GetInternalDelegateType() is { };
         }
 
         internal bool IsValidFunctionTypeConversionTarget(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -2703,9 +2698,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool HasImplicitFunctionTypeToFunctionTypeConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var sourceDelegate = sourceType.GetInternalDelegateType();
-            var destinationDelegate = destinationType.GetInternalDelegateType();
+            if (sourceDelegate is null)
+            {
+                return false;
+            }
 
-            if (sourceDelegate is null || destinationDelegate is null)
+            var destinationDelegate = destinationType.GetInternalDelegateType();
+            if (destinationDelegate is null)
             {
                 return false;
             }

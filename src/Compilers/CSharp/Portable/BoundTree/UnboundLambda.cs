@@ -253,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var bestType = returns[0].expr.GetTypeOrFunctionType();
                         if (bestType is FunctionTypeSymbol functionType)
                         {
-                            inferredFromFunctionType = true;
                             bestType = functionType.GetInternalDelegateType();
+                            inferredFromFunctionType = bestType is { };
                         }
                         else
                         {

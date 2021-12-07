@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private FunctionTypeSymbol WithDelegateType(NamedTypeSymbol delegateType)
         {
             var thisDelegateType = GetInternalDelegateType();
-            Debug.Assert(thisDelegateType is { });
-            return (object)thisDelegateType == delegateType ?
+            return (object?)thisDelegateType == delegateType ?
                 this :
                 new FunctionTypeSymbol(delegateType);
         }
@@ -204,8 +203,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return t2 is FunctionTypeSymbol otherType &&
-                Equals(GetInternalDelegateType(), otherType.GetInternalDelegateType(), compareKind);
+            if (t2 is FunctionTypeSymbol otherType)
+            {
+                var thisDelegateType = GetInternalDelegateType();
+                var otherDelegateType = otherType.GetInternalDelegateType();
+
+                if (thisDelegateType is null || otherDelegateType is null)
+                {
+                    return false;
+                }
+
+                return Equals(thisDelegateType, otherDelegateType, compareKind);
+            }
+
+            return false;
         }
 
         public override int GetHashCode()

@@ -9773,7 +9773,6 @@ class Program
             Assert.Equal(functionTypeStringNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNullable, VarianceKind.Out));
             Assert.Equal(functionTypeStringNotNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNotNullable, VarianceKind.Out));
             Assert.Equal(functionTypeNullA, functionTypeNullA.MergeEquivalentTypes(functionTypeNullA, VarianceKind.Out));
-            Assert.Equal(functionTypeNullA, functionTypeNullA.MergeEquivalentTypes(functionTypeNullB, VarianceKind.Out));
 
             // SetNullabilityForReferenceTypes
             var setNotNullable = (TypeWithAnnotations type) => TypeWithAnnotations.Create(type.Type, NullableAnnotation.NotAnnotated);
@@ -9786,7 +9785,7 @@ class Program
             Assert.False(functionTypeNullA.Equals(functionTypeStringNullable, TypeCompareKind.AllIgnoreOptions));
             Assert.False(functionTypeStringNullable.Equals(functionTypeNullA, TypeCompareKind.AllIgnoreOptions));
             Assert.True(functionTypeNullA.Equals(functionTypeNullA, TypeCompareKind.ConsiderEverything));
-            Assert.True(functionTypeNullA.Equals(functionTypeNullB, TypeCompareKind.ConsiderEverything));
+            Assert.False(functionTypeNullA.Equals(functionTypeNullB, TypeCompareKind.ConsiderEverything));
 
             // GetHashCode
             Assert.Equal(functionTypeStringNullable.GetHashCode(), functionTypeStringNotNullable.GetHashCode());
