@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.InheritanceMargin;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -354,9 +355,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             targetSymbol = symbolInSource ?? targetSymbol;
 
             // Right now the targets are not shown in a classified way.
-            var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
+            var definition = await targetSymbol.ToSlimDefinitionItemAsync(
                 solution,
-                includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
