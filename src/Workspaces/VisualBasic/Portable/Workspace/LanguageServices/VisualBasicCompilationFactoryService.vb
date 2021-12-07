@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports Caravela.Compiler
+Imports Metalama.Compiler
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -53,10 +53,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider)
         End Function
 
-        ' <Caravela> This code is used by Try.Caravela.
+        ' <Metalama> This code is used by Try.Metalama.
         Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), plugins As ImmutableArray(Of Object), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
             Return Nothing
         End Function
-        ' </Caravela>
+        ' </Metalama>
     End Class
 End Namespace

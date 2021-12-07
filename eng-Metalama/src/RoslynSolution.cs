@@ -55,8 +55,8 @@ namespace Build
                 filter = "Category!=OuterLoop";
             }
 
-            // We run Caravela's unit tests.
-            var project = Path.Combine(context.RepoDirectory, "src", "Caravela", "Caravela.Compiler.UnitTests", "Caravela.Compiler.UnitTests.csproj");
+            // We run Metalama's unit tests.
+            var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
             return DotNetHelper.Run(context, options, project, "test", $"--filter \"{filter}\"");
 
 

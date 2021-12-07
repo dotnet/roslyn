@@ -6,12 +6,12 @@
     <SharedGUID>9ac4f471-ed46-4cd9-920f-e50bc6a65dd6</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Caravela.Compiler</Import_RootNamespace>
+    <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ManagedResource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AttachedProperties.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CaravelaCompilerInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilteringRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />

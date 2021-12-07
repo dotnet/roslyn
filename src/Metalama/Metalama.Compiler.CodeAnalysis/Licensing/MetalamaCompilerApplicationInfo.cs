@@ -8,21 +8,21 @@ using System.Linq;
 using System.Reflection;
 using PostSharp.Backstage.Extensibility;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     /// <summary>
     /// Provide application information stored using <see cref="AssemblyMetadataAttribute"/>.
     /// </summary>
-    internal class CaravelaCompilerApplicationInfo : IApplicationInfo
+    internal class MetalamaCompilerApplicationInfo : IApplicationInfo
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CaravelaCompilerApplicationInfo"/> class.
+        /// Initializes a new instance of the <see cref="MetalamaCompilerApplicationInfo"/> class.
         /// </summary>
         /// <exception cref="InvalidOperationException">Some of the required assembly metadata were not found.</exception>
-        public CaravelaCompilerApplicationInfo()
+        public MetalamaCompilerApplicationInfo()
         {
             var metadataAttributes =
-                typeof(CaravelaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute),
+                typeof(MetalamaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute),
                     inherit: false);
 
             Version? version = null;
@@ -37,7 +37,7 @@ namespace Caravela.Compiler.Licensing
 
                 switch (metadataAttribute.Key)
                 {
-                    case "CaravelaCompilerVersion":
+                    case "MetalamaCompilerVersion":
                         if (!string.IsNullOrEmpty(metadataAttribute.Value))
                         {
                             var versionParts = metadataAttribute.Value.Split('-');
@@ -47,7 +47,7 @@ namespace Caravela.Compiler.Licensing
 
                         break;
 
-                    case "CaravelaCompilerBuildDate":
+                    case "MetalamaCompilerBuildDate":
                         if (!string.IsNullOrEmpty(metadataAttribute.Value))
                         {
                             buildDate = DateTime.Parse(metadataAttribute.Value, CultureInfo.InvariantCulture);
@@ -65,7 +65,7 @@ namespace Caravela.Compiler.Licensing
             if (!AllMetadataFound())
             {
                 throw new InvalidOperationException(
-                    $"{nameof(CaravelaCompilerApplicationInfo)} has failed to find some of the required assembly metadata.");
+                    $"{nameof(MetalamaCompilerApplicationInfo)} has failed to find some of the required assembly metadata.");
             }
 
             this.Version = version!;
@@ -77,7 +77,7 @@ namespace Caravela.Compiler.Licensing
         public DateTime BuildDate { get; }
 
         /// <inheritdoc />
-        public string Name => "Caravela Compiler";
+        public string Name => "Metalama Compiler";
 
         /// <inheritdoc />
         public Version Version { get; }

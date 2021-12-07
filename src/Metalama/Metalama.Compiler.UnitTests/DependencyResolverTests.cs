@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class DependencyResolverTests
     {

@@ -31,11 +31,11 @@ This repository contains common development, build and publishing scripts and co
 ## Installation
 
 1. Enable symlinks in `.git/config` of your working repo.
-2. Clone `Caravela.Engineering` in your `c:\src` (it must be the parent directory of the consuming repo).
+2. Clone `Metalama.Engineering` in your `c:\src` (it must be the parent directory of the consuming repo).
 
-    ```git clone https://postsharp@dev.azure.com/postsharp/Caravela/_git/Caravela.Engineering master --squash```
+    ```git clone https://postsharp@dev.azure.com/postsharp/Metalama/_git/Metalama.Engineering master --squash```
 
-3. Execute `& c:\src\Caravela.Engineering Install.ps1`. This copies the files into the `eng\shared` directory of your repo.
+3. Execute `& c:\src\Metalama.Engineering Install.ps1`. This copies the files into the `eng\shared` directory of your repo.
 4. Continue with the instructions in the following files:
     1. [Style and Formatting](style/README.md)
     1. [Build and Deployment](build/README.md)
@@ -62,9 +62,9 @@ To share modifications in the `eng\shared` GIT subtree:
 - Make sure that all documentation reflects your changes.
 - Add an entry to [the changelog](CHANGELOG.md) to let others know which changes have been introduced and which actions are required when updating the `eng\shared` GIT subtree in other repositories.
 - Commit your changes.
-- From the repository root containing the `eng\shared` subtree, execute `& Build.ps1 engineering push`. This will copy all changes to `c:\src\Caravela.Engineering`.
-- Review the changes in `c:\src\Caravela.Engineering` and commit them into a branch named `develop`. Push the branch.
-- For the `Caravela.Engineering` repository, create a pull request from `develop` to `master`.
+- From the repository root containing the `eng\shared` subtree, execute `& Build.ps1 engineering push`. This will copy all changes to `c:\src\Metalama.Engineering`.
+- Review the changes in `c:\src\Metalama.Engineering` and commit them into a branch named `develop`. Push the branch.
+- For the `Metalama.Engineering` repository, create a pull request from `develop` to `master`.
 
 ## Cloning
 

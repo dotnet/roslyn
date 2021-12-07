@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 #pragma warning disable 8618
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
 
     public sealed class DiagnosticFilteringRequest
@@ -31,7 +31,7 @@ namespace Caravela.Compiler
             this.IsSuppressed = true;
         }
 
-#if !CARAVELA_COMPILER_INTERFACE
+#if !METALAMA_COMPILER_INTERFACE
         internal DiagnosticFilteringRequest(Diagnostic diagnostic, SyntaxNode syntaxNode, Compilation compilation, ISymbol symbol)
         {
             Diagnostic = diagnostic;

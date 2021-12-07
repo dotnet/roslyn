@@ -20,26 +20,26 @@
         <!-- This is the list of files that can be published to the public nuget.org -->
         <!-- To avoid unintended publishing of artefacts, all items must be explicitly specified without wildcard -->
 
-        <PublicFile Include="$(PackagesDir)\Caravela.Compiler.$(Version).nupkg"/>
-        <PublicFile Include="$(PackagesDir)\Caravela.Compiler.Sdk.$(Version).nupkg"/>
+        <PublicFile Include="$(PackagesDir)\Metalama.Compiler.$(Version).nupkg"/>
+        <PublicFile Include="$(PackagesDir)\Metalama.Compiler.Sdk.$(Version).nupkg"/>
 
         <InternalFile Include="@(PublicFile)" />
-        <InternalFile Include="$(PackagesDir)\Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.CodeAnalysis.Workspaces.Lightweight.Common.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Common.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Features.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Scripting.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Workspaces.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Features.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.Common.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Workspaces.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.CodeAnalysis.CSharp.Workspaces.Lightweight.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.CodeAnalysis.Workspaces.Lightweight.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.CSharp.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.CSharp.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.CSharp.Scripting.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.CSharp.Workspaces.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.Scripting.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.Scripting.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.Workspaces.Common.$(Version).nupkg"/>
 
-        <!-- Visual Basic is needed by Caravela.Try -->
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Features.$(Version).nupkg"/>
-        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(Version).nupkg"/>
+        <!-- Visual Basic is needed by Metalama.Try -->
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.VisualBasic.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(Version).nupkg"/>
         
         
     </ItemGroup>

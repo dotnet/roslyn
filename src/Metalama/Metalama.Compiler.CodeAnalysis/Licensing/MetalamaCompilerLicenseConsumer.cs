@@ -5,13 +5,13 @@
 using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Licensing.Consumption;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     /// <summary>
-    /// General <see cref="ILicenseConsumer"/> for the Caravela Compiler
+    /// General <see cref="ILicenseConsumer"/> for the Metalama Compiler
     /// reporting diagnotics via the give <see cref="IBackstageDiagnosticSink"/>. 
     /// </summary>
-    internal class CaravelaCompilerLicenseConsumer : ILicenseConsumer
+    internal class MetalamaCompilerLicenseConsumer : ILicenseConsumer
     {
         /// <inheritdoc />
         public string? TargetTypeNamespace => null;
@@ -26,10 +26,10 @@ namespace Caravela.Compiler.Licensing
         public IDiagnosticsLocation? DiagnosticsLocation => null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CaravelaCompilerLicenseConsumer"/> class.
+        /// Initializes a new instance of the <see cref="MetalamaCompilerLicenseConsumer"/> class.
         /// </summary>
         /// <param name="diagnosticsSink">Diagnostics sink.</param>
-        public CaravelaCompilerLicenseConsumer(IBackstageDiagnosticSink diagnosticsSink)
+        public MetalamaCompilerLicenseConsumer(IBackstageDiagnosticSink diagnosticsSink)
         {
             Diagnostics = diagnosticsSink;
         }

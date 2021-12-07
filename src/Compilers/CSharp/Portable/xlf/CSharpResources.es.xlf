@@ -10172,7 +10172,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="IDS_ToolName">
-        <source>PostSharp "Caravela" Compiler</source>
+        <source>PostSharp "Metalama" Compiler</source>
         <target state="needs-review-translation">Compilador de Microsoft (R) Visual C#</target>
         <note />
       </trans-unit>

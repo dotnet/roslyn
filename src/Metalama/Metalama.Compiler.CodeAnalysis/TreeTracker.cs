@@ -14,14 +14,14 @@ using Microsoft.CodeAnalysis.Text;
 
 #nullable enable
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
 
     internal static class TreeTracker
     {
         private static readonly ConditionalWeakTable<SyntaxAnnotation, MappedNode> preTransformationNodeMap = new();
 
-        private const string TrackingAnnotationKind = "Caravela.Compiler.Tracking";
+        private const string TrackingAnnotationKind = "Metalama.Compiler.Tracking";
 
         // "include descendants" means that the annotation also applies to all descendant node
         // this is commonly used for nodes that are exactly the same as in the pre-transformation tree

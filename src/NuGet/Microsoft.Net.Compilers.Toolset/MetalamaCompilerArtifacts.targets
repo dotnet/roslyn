@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
 
-  <Target Name="InitializeCaravelaCompilerArtifacts">
+  <Target Name="InitializeMetalamaCompilerArtifacts">
 
     <ItemGroup>
-      <CommonCaravelaCompilerArtifact Include="$(ArtifactsBinDir)Caravela.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Caravela.Compiler.Interface.dll" />
+      <CommonMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
     </ItemGroup>
 
     <ItemGroup>
-      <CoreClrCaravelaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Microsoft.Bcl.HashCode.dll" />
-      <CoreClrCaravelaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\PostSharp.Backstage.Settings.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Microsoft.Bcl.HashCode.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\PostSharp.Backstage.Settings.dll" />
     </ItemGroup>
 
     <ItemGroup>
-      <DesktopCaravelaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.Bcl.HashCode.dll" />
-      <DesktopCaravelaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\PostSharp.Backstage.Settings.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.Bcl.HashCode.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\PostSharp.Backstage.Settings.dll" />
     </ItemGroup>
 
   </Target>

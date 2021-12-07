@@ -76,8 +76,8 @@ This section describes centralized NuGet packages metadata management.
     <!-- Properties of NuGet packages-->
     <PropertyGroup>
         <Authors>PostSharp Technologies</Authors>
-        <PackageProjectUrl>https://github.com/postsharp/Caravela</PackageProjectUrl>
-        <PackageTags>PostSharp Caravela AOP</PackageTags>
+        <PackageProjectUrl>https://github.com/postsharp/Metalama</PackageProjectUrl>
+        <PackageTags>PostSharp Metalama AOP</PackageTags>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageIcon>PostSharpIcon.png</PackageIcon>
         <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
@@ -146,7 +146,7 @@ Create `eng\Versions.props` file. The content should look like:
     <!-- Versions of dependencies -->
     <PropertyGroup>
         <RoslynVersion>3.8.0</RoslynVersion>
-        <CaravelaCompilerVersion>3.8.12-preview</CaravelaCompilerVersion>
+        <MetalamaCompilerVersion>3.8.12-preview</MetalamaCompilerVersion>
         <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     </PropertyGroup>
 
@@ -214,7 +214,7 @@ using PostSharp.Engineering.BuildTools.Commands.Build;
 using Spectre.Console.Cli;
 using System.Collections.Immutable;
 
-namespace BuildCaravela
+namespace BuildMetalama
 {
     internal class Program
     {
@@ -222,23 +222,23 @@ namespace BuildCaravela
         {
             var product = new Product
             {
-                ProductName = "Caravela",
+                ProductName = "Metalama",
                 Solutions = ImmutableArray.Create<Solution>(
-                    new DotNetSolution( "Caravela.sln" )
+                    new DotNetSolution( "Metalama.sln" )
                     {
                         SupportsTestCoverage = true
                     },
-                    new DotNetSolution( "Tests\\Caravela.Framework.TestApp\\Caravela.Framework.TestApp.sln" )
+                    new DotNetSolution( "Tests\\Metalama.Framework.TestApp\\Metalama.Framework.TestApp.sln" )
                     {
                         IsTestOnly = true
                     } ),
                 PublicArtifacts = ImmutableArray.Create(
-                    "bin\\$(Configuration)\\Caravela.Framework.$(PackageVersion).nupkg",
-                    "bin\\$(Configuration)\\Caravela.TestFramework.$(PackageVersion).nupkg",
-                    "bin\\$(Configuration)\\Caravela.Framework.Redist.$(PackageVersion).nupkg",
-                    "bin\\$(Configuration)\\Caravela.Framework.Sdk.$(PackageVersion).nupkg",
-                    "bin\\$(Configuration)\\Caravela.Framework.Impl.$(PackageVersion).nupkg",
-                    "bin\\$(Configuration)\\Caravela.Framework.DesignTime.Contracts.$(PackageVersion).nupkg" )
+                    "bin\\$(Configuration)\\Metalama.Framework.$(PackageVersion).nupkg",
+                    "bin\\$(Configuration)\\Metalama.TestFramework.$(PackageVersion).nupkg",
+                    "bin\\$(Configuration)\\Metalama.Framework.Redist.$(PackageVersion).nupkg",
+                    "bin\\$(Configuration)\\Metalama.Framework.Sdk.$(PackageVersion).nupkg",
+                    "bin\\$(Configuration)\\Metalama.Framework.Impl.$(PackageVersion).nupkg",
+                    "bin\\$(Configuration)\\Metalama.Framework.DesignTime.Contracts.$(PackageVersion).nupkg" )
             };
             var commandApp = new CommandApp();
             commandApp.AddProductCommands( product );

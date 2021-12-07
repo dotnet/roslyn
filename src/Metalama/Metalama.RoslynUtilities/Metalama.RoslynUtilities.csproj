@@ -11,7 +11,7 @@
         <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
         <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
         <IsPackable>true</IsPackable>
-        <RootNamespace>Caravela.RoslynUtilities</RootNamespace>
+        <RootNamespace>Metalama.RoslynUtilities</RootNamespace>
     </PropertyGroup>
     
     <PropertyGroup>
@@ -21,7 +21,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
         
-        <InternalsVisibleTo Include="Caravela.Framework.Impl" Key="$(MetalamaKey)" />
+        <InternalsVisibleTo Include="Metalama.Framework.Impl" Key="$(MetalamaKey)" />
     </ItemGroup>
     
     <ItemGroup>

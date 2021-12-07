@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace Caravela.Compiler.Graphs
+namespace Metalama.Compiler.Graphs
 {
     /// <summary>
     /// Implements algorithms for graphs.

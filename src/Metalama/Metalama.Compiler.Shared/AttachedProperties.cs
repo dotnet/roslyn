@@ -6,9 +6,9 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
-#if !CARAVELA_COMPILER_INTERFACE
+#if !METALAMA_COMPILER_INTERFACE
 
     internal class SyntaxTreeHistory
     {

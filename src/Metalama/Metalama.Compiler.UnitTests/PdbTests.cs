@@ -13,7 +13,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class PdbTests : CSharpPDBTestBase
     {
@@ -52,7 +52,7 @@ class Library
             // Syntax trees must be added in alphabetical order because WindowsPDB does not reorder trees, but PortablePDB does reorder them alphabetically.
             Compilation comp = CSharpCompilation.Create("Compilation", new[] { libraryTree, programTree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
             
-            comp = CaravelaCompilerTest.ExecuteTransformer(comp, new InterleaveStatementsTransformer());
+            comp = MetalamaCompilerTest.ExecuteTransformer(comp, new InterleaveStatementsTransformer());
             
             
             // Check that we can emit.
@@ -174,7 +174,7 @@ class C
 
             Compilation comp = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
 
-            comp = CaravelaCompilerTest.ExecuteTransformer(comp, new LazyPropertyTransformer());
+            comp = MetalamaCompilerTest.ExecuteTransformer(comp, new LazyPropertyTransformer());
 
             var result = comp.Emit(Stream.Null, pdbStream: Stream.Null);
             result.Diagnostics.Verify();

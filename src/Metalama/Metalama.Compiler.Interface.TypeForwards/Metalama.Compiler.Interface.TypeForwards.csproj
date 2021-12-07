@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Caravela.Compiler.Interface</AssemblyName>
+    <AssemblyName>Metalama.Compiler.Interface</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

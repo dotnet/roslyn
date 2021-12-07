@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     internal class TransformerDiagnosticSuppressor : DiagnosticSuppressor
     {

@@ -7,7 +7,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Caravela.Compiler
+Imports Metalama.Compiler
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler

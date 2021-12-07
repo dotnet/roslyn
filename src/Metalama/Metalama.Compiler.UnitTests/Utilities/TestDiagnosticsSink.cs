@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using PostSharp.Backstage.Extensibility;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests.Utilities
+namespace Metalama.Compiler.UnitTests.Utilities
 {
     internal sealed class TestDiagnosticsSink : IBackstageDiagnosticSink
     {

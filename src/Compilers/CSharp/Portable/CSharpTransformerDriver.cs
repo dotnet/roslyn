@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// <Caravela /> This code is used by Try.Caravela.
+// <Metalama /> This code is used by Try.Metalama.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     public static class CSharpTransformerDriver
     {
@@ -21,7 +21,7 @@ namespace Caravela.Compiler
         {
             var services = new ServiceCollection();
 
-            // TODO: Configure for Try.Caravela
+            // TODO: Configure for Try.Metalama
             var serviceProviderBuilder = new ServiceProviderBuilder(
                 (type, instance) => services.AddService(type, instance),
                 () => services.GetServiceProvider());

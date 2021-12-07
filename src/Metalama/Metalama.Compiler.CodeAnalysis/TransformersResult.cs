@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Immutable;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
 
     internal record TransformersResult(Compilation AnnotatedInputCompilation, Compilation TransformedCompilation,

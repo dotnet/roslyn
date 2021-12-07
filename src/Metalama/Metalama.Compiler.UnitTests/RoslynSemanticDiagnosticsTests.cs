@@ -5,1230 +5,1230 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests.Diagnostics
+namespace Metalama.Compiler.UnitTests.Diagnostics
 {
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerDiagnosticAnalyzerTests : DiagnosticAnalyzerTests
+    public class MetalamaCompilerDiagnosticAnalyzerTests : DiagnosticAnalyzerTests
     {
-        public CaravelaCompilerDiagnosticAnalyzerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerDiagnosticAnalyzerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerDiagnosticSuppressorTests : DiagnosticSuppressorTests
+    public class MetalamaCompilerDiagnosticSuppressorTests : DiagnosticSuppressorTests
     {
-        public CaravelaCompilerDiagnosticSuppressorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerDiagnosticSuppressorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerGetDiagnosticsTests : GetDiagnosticsTests
+    public class MetalamaCompilerGetDiagnosticsTests : GetDiagnosticsTests
     {
-        public CaravelaCompilerGetDiagnosticsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerGetDiagnosticsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerMethodGroupConversion : MethodGroupConversion
+    public class MetalamaCompilerMethodGroupConversion : MethodGroupConversion
     {
-        public CaravelaCompilerMethodGroupConversion() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerMethodGroupConversion() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerFlowDiagnosticTests : FlowDiagnosticTests
+    public class MetalamaCompilerFlowDiagnosticTests : FlowDiagnosticTests
     {
-        public CaravelaCompilerFlowDiagnosticTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerFlowDiagnosticTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerFlowTests : FlowTests
+    public class MetalamaCompilerFlowTests : FlowTests
     {
-        public CaravelaCompilerFlowTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerFlowTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerLocalFunctions : LocalFunctions
+    public class MetalamaCompilerLocalFunctions : LocalFunctions
     {
-        public CaravelaCompilerLocalFunctions() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerLocalFunctions() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRegionAnalysisTests : RegionAnalysisTests
+    public class MetalamaCompilerRegionAnalysisTests : RegionAnalysisTests
     {
-        public CaravelaCompilerRegionAnalysisTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRegionAnalysisTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerStructTests : StructTests
+    public class MetalamaCompilerStructTests : StructTests
     {
-        public CaravelaCompilerStructTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerStructTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerAccessCheckTests : AccessCheckTests
+    public class MetalamaCompilerAccessCheckTests : AccessCheckTests
     {
-        public CaravelaCompilerAccessCheckTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerAccessCheckTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerAccessibilityTests : AccessibilityTests
+    public class MetalamaCompilerAccessibilityTests : AccessibilityTests
     {
-        public CaravelaCompilerAccessibilityTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerAccessibilityTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerAmbiguousOverrideTests : AmbiguousOverrideTests
+    public class MetalamaCompilerAmbiguousOverrideTests : AmbiguousOverrideTests
     {
-        public CaravelaCompilerAmbiguousOverrideTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerAmbiguousOverrideTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerAnonymousFunctionTests : AnonymousFunctionTests
+    public class MetalamaCompilerAnonymousFunctionTests : AnonymousFunctionTests
     {
-        public CaravelaCompilerAnonymousFunctionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerAnonymousFunctionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerArglistTests : ArglistTests
+    public class MetalamaCompilerArglistTests : ArglistTests
     {
-        public CaravelaCompilerArglistTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerArglistTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerAwaitExpressionTests : AwaitExpressionTests
+    public class MetalamaCompilerAwaitExpressionTests : AwaitExpressionTests
     {
-        public CaravelaCompilerAwaitExpressionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerAwaitExpressionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBetterCandidates : BetterCandidates
+    public class MetalamaCompilerBetterCandidates : BetterCandidates
     {
-        public CaravelaCompilerBetterCandidates() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBetterCandidates() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBindingAsyncTasklikeMoreTests : BindingAsyncTasklikeMoreTests
+    public class MetalamaCompilerBindingAsyncTasklikeMoreTests : BindingAsyncTasklikeMoreTests
     {
-        public CaravelaCompilerBindingAsyncTasklikeMoreTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBindingAsyncTasklikeMoreTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBindingAsyncTasklikeTests : BindingAsyncTasklikeTests
+    public class MetalamaCompilerBindingAsyncTasklikeTests : BindingAsyncTasklikeTests
     {
-        public CaravelaCompilerBindingAsyncTasklikeTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBindingAsyncTasklikeTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBindingAsyncTests : BindingAsyncTests
+    public class MetalamaCompilerBindingAsyncTests : BindingAsyncTests
     {
-        public CaravelaCompilerBindingAsyncTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBindingAsyncTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBindingAwaitTests : BindingAwaitTests
+    public class MetalamaCompilerBindingAwaitTests : BindingAwaitTests
     {
-        public CaravelaCompilerBindingAwaitTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBindingAwaitTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerBindingTests : BindingTests
+    public class MetalamaCompilerBindingTests : BindingTests
     {
-        public CaravelaCompilerBindingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerBindingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerColorColorTests : ColorColorTests
+    public class MetalamaCompilerColorColorTests : ColorColorTests
     {
-        public CaravelaCompilerColorColorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerColorColorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerConditionalOperatorTests : ConditionalOperatorTests
+    public class MetalamaCompilerConditionalOperatorTests : ConditionalOperatorTests
     {
-        public CaravelaCompilerConditionalOperatorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerConditionalOperatorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerConstantTests : ConstantTests
+    public class MetalamaCompilerConstantTests : ConstantTests
     {
-        public CaravelaCompilerConstantTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerConstantTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerDeconstructionTests : DeconstructionTests
+    public class MetalamaCompilerDeconstructionTests : DeconstructionTests
     {
-        public CaravelaCompilerDeconstructionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerDeconstructionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerDelegateTypeTests : DelegateTypeTests
+    public class MetalamaCompilerDelegateTypeTests : DelegateTypeTests
     {
-        public CaravelaCompilerDelegateTypeTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerDelegateTypeTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSyntaxBinderTests : SyntaxBinderTests
+    public class MetalamaCompilerSyntaxBinderTests : SyntaxBinderTests
     {
-        public CaravelaCompilerSyntaxBinderTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSyntaxBinderTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerExpressionBodiedMemberTests : ExpressionBodiedMemberTests
+    public class MetalamaCompilerExpressionBodiedMemberTests : ExpressionBodiedMemberTests
     {
-        public CaravelaCompilerExpressionBodiedMemberTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerExpressionBodiedMemberTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerForEachTests : ForEachTests
+    public class MetalamaCompilerForEachTests : ForEachTests
     {
-        public CaravelaCompilerForEachTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerForEachTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerForLoopErrorTests : ForLoopErrorTests
+    public class MetalamaCompilerForLoopErrorTests : ForLoopErrorTests
     {
-        public CaravelaCompilerForLoopErrorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerForLoopErrorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerFunctionPointerTests : FunctionPointerTests
+    public class MetalamaCompilerFunctionPointerTests : FunctionPointerTests
     {
-        public CaravelaCompilerFunctionPointerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerFunctionPointerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerGenericConstraintsTests : GenericConstraintsTests
+    public class MetalamaCompilerGenericConstraintsTests : GenericConstraintsTests
     {
-        public CaravelaCompilerGenericConstraintsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerGenericConstraintsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerGlobalUsingDirectiveTests : GlobalUsingDirectiveTests
+    public class MetalamaCompilerGlobalUsingDirectiveTests : GlobalUsingDirectiveTests
     {
-        public CaravelaCompilerGlobalUsingDirectiveTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerGlobalUsingDirectiveTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerHideByNameTests : HideByNameTests
+    public class MetalamaCompilerHideByNameTests : HideByNameTests
     {
-        public CaravelaCompilerHideByNameTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerHideByNameTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerImplicitlyTypeArraysTests : ImplicitlyTypeArraysTests
+    public class MetalamaCompilerImplicitlyTypeArraysTests : ImplicitlyTypeArraysTests
     {
-        public CaravelaCompilerImplicitlyTypeArraysTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerImplicitlyTypeArraysTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerImplicitlyTypedLocalTests : ImplicitlyTypedLocalTests
+    public class MetalamaCompilerImplicitlyTypedLocalTests : ImplicitlyTypedLocalTests
     {
-        public CaravelaCompilerImplicitlyTypedLocalTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerImplicitlyTypedLocalTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerImplicitObjectCreationTests : ImplicitObjectCreationTests
+    public class MetalamaCompilerImplicitObjectCreationTests : ImplicitObjectCreationTests
     {
-        public CaravelaCompilerImplicitObjectCreationTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerImplicitObjectCreationTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerIndexAndRangeTests : IndexAndRangeTests
+    public class MetalamaCompilerIndexAndRangeTests : IndexAndRangeTests
     {
-        public CaravelaCompilerIndexAndRangeTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerIndexAndRangeTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerInheritanceBindingTests : InheritanceBindingTests
+    public class MetalamaCompilerInheritanceBindingTests : InheritanceBindingTests
     {
-        public CaravelaCompilerInheritanceBindingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerInheritanceBindingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerInitOnlyMemberTests : InitOnlyMemberTests
+    public class MetalamaCompilerInitOnlyMemberTests : InitOnlyMemberTests
     {
-        public CaravelaCompilerInitOnlyMemberTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerInitOnlyMemberTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerInteractiveUsingTests : InteractiveUsingTests
+    public class MetalamaCompilerInteractiveUsingTests : InteractiveUsingTests
     {
-        public CaravelaCompilerInteractiveUsingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerInteractiveUsingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerInterpolationTests : InterpolationTests
+    public class MetalamaCompilerInterpolationTests : InterpolationTests
     {
-        public CaravelaCompilerInterpolationTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerInterpolationTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerIteratorTests : IteratorTests
+    public class MetalamaCompilerIteratorTests : IteratorTests
     {
-        public CaravelaCompilerIteratorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerIteratorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerLambdaDiscardParametersTests : LambdaDiscardParametersTests
+    public class MetalamaCompilerLambdaDiscardParametersTests : LambdaDiscardParametersTests
     {
-        public CaravelaCompilerLambdaDiscardParametersTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerLambdaDiscardParametersTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerLambdaTests : LambdaTests
+    public class MetalamaCompilerLambdaTests : LambdaTests
     {
-        public CaravelaCompilerLambdaTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerLambdaTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerLocalFunctionTests : LocalFunctionTests
+    public class MetalamaCompilerLocalFunctionTests : LocalFunctionTests
     {
-        public CaravelaCompilerLocalFunctionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerLocalFunctionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerLockTests : LockTests
+    public class MetalamaCompilerLockTests : LockTests
     {
-        public CaravelaCompilerLockTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerLockTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerGetSemanticInfoTests : GetSemanticInfoTests
+    public class MetalamaCompilerGetSemanticInfoTests : GetSemanticInfoTests
     {
-        public CaravelaCompilerGetSemanticInfoTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerGetSemanticInfoTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerMethodBodyModelTests : MethodBodyModelTests
+    public class MetalamaCompilerMethodBodyModelTests : MethodBodyModelTests
     {
-        public CaravelaCompilerMethodBodyModelTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerMethodBodyModelTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerMethodTypeInferenceTests : MethodTypeInferenceTests
+    public class MetalamaCompilerMethodTypeInferenceTests : MethodTypeInferenceTests
     {
-        public CaravelaCompilerMethodTypeInferenceTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerMethodTypeInferenceTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerMultiDimensionalArrayTests : MultiDimensionalArrayTests
+    public class MetalamaCompilerMultiDimensionalArrayTests : MultiDimensionalArrayTests
     {
-        public CaravelaCompilerMultiDimensionalArrayTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerMultiDimensionalArrayTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNameCollisionTests : NameCollisionTests
+    public class MetalamaCompilerNameCollisionTests : NameCollisionTests
     {
-        public CaravelaCompilerNameCollisionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNameCollisionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNamedAndOptionalTests : NamedAndOptionalTests
+    public class MetalamaCompilerNamedAndOptionalTests : NamedAndOptionalTests
     {
-        public CaravelaCompilerNamedAndOptionalTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNamedAndOptionalTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNameLengthTests : NameLengthTests
+    public class MetalamaCompilerNameLengthTests : NameLengthTests
     {
-        public CaravelaCompilerNameLengthTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNameLengthTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNameofTests : NameofTests
+    public class MetalamaCompilerNameofTests : NameofTests
     {
-        public CaravelaCompilerNameofTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNameofTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNativeIntegerTests : NativeIntegerTests
+    public class MetalamaCompilerNativeIntegerTests : NativeIntegerTests
     {
-        public CaravelaCompilerNativeIntegerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNativeIntegerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNonTrailingNamedArgumentsTests : NonTrailingNamedArgumentsTests
+    public class MetalamaCompilerNonTrailingNamedArgumentsTests : NonTrailingNamedArgumentsTests
     {
-        public CaravelaCompilerNonTrailingNamedArgumentsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNonTrailingNamedArgumentsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNullableConversionTests : NullableConversionTests
+    public class MetalamaCompilerNullableConversionTests : NullableConversionTests
     {
-        public CaravelaCompilerNullableConversionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNullableConversionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNullableReferenceTypesTests : NullableReferenceTypesTests
+    public class MetalamaCompilerNullableReferenceTypesTests : NullableReferenceTypesTests
     {
-        public CaravelaCompilerNullableReferenceTypesTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNullableReferenceTypesTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNullableReferenceTypesVsPatterns : NullableReferenceTypesVsPatterns
+    public class MetalamaCompilerNullableReferenceTypesVsPatterns : NullableReferenceTypesVsPatterns
     {
-        public CaravelaCompilerNullableReferenceTypesVsPatterns() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNullableReferenceTypesVsPatterns() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNullableSemanticTests : NullableSemanticTests
+    public class MetalamaCompilerNullableSemanticTests : NullableSemanticTests
     {
-        public CaravelaCompilerNullableSemanticTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNullableSemanticTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerNullCoalesceAssignmentTests : NullCoalesceAssignmentTests
+    public class MetalamaCompilerNullCoalesceAssignmentTests : NullCoalesceAssignmentTests
     {
-        public CaravelaCompilerNullCoalesceAssignmentTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerNullCoalesceAssignmentTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerObjectAndCollectionInitializerTests : ObjectAndCollectionInitializerTests
+    public class MetalamaCompilerObjectAndCollectionInitializerTests : ObjectAndCollectionInitializerTests
     {
-        public CaravelaCompilerObjectAndCollectionInitializerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerObjectAndCollectionInitializerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerOutVarTests : OutVarTests
+    public class MetalamaCompilerOutVarTests : OutVarTests
     {
-        public CaravelaCompilerOutVarTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerOutVarTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     /* Disabled because it's so slow.
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerOverloadResolutionPerfTests : OverloadResolutionPerfTests
+    public class MetalamaCompilerOverloadResolutionPerfTests : OverloadResolutionPerfTests
     {
-        public CaravelaCompilerOverloadResolutionPerfTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerOverloadResolutionPerfTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
     */
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerOverloadResolutionTests : OverloadResolutionTests
+    public class MetalamaCompilerOverloadResolutionTests : OverloadResolutionTests
     {
-        public CaravelaCompilerOverloadResolutionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerOverloadResolutionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests : PatternMatchingTests
+    public class MetalamaCompilerPatternMatchingTests : PatternMatchingTests
     {
-        public CaravelaCompilerPatternMatchingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests2 : PatternMatchingTests2
+    public class MetalamaCompilerPatternMatchingTests2 : PatternMatchingTests2
     {
-        public CaravelaCompilerPatternMatchingTests2() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests2() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests3 : PatternMatchingTests3
+    public class MetalamaCompilerPatternMatchingTests3 : PatternMatchingTests3
     {
-        public CaravelaCompilerPatternMatchingTests3() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests3() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests4 : PatternMatchingTests4
+    public class MetalamaCompilerPatternMatchingTests4 : PatternMatchingTests4
     {
-        public CaravelaCompilerPatternMatchingTests4() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests4() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests_Global : PatternMatchingTests_Global
+    public class MetalamaCompilerPatternMatchingTests_Global : PatternMatchingTests_Global
     {
-        public CaravelaCompilerPatternMatchingTests_Global() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests_Global() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternMatchingTests_Scope : PatternMatchingTests_Scope
+    public class MetalamaCompilerPatternMatchingTests_Scope : PatternMatchingTests_Scope
     {
-        public CaravelaCompilerPatternMatchingTests_Scope() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternMatchingTests_Scope() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerPatternSwitchTests : PatternSwitchTests
+    public class MetalamaCompilerPatternSwitchTests : PatternSwitchTests
     {
-        public CaravelaCompilerPatternSwitchTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPatternSwitchTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerQueryTests : QueryTests
+    public class MetalamaCompilerQueryTests : QueryTests
     {
-        public CaravelaCompilerQueryTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerQueryTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerReadOnlyStructsTests : ReadOnlyStructsTests
+    public class MetalamaCompilerReadOnlyStructsTests : ReadOnlyStructsTests
     {
-        public CaravelaCompilerReadOnlyStructsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerReadOnlyStructsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRecordStructTests : RecordStructTests
+    public class MetalamaCompilerRecordStructTests : RecordStructTests
     {
-        public CaravelaCompilerRecordStructTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRecordStructTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRecordTests : RecordTests
+    public class MetalamaCompilerRecordTests : RecordTests
     {
-        public CaravelaCompilerRecordTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRecordTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRefEscapingTests : RefEscapingTests
+    public class MetalamaCompilerRefEscapingTests : RefEscapingTests
     {
-        public CaravelaCompilerRefEscapingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRefEscapingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRefExtensionMethodsTests : RefExtensionMethodsTests
+    public class MetalamaCompilerRefExtensionMethodsTests : RefExtensionMethodsTests
     {
-        public CaravelaCompilerRefExtensionMethodsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRefExtensionMethodsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerRefLocalsAndReturnsTests : RefLocalsAndReturnsTests
+    public class MetalamaCompilerRefLocalsAndReturnsTests : RefLocalsAndReturnsTests
     {
-        public CaravelaCompilerRefLocalsAndReturnsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerRefLocalsAndReturnsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerScriptSemanticsTests : ScriptSemanticsTests
+    public class MetalamaCompilerScriptSemanticsTests : ScriptSemanticsTests
     {
-        public CaravelaCompilerScriptSemanticsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerScriptSemanticsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSemanticAnalyzerTests : SemanticAnalyzerTests
+    public class MetalamaCompilerSemanticAnalyzerTests : SemanticAnalyzerTests
     {
-        public CaravelaCompilerSemanticAnalyzerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSemanticAnalyzerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSemanticErrorTests : SemanticErrorTests
+    public class MetalamaCompilerSemanticErrorTests : SemanticErrorTests
     {
-        public CaravelaCompilerSemanticErrorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSemanticErrorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSpanStackSafetyTests : SpanStackSafetyTests
+    public class MetalamaCompilerSpanStackSafetyTests : SpanStackSafetyTests
     {
-        public CaravelaCompilerSpanStackSafetyTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSpanStackSafetyTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerStackAllocInitializerTests : StackAllocInitializerTests
+    public class MetalamaCompilerStackAllocInitializerTests : StackAllocInitializerTests
     {
-        public CaravelaCompilerStackAllocInitializerTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerStackAllocInitializerTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerStackAllocSpanExpressionsTests : StackAllocSpanExpressionsTests
+    public class MetalamaCompilerStackAllocSpanExpressionsTests : StackAllocSpanExpressionsTests
     {
-        public CaravelaCompilerStackAllocSpanExpressionsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerStackAllocSpanExpressionsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerStructsTests : StructsTests
+    public class MetalamaCompilerStructsTests : StructsTests
     {
-        public CaravelaCompilerStructsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerStructsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSwitchTests : SwitchTests
+    public class MetalamaCompilerSwitchTests : SwitchTests
     {
-        public CaravelaCompilerSwitchTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSwitchTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerTargetTypedConditionalOperatorTests : TargetTypedConditionalOperatorTests
+    public class MetalamaCompilerTargetTypedConditionalOperatorTests : TargetTypedConditionalOperatorTests
     {
-        public CaravelaCompilerTargetTypedConditionalOperatorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerTargetTypedConditionalOperatorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerDefaultLiteralTests : DefaultLiteralTests
+    public class MetalamaCompilerDefaultLiteralTests : DefaultLiteralTests
     {
-        public CaravelaCompilerDefaultLiteralTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerDefaultLiteralTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerTopLevelStatementsTests : TopLevelStatementsTests
+    public class MetalamaCompilerTopLevelStatementsTests : TopLevelStatementsTests
     {
-        public CaravelaCompilerTopLevelStatementsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerTopLevelStatementsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerTryCatchTests : TryCatchTests
+    public class MetalamaCompilerTryCatchTests : TryCatchTests
     {
-        public CaravelaCompilerTryCatchTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerTryCatchTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUninitializedNonNullableFieldTests : UninitializedNonNullableFieldTests
+    public class MetalamaCompilerUninitializedNonNullableFieldTests : UninitializedNonNullableFieldTests
     {
-        public CaravelaCompilerUninitializedNonNullableFieldTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUninitializedNonNullableFieldTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUnsafeTests : UnsafeTests
+    public class MetalamaCompilerUnsafeTests : UnsafeTests
     {
-        public CaravelaCompilerUnsafeTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUnsafeTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUserDefinedConversionTests : UserDefinedConversionTests
+    public class MetalamaCompilerUserDefinedConversionTests : UserDefinedConversionTests
     {
-        public CaravelaCompilerUserDefinedConversionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUserDefinedConversionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUseSiteErrorTests : UseSiteErrorTests
+    public class MetalamaCompilerUseSiteErrorTests : UseSiteErrorTests
     {
-        public CaravelaCompilerUseSiteErrorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUseSiteErrorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUsingDeclarationTests : UsingDeclarationTests
+    public class MetalamaCompilerUsingDeclarationTests : UsingDeclarationTests
     {
-        public CaravelaCompilerUsingDeclarationTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUsingDeclarationTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerUsingStatementTests : UsingStatementTests
+    public class MetalamaCompilerUsingStatementTests : UsingStatementTests
     {
-        public CaravelaCompilerUsingStatementTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerUsingStatementTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerVarianceTests : VarianceTests
+    public class MetalamaCompilerVarianceTests : VarianceTests
     {
-        public CaravelaCompilerVarianceTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerVarianceTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerWarningVersionTests : WarningVersionTests
+    public class MetalamaCompilerWarningVersionTests : WarningVersionTests
     {
-        public CaravelaCompilerWarningVersionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerWarningVersionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerGeneratorDriverTests : GeneratorDriverTests
+    public class MetalamaCompilerGeneratorDriverTests : GeneratorDriverTests
     {
-        public CaravelaCompilerGeneratorDriverTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerGeneratorDriverTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
     [Trait("Category", "OuterLoop")]
-    public class CaravelaCompilerSyntaxAwareGeneratorTests : SyntaxAwareGeneratorTests
+    public class MetalamaCompilerSyntaxAwareGeneratorTests : SyntaxAwareGeneratorTests
     {
-        public CaravelaCompilerSyntaxAwareGeneratorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerSyntaxAwareGeneratorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     /// <summary>
     /// The interface required to implement a source transformer.

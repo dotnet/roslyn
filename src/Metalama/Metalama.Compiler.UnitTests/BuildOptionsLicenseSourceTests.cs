@@ -4,13 +4,13 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Caravela.Compiler.Licensing;
-using Caravela.Compiler.UnitTests.Utilities;
+using Metalama.Compiler.Licensing;
+using Metalama.Compiler.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class BuildOptionsLicenseSourceTests
     {
@@ -31,7 +31,7 @@ namespace Caravela.Compiler.UnitTests
 
             var configuration = new Dictionary<string, string>
             {
-                { "build_property.CaravelaLicense", "SomeLicense1,SomeLicense2" }
+                { "build_property.MetalamaLicense", "SomeLicense1,SomeLicense2" }
             };
 
             var globalOptions = new CompilerAnalyzerConfigOptions(configuration.ToImmutableDictionary());

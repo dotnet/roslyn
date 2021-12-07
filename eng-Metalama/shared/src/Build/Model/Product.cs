@@ -420,7 +420,7 @@ namespace PostSharp.Engineering.BuildTools.Build.Model
                     {
                         // Local build with timestamp-based version and randomized package number. For the assembly version we use a local incremental file stored in the user profile.
                         var localVersionDirectory =
-                            Environment.ExpandEnvironmentVariables( "%APPDATA%\\Caravela.Engineering" );
+                            Environment.ExpandEnvironmentVariables( "%APPDATA%\\Metalama.Engineering" );
 
                         var localVersionFile = $"{localVersionDirectory}\\{this.ProductName}.version";
                         int localVersion;
@@ -516,7 +516,7 @@ namespace PostSharp.Engineering.BuildTools.Build.Model
 
             if ( this.GenerateArcadeProperties )
             {
-                // Caravela.Compiler, because of Arcade, requires the version number to be decomposed in a prefix, patch number, and suffix.
+                // Metalama.Compiler, because of Arcade, requires the version number to be decomposed in a prefix, patch number, and suffix.
                 // In Arcade, the package naming scheme is different because the patch number is not a part of the package name.
 
                 var arcadeSuffix = "";

@@ -1,8 +1,8 @@
 # Modifications and additions
 
-This is a list of significant modifications done to Roslyn to support Caravela, along with some details.
+This is a list of significant modifications done to Roslyn to support Metalama, along with some details.
 
-To see all changes made in Caravela Compiler, you can do a diff with the last merged Roslyn commit.
+To see all changes made in Metalama Compiler, you can do a diff with the last merged Roslyn commit.
 
 First, add the remote to your local clone:
 
@@ -15,9 +15,9 @@ Then at moment of writing:
 * `git diff Visual-Studio-2019-Version-16.8..master` or 
 * `gitk Visual-Studio-2019-Version-16.8..master`.
 
-## Caravela.Compiler.CodeAnalysis
+## Metalama.Compiler.CodeAnalysis
 
-This shared source project contains Caravela additions to the Microsoft.CodeAnalysis project. It exists for better separation of Caravela Compiler code from Roslyn code
+This shared source project contains Metalama additions to the Microsoft.CodeAnalysis project. It exists for better separation of Metalama Compiler code from Roslyn code
 
 ### TransformerDependencyResolver
 
@@ -27,15 +27,15 @@ It uses a simplified version of `Graph` from PostSharp.
 
 ### TimeBomb
 
-Prevents a version of Caravela Compiler to be used 90 days after it has been built, with a warning after 60 days.
+Prevents a version of Metalama Compiler to be used 90 days after it has been built, with a warning after 60 days.
 
-This code should be removed once Caravela is out of preview.
+This code should be removed once Metalama is out of preview.
 
 ### TreeTracker
 
 #### Tracking of nodes
 
-To support debugging and reporting diagnostics in user code, the Caravela Compiler tracks changes done to syntax trees during transformer execution and maintains a map from syntax nodes in modified trees to nodes in the original tree. The central code for doing this is in `TreeTracker`.
+To support debugging and reporting diagnostics in user code, the Metalama Compiler tracks changes done to syntax trees during transformer execution and maintains a map from syntax nodes in modified trees to nodes in the original tree. The central code for doing this is in `TreeTracker`.
 
 The way tracking works is that each tracked tree has its root node annotated and there is also a `ConditionalWeakTable` mapping each annotation to the original node. When a change is made inside a tracked subtree, new annotations are added, to make sure nodes can still be mapped to their originals. The annotation of the root of the tree is then changed, to indicate that it has been modified.
 
@@ -46,7 +46,7 @@ But if we instead created a new block that contained the declaration from the tr
 Tree tracker is called from several places in the code base, most interestingly from Syntax.xml.Main.Generated.cs and Syntax.xml.Syntax.Generated.cs. 
 Note that if you need to modify the .Generated.cs files, you should make your changes in `SourceWriter` in the CSharpSyntaxGenerator project.
 
-We have also added a node in `BoundNodes.xml`. To make it obvious in the generated files that this node is added in Caravela, we have modified the `Model.cs` and `BoundNodeClassWriter.cs` in BoundTreeGeneratorProject.
+We have also added a node in `BoundNodes.xml`. To make it obvious in the generated files that this node is added in Metalama, we have modified the `Model.cs` and `BoundNodeClassWriter.cs` in BoundTreeGeneratorProject.
 
 There are two ways the code is generated:
 
@@ -59,13 +59,13 @@ Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handl
 
 The method `TreeTracker.MapDiagnostic` maps a diagnostic from the transformed syntax tree to the source syntax tree. Additionally, it adds the stores the `SyntaxNode` and `Compilation` related to this diagnostic. This info can be retrieved using `TreeTracker.TryGetDiagnosticInfo`. This is used to make it easier for diagnostic suppression to retrieve symbol information about a diagnostic.  
 
-## Caravela.Compiler.Shared
+## Metalama.Compiler.Shared
 
-This code is included into the Caravela.Compiler.Sdk version of Caravela.Compiler.Interface.dll and the Caravela.Compiler version of Microsoft.CodeAnalysis.dll (using `#if`s where distinction between the two is necessary).
+This code is included into the Metalama.Compiler.Sdk version of Metalama.Compiler.Interface.dll and the Metalama.Compiler version of Microsoft.CodeAnalysis.dll (using `#if`s where distinction between the two is necessary).
 
-### CaravelaCompilerInfo
+### MetalamaCompilerInfo
 
-Can be used from a source generator (or an analyzer) to see if it is running inside the Caravela Compiler.
+Can be used from a source generator (or an analyzer) to see if it is running inside the Metalama Compiler.
 
 ### Intrinsics
 
@@ -73,7 +73,7 @@ The API for `ldtoken`/GetRuntimeHandle using documentation comment ID intrinsics
 
 ### ISourceTransformer, TransformerContext
 
-The interface to be implemented by a source transformer (i.e. Caravela proper).
+The interface to be implemented by a source transformer (i.e. Metalama proper).
 
 ### ResourceDescriptionExtensions
 

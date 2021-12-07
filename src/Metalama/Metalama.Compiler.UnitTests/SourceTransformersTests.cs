@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class SourceTransformersTests : CommandLineTestBase
     {
@@ -234,7 +234,7 @@ error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exceptio
             var transformedDir = dir.CreateDirectory("transformed");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
-build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path}");
+build_property.MetalamaCompilerTransformedFilesOutputPath = {transformedDir.Path}");
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src1.Path, src2.Path, "/out:lib.dll" };
 

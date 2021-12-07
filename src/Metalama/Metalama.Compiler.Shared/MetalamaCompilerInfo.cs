@@ -1,9 +1,9 @@
-﻿namespace Caravela.Compiler
+﻿namespace Metalama.Compiler
 {
-    public static class CaravelaCompilerInfo
+    public static class MetalamaCompilerInfo
     {
         public static bool IsActive =>
-#if CARAVELA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
             false;
 #else
             true;

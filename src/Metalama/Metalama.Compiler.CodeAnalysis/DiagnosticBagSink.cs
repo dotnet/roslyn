@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis;
 using PostSharp.Backstage.Extensibility;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     // TODO: IBackstageDiagnosticSink needs to be generalized to provide all data for Diagnostic.Create()
     internal class DiagnosticBagSink : IBackstageDiagnosticSink
@@ -24,6 +24,6 @@ namespace Caravela.Compiler
             => this.AddDiagnostic(message, ErrorCode.ERR_LicensingMessage);
 
         private void AddDiagnostic(string message, ErrorCode errorCode) =>
-            _diagnostics.Add(Diagnostic.Create(CaravelaCompilerMessageProvider.Instance, (int)errorCode, message));
+            _diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance, (int)errorCode, message));
     }
 }

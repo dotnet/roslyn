@@ -4,14 +4,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
 using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Licensing.Consumption;
 
 namespace Roslyn.Test.Utilities
 {
-    public static class CaravelaCompilerTest
+    public static class MetalamaCompilerTest
     {
         private static readonly AsyncLocal<bool> shouldExecuteTransformer = new();
 

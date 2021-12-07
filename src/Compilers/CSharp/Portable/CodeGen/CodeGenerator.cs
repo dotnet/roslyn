@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Used to implement <see cref="BoundSavePreviousSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
         /// </summary>
-        // <Caravela> - change TextSpan to Location
+        // <Metalama> - change TextSpan to Location
         private PooledDictionary<object, Location> _savedSequencePoints;
-        // </Caravela>
+        // </Metalama>
 
         private enum IndirectReturnState : byte
         {
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        // <Caravela> - added needDeclaration, needed by Ldtoken
+        // <Metalama> - added needDeclaration, needed by Ldtoken
         private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode, bool needDeclaration = false)
         {
             EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration), syntaxNode);
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration), syntaxNode, _diagnostics);
         }
-        // </Caravela>
+        // </Metalama>
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
@@ -435,10 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     continue;
 
                 // Found the previous non-hidden sequence point.  Save it.
-                // <Caravela> Changed TextSpan to Location
+                // <Metalama> Changed TextSpan to Location
                 _savedSequencePoints ??= PooledDictionary<object, Location>.GetInstance();
                 _savedSequencePoints.Add(statement.Identifier, Location.Create(sequencePoints[i].SyntaxTree, span));
-                // </Caravela>
+                // </Metalama>
                 return;
             }
         }
@@ -447,12 +447,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(node.Syntax is { });
 
-            // <Caravela> - changed TextSpan to Location 
+            // <Metalama> - changed TextSpan to Location 
             if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var location))
                 return;
 
             EmitStepThroughSequencePoint(location.SourceTree, location.SourceSpan);
-            // </Caravela>
+            // </Metalama>
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
@@ -480,12 +480,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (_emitPdbSequencePoints && _methodBodySyntaxOpt != null)
             {
-                // <Caravela>
+                // <Metalama>
                 // find the pre-transformation root that corresponds to the root node of the tree where the method is
                 var preTransformationRoot = TreeTracker.GetSourceSyntaxNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
                 if (preTransformationRoot == null)
                     return;
-                // </Caravela>
+                // </Metalama>
 
                 // If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 // provide the IL builder with our best guess at the appropriate debug document.
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSequencePoint(SyntaxNode syntax)
         {
-            // <Caravela>
+            // <Metalama>
             syntax = TreeTracker.GetSourceSyntaxNode(syntax);
 
             if (syntax == null)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitHiddenSequencePoint();
             }
             else
-            // </Caravela>
+            // </Metalama>
             {
                 EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
             }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(syntaxTree != null);
             Debug.Assert(_emitPdbSequencePoints);
 
-            // <Caravela>
+            // <Metalama>
             var location = Location.Create(syntaxTree, span);
             location = TreeTracker.GetSourceLocation(location);
 
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.DefineHiddenSequencePoint();
             }
             else
-            // </Caravela>
+            // </Metalama>
             {
                 _builder.DefineSequencePoint(location.SourceTree, location.SourceSpan);
             }

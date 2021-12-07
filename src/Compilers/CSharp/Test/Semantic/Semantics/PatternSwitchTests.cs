@@ -1006,10 +1006,10 @@ null";
         [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {
-            // <Caravela> ModuleInitializer fails for this test.
+            // <Metalama> ModuleInitializer fails for this test.
             System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-            // </Caravela>
+            // </Metalama>
 
             var source =
 @"class Program

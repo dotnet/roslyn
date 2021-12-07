@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -105,11 +105,11 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             foreach (var n in nodeOrTokens)
             {
-                // <Caravela>
+                // <Metalama>
                 var nodeOrToken = TreeTracker.TrackIfNeeded(n.AsNode()) ?? n;
 
                 this.Add(nodeOrToken);
-                // </Caravela>
+                // </Metalama>
             }
         }
 

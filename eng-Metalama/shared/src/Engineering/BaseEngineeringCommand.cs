@@ -12,7 +12,7 @@ namespace PostSharp.Engineering.BuildTools.Engineering
     {
         protected static string? GetEngineeringRepo( BuildContext context, EngineeringSettings options )
         {
-            var sharedRepo = Path.GetFullPath( Path.Combine( context.RepoDirectory, "..", "Caravela.Engineering" ) );
+            var sharedRepo = Path.GetFullPath( Path.Combine( context.RepoDirectory, "..", "Metalama.Engineering" ) );
 
             // Check if the repo exists.
             if ( !Directory.Exists( sharedRepo ) )

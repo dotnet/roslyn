@@ -201,13 +201,13 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // <Caravela>
+            // <Metalama>
             public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 // Implement if needed
                 throw new NotImplementedException();
             }
-            // </Caravela>
+            // </Metalama>
         }
     }
 }

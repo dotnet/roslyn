@@ -5,7 +5,7 @@
     <PropertyGroup Condition="'$(CollectCoverage)'=='True'">
     
         <!-- Our custom test framework is not compatible with coverlet, so we have to disable it. -->
-        <CaravelaTestReplaceFramework>False</CaravelaTestReplaceFramework>
+        <MetalamaTestReplaceFramework>False</MetalamaTestReplaceFramework>
         
         <!-- This property is typically set by the calling PS script -->
         <CoverletOutput Condition="'$(CoverletOutput)'==''">$(MSBuildThisFileDirectory)\..\..\..\TestResults\</CoverletOutput>

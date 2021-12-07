@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289",
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void NoDiagnostics()
         {
             NoDiagnosticsImpl();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289",
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void SimpleCompilerDiagnostics()
         {
             SimpleCompilerDiagnosticsImpl();
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", 
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void SimpleCompilerDiagnosticsSuppressed()
         {
             SimpleCompilerDiagnosticsSuppressedImpl();
@@ -207,35 +207,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", 
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly),
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsSuppressedWithJustification()
         {
             AnalyzerDiagnosticsSuppressedWithJustificationImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly),
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
         {
             AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly),
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
         {
             AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
         }
 
         [ConditionalFact(typeof(WindowsOnly),
-            AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
+            AlwaysSkip = "Metalama does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();

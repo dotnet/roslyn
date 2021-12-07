@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Caravela.Compiler.Licensing;
-using Caravela.Compiler.UnitTests.Utilities;
+using Metalama.Compiler.Licensing;
+using Metalama.Compiler.UnitTests.Utilities;
 using PostSharp.Backstage.Extensibility;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class TimeBombTests
     {
@@ -55,7 +55,7 @@ namespace Caravela.Compiler.UnitTests
             SetAge(daysAfterBuild);
             Assert.True(_timeBomb.TryRegisterLicense());
             _diagnostics.AssertEmptyErrors();
-            Assert.Single(_diagnostics.GetWarnings(), $"The current preview build of Caravela is {daysAfterBuild} days old and will stop working soon, because it is allowed to be used only for {TimeBombLicenseActivator.PreviewLicensePeriod} days. Please update Caravela soon.");
+            Assert.Single(_diagnostics.GetWarnings(), $"The current preview build of Metalama is {daysAfterBuild} days old and will stop working soon, because it is allowed to be used only for {TimeBombLicenseActivator.PreviewLicensePeriod} days. Please update Metalama soon.");
         }
 
         [Theory]

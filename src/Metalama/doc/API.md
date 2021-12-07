@@ -1,6 +1,6 @@
 ## API
 
-The API of the Caravela compiler consists of the following 4 types in the `Caravela.Compiler` namespace:
+The API of the Metalama compiler consists of the following 4 types in the `Metalama.Compiler` namespace:
 
 ### `ISourceTransformer`
 
@@ -88,4 +88,4 @@ public class TransformerOrderAttribute : Attribute
 
 The `[TransformerOrder]` attribute can be applied to an assembly containing transformers to specify the execution order of transformers within it, and possibly also other transformers it knows about.
 
-The order of all transformers has to be fully specified. If the authors of used transformers did not do that, a user will have to specify the `CaravelaCompilerTransformerOrder` property in their csproj.
+The order of all transformers has to be fully specified. If the authors of used transformers did not do that, a user will have to specify the `MetalamaCompilerTransformerOrder` property in their csproj.

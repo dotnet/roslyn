@@ -9,9 +9,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Caravela.Compiler;
-using Caravela.Compiler.Interface.TypeForwards;
-using Caravela.Compiler.Licensing;
+using Metalama.Compiler;
+using Metalama.Compiler.Interface.TypeForwards;
+using Metalama.Compiler.Licensing;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
         private readonly string? _tempDirectory;
         
-        // <Caravela>
+        // <Metalama>
         static CSharpCompiler()
         {
-            // Ensure that our Caravela.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
+            // Ensure that our Metalama.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
             // is a reference assembly.
-            CaravelaCompilerInterfaces.Initialize();
+            MetalamaCompilerInterfaces.Initialize();
         }
-        // </Caravela>
+        // </Metalama>
 
         protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null)
             : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache)
@@ -293,10 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
             consoleOutput.WriteLine();
-            // <Caravela> Print out copyright line
+            // <Metalama> Print out copyright line
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine3, Culture));
             consoleOutput.WriteLine();
-            // </Caravela>
+            // </Metalama>
         }
 
         public override void PrintLangVersions(TextWriter consoleOutput)
@@ -354,20 +354,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<string?> transformerOrder,
-            // </Caravela>
+            // </Metalama>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            // <Caravela>
+            // <Metalama>
             out ImmutableArray<ISourceTransformer> transformers,
             out ImmutableArray<object> plugins
-            // </Caravela>
+            // </Metalama>
             )
         {
-            // <Caravela>
+            // <Metalama>
             Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
-            // </Caravela>
+            // </Metalama>
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider);
         }
         
-        // <Caravela>
+        // <Metalama>
         
         // Used for testing.
         protected virtual ILicenseConsumptionManager? GetCustomLicenseConsumptionManager() => null;
@@ -417,11 +417,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool IsFirstRunLicenseActivatorEnabled()
             {
                 if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                    "build_property.CaravelaFirstRunLicenseActivatorEnabled",
+                    "build_property.MetalamaFirstRunLicenseActivatorEnabled",
                     out var firstRunLicenseActivatorEnabledString))
                 {
                     throw new InvalidOperationException(
-                        "CaravelaFirstRunLicenseActivatorEnabled property is required.");
+                        "MetalamaFirstRunLicenseActivatorEnabled property is required.");
                 }
 
                 return bool.Parse(firstRunLicenseActivatorEnabledString);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .AddFileSystem()
                 .AddStandardDirectories()
                 .AddSingleton<IBackstageDiagnosticSink>(new DiagnosticBagSink(diagnostics))
-                .AddSingleton<IApplicationInfo>(new CaravelaCompilerApplicationInfo());
+                .AddSingleton<IApplicationInfo>(new MetalamaCompilerApplicationInfo());
 
             var customLicenseConsumptionManager = GetCustomLicenseConsumptionManager();
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var services = CreateServices(analyzerConfigProvider, diagnostics);
-            var license = new CaravelaCompilerLicenseConsumptionManager(services);
+            var license = new MetalamaCompilerLicenseConsumptionManager(services);
 
             license.ConsumeFeatures(LicensedFeatures.Community);
 
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (shouldDebugTransformedCode)
             {
-                license.ConsumeFeatures(LicensedFeatures.Caravela);
+                license.ConsumeFeatures(LicensedFeatures.Metalama);
             }
 
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        CaravelaCompilerMessageProvider.Instance, (int)global::Caravela.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
+                        MetalamaCompilerMessageProvider.Instance, (int)global::Metalama.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }
@@ -653,6 +653,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             
     
         }
-        // </Caravela>
+        // </Metalama>
     }
 }

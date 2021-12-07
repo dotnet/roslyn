@@ -1,147 +1,147 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
 using Roslyn.Test.Utilities;
 
-namespace Caravela.Compiler.UnitTests.Pdb
+namespace Metalama.Compiler.UnitTests.Pdb
 {
-    public class CaravelaCompilerCheckSumTest : CheckSumTest
+    public class MetalamaCompilerCheckSumTest : CheckSumTest
     {
-        public CaravelaCompilerCheckSumTest() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerCheckSumTest() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbConstantTests : PDBConstantTests
+    public class MetalamaCompilerPdbConstantTests : PDBConstantTests
     {
-        public CaravelaCompilerPdbConstantTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbConstantTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbPdbDynamicLocalsTests : PDBDynamicLocalsTests
+    public class MetalamaCompilerPdbPdbDynamicLocalsTests : PDBDynamicLocalsTests
     {
-        public CaravelaCompilerPdbPdbDynamicLocalsTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbPdbDynamicLocalsTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbEmbeddedSourceTests : PDBEmbeddedSourceTests
+    public class MetalamaCompilerPdbEmbeddedSourceTests : PDBEmbeddedSourceTests
     {
-        public CaravelaCompilerPdbEmbeddedSourceTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbEmbeddedSourceTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbIteratorTests : PDBIteratorTests
+    public class MetalamaCompilerPdbIteratorTests : PDBIteratorTests
     {
-        public CaravelaCompilerPdbIteratorTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbIteratorTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbLambdaTests : PDBLambdaTests
+    public class MetalamaCompilerPdbLambdaTests : PDBLambdaTests
     {
-        public CaravelaCompilerPdbLambdaTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbLambdaTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbLocalFunctionTests : PDBLocalFunctionTests
+    public class MetalamaCompilerPdbLocalFunctionTests : PDBLocalFunctionTests
     {
-        public CaravelaCompilerPdbLocalFunctionTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbLocalFunctionTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbSourceLinkTests : PDBSourceLinkTests
+    public class MetalamaCompilerPdbSourceLinkTests : PDBSourceLinkTests
     {
-        public CaravelaCompilerPdbSourceLinkTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbSourceLinkTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbTests : PDBTests
+    public class MetalamaCompilerPdbTests : PDBTests
     {
-        public CaravelaCompilerPdbTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbTupleTests : PDBTupleTests
+    public class MetalamaCompilerPdbTupleTests : PDBTupleTests
     {
-        public CaravelaCompilerPdbTupleTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbTupleTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbUsingTests : PDBUsingTests
+    public class MetalamaCompilerPdbUsingTests : PDBUsingTests
     {
-        public CaravelaCompilerPdbUsingTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbUsingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPdbWinMdExpTests : PDBWinMdExpTests
+    public class MetalamaCompilerPdbWinMdExpTests : PDBWinMdExpTests
     {
-        public CaravelaCompilerPdbWinMdExpTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPdbWinMdExpTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }
 
-    public class CaravelaCompilerPortablePdbTests : PortablePdbTests
+    public class MetalamaCompilerPortablePdbTests : PortablePdbTests
     {
-        public CaravelaCompilerPortablePdbTests() => CaravelaCompilerTest.ShouldExecuteTransformer = true;
+        public MetalamaCompilerPortablePdbTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 
         public override void Dispose()
         {
-            CaravelaCompilerTest.ShouldExecuteTransformer = false;
+            MetalamaCompilerTest.ShouldExecuteTransformer = false;
             base.Dispose();
         }
     }

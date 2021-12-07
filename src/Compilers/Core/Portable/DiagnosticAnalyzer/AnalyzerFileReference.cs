@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
         private readonly Extensions<ISourceGenerator> _generators;
-        // <Caravela>
+        // <Metalama>
         private readonly Extensions<ISourceTransformer> _transformers;
         private readonly Extensions<object>? _plugins;
-        // </Caravela>
+        // </Metalama>
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
-            // <Caravela>
+            // <Metalama>
             _transformers = new(this, typeof(TransformerAttribute), GetTransformersSupportedLanguages, allowNetFramework: false);
 
             // The declaring assembly might not be loaded in tests.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _plugins = new(this, compilerPlugInAttributeType, GetTransformersSupportedLanguages, allowNetFramework: false);
             }
-            // </Caravela>
+            // </Metalama>
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _generators.GetExtensions(language);
         }
 
-        // <Caravela>
+        // <Metalama>
         public override ImmutableArray<ISourceTransformer> GetTransformers()
         {
             return _transformers.GetExtensions(LanguageNames.CSharp);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
         }
-        // </Caravela>
+        // </Metalama>
 
         public override string Display
         {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
-        // <Caravela>
+        // <Metalama>
         internal void AddTransformers(ImmutableArray<ISourceTransformer>.Builder builder, string language)
         {
             _transformers.AddExtensions(builder, language);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var attribute in module.MetadataReader.GetAssemblyDefinition().GetCustomAttributes())
                 {
-                    if (!module.Module.IsTargetAttribute(attribute, "Caravela.Compiler", nameof(TransformerOrderAttribute), out _))
+                    if (!module.Module.IsTargetAttribute(attribute, "Metalama.Compiler", nameof(TransformerOrderAttribute), out _))
                         continue;
 
                     if (module.Module.TryExtractStringArrayValueFromAttribute(attribute, out var transformerNames))
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _plugins?.AddExtensions(builder, language);
         }
-        // </Caravela>
+        // </Metalama>
 
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
@@ -394,14 +394,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return null;
         }
 
-        // <Caravela>
+        // <Metalama>
         private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
-        // These constants are referenced in Caravela.Try.
+        // These constants are referenced in Metalama.Try.
         public const string CompilerPlugInAttributeTypeName = "CompilerPluginAttribute";
-        public const string CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Impl.Sdk";
-        public const string CompilerPlugInAttributeAssembly = "Caravela.Framework.Sdk";
-        // </Caravela>
+        public const string CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Impl.Sdk";
+        public const string CompilerPlugInAttributeAssembly = "Metalama.Framework.Sdk";
+        // </Metalama>
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {

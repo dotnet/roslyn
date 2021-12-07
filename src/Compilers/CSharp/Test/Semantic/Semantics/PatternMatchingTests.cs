@@ -7240,7 +7240,7 @@ public class C
         }
 
         [Fact(
-             Skip = "Caravela: MakeTypeMissing does not work with the way Caravela is used in tests"
+             Skip = "Metalama: MakeTypeMissing does not work with the way Metalama is used in tests"
             )]
         [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
         public void MissingExceptionType()

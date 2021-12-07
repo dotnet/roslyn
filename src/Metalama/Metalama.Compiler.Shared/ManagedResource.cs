@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     /// <summary>
     /// Represents a managed resource.
@@ -23,7 +23,7 @@ namespace Caravela.Compiler
         /// </summary>
         public bool IncludeInRefAssembly { get; }
 
-#if !CARAVELA_COMPILER_INTERFACE
+#if !METALAMA_COMPILER_INTERFACE
 
         /// <summary>
         /// Initializes a new instance of <see cref="ManagedResource"/> that represents an existing <see cref="ResourceDescription"/>.

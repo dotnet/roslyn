@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     internal class RefAssemblyResourceMarker
     {

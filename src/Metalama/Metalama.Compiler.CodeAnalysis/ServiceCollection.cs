@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     /// <summary>
     /// Collection of services exposing an <see cref="IServiceProvider"/>.

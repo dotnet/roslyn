@@ -15,7 +15,7 @@ namespace PostSharp.Engineering.BuildTools.Engineering
 
         [Description( "Remote URL of the repo." )]
         [CommandOption( "-u|--url" )]
-        public string Url { get; init; } = "https://postsharp@dev.azure.com/postsharp/Caravela/_git/Caravela.Engineering";
+        public string Url { get; init; } = "https://postsharp@dev.azure.com/postsharp/Metalama/_git/Metalama.Engineering";
     }
 
     internal class PullEngineeringSettings : EngineeringSettings

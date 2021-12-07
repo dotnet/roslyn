@@ -16,7 +16,7 @@ using PostSharp.Backstage.Licensing.Licenses;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class LicensingTests : CommandLineTestBase
     {
@@ -29,9 +29,9 @@ namespace Caravela.Compiler.UnitTests
             _src = dir.CreateFile($"{fileNameWithoutExtension}.cs").WriteAllText("class C { }");
             var config = dir.CreateFile($"{fileNameWithoutExtension}.editorconfig").WriteAllText(
                 $@"is_global = true
-build_property.CaravelaLicenseSources = Property
-build_property.CaravelaFirstRunLicenseActivatorEnabled = False
-build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
+build_property.MetalamaLicenseSources = Property
+build_property.MetalamaFirstRunLicenseActivatorEnabled = False
+build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
 ");
             var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
             var csc = CreateCSharpCompiler(null, dir.Path, args,
@@ -70,7 +70,7 @@ build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         }
 
         [Fact]
-        public void TransformedCodeDebuggingRequiresCaravelaLicense()
+        public void TransformedCodeDebuggingRequiresMetalamaLicense()
         {
             var csc = CreateCompiler(new DummyTransformer(), debugTransformedCode: true);
 
@@ -79,7 +79,7 @@ build_property.CaravelaDebugTransformedCode = {(debugTransformedCode ? "True" : 
             var output = outWriter.ToString().Trim();
 
             Assert.NotEqual(0, exitCode);
-            Assert.Equal($"error RE0007: No license available for feature(s) Community{Environment.NewLine}error RE0007: No license available for feature(s) Caravela", output);
+            Assert.Equal($"error RE0007: No license available for feature(s) Community{Environment.NewLine}error RE0007: No license available for feature(s) Metalama", output);
         }
 
         public override void Dispose()

@@ -3,7 +3,7 @@ using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class CommonPathTests
     {
@@ -44,12 +44,12 @@ namespace Caravela.Compiler.UnitTests
 
         private static IEnumerable<string?[][]> PrefixRemoverData()
         {
-            yield return new[] { new[] { @"C:\code\Caravela\src\file1.cs", @"C:\code\Caravela\src\file2.cs" }, new[] { "file1.cs", "file2.cs" } };
-            yield return new[] { new[] { @"C:\code\Caravela\src\file1.cs", @"E:\code\Caravela\src\file2.cs" }, new[] { @"C\code\Caravela\src\file1.cs", @"E\code\Caravela\src\file2.cs" } };
-            yield return new[] { new[] { @"C:\code\Caravela\src\file1.cs", @"C:\code\Caravela\src\file2.cs", @"C:\code\other.cs" }, new[] { @"Caravela\src\file1.cs", @"Caravela\src\file2.cs", "other.cs" } };
-            yield return new[] { new[] { @"C:\code\Caravela\src\file.cs", "generated.cs" }, new[] { "file.cs", "generated.cs" } };
-            yield return new[] { new[] { @"C:\code\Caravela\src\file.cs", null }, new[] { "file.cs", "" } };
-            yield return new[] { new[] { @"C:\code\Caravela\src\file.cs", "" }, new[] { "file.cs", "" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file1.cs", @"C:\code\Metalama\src\file2.cs" }, new[] { "file1.cs", "file2.cs" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file1.cs", @"E:\code\Metalama\src\file2.cs" }, new[] { @"C\code\Metalama\src\file1.cs", @"E\code\Metalama\src\file2.cs" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file1.cs", @"C:\code\Metalama\src\file2.cs", @"C:\code\other.cs" }, new[] { @"Metalama\src\file1.cs", @"Metalama\src\file2.cs", "other.cs" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file.cs", "generated.cs" }, new[] { "file.cs", "generated.cs" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file.cs", null }, new[] { "file.cs", "" } };
+            yield return new[] { new[] { @"C:\code\Metalama\src\file.cs", "" }, new[] { "file.cs", "" } };
         }
 
         [ConditionalTheory(typeof(WindowsOnly)), MemberData(nameof(PrefixRemoverData))]

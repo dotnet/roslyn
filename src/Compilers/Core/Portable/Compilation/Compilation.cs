@@ -28,7 +28,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -2213,16 +2213,16 @@ namespace Microsoft.CodeAnalysis
                     var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
-                        // <Caravela>
+                        // <Metalama>
                         var actualTree = TreeTracker.GetSourceSyntaxNode(tree.GetRoot())?.SyntaxTree ?? tree;
-                        // </Caravela>
+                        // </Metalama>
 
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath,
                             DebugSourceDocumentLanguageId,
-                            // <Caravela>
+                            // <Metalama>
                             () => actualTree.GetDebugSourceInfo()
-                            // </Caravela>
+                            // </Metalama>
                         ));
                     }
                 }
@@ -3411,7 +3411,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
 
-        // <Caravela>
+        // <Metalama>
         internal void CloneMissingTypesAndMembersFrom(Compilation other)
         {
             _lazyMakeWellKnownTypeMissingMap = other._lazyMakeWellKnownTypeMissingMap == null
@@ -3422,7 +3422,7 @@ namespace Microsoft.CodeAnalysis
                 ? null
                 : new SmallDictionary<int, bool>(other._lazyMakeMemberMissingMap, other._lazyMakeMemberMissingMap.Comparer);
         }
-        // </Caravela>
+        // </Metalama>
 
         /// <summary>
         /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns

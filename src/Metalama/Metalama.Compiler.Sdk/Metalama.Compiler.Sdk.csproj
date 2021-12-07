@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <DefineConstants>CARAVELA_COMPILER_INTERFACE</DefineConstants>
+    <DefineConstants>METALAMA_COMPILER_INTERFACE</DefineConstants>
     <IsPackable>true</IsPackable>
-    <AssemblyName>Caravela.Compiler.Interface</AssemblyName>
-    <PackageId>Caravela.Compiler.Sdk</PackageId>
+    <AssemblyName>Metalama.Compiler.Interface</AssemblyName>
+    <PackageId>Metalama.Compiler.Sdk</PackageId>
   </PropertyGroup>
 
-  <Import Project="..\Caravela.Compiler.Shared\Caravela.Compiler.Shared.projitems" Label="Shared" />
+  <Import Project="..\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
 
   <ItemGroup>
-    <None Include="build\Caravela.Compiler.Sdk.targets" Pack="true" PackagePath="build" />
+    <None Include="build\Metalama.Compiler.Sdk.targets" Pack="true" PackagePath="build" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,11 +10,11 @@ using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Extensibility.Extensions;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     /// <summary>
     /// Factory class creating license sources enabled using
-    /// the CaravelaLicenseSources MSBuild property / global analyzer option.
+    /// the MetalamaLicenseSources MSBuild property / global analyzer option.
     /// </summary>
     internal class LicenseSourceFactory
     {
@@ -34,21 +34,21 @@ namespace Caravela.Compiler.Licensing
 
         /// <summary>
         /// Creates the license sources enabled using
-        /// the CaravelaLicenseSources MSBuild property / global analyzer option. 
+        /// the MetalamaLicenseSources MSBuild property / global analyzer option. 
         /// </summary>
         /// <returns><see cref="IEnumerable{T}"/> creating the license sources.</returns>
-        /// <exception cref="InvalidOperationException">The CaravelaLicenseSources global analyzer option is missing.</exception>
+        /// <exception cref="InvalidOperationException">The MetalamaLicenseSources global analyzer option is missing.</exception>
         public IEnumerable<ILicenseSource> Create()
         {
             // TODO: trace
 
-            // See src\Caravela\doc\Properties.md.
+            // See src\Metalama\doc\Properties.md.
             if (!_analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                "build_property.CaravelaLicenseSources",
+                "build_property.MetalamaLicenseSources",
                 out var sourcesConfig))
             {
                 throw new InvalidOperationException(
-                    "CaravelaLicenseSources property is required.");
+                    "MetalamaLicenseSources property is required.");
             }
 
             var sourceNames = sourcesConfig.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -68,7 +68,7 @@ namespace Caravela.Compiler.Licensing
                     default:
                         var diagnostics = _services.GetRequiredService<IBackstageDiagnosticSink>();
                         diagnostics.ReportError(
-                            $"Unknown license source '{sourceName}' configured in the CaravelaLicenseSources property.");
+                            $"Unknown license source '{sourceName}' configured in the MetalamaLicenseSources property.");
                         break;
                 }
             }

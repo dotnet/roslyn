@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     public static class Intrinsics
     {
         private static InvalidOperationException NewInvalidOperationException() =>
-            new InvalidOperationException("Code calling this method has to be compiled by the Caravela compiler.");
+            new InvalidOperationException("Code calling this method has to be compiled by the Metalama compiler.");
 
         public static RuntimeMethodHandle GetRuntimeMethodHandle(string documentationId) => throw NewInvalidOperationException();
         public static RuntimeFieldHandle GetRuntimeFieldHandle(string documentationId) => throw NewInvalidOperationException();

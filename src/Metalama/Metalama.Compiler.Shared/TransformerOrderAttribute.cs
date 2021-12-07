@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     /// <summary>
     /// Applying this attribute on an assembly specifies the execution order of transformers it knows about, including transformers inside the assembly itself.

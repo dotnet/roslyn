@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class DiagnosticsTests : CommandLineTestBase
     {
@@ -143,7 +143,7 @@ namespace Caravela.Compiler.UnitTests
 
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
-build_property.CaravelaSourceOnlyAnalyzers = all");
+build_property.MetalamaSourceOnlyAnalyzers = all");
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src.Path };
 

@@ -284,11 +284,11 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                // <Caravela>
+                // <Metalama>
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
                 var syntaxTree = compilation.SyntaxTrees.SingleOrDefault(tree => DocumentState.GetDocumentIdForTree(tree) == this.Id) ??
                     compilation.SyntaxTrees.SingleOrDefault(tree => tree.FilePath == this.FilePath);
-                // </Caravela>
+                // </Metalama>
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);

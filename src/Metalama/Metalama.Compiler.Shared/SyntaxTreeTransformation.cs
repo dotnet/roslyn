@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     public readonly struct SyntaxTreeTransformation
     {

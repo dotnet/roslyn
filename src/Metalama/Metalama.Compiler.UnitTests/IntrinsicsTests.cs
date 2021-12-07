@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class IntrinsicsTests : CSharpTestBase
     {
@@ -37,7 +37,7 @@ using System;
 
 class G
 {{
-    RuntimeTypeHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
+    RuntimeTypeHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -68,7 +68,7 @@ using System;
 
 class G
 {{
-    RuntimeTypeHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
+    RuntimeTypeHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeTypeHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -102,7 +102,7 @@ using System;
 
 class G
 {{
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -136,7 +136,7 @@ using System;
 
 class G
 {{
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -172,7 +172,7 @@ using System;
 
 class G
 {{
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -205,7 +205,7 @@ using System;
 
 class G
 {{
-    RuntimeFieldHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
+    RuntimeFieldHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -238,7 +238,7 @@ using System;
 
 class G
 {{
-    RuntimeFieldHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
+    RuntimeFieldHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
 }}";
 
             var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, _references);
@@ -259,13 +259,13 @@ using System;
 
 class G
 {
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyDiagnostics(
                 // (6,75): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-                //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
+                //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(42);
                 Diagnostic(Microsoft.CodeAnalysis.CSharp.ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(6, 84));
         }
 
@@ -277,13 +277,13 @@ using System;
 
 class G
 {
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("""", """");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("""", """");
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyDiagnostics(
                 // (6,52): error CS1501: No overload for method 'GetRuntimeMethodHandle' takes 2 arguments
-                //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("", "");
+                //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("", "");
                 Diagnostic(Microsoft.CodeAnalysis.CSharp.ErrorCode.ERR_BadArgCount, "GetRuntimeMethodHandle").WithArguments("GetRuntimeMethodHandle", "2").WithLocation(6, 61));
         }
 
@@ -295,14 +295,14 @@ using System;
 
 class G
 {
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (6,32): error RE0006: Argument 'null' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
-                //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
-                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(null)").WithArguments("null", "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
+                // (6,32): error RE0006: Argument 'null' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
+                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(null)").WithArguments("null", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
         }
 
         [Fact]
@@ -313,14 +313,14 @@ using System;
 
 class G
 {
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"");
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (6,32): error RE0006: Argument '"incorrect"' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
-                //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("incorrect");
-                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, @"Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"")").WithArguments("\"incorrect\"", "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
+                // (6,32): error RE0006: Argument '"incorrect"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("incorrect");
+                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, @"Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"")").WithArguments("\"incorrect\"", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
         }
 
         [Fact]
@@ -334,15 +334,15 @@ class G
     RuntimeMethodHandle M()
     {
         var docId = ""T:G"";
-        return Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
+        return Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
     }
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (9,16): error RE0006: Argument 'docId' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
-                //         return Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
-                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(docId)").WithArguments("docId", "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(9, 16));
+                // (9,16): error RE0006: Argument 'docId' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                //         return Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
+                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(docId)").WithArguments("docId", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(9, 16));
         }
 
         [Fact]
@@ -359,14 +359,14 @@ class C
 
 class G
 {
-    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"");
+    RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"");
 }";
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (12,32): error RE0006: Argument '"M:C.op_Explicit"' is not valid for Caravela.Compiler intrinsic method 'Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
-                //     RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle("M:C.op_Explicit");
-                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, @"Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"")").WithArguments("\"M:C.op_Explicit\"", "Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(12, 32));
+                // (12,32): error RE0006: Argument '"M:C.op_Explicit"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("M:C.op_Explicit");
+                Diagnostic(ErrorCode.ERR_InvalidIntrinsicUse, @"Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"")").WithArguments("\"M:C.op_Explicit\"", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(12, 32));
         }
     }
 }

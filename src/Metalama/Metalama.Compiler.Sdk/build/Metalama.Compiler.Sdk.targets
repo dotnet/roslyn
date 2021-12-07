@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   
-  <UsingTask TaskName="CaravelaCompilerRewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+  <UsingTask TaskName="MetalamaCompilerRewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <NuspecFile/>
     </ParameterGroup>
@@ -20,12 +20,12 @@
 
             foreach (var group in groups)
             {
-                var caravelaDependency = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "Caravela.Compiler.Sdk");
+                var metalamaDependency = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "Metalama.Compiler.Sdk");
 
-                if (caravelaDependency != null)
+                if (metalamaDependency != null)
                 {
-                    caravelaDependency.Attribute("id").Value = "Caravela.Compiler";
-                    caravelaDependency.Attribute("exclude")?.Remove();
+                    metalamaDependency.Attribute("id").Value = "Metalama.Compiler";
+                    metalamaDependency.Attribute("exclude")?.Remove();
                 }
             }
 
@@ -35,7 +35,7 @@
     </Task>
   </UsingTask>
 
-  <Target Name="CaravelaCompilerSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup" Condition="$(IsPackable) == 'true' AND $(CaravelaCompilerDisablePackCustomization)!='true'">
+  <Target Name="MetalamaCompilerSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup" Condition="$(IsPackable) == 'true' AND $(MetalamaCompilerDisablePackCustomization)!='true'">
     <ItemGroup>
       <!-- include assemblies from the current project -->
       <None Include="@(BuiltProjectOutputGroupOutput)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
@@ -46,10 +46,10 @@
 
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CaravelaCompilerSetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);MetalamaCompilerSetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
-  <Target Name="CaravelaCompilerSetLibAssembliesInPackage" DependsOnTargets="ResolveReferences" Condition="$(IsPackable) == 'true'  AND $(CaravelaCompilerDisablePackCustomization)!='true'">
+  <Target Name="MetalamaCompilerSetLibAssembliesInPackage" DependsOnTargets="ResolveReferences" Condition="$(IsPackable) == 'true'  AND $(MetalamaCompilerDisablePackCustomization)!='true'">
     <ItemGroup>
       <!-- include assemblies from references -->
       <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))"/>
@@ -59,7 +59,7 @@
   </Target>
 
   <!-- based on https://github.com/NuGet/NuGet.Client/blob/1f3a4d9/src/NuGet.Core/NuGet.Build.Tasks.Pack/NuGet.Build.Tasks.Pack.targets#L195 -->
-  <Target Name="CaravelaCompilerGenerateNuspec"
+  <Target Name="MetalamaCompilerGenerateNuspec"
           DependsOnTargets="$(GenerateNuspecDependsOn);_CalculateInputsOutputsForPack;_GetProjectReferenceVersions;_InitializeNuspecRepositoryInformationProperties"
           Condition="$(IsPackable) == 'true'" Inputs="@(NuGetPackInput)" Outputs="@(NuGetPackOutput)">
     <PackTask PackItem="$(PackProjectInputFile)"
@@ -125,7 +125,7 @@
     />
   </Target>
 
-  <Target Name="CaravelaCompilerUpdateNuspec" DependsOnTargets="CaravelaCompilerGenerateNuspec" Condition="$(IsPackable) == 'true'  AND $(CaravelaCompilerDisablePackCustomization)!='true'">
+  <Target Name="MetalamaCompilerUpdateNuspec" DependsOnTargets="MetalamaCompilerGenerateNuspec" Condition="$(IsPackable) == 'true'  AND $(MetalamaCompilerDisablePackCustomization)!='true'">
     <ItemGroup>
       <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'"/>
     </ItemGroup>
@@ -134,12 +134,12 @@
       <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
     </PropertyGroup>
 
-    <CaravelaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)"/>
+    <MetalamaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)"/>
 
   </Target>
 
-  <PropertyGroup Condition="$(CaravelaCompilerDisablePackCustomization)!='true'">
-    <BeforePack>$(BeforePack); CaravelaCompilerSetAnalyzerAssembliesInPackage; CaravelaCompilerUpdateNuspec</BeforePack>
+  <PropertyGroup Condition="$(MetalamaCompilerDisablePackCustomization)!='true'">
+    <BeforePack>$(BeforePack); MetalamaCompilerSetAnalyzerAssembliesInPackage; MetalamaCompilerUpdateNuspec</BeforePack>
   </PropertyGroup>
 
 </Project>

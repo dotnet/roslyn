@@ -5,15 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Caravela.Compiler.Licensing;
-using Caravela.Compiler.UnitTests.Utilities;
+using Metalama.Compiler.Licensing;
+using Metalama.Compiler.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 using PostSharp.Backstage.Licensing.Registration;
 using Xunit;
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     public class LicenseSourceFactoryTests
     {
@@ -44,7 +44,7 @@ namespace Caravela.Compiler.UnitTests
             Assert.Empty(sources);
             _diagnostics.AssertEmptyWarnings();
             Assert.Single(_diagnostics.GetErrors(),
-                "Unknown license source 'someunknown' configured in the CaravelaLicenseSources property.");
+                "Unknown license source 'someunknown' configured in the MetalamaLicenseSources property.");
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace Caravela.Compiler.UnitTests
         {
             var configuration = new Dictionary<string, string>
             {
-                { "build_property.CaravelaLicenseSources", sourceNames }
+                { "build_property.MetalamaLicenseSources", sourceNames }
             };
 
             var globalOptions = new CompilerAnalyzerConfigOptions(configuration.ToImmutableDictionary());

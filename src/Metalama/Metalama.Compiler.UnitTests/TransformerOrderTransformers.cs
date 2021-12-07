@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.CodeAnalysis;
 
-[assembly: Caravela.Compiler.TransformerOrder("Caravela.Compiler.UnitTests.TransformerOrderTransformer2", "Caravela.Compiler.UnitTests.TransformerOrderTransformer1")]
+[assembly: Metalama.Compiler.TransformerOrder("Metalama.Compiler.UnitTests.TransformerOrderTransformer2", "Metalama.Compiler.UnitTests.TransformerOrderTransformer1")]
 
-namespace Caravela.Compiler.UnitTests
+namespace Metalama.Compiler.UnitTests
 {
     abstract class TransformerOrderTransformer : ISourceTransformer
     {

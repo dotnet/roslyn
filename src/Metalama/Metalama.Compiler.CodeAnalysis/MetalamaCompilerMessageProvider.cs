@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
-using static Caravela.Compiler.ErrorCode;
+using static Metalama.Compiler.ErrorCode;
 
 #nullable enable
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     internal enum ErrorCode
     {
@@ -19,9 +19,9 @@ namespace Caravela.Compiler
         WRN_LicensingMessage = 8
     }
 
-    internal sealed class CaravelaCompilerMessageProvider : CommonMessageProvider
+    internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
     {
-        public static CaravelaCompilerMessageProvider Instance { get; } = new CaravelaCompilerMessageProvider();
+        public static MetalamaCompilerMessageProvider Instance { get; } = new MetalamaCompilerMessageProvider();
 
         public override string CodePrefix => "RE";
 
@@ -210,7 +210,7 @@ namespace Caravela.Compiler
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle.",
                 ERR_TransformersNotOrdered => "Transformers are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
-                ERR_InvalidIntrinsicUse => "Argument is not valid for Caravela intrinsic method.",
+                ERR_InvalidIntrinsicUse => "Argument is not valid for Metalama intrinsic method.",
                 ERR_LicensingMessage => "Licensing error.",
                 WRN_LicensingMessage => "Licensing warning.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
@@ -231,7 +231,7 @@ namespace Caravela.Compiler
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle. Members of this cycle are: {0}",
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
-                ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Caravela intrinsic method '{1}'.",
+                ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Metalama intrinsic method '{1}'.",
                 ERR_LicensingMessage => "{0}",
                 WRN_LicensingMessage => "{0}",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))

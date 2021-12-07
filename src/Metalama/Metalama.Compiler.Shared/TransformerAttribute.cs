@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     /// <summary>
     /// Place this attribute onto a type to cause it to be considered a source transformer.

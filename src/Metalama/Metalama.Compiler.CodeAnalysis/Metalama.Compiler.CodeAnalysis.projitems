@@ -6,17 +6,17 @@
     <SharedGUID>9ac4f471-ed46-4cd9-920f-e50bc6a65dd6</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Caravela.Compiler</Import_RootNamespace>
+    <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CaravelaCompilerMessageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerMessageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticBagSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\BuildOptionsLicenseSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerApplicationInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerLicenseConsumer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Licensing\CaravelaCompilerLicenseManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Licensing\MetalamaCompilerApplicationInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Licensing\MetalamaCompilerLicenseConsumer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Licensing\MetalamaCompilerLicenseManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\LicenseSourceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Licensing\TimeBombLicenseActivator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceCollection.cs" />

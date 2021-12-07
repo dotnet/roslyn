@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
-namespace Caravela.Compiler.Graphs
+namespace Metalama.Compiler.Graphs
 {
     /// <summary>
     /// Minimalist implementation of a one-direction linked list.

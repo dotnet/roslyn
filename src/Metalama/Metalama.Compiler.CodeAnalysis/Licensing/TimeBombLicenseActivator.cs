@@ -7,7 +7,7 @@ using PostSharp.Backstage.Extensibility;
 using PostSharp.Backstage.Extensibility.Extensions;
 using PostSharp.Backstage.Licensing.Registration;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     public class TimeBombLicenseActivator : IFirstRunLicenseActivator
     {
@@ -39,7 +39,7 @@ namespace Caravela.Compiler.Licensing
             if (!_warningReported && age > (PreviewLicensePeriod - WarningPeriod))
             {
                 _diagnostics.ReportWarning(
-                    $"The current preview build of Caravela is {age} days old and will stop working soon, because it is allowed to be used only for {PreviewLicensePeriod} days. Please update Caravela soon.");
+                    $"The current preview build of Metalama is {age} days old and will stop working soon, because it is allowed to be used only for {PreviewLicensePeriod} days. Please update Metalama soon.");
                 _warningReported = true;
             }
             

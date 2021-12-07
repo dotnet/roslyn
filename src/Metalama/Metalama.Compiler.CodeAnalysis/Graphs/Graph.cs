@@ -2,7 +2,7 @@
 
 #nullable enable
 
-namespace Caravela.Compiler.Graphs
+namespace Metalama.Compiler.Graphs
 {
     internal sealed class Graph : AbstractGraph
     {

@@ -8,33 +8,33 @@ using PostSharp.Backstage.Extensibility.Extensions;
 using PostSharp.Backstage.Licensing;
 using PostSharp.Backstage.Licensing.Consumption;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     /// <summary>
     /// An adapter for the <see cref="ILicenseConsumptionManager"/>
     /// allowing consumption of <see cref="LicensedFeatures"/>
-    /// by the <see cref="CaravelaCompilerLicenseConsumer"/>.
+    /// by the <see cref="MetalamaCompilerLicenseConsumer"/>.
     /// </summary>
-    internal class CaravelaCompilerLicenseConsumptionManager
+    internal class MetalamaCompilerLicenseConsumptionManager
     {
         private readonly ILicenseConsumptionManager _consumptionManager;
-        private readonly CaravelaCompilerLicenseConsumer _consumer;
+        private readonly MetalamaCompilerLicenseConsumer _consumer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CaravelaCompilerLicenseConsumptionManager"/> class.
+        /// Initializes a new instance of the <see cref="MetalamaCompilerLicenseConsumptionManager"/> class.
         /// </summary>
         /// <param name="services">Service provider.</param>
-        public CaravelaCompilerLicenseConsumptionManager(IServiceProvider services)
+        public MetalamaCompilerLicenseConsumptionManager(IServiceProvider services)
         {
             _consumptionManager = services.GetRequiredService<ILicenseConsumptionManager>();
 
             var diagnosticsSink = services.GetRequiredService<IBackstageDiagnosticSink>();
-            _consumer = new CaravelaCompilerLicenseConsumer(diagnosticsSink);
+            _consumer = new MetalamaCompilerLicenseConsumer(diagnosticsSink);
         }
 
         /// <summary>
         /// Consumes <see cref="LicensedFeatures"/>
-        /// by the <see cref="CaravelaCompilerLicenseConsumer"/>.
+        /// by the <see cref="MetalamaCompilerLicenseConsumer"/>.
         /// </summary>
         /// <param name="features">The licensed features to be consumed.</param>
         public void ConsumeFeatures(LicensedFeatures features)

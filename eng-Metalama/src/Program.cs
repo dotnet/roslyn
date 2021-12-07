@@ -20,8 +20,8 @@ namespace Build
             // These packages are published to internal and private feeds.
             var publicPackages = new ParametricString[]
             {
-                "Caravela.Compiler.$(PackageVersion).nupkg",
-                "Caravela.Compiler.Sdk.$(PackageVersion).nupkg"
+                "Metalama.Compiler.$(PackageVersion).nupkg",
+                "Metalama.Compiler.Sdk.$(PackageVersion).nupkg"
             };
 
             var publicPublishing = new NugetPublishTarget(
@@ -33,21 +33,21 @@ namespace Build
             // These packages are published to private feeds only.
             var privatePackages = new ParametricString[]
             {
-                "Caravela.RoslynUtilities.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.Common.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.CSharp.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.CSharp.Features.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.CSharp.Scripting.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.CSharp.Workspaces.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.Features.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.Scripting.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.Scripting.Common.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.Workspaces.Common.$(PackageVersion).nupkg",
+                "Metalama.RoslynUtilities.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.Common.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.CSharp.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.CSharp.Features.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.CSharp.Scripting.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.CSharp.Workspaces.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.Features.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.Scripting.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.Scripting.Common.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.Workspaces.Common.$(PackageVersion).nupkg",
 
-                // Visual Basic is needed by Caravela.Try
-                "Caravela.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
-                "Caravela.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg",
+                // Visual Basic is needed by Metalama.Try
+                "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
+                "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg",
             };
 
 
@@ -58,15 +58,15 @@ namespace Build
             var product = new Product
             {
                 PrivateArtifactsDirectory = "artifacts\\packages\\$(Configuration)\\Shipping",
-                ProductName = "Caravela.Compiler",
-                EngineeringDirectory = "eng-Caravela",
+                ProductName = "Metalama.Compiler",
+                EngineeringDirectory = "eng-Metalama",
                 GenerateArcadeProperties = true,
                 AdditionalDirectoriesToClean = ImmutableArray.Create("artifacts"),
                 Solutions = ImmutableArray.Create<Solution>(
                     new RoslynSolution()),
                 PublishingTargets = ImmutableArray.Create<PublishingTarget>(publicPublishing, privatePublishing),
                 Dependencies = ImmutableArray.Create(new ProductDependency("PostSharp.Backstage.Settings")),
-                SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
+                SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests.")
             };
             product.BuildCompleted += OnBuildCompleted;
             var commandApp = new CommandApp();

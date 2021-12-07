@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Licensing.Consumption.Sources;
 
-namespace Caravela.Compiler.Licensing
+namespace Metalama.Compiler.Licensing
 {
     /// <summary>
     /// Provides licenses parsed from license keys given using
-    /// the CaravelaLicense MSBuild property / global analyzer option.
+    /// the MetalamaLicense MSBuild property / global analyzer option.
     /// </summary>
     internal class BuildOptionsLicenseSource : LicenseStringsLicenseSourceBase
     {
@@ -31,7 +31,7 @@ namespace Caravela.Compiler.Licensing
 
         protected override IEnumerable<string> GetLicenseStrings()
         {
-            if (!_analyzerConfigProvider.GlobalOptions.TryGetValue("build_property.CaravelaLicense", out var value))
+            if (!_analyzerConfigProvider.GlobalOptions.TryGetValue("build_property.MetalamaLicense", out var value))
             {
                 yield break;
             }

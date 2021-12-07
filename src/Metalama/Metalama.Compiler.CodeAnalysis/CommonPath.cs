@@ -5,7 +5,7 @@ using System.Linq;
 
 #nullable enable
 
-namespace Caravela.Compiler
+namespace Metalama.Compiler
 {
     static class CommonPath
     {
