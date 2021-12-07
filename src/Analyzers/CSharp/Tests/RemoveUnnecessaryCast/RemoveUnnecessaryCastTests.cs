@@ -12094,5 +12094,77 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(32773, "https://github.com/dotnet/roslyn/issues/32773")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveWideningCastInBitwiseOr2()
+        {
+            var source = @"
+class C
+{
+    public void fn1(int start, int end)
+    {
+        var bounds = (((long)end) << 32) | ((long)start);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(25165, "https://github.com/dotnet/roslyn/issues/25165")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastInIllegalDelegateCast()
+        {
+            var source = @"
+using System;
+public delegate void DoSomething();
+
+public class Code
+{
+    private Action _f;
+    public Code(DoSomething f)
+    {
+        Action doNothing = (() => {});
+        _f = f ?? {|CS0030:(DoSomething)doNothing|};  
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(31303, "https://github.com/dotnet/roslyn/issues/31303")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveUnsignedCastInBitwiseNot1()
+        {
+            var source = @"
+using System;
+
+public class Code
+{
+    static void CheckRedundantCast()
+    {
+        ulong number1 = 0xFFFFFFFFFFFFFFFFL;
+        uint number2 = 0xFF;
+        ulong myResult = number1 & ~(ulong)number2;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
