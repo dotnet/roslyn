@@ -12005,5 +12005,94 @@ public class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(20617, "https://github.com/dotnet/roslyn/issues/20617")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryBitwiseNotOnUnsignedValue1()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void MethodName()
+    {
+        const long x = ~(long)~1U;
+        Console.WriteLine(x);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastThatPreventsOverflowInChecked1()
+        {
+            var source = @"
+static class Program
+{
+    static readonly long x = -(long)int.MinValue;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntToNullableEnum1()
+        {
+            var source = @"
+enum E
+{
+}
+
+class Program
+{
+    void M()
+    {
+        int? num = 1;
+        string s = ((E?)num)?.ToString().Replace('a', 'b');
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveWideningCastInBitwiseOr1()
+        {
+            var source = @"
+class C
+{
+    public uint fn1(sbyte a, sbyte b)
+    {
+        return (uint)((a << 8) | (int)b);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
