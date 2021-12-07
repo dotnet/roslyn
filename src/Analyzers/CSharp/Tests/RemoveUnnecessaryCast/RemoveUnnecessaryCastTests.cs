@@ -12223,5 +12223,57 @@ enum Numbers
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(36782, "https://github.com/dotnet/roslyn/issues/36782")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastWithOverloadedNegationAndImplicitConversion1()
+        {
+            var source = @"
+using System;
+
+namespace WrongRedundantCastWarning
+{
+	struct Flag
+	{
+		public Flag(int value) => this.Value = value;
+
+		public int Value { get; }
+
+		// This cast is wrongly reported as redundant
+		public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
+	}
+
+	struct FlagSet
+	{
+		public FlagSet(int value) => this.Value = value;
+
+		public int Value { get; }
+
+		public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
+
+		public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
+	}
+
+	class Program
+	{
+		static readonly Flag One = new Flag(1);
+		static readonly Flag Two = new Flag(2);
+
+		static void Main(string[] args)
+		{
+			var flipped = ~Two;
+
+			Console.WriteLine(flipped.Value);
+		}
+	}
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
