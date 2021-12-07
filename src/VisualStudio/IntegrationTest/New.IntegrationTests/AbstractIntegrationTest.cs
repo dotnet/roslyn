@@ -12,9 +12,23 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
+    /// <remarks>
+    /// The following is the xunit execution order:
+    ///
+    /// <list type="number">
+    /// <item><description>Instance constructor</description></item>
+    /// <item><description><see cref="IAsyncLifetime.InitializeAsync"/></description></item>
+    /// <item><description><see cref="BeforeAfterTestAttribute.Before"/></description></item>
+    /// <item><description>Test method</description></item>
+    /// <item><description><see cref="BeforeAfterTestAttribute.After"/></description></item>
+    /// <item><description><see cref="IAsyncLifetime.DisposeAsync"/></description></item>
+    /// <item><description><see cref="IDisposable.Dispose"/></description></item>
+    /// </list>
+    /// </remarks>
     [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev")]
     public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
@@ -26,6 +40,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
 
+        /// <summary>
+        /// A timeout used to avoid hangs during test cleanup. This is separate from <see cref="HangMitigatingTimeout"/>
+        /// to provide tests an opportunity to clean up state even if failure occurred due to timeout.
+        /// </summary>
+        private static readonly TimeSpan s_cleanupHangMitigatingTimeout = TimeSpan.FromMinutes(2);
+
         private JoinableTaskContext? _joinableTaskContext;
         private JoinableTaskCollection? _joinableTaskCollection;
         private JoinableTaskFactory? _joinableTaskFactory;
@@ -33,6 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private TestServices? _testServices;
 
         private readonly CancellationTokenSource _hangMitigatingCancellationTokenSource;
+        private readonly CancellationTokenSource _cleanupCancellationTokenSource;
 
         protected AbstractIntegrationTest()
         {
@@ -41,6 +62,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             JoinableTaskContext = ThreadHelper.JoinableTaskContext;
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(HangMitigatingTimeout);
+            _cleanupCancellationTokenSource = new CancellationTokenSource();
         }
 
         [NotNull]
@@ -93,6 +115,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected CancellationToken HangMitigatingCancellationToken
             => _hangMitigatingCancellationTokenSource.Token;
 
+        /// <summary>
+        /// ⚠️ Note that this token will not be cancelled prior to the call to <see cref="DisposeAsync"/> (which starts
+        /// the cancellation timer). Derived types are not likely to make use of this, so it's marked
+        /// <see langword="private"/>.
+        /// </summary>
+        private CancellationToken CleanupCancellationToken
+            => _cleanupCancellationTokenSource.Token;
+
         public virtual async Task InitializeAsync()
         {
             TestServices = await CreateTestServicesAsync();
@@ -108,11 +138,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public virtual async Task DisposeAsync()
         {
-            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+            _cleanupCancellationTokenSource.CancelAfter(s_cleanupHangMitigatingTimeout);
+
+            await TestServices.SolutionExplorer.CloseSolutionAsync(CleanupCancellationToken);
 
             if (_joinableTaskCollection is object)
             {
-                await _joinableTaskCollection.JoinTillEmptyAsync(HangMitigatingCancellationToken);
+                await _joinableTaskCollection.JoinTillEmptyAsync(CleanupCancellationToken);
             }
 
             JoinableTaskContext = null;
