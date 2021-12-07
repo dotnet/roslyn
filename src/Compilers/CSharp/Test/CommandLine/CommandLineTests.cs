@@ -6796,7 +6796,7 @@ class C
             var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-PostSharp ""Metalama"" Compiler version A.B.C-d (HASH)
+Metalama Compiler version A.B.C-d (HASH)
 Copyright (c) SharpCrafters s.r.o. All rights reserved.
 
 Based on the Microsoft (R) Visual C# Compiler.
@@ -6808,14 +6808,14 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.".Trim(),
         }
 
         [Theory,
-            InlineData("PostSharp \"Metalama\" Compiler version A.B.C-d (<developer build>)",
-                "PostSharp \"Metalama\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Metalama\" Compiler version A.B.C-d (ABCDEF01)",
-                "PostSharp \"Metalama\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Metalama\" Compiler version A.B.C-d (abcdef90)",
-                "PostSharp \"Metalama\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Metalama\" Compiler version A.B.C-d (12345678)",
-                "PostSharp \"Metalama\" Compiler version A.B.C-d (HASH)")]
+            InlineData("Metalama Compiler version A.B.C-d (<developer build>)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (ABCDEF01)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (abcdef90)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (12345678)",
+                "Metalama Compiler version A.B.C-d (HASH)")]
         public void TestReplaceCommitHash(string orig, string expected)
         {
             Assert.Equal(expected, ReplaceCommitHash(orig));
@@ -8640,7 +8640,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable \"{libSrc.Path}\"", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-PostSharp ""Metalama"" Compiler version {s_compilerVersion}
+Metalama Compiler version {s_compilerVersion}
 Copyright (c) SharpCrafters s.r.o.All rights reserved.", output);
 
             // reading original content from the memory map:
