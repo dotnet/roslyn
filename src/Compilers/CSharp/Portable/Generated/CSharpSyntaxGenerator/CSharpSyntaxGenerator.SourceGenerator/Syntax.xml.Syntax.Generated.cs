@@ -4776,7 +4776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>The first part of an interpolated string, $" or $@"</summary>
+        /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
         public SyntaxToken StringStartToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringStartToken, Position, 0);
 
         /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>

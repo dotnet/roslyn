@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = """""" """"""; 
+    const string s = """""" """""";
 }", parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     const string s = """ """; 
+                //     const string s = """ """;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @""""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
         }
 
@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    string s = """""" """"""; 
+    string s = """""" """""";
 }").VerifyDiagnostics(
                 // (3,12): warning CS0414: The field 'C.s' is assigned but its value is never used
-                //     string s = """ """; 
+                //     string s = """ """;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("C.s").WithLocation(3, 12));
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = """""" """"""; 
+    const string s = """""" """""";
 }").VerifyDiagnostics();
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = """""" """""" + ""a""; 
+    const string s = """""" """""" + ""a"";
 }").VerifyDiagnostics();
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = ""a"" + """""" """"""; 
+    const string s = ""a"" + """""" """""";
 }").VerifyDiagnostics();
         }
 
@@ -82,7 +82,7 @@ class C
             CreateCompilation(
 @"class C
 {
-    int s = """""" """""".Length; 
+    int s = """""" """""".Length;
 }").VerifyDiagnostics();
         }
 

@@ -1237,6 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
+            // PROTOTYPE: implement normalization for raw interpolated strings.
             if (node.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
             {
                 //Just for non verbatim strings we want to make sure that the formatting of interpolations does not emit line breaks.
