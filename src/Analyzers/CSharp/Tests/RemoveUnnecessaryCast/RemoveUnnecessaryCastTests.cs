@@ -11844,5 +11844,25 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(49954, "https://github.com/dotnet/roslyn/issues/49954")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableDefaultCast1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    protected bool? IsNewResource() =>
+        Boolean.TryParse("""", out var b) ? b : (bool?)default;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }
