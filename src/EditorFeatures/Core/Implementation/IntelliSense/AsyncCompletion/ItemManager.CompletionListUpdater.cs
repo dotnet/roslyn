@@ -328,8 +328,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ItemSelection? HandleDeletionTrigger(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                var matchingItems = items.Where(r => r.MatchedFilterText);
-                if (UpdateTriggerReason == CompletionTriggerReason.Insertion && !matchingItems.Any())
+                if (UpdateTriggerReason == CompletionTriggerReason.Insertion && !items.Any(r => r.MatchedFilterText))
+                {
+                }
+
+                // Go through the entire item list to find the best match(es).
+                // If we had matching items, then pick the best of the matching items and
+                // choose that one to be hard selected.  If we had no actual matching items
+                // (which can happen if the user deletes down to a single character and we
+                // include everything), then we just soft select the first item.
+                var indexToSelect = 0;
+                var hardSelect = false;
+                MatchResult<VSCompletionItem>? bestMatchResult = null;
+                var moreThanOneMatch = false;
+
+                for (var i = 0; i < items.Count; ++i)
+                {
+                    var currentMatchResult = items[i];
+
+                    if (!currentMatchResult.MatchedFilterText)
+                        continue;
+
+                    if (bestMatchResult == null)
+                    {
+                        // We had no best result yet, so this is now our best result.
+                        bestMatchResult = currentMatchResult;
+                        indexToSelect = i;
+                    }
+                    else
+                    {
+                        var match = currentMatchResult.CompareTo(bestMatchResult.Value, _filterText);
+                        if (match > 0)
+                        {
+                            moreThanOneMatch = false;
+                            bestMatchResult = currentMatchResult;
+                            indexToSelect = i;
+                        }
+                        else if (match == 0)
+                        {
+                            moreThanOneMatch = true;
+                        }
+                    }
+                }
+
+                if (UpdateTriggerReason == CompletionTriggerReason.Insertion && bestMatchResult is null)
                 {
                     // The user has typed something, but nothing in the actual list matched what
                     // they were typing.  In this case, we want to dismiss completion entirely.
@@ -340,38 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return null;
                 }
 
-                MatchResult<VSCompletionItem>? bestMatchResult = null;
-                var moreThanOneMatch = false;
-                foreach (var currentMatchResult in matchingItems)
-                {
-                    if (bestMatchResult == null)
-                    {
-                        // We had no best result yet, so this is now our best result.
-                        bestMatchResult = currentMatchResult;
-                    }
-                    else
-                    {
-                        var match = currentMatchResult.CompareTo(bestMatchResult.Value, _filterText);
-                        if (match > 0)
-                        {
-                            moreThanOneMatch = false;
-                            bestMatchResult = currentMatchResult;
-                        }
-                        else if (match == 0)
-                        {
-                            moreThanOneMatch = true;
-                        }
-                    }
-                }
-
-                int index;
-                bool hardSelect;
-
-                // If we had a matching item, then pick the best of the matching items and
-                // choose that one to be hard selected.  If we had no actual matching items
-                // (which can happen if the user deletes down to a single character and we
-                // include everything), then we just soft select the first item.
-                if (bestMatchResult != null)
+                if (bestMatchResult is not null)
                 {
                     // Only hard select this result if it's a prefix match
                     // We need to do this so that
@@ -380,16 +391,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
                     hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.EditorCompletionItem.FilterText.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
-                    index = items.IndexOf(bestMatchResult.Value);
-                }
-                else
-                {
-                    index = 0;
-                    hardSelect = false;
                 }
 
-                // We definitely don't have an unique item when moreThanOneMatch is true
-                return new(SelectedItemIndex: index,
+                // The best match we have selected is unique if `moreThanOneMatch` is false.
+                return new(SelectedItemIndex: indexToSelect,
                     SelectionHint: hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                     UniqueItem: moreThanOneMatch ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
             }
