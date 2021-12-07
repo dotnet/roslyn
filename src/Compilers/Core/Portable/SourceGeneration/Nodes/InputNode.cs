@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -20,22 +21,26 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _comparer;
+        private readonly string? _name;
 
         public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput)
             : this(getInput, registerOutput: null, comparer: null)
         {
         }
 
-        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? comparer = null)
+        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _getInput = getInput;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
+            _name = name;
         }
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
+            var stopwatch = SharedStopwatch.StartNew();
             var inputItems = _getInput(graphState);
+            TimeSpan elapsedTime = stopwatch.Elapsed;
 
             // create a mutable hashset of the new items we can check against
             HashSet<T> itemsSet = new HashSet<T>();
@@ -45,16 +50,19 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(added);
             }
 
-            var builder = previousTable.ToBuilder();
+            var builder = graphState.CreateTableBuilder(previousTable, _name);
+
+            // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
+            var noInputStepsStepInfo = builder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
 
             // for each item in the previous table, check if its still in the new items
             int itemIndex = 0;
-            foreach ((var oldItem, _) in previousTable)
+            foreach (var (oldItem, _, _, _) in previousTable)
             {
                 if (itemsSet.Remove(oldItem))
                 {
                     // we're iterating the table, so know that it has entries
-                    var usedCache = builder.TryUseCachedEntries();
+                    var usedCache = builder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
                     Debug.Assert(usedCache);
                 }
                 else if (inputItems.Length == previousTable.Count)
@@ -63,13 +71,14 @@ namespace Microsoft.CodeAnalysis
                     // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                     // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                     // but will perform an extra comparison that is omitted in the pure 'added' case.
-                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer);
+                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
                     Debug.Assert(modified);
                     itemsSet.Remove(inputItems[itemIndex]);
                 }
                 else
                 {
-                    builder.RemoveEntries();
+                    var removed = builder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                    Debug.Assert(removed);
                 }
                 itemIndex++;
             }
@@ -77,13 +86,14 @@ namespace Microsoft.CodeAnalysis
             // any remaining new items are added
             foreach (var newItem in itemsSet)
             {
-                builder.AddEntry(newItem, EntryState.Added);
+                builder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, comparer, _name);
+        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new InputNode<T>(_getInput, _registerOutput, _comparer, name);
 
         public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _comparer);
 
