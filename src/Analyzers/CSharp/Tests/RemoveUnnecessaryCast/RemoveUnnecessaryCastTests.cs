@@ -11865,6 +11865,26 @@ class C
             }.RunAsync();
         }
 
+        [WorkItem(34509, "https://github.com/dotnet/roslyn/issues/34509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableDefaultCast2()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static long? TestParse(string val) => long.TryParse(val, out var parseResult) ? (long?)parseResult : default;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
         [WorkItem(49690, "https://github.com/dotnet/roslyn/issues/49690")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveNullableGenericCast()
@@ -11928,6 +11948,7 @@ public class C
     {
         yield return (""test"", (decimal?)1.23);
     }
+}
 ";
             await new VerifyCS.Test
             {
