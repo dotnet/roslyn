@@ -53,9 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             var castNodes = diagnostics.SelectAsArray(
                 d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
-            var sm = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var isUn = CastSimplifier.IsUnnecessaryCast(castNodes.First(), sm, cancellationToken);
-
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, castNodes,
                 (semanticModel, castExpression) => CastSimplifier.IsUnnecessaryCast(castExpression, semanticModel, cancellationToken),
