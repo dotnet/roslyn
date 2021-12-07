@@ -79,7 +79,7 @@
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
       other analyzers to ensure it stays on a release version.
     -->
-    <MicrosoftCodeAnalysisAnalyzersVersion>3.3.2</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.3.3</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCSharpAnalyzerTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpAnalyzerTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
