@@ -68,7 +68,8 @@ namespace Build
                     new RoslynSolution()),
                 PublishingTargets = ImmutableArray.Create<PublishingTarget>(publicPublishing, privatePublishing),
                 Dependencies = ImmutableArray.Create(Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings),
-                SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
+                SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests."),
+                KeepEditorConfig = true,
             };
             product.BuildCompleted += OnBuildCompleted;
             var commandApp = new CommandApp();

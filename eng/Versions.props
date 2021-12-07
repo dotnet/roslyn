@@ -63,7 +63,7 @@
     <!-- <Caravela> -->
     <!-- TODO: Change to public version. -->
     <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">branch:master</PostSharpBackstageSettingsVersion>
-    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.8-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.9-preview</PostSharpEngineeringVersion>
     <!-- </Caravela> -->
   </PropertyGroup>
   <!--
