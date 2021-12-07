@@ -51,10 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private CompletionTriggerReason InitialTriggerReason => _data.InitialTrigger.Reason;
             private CompletionTriggerReason UpdateTriggerReason => _data.Trigger.Reason;
 
-            // PERF: Create a singleton to avoid lambda allocation on hot path
-            private static readonly Func<TextSpan, RoslynCompletionItem, Span> s_highlightSpanGetter
-                = (span, item) => span.MoveTo(item.DisplayTextPrefix?.Length ?? 0).ToSpan();
-
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
             // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
@@ -425,13 +421,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
                         // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                        return patternMatch.Value.MatchedSpans.SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
+                        return patternMatch.Value.MatchedSpans.SelectAsArray(GetOffsetSpan, matchResult.RoslynCompletionItem);
                     }
 
                     // If there's no match for Roslyn item's filter text which is identical to its display text,
                     // then we can safely assume there'd be no matching to VS item's display text.
                     return ImmutableArray<Span>.Empty;
                 }
+
+                // PERF: static local function to avoid lambda allocation on hot path
+                static Span GetOffsetSpan(TextSpan span, RoslynCompletionItem item)
+                    => span.MoveTo(item.DisplayTextPrefix?.Length ?? 0).ToSpan();
             }
 
             private FilteredCompletionModel? HandleAllItemsFilteredOut()
