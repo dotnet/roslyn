@@ -11864,5 +11864,30 @@ class C
                 FixedCode = source,
             }.RunAsync();
         }
+
+        [WorkItem(49690, "https://github.com/dotnet/roslyn/issues/49690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableGenericCast()
+        {
+            var source = @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    static IEnumerable<string> DoThis(IEnumerable<string?> notreallynull)
+    {
+        return notreallynull.Where(s => s is not null) as IEnumerable<string>;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }
