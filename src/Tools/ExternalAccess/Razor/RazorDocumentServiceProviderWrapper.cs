@@ -36,18 +36,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     static documentServiceProvider =>
                     {
                         var razorMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
-                        if (razorMappingService != null)
-                        {
-                            return new StrongBox<ISpanMappingService?>(new RazorSpanMappingServiceWrapper(razorMappingService));
-                        }
-                        else
-                        {
-                            return new StrongBox<ISpanMappingService?>(null);
-                        }
+                        return razorMappingService != null ? new RazorSpanMappingServiceWrapper(razorMappingService) : null;
                     },
                     _innerDocumentServiceProvider);
 
-                return (TService?)spanMappingService.Value;
+                return (TService?)spanMappingService;
             }
 
             if (serviceType == typeof(IDocumentExcerptService))
@@ -57,18 +50,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     static documentServiceProvider =>
                     {
                         var razorExcerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                        if (razorExcerptService != null)
-                        {
-                            return new StrongBox<IDocumentExcerptService?>(new RazorDocumentExcerptServiceWrapper(razorExcerptService));
-                        }
-                        else
-                        {
-                            return new StrongBox<IDocumentExcerptService?>(null);
-                        }
+                        return razorExcerptService is not null ? new RazorDocumentExcerptServiceWrapper(razorExcerptService) : null;
                     },
                     _innerDocumentServiceProvider);
 
-                return (TService?)excerptService.Value;
+                return (TService?)excerptService;
             }
 
             if (serviceType == typeof(DocumentPropertiesService))
@@ -78,18 +64,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     static documentServiceProvider =>
                     {
                         var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
-                        if (razorDocumentPropertiesService != null)
-                        {
-                            return new StrongBox<DocumentPropertiesService?>(new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService));
-                        }
-                        else
-                        {
-                            return new StrongBox<DocumentPropertiesService?>(null);
-                        }
+                        return razorDocumentPropertiesService is not null ? new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService) : null;
                     },
                     _innerDocumentServiceProvider);
 
-                return (TService?)(object?)documentPropertiesService.Value;
+                return (TService?)(object?)documentPropertiesService;
             }
 
             return this as TService;
