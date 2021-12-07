@@ -12048,6 +12048,30 @@ static class Program
             }.RunAsync();
         }
 
+        [WorkItem(34553, "https://github.com/dotnet/roslyn/issues/34553")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastThatPreventsOverflowInChecked2()
+        {
+            var source = @"
+using System;
+class Program
+{
+    void M()
+    {
+        Int32 input32 = Int32.MinValue;
+        Int64 output64_a = checked(-input32);
+        Int64 output64_b = checked(-(Int64)input32);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
         [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastFromIntToNullableEnum1()
@@ -12157,6 +12181,39 @@ public class Code
         uint number2 = 0xFF;
         ulong myResult = number1 & ~(ulong)number2;
     }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(36755, "https://github.com/dotnet/roslyn/issues/36755")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInSwitchExpressionArm1()
+        {
+            var source = @"
+class Program
+{
+    void M()
+    {
+        string numberString = ""One"";
+        Numbers? number = numberString switch
+        {
+            ""One"" => (Numbers?)Numbers.One,
+            ""Two"" => Numbers.Two,
+            _ => null,
+        };
+    }
+}
+
+enum Numbers
+{
+    One,
+    Two
 }
 ";
             await new VerifyCS.Test
