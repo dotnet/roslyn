@@ -4,13 +4,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
-{
-    public partial class InterpolationSyntax
-    {
-    }
-}
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
