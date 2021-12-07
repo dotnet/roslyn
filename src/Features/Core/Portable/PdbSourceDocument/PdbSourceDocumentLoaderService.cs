@@ -20,11 +20,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
         private const int SourceLinkTimeout = 1000;
-        private readonly ISourceLinkService? _sourceLinkService;
+
+        /// <summary>
+        /// Lazy import ISourceLinkService because it can cause debugger 
+        /// binaries to be eagerly loaded even if they are never used.
+        /// </summary>
+        private readonly Lazy<ISourceLinkService?> _sourceLinkService;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbSourceDocumentLoaderService([Import(AllowDefault = true)] ISourceLinkService? sourceLinkService)
+        public PdbSourceDocumentLoaderService([Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService)
         {
             _sourceLinkService = sourceLinkService;
         }
@@ -105,14 +110,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
-            if (_sourceLinkService is null || sourceDocument.SourceLinkUrl is null)
+            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
                 return null;
 
             // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
             var relativePath = Path.GetFileName(sourceDocument.FilePath);
 
             var delay = Task.Delay(SourceLinkTimeout, cancellationToken);
-            var sourceFileTask = _sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
+            var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
 
             var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
 

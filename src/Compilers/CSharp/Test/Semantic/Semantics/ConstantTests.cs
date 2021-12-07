@@ -3468,9 +3468,7 @@ class C
 
         // Attempting to call `ConstantValue` on every constituent string component times out the IOperation runner.
         // Instead, we manually validate just the top level
-        [ConditionalFact(typeof(NoIOperationValidation),
-            AlwaysSkip = "https://github.com/dotnet/roslyn/issues/57806"),
-            WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
         {
             // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
