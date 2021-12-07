@@ -9993,7 +9993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
         {
-            SetNotNullResult(node);
+            VisitPlaceholderWithReplacement(node);
             return null;
         }
 

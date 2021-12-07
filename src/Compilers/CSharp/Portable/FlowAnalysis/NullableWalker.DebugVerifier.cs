@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
                 {
-                    Visit(node.GetInterpolatedStringHandlerData().Construction);
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
                 }
 
                 return base.VisitConversion(node);
