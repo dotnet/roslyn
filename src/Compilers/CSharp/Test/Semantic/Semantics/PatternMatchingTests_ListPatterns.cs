@@ -125,7 +125,7 @@ public class X
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       72 (0x48)
+  // Code size       69 (0x45)
   .maxstack  4
   .locals init (char V_0, //first
                 char[] V_1, //others
@@ -135,44 +135,45 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0046
+  IL_0003:  brfalse.s  IL_0043
   IL_0005:  ldloc.3
-  IL_0006:  callvirt   ""int System.Array.Length.get""
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0039
-  IL_0012:  ldloc.3
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldelem.u2
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.3
-  IL_0017:  ldc.i4.1
-  IL_0018:  ldc.i4.0
-  IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  ldc.i4.1
-  IL_0020:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0025:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_002a:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
-  IL_002f:  stloc.1
-  IL_0030:  ldloc.3
-  IL_0031:  ldloc.s    V_4
-  IL_0033:  ldc.i4.1
-  IL_0034:  sub
-  IL_0035:  ldelem.u2
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldloc.0
-  IL_003c:  ldloc.2
-  IL_003d:  bne.un.s   IL_0046
-  IL_003f:  ldloc.1
-  IL_0040:  call       ""bool X.Test(char[])""
-  IL_0045:  ret
-  IL_0046:  ldc.i4.0
-  IL_0047:  ret
+  IL_0006:  ldlen
+  IL_0007:  conv.i4
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ble.un.s   IL_0036
+  IL_000f:  ldloc.3
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldelem.u2
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.3
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldc.i4.1
+  IL_001d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0022:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0027:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.3
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.1
+  IL_0031:  sub
+  IL_0032:  ldelem.u2
+  IL_0033:  stloc.2
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldloc.0
+  IL_0039:  ldloc.2
+  IL_003a:  bne.un.s   IL_0043
+  IL_003c:  ldloc.1
+  IL_003d:  call       ""bool X.Test(char[])""
+  IL_0042:  ret
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(string)", @"
@@ -7737,7 +7738,7 @@ class C
         // Tracked by https://github.com/dotnet/roslyn/issues/57728
         verifier.VerifyIL("C.Main", @"
 {
-  // Code size      119 (0x77)
+  // Code size      116 (0x74)
   .maxstack  5
   .locals init (int[] V_0, //x
                 int[] V_1,
@@ -7754,55 +7755,56 @@ class C
   IL_000d:  stelem.i4
   IL_000e:  stloc.1
   IL_000f:  ldloc.1
-  IL_0010:  brfalse.s  IL_0076
+  IL_0010:  brfalse.s  IL_0073
   IL_0012:  ldloc.1
-  IL_0013:  callvirt   ""int System.Array.Length.get""
-  IL_0018:  ldc.i4.2
-  IL_0019:  blt.s      IL_0076
-  IL_001b:  ldloc.1
-  IL_001c:  ldc.i4.1
-  IL_001d:  ldc.i4.0
-  IL_001e:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0023:  ldc.i4.1
-  IL_0024:  ldc.i4.1
-  IL_0025:  newobj     ""System.Index..ctor(int, bool)""
-  IL_002a:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_002f:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
-  IL_0034:  stloc.0
-  IL_0035:  ldc.i4.4
-  IL_0036:  newarr     ""int""
-  IL_003b:  dup
-  IL_003c:  ldc.i4.1
-  IL_003d:  ldc.i4.4
-  IL_003e:  stelem.i4
-  IL_003f:  dup
-  IL_0040:  ldc.i4.2
-  IL_0041:  ldc.i4.2
-  IL_0042:  stelem.i4
-  IL_0043:  ldc.i4.1
-  IL_0044:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0049:  ldc.i4.1
-  IL_004a:  ldc.i4.1
-  IL_004b:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0050:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0055:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
-  IL_005a:  stloc.2
+  IL_0013:  ldlen
+  IL_0014:  conv.i4
+  IL_0015:  ldc.i4.2
+  IL_0016:  blt.s      IL_0073
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0020:  ldc.i4.1
+  IL_0021:  ldc.i4.1
+  IL_0022:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0027:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002c:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0031:  stloc.0
+  IL_0032:  ldc.i4.4
+  IL_0033:  newarr     ""int""
+  IL_0038:  dup
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.4
+  IL_003b:  stelem.i4
+  IL_003c:  dup
+  IL_003d:  ldc.i4.2
+  IL_003e:  ldc.i4.2
+  IL_003f:  stelem.i4
+  IL_0040:  ldc.i4.1
+  IL_0041:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  ldc.i4.1
+  IL_0048:  newobj     ""System.Index..ctor(int, bool)""
+  IL_004d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0052:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0057:  stloc.2
+  IL_0058:  ldloc.0
+  IL_0059:  ldc.i4.0
+  IL_005a:  ldelem.i4
   IL_005b:  ldloc.0
-  IL_005c:  ldc.i4.0
+  IL_005c:  ldc.i4.1
   IL_005d:  ldelem.i4
-  IL_005e:  ldloc.0
-  IL_005f:  ldc.i4.1
+  IL_005e:  ldloc.2
+  IL_005f:  ldc.i4.0
   IL_0060:  ldelem.i4
   IL_0061:  ldloc.2
-  IL_0062:  ldc.i4.0
+  IL_0062:  ldc.i4.1
   IL_0063:  ldelem.i4
-  IL_0064:  ldloc.2
-  IL_0065:  ldc.i4.1
-  IL_0066:  ldelem.i4
-  IL_0067:  newobj     ""System.ValueTuple<int, int, int, int>..ctor(int, int, int, int)""
-  IL_006c:  box        ""System.ValueTuple<int, int, int, int>""
-  IL_0071:  call       ""void System.Console.Write(object)""
-  IL_0076:  ret
+  IL_0064:  newobj     ""System.ValueTuple<int, int, int, int>..ctor(int, int, int, int)""
+  IL_0069:  box        ""System.ValueTuple<int, int, int, int>""
+  IL_006e:  call       ""void System.Console.Write(object)""
+  IL_0073:  ret
 }
 ");
     }
@@ -7848,25 +7850,26 @@ class C
 
         verifier.VerifyIL("C.M", @"
 {
-  // Code size       22 (0x16)
+  // Code size       19 (0x13)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0014
+  IL_0001:  brfalse.s  IL_0011
   IL_0003:  ldarg.1
-  IL_0004:  callvirt   ""int System.Array.Length.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  blt.s      IL_0014
-  IL_000e:  ldarg.1
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.1
-  IL_0011:  sub
-  IL_0012:  ldelem.i4
-  IL_0013:  ret
-  IL_0014:  ldc.i4.3
-  IL_0015:  ret
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0011
+  IL_000b:  ldarg.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
+  IL_0010:  ret
+  IL_0011:  ldc.i4.3
+  IL_0012:  ret
 }
 ");
     }
