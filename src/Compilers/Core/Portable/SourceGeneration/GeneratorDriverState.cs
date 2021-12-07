@@ -11,25 +11,27 @@ namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState
     {
-        internal GeneratorDriverState(ParseOptions parseOptions,
+        internal GeneratorDriverState(GeneratorDriverOptions options,
+                                      ParseOptions parseOptions,
                                       AnalyzerConfigOptionsProvider optionsProvider,
                                       ImmutableArray<ISourceGenerator> sourceGenerators,
                                       ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
-                                      IncrementalGeneratorOutputKind disabledOutputs,
-                                      TimeSpan runtime)
+                                      TimeSpan elapsedTime,
+                                      bool cancelled)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
             GeneratorStates = generatorStates;
             AdditionalTexts = additionalTexts;
             ParseOptions = parseOptions;
+            Options = options;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
-            DisabledOutputs = disabledOutputs;
-            RunTime = runtime;
+            ElapsedTime = elapsedTime;
+            Cancelled = cancelled;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -79,11 +81,19 @@ namespace Microsoft.CodeAnalysis
         internal readonly DriverStateTable StateTable;
 
         /// <summary>
-        /// A bit field containing the output kinds that should not be produced by this generator driver.
+        /// The time spent during the pass that created this state.
         /// </summary>
-        internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
+        internal readonly TimeSpan ElapsedTime;
 
-        internal readonly TimeSpan RunTime;
+        /// <summary>
+        /// <see langword="true"/> if the generation pass was cancelled before it finished.
+        /// </summary>
+        internal readonly bool Cancelled;
+
+        /// <summary>
+        /// The set of options passed when this driver was created.
+        /// </summary>
+        internal readonly GeneratorDriverOptions Options;
 
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
@@ -93,10 +103,11 @@ namespace Microsoft.CodeAnalysis
             DriverStateTable? stateTable = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
-            IncrementalGeneratorOutputKind? disabledOutputs = null,
-            TimeSpan? runTime = null)
+            TimeSpan? elapsedTime = null,
+            bool? cancelled = null)
         {
             return new GeneratorDriverState(
+                Options,
                 parseOptions ?? this.ParseOptions,
                 optionsProvider ?? this.OptionsProvider,
                 sourceGenerators ?? this.Generators,
@@ -104,8 +115,8 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
-                disabledOutputs ?? this.DisabledOutputs,
-                runTime ?? this.RunTime
+                elapsedTime ?? this.ElapsedTime,
+                cancelled ?? this.Cancelled
                 );
         }
     }

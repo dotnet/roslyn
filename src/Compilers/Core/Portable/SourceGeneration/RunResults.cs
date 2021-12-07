@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriverRunResult(ImmutableArray<GeneratorRunResult> results, TimeSpan elapsedTime)
         {
             this.Results = results;
-            ElapsedTime = elapsedTime;
+            this.ElapsedTime = elapsedTime;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wall clock time that this generator pass took to execute.
         /// </summary>
-        internal TimeSpan ElapsedTime { get; }
+        public TimeSpan ElapsedTime { get; }
 
         /// <summary>
         /// The <see cref="Diagnostic"/>s produced by all generators run during this generation pass.
@@ -69,6 +69,29 @@ namespace Microsoft.CodeAnalysis
                 }
                 return _lazyGeneratedTrees;
             }
+        }
+
+        /// <summary>
+        /// Result type retrurned when the <see cref="CancellationToken"/> passed to the <see cref="GeneratorDriver"/> is cancelled
+        /// and the host has opted into cancellation timing via <see cref="GeneratorDriverOptions.EnableCancellationTiming"/>
+        /// </summary>
+        /// <remarks>
+        /// This type allows a host that has opted into cancellation timing to see if a run was canceled, and which generators
+        /// where running at the time cancellation occured. The majority of results will be empty, even if one or more generators
+        /// successfully ran.
+        /// </remarks>
+        public sealed class CanceledResult : GeneratorDriverRunResult
+        {
+            internal CanceledResult(TimeSpan elapsedTime, ImmutableArray<GeneratorRunResult> runningAtCancellation)
+                : base(ImmutableArray<GeneratorRunResult>.Empty, elapsedTime)
+            {
+                GeneratorsRunningAtCancellation = runningAtCancellation;
+            }
+
+            /// <summary>
+            /// Gets the set of generators that were running when the cancellation occured.
+            /// </summary>
+            public ImmutableArray<GeneratorRunResult> GeneratorsRunningAtCancellation { get; }
         }
     }
 
@@ -119,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wall clock time that elapsed while this generator was running.
         /// </summary>
-        internal TimeSpan ElapsedTime { get; }
+        public TimeSpan ElapsedTime { get; }
     }
 
     /// <summary>
