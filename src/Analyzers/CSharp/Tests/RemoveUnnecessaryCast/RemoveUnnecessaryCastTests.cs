@@ -11812,5 +11812,37 @@ class C
                 LanguageVersion = version,
             }.RunAsync();
         }
+
+        [WorkItem(58095, "https://github.com/dotnet/roslyn/issues/58095")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableCastsInTuples()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        var (isEdge, moreOnes) = (true, false);
+
+        char? expected_a = isEdge ? null : moreOnes ? '1' : '0';
+        char? expected_b = isEdge ? null : moreOnes ? '0' : '1';
+
+        (char? expected_a_01, char? expected_b_01) = isEdge ? default : moreOnes ? ((char?)'1', (char?)'0') : ('0', '1');
+        (char? expected_a_02, char? expected_b_02) = isEdge ? default : moreOnes ? ('1', '0') : ('0', '1');
+
+        Debug.Assert(expected_a == expected_a_01 && expected_a == expected_a_02);
+        Debug.Assert(expected_b == expected_b_01 && expected_b == expected_b_02);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
