@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly CompletionHelper _completionHelper;
             private readonly bool _highlightMatchingPortions;
             private readonly bool _showCompletionItemFilters;
-            private readonly bool _useAggressiveDefaultsMatching;
 
             private readonly Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> _filterMethod;
 
@@ -106,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document?.Project.Language);
 
                 _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, _document?.Project.Language);
-                _useAggressiveDefaultsMatching = _session.TextView.Options.GetOptionValue<bool>(AggressiveDefaultsMatchingOptionName);
             }
 
             public FilteredCompletionModel? UpdateCompletionList(CancellationToken cancellationToken)
@@ -653,50 +651,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var tick = Environment.TickCount;
 
-                var finalSelection = _useAggressiveDefaultsMatching
-                    ? GetAggressiveDefaultsMatch(items, itemSelection, cancellationToken)
-                    : GetDefaultsMatch(items, itemSelection, cancellationToken);
+                var finalSelection = GetDefaultsMatch(items, itemSelection, cancellationToken);
 
                 AsyncCompletionLogger.LogGetDefaultsMatchTicksDataPoint(Environment.TickCount - tick);
                 return finalSelection;
-            }
-
-            /// <summary>
-            /// With aggressive matching turned on, the default would be used as long as what the user typed in the applicable to span
-            /// was a case-insensitive prefix of the item.
-            /// 
-            /// For example: 
-            ///     a default "TaskCanceledException" would be a match for filter text "task" and therefore to be selected, even if
-            ///     the CompletionService returns item for a local variable "task" which is an exact match.
-            ///     
-            /// The aggressive mode exist to make it easier for IntelliCode to experiment with default matching algorithm, so this is
-            /// not the default matching behavior we use, and it is subject to further adjustment.
-            /// </summary>
-            private ItemSelection GetAggressiveDefaultsMatch(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection intialSelection, CancellationToken cancellationToken)
-            {
-                foreach (var defaultText in _data.Defaults)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    for (var i = 0; i < items.Count; ++i)
-                    {
-                        // Currently in aggressive mode, the first item that matches a default will be selected
-                        // as long as the filter text is its prefix (case-insensitive).
-                        var itemWithMatch = items[i];
-                        if (itemWithMatch.RoslynCompletionItem.DisplayText != defaultText)
-                            continue;
-
-                        if (itemWithMatch.PatternMatch != null && itemWithMatch.PatternMatch.Value.Kind > PatternMatchKind.Prefix)
-                            break;
-
-                        // Always hard-select except in suggestion mode.
-                        return _hasSuggestedItemOptions
-                            ? intialSelection with { SelectedItemIndex = i }
-                            : intialSelection with { SelectedItemIndex = i, SelectionHint = UpdateSelectionHint.Selected };
-                    }
-                }
-
-                return intialSelection;
             }
 
             /// <summary>

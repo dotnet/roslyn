@@ -157,30 +157,6 @@ class C
             End Using
         End Function
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SelectAggressiveDefaultsWithPrefixMatchingOverExactMatch() As Task
-            Using state = CreateTestStateWithAdditionalDocument(
-                              <Document>
-using NS1;
-class My
-{
-    void Method()
-    {
-        My$$
-    }
-}
-                              </Document>)
-
-                state.TextView.Options.SetOptionValue(ItemManager.AggressiveDefaultsMatchingOptionName, True)
-                state.SendInvokeCompletionList()
-
-                Await state.AssertCompletionItemsContain("My", displayTextSuffix:="")
-                Await state.AssertCompletionItemsContain("MyA", displayTextSuffix:="")
-                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True)
-            End Using
-        End Function
-
         Private Shared Function CreateTestStateWithAdditionalDocument(documentElement As XElement) As TestState
             Return TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
