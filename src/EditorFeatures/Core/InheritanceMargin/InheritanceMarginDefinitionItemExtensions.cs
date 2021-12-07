@@ -23,13 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         public static async Task<DefinitionItem> ToSlimDefinitionItemAsync(this ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var locations = symbol.Locations;
-            var nonNavigaableItem = DefinitionItem.CreateNonNavigableItem(
-                    tags: GlyphTags.GetTags(symbol.GetGlyph()),
-                    displayParts: FindUsagesHelpers.GetDisplayParts(symbol));
-
             if (locations.IsEmpty)
             {
-                return nonNavigaableItem;
+                return DefinitionItem.CreateNonNavigableItem(
+                    tags: GlyphTags.GetTags(symbol.GetGlyph()),
+                    displayParts: FindUsagesHelpers.GetDisplayParts(symbol));
             }
 
             if (locations.Length > 1)
@@ -64,7 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 }
             }
 
-            return nonNavigaableItem;
+            return DefinitionItem.CreateNonNavigableItem(
+                tags: GlyphTags.GetTags(symbol.GetGlyph()),
+                displayParts: FindUsagesHelpers.GetDisplayParts(symbol));
         }
     }
 }

@@ -123,6 +123,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                     Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
                 }
+
+                if (actualDocumentSpans.Length == 1)
+                {
+                    Assert.Empty(actualTarget.DefinitionItem.Tags);
+                    Assert.Empty(actualTarget.DefinitionItem.Properties);
+                    Assert.Empty(actualTarget.DefinitionItem.DisplayableProperties);
+                    Assert.Empty(actualTarget.DefinitionItem.NameDisplayParts);
+                    Assert.Empty(actualTarget.DefinitionItem.DisplayParts);
+                }
             }
         }
 
@@ -184,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private class TargetInfo
         {
             public readonly string TargetSymbolDisplayName;
-            public readonly string? LocationTag;
+            public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
 
@@ -194,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 InheritanceRelationship relationship)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
-                LocationTag = locationTag;
+                LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
                 InMetadata = false;
             }
@@ -207,7 +216,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 Relationship = relationship;
                 InMetadata = inMetadata;
-                LocationTag = null;
+                LocationTags = ImmutableArray<string>.Empty;
+            }
+
+            public TargetInfo(
+                string targetSymbolDisplayName,
+                InheritanceRelationship relationship,
+                params string[] locationTags)
+            {
+                TargetSymbolDisplayName = targetSymbolDisplayName;
+                LocationTags = locationTags.ToImmutableArray();
+                Relationship = relationship;
             }
         }
 
@@ -246,16 +265,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 {
                     using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
                     // If the target is not in metadata, there must be a location tag to give the span!
-                    Assert.True(targetInfo.LocationTag != null);
+                    Assert.True(targetInfo.LocationTags != null);
                     foreach (var testHostDocument in testWorkspace.Documents)
                     {
-                        if (targetInfo.LocationTag != null)
+                        if (targetInfo.LocationTags != null)
                         {
                             var annotatedSpans = testHostDocument.AnnotatedSpans;
-                            if (annotatedSpans.TryGetValue(targetInfo.LocationTag, out var spans))
+
+                            foreach (var tag in targetInfo.LocationTags)
                             {
-                                var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
-                                builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
+                                if (annotatedSpans.TryGetValue(tag, out var spans))
+                                {
+                                    var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
+                                    builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
+                                }
                             }
                         }
                     }
@@ -1161,6 +1184,55 @@ public class {|target1:Class1|} : I1<Class1>
                 itemForPlusOperatorInClass1,
                 itemForIntOperatorInI1,
                 itemForIntOperatorInClass1);
+        }
+
+        [Fact]
+        public Task TestCSharpPartialClass()
+        {
+            var markup = @"
+interface {|target1:IBar|}
+{ 
+}
+
+public partial class {|target2:Bar|} : IBar
+{
+}
+
+public partial class {|target3:Bar|}
+{
+}
+            ";
+
+            var itemOnLine2 = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface IBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        "target2", "target3")));
+
+            var itemOnLine6 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "IBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementedInterface)));
+
+            var itemOnLine10 = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "IBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementedInterface)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemOnLine2,
+                itemOnLine6,
+                itemOnLine10);
         }
 
         #endregion
