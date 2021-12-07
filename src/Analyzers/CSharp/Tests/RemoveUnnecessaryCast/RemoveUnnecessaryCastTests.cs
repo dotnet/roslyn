@@ -11887,6 +11887,31 @@ class C
             {
                 TestCode = source,
                 FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(45925, "https://github.com/dotnet/roslyn/issues/45925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryPatternCasts1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    bool M(object obj)
+    {
+        return obj is 0 or (uint)0 or (long)0 or (ulong)0 or (short)0 or (ushort)0 or (byte)0 or (sbyte)0 or (float)0
+             or (double)0 or (decimal)0 or (AttributeTargets)0;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
     }
