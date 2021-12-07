@@ -11778,5 +11778,39 @@ class P
 ";
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(58171, "https://github.com/dotnet/roslyn/issues/58171")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [CombinatorialData]
+        public async Task DoNotRemoveMethodGroupToSpecificDelegateType(LanguageVersion version)
+        {
+            var source = @"
+using System;
+
+class KeyEventArgs : EventArgs
+{
+}
+
+delegate void KeyEventHandler(object sender, KeyEventArgs e);
+
+class C
+{
+
+    void M()
+    {
+        AddHandler((KeyEventHandler)HandleSymbolKindsPreviewKeyDown);
+    }
+
+    void HandleSymbolKindsPreviewKeyDown(object sender, KeyEventArgs e) { }
+    void AddHandler(Delegate handler) { }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = version,
+            }.RunAsync();
+        }
     }
 }

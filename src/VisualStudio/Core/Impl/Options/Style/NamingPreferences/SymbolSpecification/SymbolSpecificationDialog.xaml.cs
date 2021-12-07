@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             modifiersListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.ModifierList));
             modifiersContentControl.Content = modifiersListView;
 
-            symbolKindsListView.AddHandler(PreviewKeyDownEvent, HandleSymbolKindsPreviewKeyDown, true);
+            symbolKindsListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
             accessibilitiesListView.AddHandler(PreviewKeyDownEvent, HandleAccessibilitiesPreviewKeyDown, true);
             modifiersListView.AddHandler(PreviewKeyDownEvent, HandleModifiersPreviewKeyDown, true);
         }
