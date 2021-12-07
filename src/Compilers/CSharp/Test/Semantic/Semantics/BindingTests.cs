@@ -1265,7 +1265,7 @@ interface Iderived2 : Iderived
     void method4();
 }
 
-class foo : Iderived2, Iderived, Ibase, Ibase2
+class @foo : Iderived2, Iderived, Ibase, Ibase2
 {
     void Ibase.method1()
     { }
@@ -1277,9 +1277,9 @@ class foo : Iderived2, Iderived, Ibase, Ibase2
  ";
             var testAssembly = CreateCompilation(scenarioCode);
             testAssembly.VerifyDiagnostics(
-                // (29,24): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
-                // class foo : Iderived2, Iderived, Ibase, Ibase2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 24));
+                // (29,25): error CS0535: 'foo' does not implement interface member 'Iderived.method3()'
+                // class @foo : Iderived2, Iderived, Ibase, Ibase2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Iderived").WithArguments("foo", "Iderived.method3()").WithLocation(29, 25));
         }
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
@@ -1845,7 +1845,7 @@ class C
         {
             var source =
 @"delegate void Foo();
-class driver
+class @driver
 {
     public static event Foo e;
     static void Main(string[] args)

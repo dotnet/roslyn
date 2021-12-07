@@ -733,7 +733,7 @@ enum Figure : C { One, Two, Three }
 @"
 partial class EnumPartial
 {
-    internal enum partial
+    internal enum @partial
     { }
     partial M;
 }

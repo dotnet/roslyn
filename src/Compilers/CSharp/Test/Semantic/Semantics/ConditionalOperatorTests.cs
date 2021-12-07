@@ -1251,7 +1251,7 @@ class C
 }}
 
 class D<T> {{ }}
-public enum color {{ Red, Blue, Green }};
+public enum @color {{ Red, Blue, Green }};
 interface I<in T, out U> {{ }}";
 
             var tree = Parse(source, options: parseOptions);
