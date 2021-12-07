@@ -12,58 +12,66 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.API
 {
     internal sealed class UnitTestingStackTraceService
     {
+        private readonly Workspace _workspace;
         private readonly IStackTraceExplorerService _stackTraceService;
 
         public UnitTestingStackTraceService(Workspace workspace)
-            => _stackTraceService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+        {
+            _workspace = workspace;
+            _stackTraceService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+        }
 
         public async Task<ImmutableArray<Frame>> TryParseAsync(string input, CancellationToken cancellationToken)
         {
             var result = await StackTraceAnalyzer.AnalyzeAsync(input, cancellationToken).ConfigureAwait(false);
-            return result.ParsedFrames.SelectAsArray(p => new Frame(p, _stackTraceService));
+            return result.ParsedFrames.SelectAsArray(p => new Frame(p, _stackTraceService, _workspace));
         }
 
         public readonly struct Frame
         {
             private readonly ParsedFrame _parsedFrame;
             private readonly IStackTraceExplorerService _stackTraceService;
+            private readonly Workspace _workspace;
 
-            public Frame(ParsedFrame parsedFrame, IStackTraceExplorerService service)
+            public Frame(ParsedFrame parsedFrame, IStackTraceExplorerService service, Workspace workspace)
             {
                 _parsedFrame = parsedFrame;
                 _stackTraceService = service;
+                _workspace = workspace;
             }
 
-            public (Document? document, int lineNumber) TryGetDocumentAndLine(Solution solution)
-                => _stackTraceService.GetDocumentAndLine(solution, _parsedFrame);
+            public (Document? document, int lineNumber) TryGetDocumentAndLine()
+                => _stackTraceService.GetDocumentAndLine(_workspace.CurrentSolution, _parsedFrame);
 
-            public async Task<Definition?> TryFindMethodDefinitionAsync(Solution solution, CancellationToken cancellationToken)
+            public async Task<Definition?> TryFindMethodDefinitionAsync(CancellationToken cancellationToken)
             {
-                var definition = await _stackTraceService.TryFindDefinitionAsync(solution, _parsedFrame, StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
+                var definition = await _stackTraceService.TryFindDefinitionAsync(_workspace.CurrentSolution, _parsedFrame, StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
                 if (definition == null)
                 {
                     return null;
                 }
 
-                return new Definition(definition);
+                return new Definition(definition, _workspace);
             }
         }
 
         public readonly struct Definition
         {
             private readonly FindUsages.DefinitionItem _definition;
+            private readonly Workspace _workspace;
 
-            public Definition(FindUsages.DefinitionItem definition)
+            public Definition(FindUsages.DefinitionItem definition, Workspace workspace)
             {
                 _definition = definition;
+                _workspace = workspace;
             }
 
-            public async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public async Task<bool> TryNavigateToAsync(bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
-                var canNavigate = await _definition.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false);
+                var canNavigate = await _definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 if (canNavigate)
                 {
-                    return await _definition.TryNavigateToAsync(workspace, showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
+                    return await _definition.TryNavigateToAsync(_workspace, showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
                 }
 
                 return false;
