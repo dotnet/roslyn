@@ -11914,5 +11914,27 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(37473, "https://github.com/dotnet/roslyn/issues/37473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryCastInTupleWrappedInObject()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<object> Bar()
+    {
+        yield return (""test"", (decimal?)1.23);
+    }
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
