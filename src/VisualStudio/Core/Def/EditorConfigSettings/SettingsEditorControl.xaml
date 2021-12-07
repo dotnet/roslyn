@@ -25,7 +25,7 @@
         </Grid.RowDefinitions>
         <TabControl x:Name="SettingsEditorTabs"
                     Grid.Row="0"
-                    Margin="0,20,0,12"
+                    Margin="0,20,0,0"
                     IsSynchronizedWithCurrentItem="False"
                     TabStripPlacement="Top"
                     SelectionChanged="TabsSettingsEditor_SelectionChanged">
