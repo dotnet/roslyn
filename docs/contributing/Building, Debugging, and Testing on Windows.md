@@ -169,7 +169,7 @@ under `AppData`, not from `Program File`).
 
 ### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
 
-1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs+libs.tests`, which should be sufficient to build all C# code, installing any prerequisites if prompted to. There's documentation on prerequisites on the runtime repo homepage. You may need to do `git clean -xdf` and `build.cmd -restore` before you can build successfully)
+1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs+libs.tests`, which should be sufficient to build all C# code, installing any prerequisites if prompted to, and perhaps `git clean -xdf` and `build.cmd -restore` initially - see [runtime repo documentation](https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md) for specific prerequisites and build instructionsy)
 2. `build.cmd -pack` on your `roslyn` repo
 3. in `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset` delete the version of the toolset that you just packed so that the new one will get put into the cache
 4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) then build again
