@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // Nothing to highlight if user hasn't typed anything yet.
                 _highlightMatchingPortions = _filterText.Length > 0
-                        && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document?.Project.Language);
+                    && globalOptions.GetOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, _document?.Project.Language);
 
                 _showCompletionItemFilters = globalOptions.GetOption(CompletionViewOptions.ShowCompletionItemFilters, _document?.Project.Language);
             }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // (via IAsyncCompletionDefaultsSource), where the "default" means the "default selection".
                     // The main scenario for this is to keep the selected item in completion list in sync with the
                     // suggestion of "Whole-Line Completion" feature, where the default is usually set to the first token
-                    // of the WLC suggetion.
+                    // of the WLC suggestion.
                     var finalSelection = UpdateSelectionBasedOnSuggestedDefaults(itemsToBeIncluded, initialSelection.Value, cancellationToken);
 
                     return new FilteredCompletionModel(
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private void AddCompletionItems(List<MatchResult<VSCompletionItem>> list, CancellationToken cancellationToken)
             {
-                // FilterStateHelper is used to decide wheter a given item should be included in the list based on the state of filter/expander buttons.
+                // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
                 var filterHelper = new FilterStateHelper(_data.SelectedFilters);
                 filterHelper.LogTargetTypeFilterTelemetry(_session);
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // to `MatchResult` to keep track the original alphabetical order of each item.
                 var currentIndex = 0;
 
-                // Convert intial and update trigger reasons to corresponding Roslyn type so 
+                // Convert initial and update trigger reasons to corresponding Roslyn type so 
                 // we can interact with Roslyn's completion system
                 var roslynInitialTriggerKind = Helpers.GetRoslynTriggerKind(InitialTriggerReason);
                 var roslynFilterReason = Helpers.GetFilterReason(UpdateTriggerReason);
@@ -326,10 +326,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ItemSelection? HandleDeletionTrigger(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                if (UpdateTriggerReason == CompletionTriggerReason.Insertion && !items.Any(r => r.MatchedFilterText))
-                {
-                }
-
                 // Go through the entire item list to find the best match(es).
                 // If we had matching items, then pick the best of the matching items and
                 // choose that one to be hard selected.  If we had no actual matching items
@@ -702,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // The range includes all items that are as good of a match as what we intially selected (and in descending order of matching score)
+                    // The range includes all items that are as good of a match as what we initially selected (and in descending order of matching score)
                     // so we just need to search for the first item that matches the suggested default.
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
@@ -730,8 +726,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // The filter state list contains two kinds of "filters": regular filter and expander.
                     // The difference between them is they have different semantics.
-                    // - When all filters or no filter is selected, everything should be inclued.
-                    //   But when a strict subset of filters is selected, only items correspding to the selected filters should be included.
+                    // - When all filters or no filter is selected, everything should be included.
+                    //   But when a strict subset of filters is selected, only items corresponding to the selected filters should be included.
                     // - When expander is selected, all expanded items should be included, otherwise, expanded items should be excluded.
                     //   expander state has no affect on non-expanded items.
                     //   For example, right now we only have one expander for items from unimported namespaces, selecting/unselecting expander would
