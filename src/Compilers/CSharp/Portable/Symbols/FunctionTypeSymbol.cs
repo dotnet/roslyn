@@ -12,17 +12,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// Inferred delegate type state, recorded during testing only.
+    /// </summary>
     internal sealed class InferredDelegateTypeData
     {
+        /// <summary>
+        /// Number of delegate types calculated in the compilation.
+        /// </summary>
         internal int InferredDelegateCount;
     }
 
     /// <summary>
-    /// A <see cref="TypeSymbol"/> implementation that represents the inferred signature of a
+    /// A <see cref="TypeSymbol"/> implementation that represents the lazily-inferred signature of a
     /// lambda expression or method group. This is implemented as a <see cref="TypeSymbol"/>
     /// to allow types and function signatures to be treated similarly in <see cref="ConversionsBase"/>,
     /// <see cref="BestTypeInferrer"/>, and <see cref="MethodTypeInferrer"/>. Instances of this type
     /// should only be used in those code paths and should not be exposed from the symbol model.
+    /// The actual delegate signature is calculated on demand in <see cref="GetInternalDelegateType()"/>.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class FunctionTypeSymbol : TypeSymbol
@@ -78,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var delegateType = _calculateDelegate(_binder, _expression);
                 var result = Interlocked.CompareExchange(ref _lazyDelegateType, delegateType, Uninitialized);
 
-                if (_binder.Compilation.CompilationData is InferredDelegateTypeData data &&
+                if (_binder.Compilation.TestOnlyCompilationData is InferredDelegateTypeData data &&
                     (object?)result == Uninitialized)
                 {
                     Interlocked.Increment(ref data.InferredDelegateCount);
@@ -154,15 +161,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            var otherType = (FunctionTypeSymbol)other;
             var thisDelegateType = GetInternalDelegateType();
+            var otherType = (FunctionTypeSymbol)other;
             var otherDelegateType = otherType.GetInternalDelegateType();
 
-            Debug.Assert(thisDelegateType is { });
-            Debug.Assert(otherDelegateType is { });
+            if (thisDelegateType is null || otherDelegateType is null)
+            {
+                return this;
+            }
 
             var mergedDelegateType = (NamedTypeSymbol)thisDelegateType.MergeEquivalentTypes(otherDelegateType, variance);
-
             return (object)thisDelegateType == mergedDelegateType ?
                 this :
                 otherType.WithDelegateType(mergedDelegateType);
@@ -171,7 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
             var thisDelegateType = GetInternalDelegateType();
-            Debug.Assert(thisDelegateType is { });
+            if (thisDelegateType is null)
+            {
+                return this;
+            }
             return WithDelegateType((NamedTypeSymbol)thisDelegateType.SetNullabilityForReferenceTypes(transform));
         }
 

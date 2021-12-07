@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9637,10 +9638,12 @@ class Program
 @"using System;
 class Program
 {
+    static void M(int i) { }
     static void Main()
     {
         int x = 0;
         F(x, (int y) => { });
+        F(x, M);
     }
     static void F(int x, Action<int> y) { }
     static void F(int x, Action<int, int> y) { }
@@ -9648,7 +9651,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
-            comp.CompilationData = data;
+            comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics();
             Assert.Equal(0, data.InferredDelegateCount);
         }
@@ -9661,9 +9664,11 @@ class Program
 @"using System;
 class Program
 {
+    static void M(int i) { }
     static void Main()
     {
         F(x, (int y) => { });
+        F(x, M);
     }
     static void F(int x, Action<int> y) { }
     static void F(int x, Action<int, int> y) { }
@@ -9671,11 +9676,14 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
-            comp.CompilationData = data;
+            comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics(
-                // (6,11): error CS0103: The name 'x' does not exist in the current context
+                // (7,11): error CS0103: The name 'x' does not exist in the current context
                 //         F(x, (int y) => { });
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, M);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 11));
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
@@ -9686,19 +9694,21 @@ class Program
 @"using System;
 class Program
 {
+    static void M(int i) { }
     static void Main()
     {
         int x = 0;
         F(x, (int y) => { });
+        F(x, M);
     }
     static void F(int x, Action<int> y) { }
     static void F(int x, Delegate y) { }
 }";
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
-            comp.CompilationData = data;
+            comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics();
-            Assert.Equal(1, data.InferredDelegateCount);
+            Assert.Equal(2, data.InferredDelegateCount);
         }
 
         [Fact]
@@ -9708,21 +9718,88 @@ class Program
 @"using System;
 class Program
 {
+    static void M(int i) { }
     static void Main()
     {
         F(x, (int y) => { });
+        F(x, M);
     }
     static void F(int x, Action<int> y) { }
     static void F<T>(int x, T y, int z) { }
 }";
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
-            comp.CompilationData = data;
+            comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics(
-                // (6,11): error CS0103: The name 'x' does not exist in the current context
+                // (7,11): error CS0103: The name 'x' does not exist in the current context
                 //         F(x, (int y) => { });
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 11));
-            Assert.Equal(1, data.InferredDelegateCount);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, M);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 11));
+            Assert.Equal(2, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void FunctionTypeSymbolOperations()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var objectType = comp.GetSpecialType(SpecialType.System_Object);
+            var stringType = comp.GetSpecialType(SpecialType.System_String);
+            var funcOfT = comp.GetWellKnownType(WellKnownType.System_Func_T);
+            var funcOfObjectNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(objectType, NullableAnnotation.Annotated)));
+            var funcOfStringNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(stringType, NullableAnnotation.Annotated)));
+            var funcOfStringNotNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(stringType, NullableAnnotation.NotAnnotated)));
+
+            var functionTypeObjectNullable = new FunctionTypeSymbol(funcOfObjectNullable);
+            var functionTypeStringNullable = new FunctionTypeSymbol(funcOfStringNullable);
+            var functionTypeStringNotNullable = new FunctionTypeSymbol(funcOfStringNotNullable);
+            var functionTypeNullA = new FunctionTypeSymbol(null!);
+            var functionTypeNullB = new FunctionTypeSymbol(null!);
+
+            // MergeEquivalentTypes
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNullable.MergeEquivalentTypes(functionTypeStringNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNullable.MergeEquivalentTypes(functionTypeStringNotNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNotNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNotNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeNullA, functionTypeNullA.MergeEquivalentTypes(functionTypeNullA, VarianceKind.Out));
+            Assert.Equal(functionTypeNullA, functionTypeNullA.MergeEquivalentTypes(functionTypeNullB, VarianceKind.Out));
+
+            // SetNullabilityForReferenceTypes
+            var setNotNullable = (TypeWithAnnotations type) => TypeWithAnnotations.Create(type.Type, NullableAnnotation.NotAnnotated);
+            Assert.Equal(functionTypeStringNotNullable, functionTypeStringNullable.SetNullabilityForReferenceTypes(setNotNullable));
+            Assert.Equal(functionTypeNullA, functionTypeNullA.SetNullabilityForReferenceTypes(setNotNullable));
+
+            // Equals
+            Assert.True(functionTypeStringNotNullable.Equals(functionTypeStringNullable, TypeCompareKind.AllIgnoreOptions));
+            Assert.False(functionTypeStringNotNullable.Equals(functionTypeStringNullable, TypeCompareKind.ConsiderEverything));
+            Assert.False(functionTypeNullA.Equals(functionTypeStringNullable, TypeCompareKind.AllIgnoreOptions));
+            Assert.False(functionTypeStringNullable.Equals(functionTypeNullA, TypeCompareKind.AllIgnoreOptions));
+            Assert.True(functionTypeNullA.Equals(functionTypeNullA, TypeCompareKind.ConsiderEverything));
+            Assert.True(functionTypeNullA.Equals(functionTypeNullB, TypeCompareKind.ConsiderEverything));
+
+            // GetHashCode
+            Assert.Equal(functionTypeStringNullable.GetHashCode(), functionTypeStringNotNullable.GetHashCode());
+            Assert.Equal(functionTypeNullA.GetHashCode(), functionTypeNullB.GetHashCode());
+
+            // ConversionsBase.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes
+            var conversions = new TypeConversions(comp.SourceAssembly.CorLibrary);
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Assert.Equal(ConversionKind.FunctionType, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeStringNotNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.FunctionType, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeObjectNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeNullA, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeNullA, functionTypeStringNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeNullA, functionTypeNullA, ref useSiteInfo).Kind);
         }
 
         [Fact]

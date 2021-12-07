@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void EnsureSufficientExecutionStack(int recursionDepth)
         {
             if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
-                compilation.CompilationData is NullableAnalysisData { MaxRecursionDepth: var depth } &&
+                compilation.TestOnlyCompilationData is NullableAnalysisData { MaxRecursionDepth: var depth } &&
                 depth > 0 &&
                 recursionDepth > depth)
             {
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
         {
-            if (compilation.CompilationData is NullableAnalysisData { Data: { } state })
+            if (compilation.TestOnlyCompilationData is NullableAnalysisData { Data: { } state })
             {
                 var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
@@ -1666,9 +1666,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? nodeType = node.Type;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var conversionsWithoutNullability = this.compilation.Conversions;
-                Debug.Assert(node.HasErrors || nodeType!.IsErrorType() ||
-                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
-                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo));
+                Debug.Assert(node.HasErrors ||
+                    (nodeType is { } &&
+                        (nodeType.IsErrorType() ||
+                        conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
+                        conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo))));
             }
 #endif
             return result;

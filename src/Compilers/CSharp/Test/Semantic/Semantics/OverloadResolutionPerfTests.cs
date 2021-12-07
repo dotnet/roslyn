@@ -396,7 +396,7 @@ class Program
             var source = builder.ToString();
             var comp = CreateCompilation(source);
             var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
-            comp.CompilationData = nullableAnalysisData;
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             int analyzed = nullableAnalysisData.Data.Where(pair => pair.Value.RequiredAnalysis).Count();
@@ -426,7 +426,7 @@ class Program
             var source = builder.ToString();
             var comp = CreateCompilation(source);
             var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
-            comp.CompilationData = nullableAnalysisData;
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F2");
@@ -456,7 +456,7 @@ class Program
             var source = builder.ToString();
             var comp = CreateCompilation(source);
             var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
-            comp.CompilationData = nullableAnalysisData;
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F");
@@ -579,7 +579,7 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.CompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
             comp.VerifyDiagnostics(
                 // (7,15): error CS8078: An expression is too long or complex to compile
                 //         C c = new C()
@@ -615,7 +615,7 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.CompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
             comp.VerifyDiagnostics(
                 // (10,15): error CS8078: An expression is too long or complex to compile
                 //         C c = new C()

@@ -121,8 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (sourceExpression.GetFunctionType() is { } sourceFunctionType)
             {
-                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo) &&
-                    sourceFunctionType.GetInternalDelegateType() is { })
+                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo))
                 {
                     return Conversion.FunctionType;
                 }
@@ -2667,10 +2666,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (destination is FunctionTypeSymbol destinationFunctionType)
             {
-                return HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo);
+                if (!HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo))
+                {
+                    return false;
+                }
             }
-
-            return IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo);
+            else if (!IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo))
+            {
+                return false;
+            }
+            return source.GetInternalDelegateType() is { };
         }
 
         internal bool IsValidFunctionTypeConversionTarget(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -2699,6 +2704,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sourceDelegate = sourceType.GetInternalDelegateType();
             var destinationDelegate = destinationType.GetInternalDelegateType();
+
+            if (sourceDelegate is null || destinationDelegate is null)
+            {
+                return false;
+            }
 
             // https://github.com/dotnet/roslyn/issues/55909: We're relying on the variance of
             // FunctionTypeSymbol.GetInternalDelegateType() which fails for synthesized
@@ -2849,13 +2859,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // * if the ith parameter of U is contravariant then either Si is exactly
         //   equal to Ti, or there is an implicit reference conversion from Ti to Si.
 
+#nullable enable
         private bool HasInterfaceVarianceConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-            NamedTypeSymbol s = source as NamedTypeSymbol;
-            NamedTypeSymbol d = destination as NamedTypeSymbol;
-            if ((object)s == null || (object)d == null)
+            NamedTypeSymbol? s = source as NamedTypeSymbol;
+            NamedTypeSymbol? d = destination as NamedTypeSymbol;
+            if (s is null || d is null)
             {
                 return false;
             }
@@ -2872,9 +2883,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-            NamedTypeSymbol s = source as NamedTypeSymbol;
-            NamedTypeSymbol d = destination as NamedTypeSymbol;
-            if ((object)s == null || (object)d == null)
+            NamedTypeSymbol? s = source as NamedTypeSymbol;
+            NamedTypeSymbol? d = destination as NamedTypeSymbol;
+            if (s is null || d is null)
             {
                 return false;
             }
@@ -3151,7 +3162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return source.IsPointerOrFunctionPointer() && destination is PointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } };
         }
 
-#nullable enable
         internal bool HasImplicitPointerConversion(TypeSymbol? source, TypeSymbol? destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (!(source is FunctionPointerTypeSymbol { Signature: { } sourceSig })

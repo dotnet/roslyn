@@ -141,8 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
         /// </summary>
-        internal object? CompilationData;
+        internal object? TestOnlyCompilationData;
 
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
