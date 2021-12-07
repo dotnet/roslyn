@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
-            private (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
