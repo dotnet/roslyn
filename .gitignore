@@ -198,3 +198,5 @@ publish/
 # Caravela
 /tools/
 Caravela.Compiler.Import.props
+*.g.props
+/dependencies/

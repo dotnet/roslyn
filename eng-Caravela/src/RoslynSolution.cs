@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using System.IO;
 using System.Text;
 using PostSharp.Engineering.BuildTools.Build;
@@ -25,7 +26,7 @@ namespace Build
         private static bool ExecuteScript(BuildContext context, BaseBuildSettings options, string args)
         {
             var argsBuilder = new StringBuilder();
-            argsBuilder.Append($"-c {options.BuildConfiguration}");
+            argsBuilder.Append( CultureInfo.InvariantCulture, $"-c {options.BuildConfiguration}");
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
@@ -46,9 +47,9 @@ namespace Build
             return ExecuteScript(context, options, "-restore");
         }
 
-        public override bool Test(BuildContext context, TestOptions options)
+        public override bool Test(BuildContext context, BuildOptions options)
         {
-            string filter = "";
+            var filter = "";
 
             if (!options.Properties.ContainsKey("TestAll"))
             {

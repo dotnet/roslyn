@@ -1,6 +1,7 @@
 ﻿using PostSharp.Engineering.BuildTools;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
+using PostSharp.Engineering.BuildTools.Dependencies.Model;
 using PostSharp.Engineering.BuildTools.NuGet;
 using Spectre.Console.Cli;
 using System;
@@ -60,12 +61,13 @@ namespace Build
                 PrivateArtifactsDirectory = "artifacts\\packages\\$(Configuration)\\Shipping",
                 ProductName = "Caravela.Compiler",
                 EngineeringDirectory = "eng-Caravela",
+                VersionsFile = "eng\\Versions.props",
                 GenerateArcadeProperties = true,
                 AdditionalDirectoriesToClean = ImmutableArray.Create("artifacts"),
                 Solutions = ImmutableArray.Create<Solution>(
                     new RoslynSolution()),
                 PublishingTargets = ImmutableArray.Create<PublishingTarget>(publicPublishing, privatePublishing),
-                Dependencies = ImmutableArray.Create(new ProductDependency("PostSharp.Backstage.Settings")),
+                Dependencies = ImmutableArray.Create(Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings),
                 SupportedProperties = ImmutableDictionary.Create<string, string>().Add("TestAll", "Supported by the 'test' command. Run all tests instead of just Caravela's unit tests.")
             };
             product.BuildCompleted += OnBuildCompleted;
