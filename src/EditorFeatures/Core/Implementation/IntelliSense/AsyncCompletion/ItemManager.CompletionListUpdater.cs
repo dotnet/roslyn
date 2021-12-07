@@ -490,16 +490,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // Try to find the chosen item has been most recently used.
                 var bestItem = chosenItems[0];
+                var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                 for (int i = 1, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
-                    var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                     var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
                     if ((mruIndex2 < mruIndex1) ||
                         (mruIndex2 == mruIndex1 && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
                     {
                         bestItem = chosenItem;
+                        mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                     }
                 }
 
