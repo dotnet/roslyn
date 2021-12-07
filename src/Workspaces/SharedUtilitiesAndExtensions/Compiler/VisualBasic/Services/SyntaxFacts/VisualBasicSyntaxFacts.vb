@@ -40,6 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Get
         End Property
 
+        Public ReadOnly Property ElasticSpace As SyntaxTrivia Implements ISyntaxFacts.ElasticSpace
+            Get
+                Return SyntaxFactory.ElasticSpace
+            End Get
+        End Property
+
         Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFacts.ElasticMarker
             Get
                 Return SyntaxFactory.ElasticMarker

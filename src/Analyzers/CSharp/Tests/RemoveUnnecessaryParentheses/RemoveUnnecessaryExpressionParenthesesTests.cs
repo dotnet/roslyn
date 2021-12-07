@@ -2120,7 +2120,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#ifA || B
+#if A || B
 #endif
     }
 }",

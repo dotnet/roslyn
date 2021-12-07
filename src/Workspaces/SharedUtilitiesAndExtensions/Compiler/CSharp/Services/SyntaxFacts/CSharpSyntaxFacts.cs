@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTrivia ElasticMarker
             => SyntaxFactory.ElasticMarker;
 
+        public SyntaxTrivia ElasticSpace
+            => SyntaxFactory.ElasticSpace;
+
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 

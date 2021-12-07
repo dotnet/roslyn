@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         StringComparer StringComparer { get; }
 
         SyntaxTrivia ElasticMarker { get; }
+        SyntaxTrivia ElasticSpace { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         ISyntaxKinds SyntaxKinds { get; }
