@@ -11980,5 +11980,30 @@ public class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(33043, "https://github.com/dotnet/roslyn/issues/33043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryCastInIsNullCheck1()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class C
+{
+    void M()
+    {
+        if ((int?)1 is null)
+        {
+        }
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
