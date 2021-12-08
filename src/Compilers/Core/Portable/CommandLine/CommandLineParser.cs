@@ -1281,14 +1281,13 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     yielded = true;
+                    if (path == "//langversion:?")
+                    {
+                        // Ugly check to see what's going on CI :(
+                        throw new Exception($"In ExpandFileNamePattern: yielding: '{resolvedPath}', Current: '{enumerator.Current}', resolvedDirectoryPath: '{resolvedDirectoryPath}', pattern: '{pattern}'.");
+                    }
                     yield return resolvedPath;
                 }
-            }
-
-            if (path == "//langversion:?")
-            {
-                // Ugly check to see what's going on CI :(
-                throw new Exception($"In ExpandFileNamePattern. yielded: {yielded}, searchOption: {searchOption.ToString()}");
             }
 
             // the pattern didn't match any files:
