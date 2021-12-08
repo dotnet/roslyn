@@ -2395,6 +2395,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Para cambiar entre una expresión lambda y una función local, es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: liberar los recursos no administrados (objetos no administrados) y reemplazar el finalizador</target>

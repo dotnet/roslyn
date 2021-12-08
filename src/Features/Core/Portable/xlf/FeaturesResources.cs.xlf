@@ -2395,6 +2395,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Přepnutí mezi funkcí lambda a místní funkcí vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: Uvolněte nespravované prostředky (nespravované objekty) a přepište finalizační metodu.</target>

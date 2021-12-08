@@ -2395,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переключения между лямбда-выражением и локальной функцией требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить метод завершения</target>

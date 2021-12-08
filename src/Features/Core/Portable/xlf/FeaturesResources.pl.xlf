@@ -2395,6 +2395,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Przełączenie między wyrażeniem lambda a funkcją lokalną wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: Zwolnić niezarządzane zasoby (niezarządzane obiekty) i przesłonić finalizator</target>

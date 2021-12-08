@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
                 return null;
 
+            _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)

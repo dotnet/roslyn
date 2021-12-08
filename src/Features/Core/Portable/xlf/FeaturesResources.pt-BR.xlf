@@ -2395,6 +2395,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Alternar entre um lambda e uma função local requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>

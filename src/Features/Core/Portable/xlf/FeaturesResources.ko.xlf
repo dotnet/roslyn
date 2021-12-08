@@ -2395,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">람다 함수와 로컬 함수 간에 전환하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="new">Symbol found in assembly path '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: 비관리형 리소스(비관리형 개체)를 해제하고 종료자를 재정의합니다.</target>
