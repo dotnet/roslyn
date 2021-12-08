@@ -95,6 +95,7 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LineP
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
 Microsoft.CodeAnalysis.OperationKind.FunctionPointerInvocation = 120 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ImplicitIndexerReference = 123 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation!>
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.Target.get -> Microsoft.CodeAnalysis.IOperation!
