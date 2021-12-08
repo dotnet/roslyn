@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
 
-        internal virtual int GetNextAnonymousTypeIndex()
+        internal virtual int GetNextAnonymousTypeIndex(bool fromDelegates)
         {
             return 0;
         }

@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _nameAndIndex = null;
             }
 
+            internal abstract AnonymousTypeKey GetAnonymousTypeKey();
+
             internal abstract string TypeDescriptorKey { get; }
 
             protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
@@ -397,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new AnonymousTypeToStringMethodSymbol(this));
             }
 
-            internal AnonymousTypeKey GetAnonymousTypeKey()
+            internal override AnonymousTypeKey GetAnonymousTypeKey()
             {
                 var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
                 return new AnonymousTypeKey(properties);

@@ -9200,8 +9200,6 @@ struct S<U>
 ");
         }
 
-        // PROTOTYPE: Test EnC. Either allow EnC or block it.
-
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);

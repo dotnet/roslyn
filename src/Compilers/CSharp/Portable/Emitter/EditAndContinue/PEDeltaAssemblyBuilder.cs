@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // In general, the anonymous type name is "<{module-id}>f__AnonymousType{index}#{submission-index}",
             // but EnC is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index.
-            const string AnonymousNameWithoutModulePrefix = "<>f__AnonymousType";
+            const string AnonymousTypeOrDelegateNamePrefix = "<>f__Anonymous";
+            const string AnonymousTypeNameWithoutModulePrefix = AnonymousTypeOrDelegateNamePrefix + "Type";
+            const string AnonymousDelegateNameWithoutModulePrefix = AnonymousTypeOrDelegateNamePrefix + "Delegate";
 
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
             foreach (var handle in reader.TypeDefinitions)
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
 
-                if (!reader.StringComparer.StartsWith(def.Name, AnonymousNameWithoutModulePrefix))
+                if (!reader.StringComparer.StartsWith(def.Name, AnonymousTypeOrDelegateNamePrefix))
                 {
                     continue;
                 }
@@ -147,19 +149,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var metadataName = reader.GetString(def.Name);
                 var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out _);
 
-                if (name.StartsWith(AnonymousNameWithoutModulePrefix, StringComparison.Ordinal) &&
-                    int.TryParse(name.Substring(AnonymousNameWithoutModulePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out int index))
+                if (name.StartsWith(AnonymousTypeNameWithoutModulePrefix, StringComparison.Ordinal))
                 {
-                    var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
-                    if (TryGetAnonymousTypeKey(reader, def, builder))
+                    if (int.TryParse(name.Substring(AnonymousTypeNameWithoutModulePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out int index))
+                    {
+                        var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
+                        if (TryGetAnonymousTypeKey(reader, def, builder))
+                        {
+                            var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
+                            var key = new AnonymousTypeKey(builder.ToImmutable());
+                            var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
+                            result.Add(key, value);
+                        }
+                        builder.Free();
+                    }
+                }
+                else if (name.StartsWith(AnonymousDelegateNameWithoutModulePrefix, StringComparison.Ordinal))
+                {
+                    if (int.TryParse(name.Substring(AnonymousDelegateNameWithoutModulePrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out int index))
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
-                        var key = new AnonymousTypeKey(builder.ToImmutable());
-                        var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
-                        result.Add(key, value);
+                        var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
+                        if (AnonymousTypeManager.TryGetAnonymousDelegateKey(type, builder))
+                        {
+                            var key = new AnonymousTypeKey(builder.ToImmutable(), isDelegate: true);
+                            var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
+                            result.Add(key, value);
+                        }
+                        builder.Free();
                     }
-
-                    builder.Free();
                 }
             }
 
@@ -279,24 +297,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray.CreateRange(_previousGeneration.SynthesizedDelegates.Keys);
         }
 
-        internal override int GetNextAnonymousTypeIndex()
+        internal override int GetNextAnonymousTypeIndex(bool fromDelegates)
         {
-            return _previousGeneration.GetNextAnonymousTypeIndex();
+            return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates);
         }
 
         internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
-
-            // Not re-using synthesized delegate types.
-            if (template is AnonymousTypeManager.AnonymousTypeTemplateSymbol { } typeTemplate)
-            {
-                return _previousDefinitions.TryGetAnonymousTypeName(typeTemplate, out name, out index);
-            }
-
-            name = null;
-            index = -1;
-            return false;
+            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

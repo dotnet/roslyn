@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -11,18 +12,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class AnonymousTypeManager
     {
-        // PROTOTYPE: Mention not re-used in EnC.
         /// <summary>
         /// An alternative for <see cref="SynthesizedDelegateSymbol"/> for delegate types with
         /// parameter types or return type that cannot be used as generic type arguments.
         /// </summary>
         internal sealed class AnonymousDelegateTemplateSymbol : AnonymousTypeOrDelegateTemplateSymbol
         {
+            private readonly AnonymousTypeDescriptor _typeDescr;
             private readonly ImmutableArray<Symbol> _members;
 
-            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTemplateSignature signature)
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr)
+                : base(manager, typeDescr.Location)
+            {
+                _typeDescr = typeDescr;
+            }
+
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTemplateSignature signature, AnonymousTypeDescriptor typeDescr)
                 : base(manager, signature.Location)
             {
+                _typeDescr = typeDescr;
+
                 int typeParameterCount = signature.TypeParameterCount;
                 TypeMap typeMap;
                 if (typeParameterCount == 0)
@@ -70,6 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterTypes.Free();
                     return method;
                 }
+            }
+
+            internal override AnonymousTypeKey GetAnonymousTypeKey()
+            {
+                var fields = _typeDescr.Fields.SelectAsArray(f => new AnonymousTypeKeyField(f.Name, isKey: false, ignoreCase: false));
+                return new AnonymousTypeKey(fields, isDelegate: true);
             }
 
             // PROTOTYPE:

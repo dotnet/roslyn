@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        internal int GetNextAnonymousTypeIndex(bool fromDelegates = false)
+        internal int GetNextAnonymousTypeIndex(bool fromDelegates)
         {
             int nextIndex = 0;
             foreach (var pair in this.AnonymousTypeMap)

@@ -1281,7 +1281,7 @@ class C
 {
     static unsafe void F()
     {
-        var x = <N:0>(int* p, int q) => *p</N:0>;
+        var x = <N:0>(int* a, int b) => *a</N:0>;
     }
 }");
             var source1 = MarkedSource(@"
@@ -1289,8 +1289,9 @@ class C
 {
     static unsafe void F()
     {
-        var x = <N:0>(int* p, int q) => q</N:0>;
-        var y = <N:1>(int p, int* q) => p</N:1>;
+        var x = <N:0>(int* a, int b) => b</N:0>;
+        var y = <N:1>(int a, int* b) => a</N:1>;
+        var z = <N:2>(int* a) => a</N:2>;
     }
 }");
             var source2 = MarkedSource(@"
@@ -1298,8 +1299,9 @@ class C
 {
     static unsafe void F()
     {
-        var x = <N:0>(int* p, int q) => q</N:0>;
-        var y = <N:1>(int p, int* q) => *q</N:1>;
+        var x = <N:0>(int* a, int b) => b</N:0>;
+        var y = <N:1>(int a, int* b) => *b</N:1>;
+        var z = <N:2>(int* a) => a</N:2>;
     }
 }");
 
@@ -1331,12 +1333,12 @@ class C
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
-            CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousDelegate1");
-            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_1#1");
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousDelegate1", "<>f__AnonymousDelegate2");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", ".ctor", "Invoke", "<F>b__0_1#1", "<F>b__0_2#1");
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,

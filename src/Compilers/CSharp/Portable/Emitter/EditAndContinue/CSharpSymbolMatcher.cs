@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
+        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
             => _symbols.TryGetAnonymousTypeName(template, out name, out index);
 
         private abstract class MatchDefs
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _comparer = new SymbolComparer(this, deepTranslator);
             }
 
-            internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol type, [NotNullWhen(true)] out string? name, out int index)
+            internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol type, [NotNullWhen(true)] out string? name, out int index)
             {
                 if (TryFindAnonymousType(type, out var otherType))
                 {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 switch (otherContainer.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (sourceType is AnonymousTypeManager.AnonymousTypeTemplateSymbol template)
+                        if (sourceType is AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
                             TryFindAnonymousType(template, out var value);
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CSharpCustomModifier.CreateRequired(type);
             }
 
-            internal bool TryFindAnonymousType(AnonymousTypeManager.AnonymousTypeTemplateSymbol type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousType(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
 
