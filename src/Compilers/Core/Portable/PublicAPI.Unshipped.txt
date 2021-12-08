@@ -1,5 +1,12 @@
 *REMOVED*Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
 abstract Microsoft.CodeAnalysis.SyntaxTree.GetLineMappings(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.LineMapping>!
+const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.AdditionalTexts = "AdditionalTexts" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.AnalyzerConfigOptions = "AnalyzerConfigOptions" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.Compilation = "Compilation" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.MetadataReferences = "MetadataReferences" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorInputs.ParseOptions = "ParseOptions" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.ImplementationSourceOutput = "ImplementationSourceOutput" -> string!
+const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.SourceOutput = "SourceOutput" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
@@ -14,7 +21,10 @@ Microsoft.CodeAnalysis.GeneratorDriver.WithUpdatedParseOptions(Microsoft.CodeAna
 Microsoft.CodeAnalysis.GeneratorDriverOptions
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions() -> void
 Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs) -> void
+Microsoft.CodeAnalysis.GeneratorDriverOptions.GeneratorDriverOptions(Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps) -> void
 Microsoft.CodeAnalysis.GeneratorExtensions
+Microsoft.CodeAnalysis.GeneratorRunResult.TrackedOutputSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
+Microsoft.CodeAnalysis.GeneratorRunResult.TrackedSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
 Microsoft.CodeAnalysis.IFieldSymbol.FixedSize.get -> int
 Microsoft.CodeAnalysis.IFieldSymbol.IsExplicitlyNamedTupleElement.get -> bool
 Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxContextReceiver.get -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
@@ -49,6 +59,17 @@ Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(s
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.IncrementalGeneratorPostInitializationContext() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorRunStep
+Microsoft.CodeAnalysis.IncrementalGeneratorRunStep.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.IncrementalGeneratorRunStep.Inputs.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.IncrementalGeneratorRunStep! Source, int OutputIndex)>
+Microsoft.CodeAnalysis.IncrementalGeneratorRunStep.Name.get -> string?
+Microsoft.CodeAnalysis.IncrementalGeneratorRunStep.Outputs.get -> System.Collections.Immutable.ImmutableArray<(object! Value, Microsoft.CodeAnalysis.IncrementalStepRunReason Reason)>
+Microsoft.CodeAnalysis.IncrementalStepRunReason
+Microsoft.CodeAnalysis.IncrementalStepRunReason.Cached = 3 -> Microsoft.CodeAnalysis.IncrementalStepRunReason
+Microsoft.CodeAnalysis.IncrementalStepRunReason.Modified = 1 -> Microsoft.CodeAnalysis.IncrementalStepRunReason
+Microsoft.CodeAnalysis.IncrementalStepRunReason.New = 0 -> Microsoft.CodeAnalysis.IncrementalStepRunReason
+Microsoft.CodeAnalysis.IncrementalStepRunReason.Removed = 4 -> Microsoft.CodeAnalysis.IncrementalStepRunReason
+Microsoft.CodeAnalysis.IncrementalStepRunReason.Unchanged = 2 -> Microsoft.CodeAnalysis.IncrementalStepRunReason
 Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>
 Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>.IncrementalValueProvider() -> void
 Microsoft.CodeAnalysis.IncrementalValueProviderExtensions
@@ -112,6 +133,8 @@ Microsoft.CodeAnalysis.Operations.ISlicePatternOperation
 Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation?
 Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.SliceSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
+Microsoft.CodeAnalysis.WellKnownGeneratorInputs
+Microsoft.CodeAnalysis.WellKnownGeneratorOutputs
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?
@@ -137,6 +160,7 @@ Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxProvider<T>(System.Func<M
 Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxValueProvider() -> void
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 readonly Microsoft.CodeAnalysis.GeneratorDriverOptions.DisabledOutputs -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+readonly Microsoft.CodeAnalysis.GeneratorDriverOptions.TrackIncrementalGeneratorSteps -> bool
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
@@ -149,6 +173,8 @@ static Microsoft.CodeAnalysis.FileLinePositionSpan.operator !=(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.FileLinePositionSpan.operator ==(Microsoft.CodeAnalysis.FileLinePositionSpan left, Microsoft.CodeAnalysis.FileLinePositionSpan right) -> bool
 static Microsoft.CodeAnalysis.GeneratorExtensions.AsSourceGenerator(this Microsoft.CodeAnalysis.IIncrementalGenerator! incrementalGenerator) -> Microsoft.CodeAnalysis.ISourceGenerator!
 static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.ISourceGenerator! generator) -> System.Type!
+static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithTrackingName<TSource>(this Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, string! name) -> Microsoft.CodeAnalysis.IncrementalValueProvider<TSource>
+static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithTrackingName<TSource>(this Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, string! name) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource>
 static Microsoft.CodeAnalysis.LineMapping.operator !=(Microsoft.CodeAnalysis.LineMapping left, Microsoft.CodeAnalysis.LineMapping right) -> bool
 static Microsoft.CodeAnalysis.LineMapping.operator ==(Microsoft.CodeAnalysis.LineMapping left, Microsoft.CodeAnalysis.LineMapping right) -> bool
 static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.Collect<TSource>(this Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source) -> Microsoft.CodeAnalysis.IncrementalValueProvider<System.Collections.Immutable.ImmutableArray<TSource>>
