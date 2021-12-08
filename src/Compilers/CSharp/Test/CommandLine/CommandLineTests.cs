@@ -14240,7 +14240,7 @@ public class Generator : ISourceGenerator
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
 
-        [ConditionalTheory(typeof(WindowsOrMacOsOnly))]
+        [ConditionalTheory(typeof(WindowsOnly))]
         [InlineData("abc/a.txt", "abc\\a.txt", 1)]
         [InlineData("abc\\a.txt", "abc\\a.txt", 1)]
         [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
@@ -14251,7 +14251,7 @@ public class Generator : ISourceGenerator
         [InlineData("a.txt", "A.txt", 1)]
         [InlineData("abc/a.txt", "ABC\\a.txt", 1)]
         [InlineData("abc/a.txt", "ABC\\A.txt", 1)]
-        public void TestDuplicateAdditionalFiles_WindowsAndMac(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
+        public void TestDuplicateAdditionalFiles_Windows(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
         [ConditionalTheory(typeof(LinuxOnly))]
         [InlineData("a.txt", "A.txt", 2)]
