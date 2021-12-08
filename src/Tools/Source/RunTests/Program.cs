@@ -326,10 +326,20 @@ namespace RunTests
                 var fileName = $"{name}.dll";
                 foreach (var targetFramework in options.TargetFrameworks)
                 {
-                    var filePath = Path.Combine(project, options.Configuration, targetFramework, fileName);
+                    var fileContainingDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    var filePath = Path.Combine(fileContainingDirectory, fileName);
                     if (File.Exists(filePath))
                     {
                         list.Add((filePath, targetFramework));
+                    }
+                    else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: not 0 } matches)
+                    {
+                        if (matches.Length > 1)
+                        {
+                            var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+                            throw new IOException(message);
+                        }
+                        list.Add((matches[0], targetFramework));
                     }
                 }
             }
