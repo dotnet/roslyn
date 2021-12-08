@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool OnElastic(SyntaxTrivia trivia)
             {
+                // if this is structured trivia then we need to check for elastic trivia in any descendant
+                if (trivia.HasStructure)
+                {
+                    var structure = trivia.GetStructure()!;
+                    return structure.DescendantTrivia().Any(t => t.IsElastic());
+                }
+
                 // if it contains elastic trivia, always format
                 return trivia.IsElastic();
             }
@@ -248,14 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (_indentation != 0)
                 {
                     return true;
-                }
-
-                // #if preprocessors can be changed by code actions (eg remove unnecessary parenthesis)
-                // so we need to check for elastic trivia within them in case we're formatting the results
-                if (trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia)
-                {
-                    var structure = trivia.GetStructure()!;
-                    return structure.DescendantTrivia().Any(t => t.IsElastic());
                 }
 
                 ResetStateAfterNewLine(currentIndex);
