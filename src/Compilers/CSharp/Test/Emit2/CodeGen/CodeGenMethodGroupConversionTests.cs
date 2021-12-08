@@ -3704,6 +3704,80 @@ class C
     }
 
     [Fact]
+    public void SynthesizedAnonymousDelegate_TypeScoped0()
+    {
+        var source = @"
+using System;
+class C
+{
+    void Test<T>(T t)
+    {
+        G(Target<int>);
+    }
+
+    void G(Delegate d) {}
+
+    static dynamic Target<G>(ref G g) => 0;
+}
+";
+        CompileAndVerify(source).VerifyIL("C.Test<T>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""dynamic C.Target<int>(ref int)""
+  IL_0011:  newobj     ""<>F{00000001}<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_001c:  call       ""void C.G(System.Delegate)""
+  IL_0021:  ret
+}
+");
+    }
+
+    [Fact]
+    public void SynthesizedAnonymousDelegate_MethodScoped0()
+    {
+        var source = @"
+using System;
+class C
+{
+    void Test<T>(T t)
+    {
+        G(Target<T>);
+    }
+
+    void G(Delegate d) {}
+
+    static dynamic Target<G>(ref G g) => 0;
+}
+";
+        CompileAndVerify(source).VerifyIL("C.Test<T>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""<anonymous delegate> C.<Test>O__0<T>.<0>__Target""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""dynamic C.Target<T>(ref T)""
+  IL_0011:  newobj     ""<>F{00000001}<T, dynamic>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""<anonymous delegate> C.<Test>O__0<T>.<0>__Target""
+  IL_001c:  call       ""void C.G(System.Delegate)""
+  IL_0021:  ret
+}
+");
+    }
+
+    [Fact]
     public void TopLevel_LocalFunctions_TypeScoped0()
     {
         var source = @"
