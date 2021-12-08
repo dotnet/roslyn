@@ -1130,11 +1130,6 @@ namespace Microsoft.CodeAnalysis
 
             string path = RemoveQuotesAndSlashes(arg);
             int wildcard = path.IndexOfAny(s_wildcards);
-            if (arg.ToString() == "//langversion:?")
-            {
-                // Ugly check to see what's going on CI :(
-                throw new Exception($"In ParseFileArgument. wildcard: {wildcard}");
-            }
 
             if (wildcard != -1)
             {
@@ -1288,6 +1283,12 @@ namespace Microsoft.CodeAnalysis
                     yielded = true;
                     yield return resolvedPath;
                 }
+            }
+
+            if (path == "//langversion:?")
+            {
+                // Ugly check to see what's going on CI :(
+                throw new Exception($"In ExpandFileNamePattern. yielded: {yielded}, searchOption: {searchOption.ToString()}");
             }
 
             // the pattern didn't match any files:
