@@ -13,9 +13,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
 
-        private StrongBox<ISpanMappingService?>? _spanMappingService;
-        private StrongBox<IDocumentExcerptService?>? _excerptService;
-        private StrongBox<DocumentPropertiesService?>? _documentPropertiesService;
+        // The lazily initialized service fields use StrongBox<T> to explicitly allow null as an initialized value.
+        private StrongBox<ISpanMappingService?>? _lazySpanMappingService;
+        private StrongBox<IDocumentExcerptService?>? _lazyExcerptService;
+        private StrongBox<DocumentPropertiesService?>? _lazyDocumentPropertiesService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             if (serviceType == typeof(ISpanMappingService))
             {
                 var spanMappingService = LazyInitialization.EnsureInitialized(
-                    ref _spanMappingService,
+                    ref _lazySpanMappingService,
                     static documentServiceProvider =>
                     {
                         var razorMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             if (serviceType == typeof(IDocumentExcerptService))
             {
                 var excerptService = LazyInitialization.EnsureInitialized(
-                    ref _excerptService,
+                    ref _lazyExcerptService,
                     static documentServiceProvider =>
                     {
                         var razorExcerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             if (serviceType == typeof(DocumentPropertiesService))
             {
                 var documentPropertiesService = LazyInitialization.EnsureInitialized(
-                    ref _documentPropertiesService,
+                    ref _lazyDocumentPropertiesService,
                     static documentServiceProvider =>
                     {
                         var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
