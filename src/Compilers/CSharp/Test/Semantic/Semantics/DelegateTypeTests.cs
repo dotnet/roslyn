@@ -9630,7 +9630,16 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        /// <summary>
+        /// Overload resolution and method type inference should not need to infer delegate
+        /// types for lambdas and method groups when the overloads have specific delegate types.
+        /// It is important to avoid inferring delegate types unnecessarily in these cases because
+        /// that would add overhead (particularly for overload resolution with nested lambdas)
+        /// while adding explicit parameter types for lambda expressions should ideally improve
+        /// overload resolution performance in those cases because fewer overloads may be applicable.
+        /// </summary>
         [Fact]
+        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
         [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
         public void InferDelegateType_01()
         {
@@ -9656,7 +9665,12 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
+        /// <summary>
+        /// Similar to test above but with errors in the overloaded calls which means overload resolution
+        /// will consider more overloads when binding for error recovery.
+        /// </summary>
         [Fact]
+        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
         [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
         public void InferDelegateType_02()
         {
