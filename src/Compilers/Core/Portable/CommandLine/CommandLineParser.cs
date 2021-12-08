@@ -1279,6 +1279,7 @@ namespace Microsoft.CodeAnalysis
                     catch
                     {
                         resolvedPath = null;
+                        throw;
                     }
 
                     if (resolvedPath != null)
