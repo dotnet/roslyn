@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -247,6 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (_indentation != 0)
                 {
                     return true;
+                }
+
+                // #if preprocessors can be changed by code actions (eg remove unnecessary parenthesis)
+                // so we need to check for elastic trivia within them in case we're formatting the results
+                if (trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia)
+                {
+                    var structure = trivia.GetStructure()!;
+                    return structure.DescendantTrivia().Any(t => t.IsElastic());
                 }
 
                 ResetStateAfterNewLine(currentIndex);
