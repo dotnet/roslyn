@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Property(input, property));
+                            return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
                     case BoundDagDeconstructEvaluation d:
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
                             var outputTemp = new BoundDagTemp(e.Syntax, type, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
+                            return _factory.AssignmentExpression(output, _factory.Indexer(input, e.Property, _factory.Literal(e.Index)));
                         }
 
                     case BoundDagIndexerEvaluation e:
@@ -306,14 +306,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression makeUnloweredIndexArgument(int index)
                 {
                     // LocalRewriter.MakePatternIndexOffsetExpression understands this format
+                    var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+
                     if (index < 0)
                     {
-                        var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
                         return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
                             methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
                     }
 
-                    return _factory.Convert(_factory.WellKnownType(WellKnownType.System_Index), _factory.Literal(index));
+                    return _factory.New(ctor, _factory.Literal(index), _factory.Literal(false));
                 }
 
                 BoundExpression makeUnloweredRangeArgument(BoundDagSliceEvaluation e)

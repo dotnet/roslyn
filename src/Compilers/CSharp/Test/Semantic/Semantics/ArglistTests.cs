@@ -591,7 +591,7 @@ public class MyAttribute : System.Attribute
             var text = @"
 using System;
 
-class error
+class @error
 {
     static void Main() {
 		Action a = delegate (__arglist) { };

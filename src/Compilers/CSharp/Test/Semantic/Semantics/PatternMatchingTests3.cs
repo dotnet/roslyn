@@ -7507,5 +7507,44 @@ $@"class Circle
                 //         if (shape is Circle { Radius: >= 100 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
         }
+
+        [Fact]
+        [WorkItem(56199, "https://github.com/dotnet/roslyn/issues/56199")]
+        public void ArrayLength()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.Write(M(new int[1]) ? 1 : 0);
+        Console.Write(M(new int[2]) ? 1 : 0);
+    }
+
+    static bool M(int[] a)
+    {
+        return a is {Length:1};
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "10");
+            compVerifier.VerifyIL("C.M",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ceq
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
     }
 }

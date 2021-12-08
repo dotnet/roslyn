@@ -67,9 +67,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(VsMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(MockDiagnosticUpdateSourceRegistrationService),
                 GetType(HostDiagnosticUpdateSource),
-                GetType(HierarchyItemToProjectIdMap))
+                GetType(HierarchyItemToProjectIdMap),
+                GetType(DiagnosticService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
