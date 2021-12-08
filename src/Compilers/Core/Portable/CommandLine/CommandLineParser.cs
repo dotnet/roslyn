@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis
                     if (path == "//langversion:?")
                     {
                         // Ugly check to see what's going on CI :(
-                        throw new Exception($"In ExpandFileNamePattern: yielding: '{resolvedPath}', Current: '{enumerator.Current}', resolvedDirectoryPath: '{resolvedDirectoryPath}', pattern: '{pattern}'.");
+                        throw new Exception($"In ExpandFileNamePattern: yielding: '{resolvedPath}', Current: '{enumerator!.Current}', resolvedDirectoryPath: '{resolvedDirectoryPath}', pattern: '{pattern}'.");
                     }
                     yield return resolvedPath;
                 }
