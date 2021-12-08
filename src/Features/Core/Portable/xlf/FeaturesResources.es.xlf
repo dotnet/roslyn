@@ -645,11 +645,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="new">Found PDB on symbol server but could not read file.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_PDB_on_symbol_server_but_is_not_portable_PDB_format">
-        <source>Found PDB on symbol server by is not portable PDB format.</source>
-        <target state="new">Found PDB on symbol server by is not portable PDB format.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Found_embedded_PDB_file">
         <source>Found embedded PDB file.</source>
         <target state="new">Found embedded PDB file.</target>

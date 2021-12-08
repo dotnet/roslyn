@@ -76,29 +76,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                             var pdbResult = await pdbResultTask.ConfigureAwait(false);
                             if (pdbResult is not null)
                             {
-                                if (pdbResult.IsPortablePdb)
+                                pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
+                                if (pdbStream is not null)
                                 {
-                                    pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
-                                    if (pdbStream is not null)
-                                    {
-                                        var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-                                        result = new DocumentDebugInfoReader(peReader, readerProvider);
-                                        logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
-                                    }
-                                    else
-                                    {
-                                        logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_could_not_read_file);
-                                    }
+                                    var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+                                    result = new DocumentDebugInfoReader(peReader, readerProvider);
+                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
                                 }
                                 else
                                 {
-                                    // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
-                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_is_not_portable_PDB_format);
-                                }
-
-                                if (pdbResult.Log is not null)
-                                {
-                                    logger?.Log(pdbResult.Log);
+                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_could_not_read_file);
                                 }
                             }
                             else

@@ -54,7 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
                     return;
                 }
 
-                pane.OutputStringThreadSafe(value + Environment.NewLine);
+                if (pane is IVsOutputWindowPaneNoPump noPumpPane)
+                {
+                    noPumpPane.OutputStringNoPump(value + Environment.NewLine);
+                }
+                else
+                {
+                    pane.OutputStringThreadSafe(value + Environment.NewLine);
+                }
             });
         }
 
@@ -66,23 +73,20 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             {
                 var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                // this should bring outout window to the front
-                _outputPane = CreateOutputPane(outputWindow);
+                _outputPane = TryCreateOutputPane(outputWindow);
             }
 
             return _outputPane;
         }
 
-        private IVsOutputWindowPane? CreateOutputPane(IVsOutputWindow outputWindow)
+        private IVsOutputWindowPane? TryCreateOutputPane(IVsOutputWindow outputWindow)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            // Try to get the workspace pane if it has already been registered
-            var workspacePaneGuid = s_outputPaneGuid;
+            var paneGuid = s_outputPaneGuid;
 
-            // If the pane has already been created, CreatePane returns it
-            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.Navigate_to_external_sources, fInitVisible: 1, fClearWithSolution: 1)) &&
-                ErrorHandler.Succeeded(outputWindow.GetPane(ref workspacePaneGuid, out var pane)))
+            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref paneGuid, ServicesVSResources.Navigate_to_external_sources, fInitVisible: 1, fClearWithSolution: 1)) &&
+                ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out var pane)))
             {
                 return pane;
             }

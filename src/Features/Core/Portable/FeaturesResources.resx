@@ -2974,9 +2974,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Found_PDB_on_symbol_server_but_could_not_read_file" xml:space="preserve">
     <value>Found PDB on symbol server but could not read file.</value>
   </data>
-  <data name="Found_PDB_on_symbol_server_but_is_not_portable_PDB_format" xml:space="preserve">
-    <value>Found PDB on symbol server by is not portable PDB format.</value>
-  </data>
   <data name="Navigating_to_symbol_0_from_1" xml:space="preserve">
     <value>Navigating to symbol '{0}' from '{1}'.</value>
   </data>

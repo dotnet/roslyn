@@ -65,17 +65,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
             if (isReferenceAssembly)
             {
-                _logger?.Log("");
+                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
                 return null;
             }
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            // The purpose of the logging is to help library authors, so we don't log things like this where something
+            // else has gone wrong.
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
-            {
-                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
                 return null;
-            }
 
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;

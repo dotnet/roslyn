@@ -148,11 +148,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
                     }
 
-                    if (sourceFile.Log is not null)
-                    {
-                        logger?.Log(sourceFile.Log);
-                    }
-
                     return result;
                 }
                 else
