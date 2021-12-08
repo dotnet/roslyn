@@ -334,6 +334,9 @@ namespace RunTests
                     }
                     else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: not 0 } matches)
                     {
+                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
+                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
+                        // For example, one unit test project might be referencing another unit test project.
                         if (matches.Length > 1)
                         {
                             var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
