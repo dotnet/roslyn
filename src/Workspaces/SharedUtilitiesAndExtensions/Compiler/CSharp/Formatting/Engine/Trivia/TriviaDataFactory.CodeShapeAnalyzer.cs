@@ -111,7 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (trivia.HasStructure)
                 {
                     var structure = trivia.GetStructure()!;
-                    return structure.DescendantTrivia().Any(t => t.IsElastic());
+
+                    foreach (var t in structure.DescendantTrivia())
+                    {
+                        if (t.IsElastic())
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 // if it contains elastic trivia, always format
