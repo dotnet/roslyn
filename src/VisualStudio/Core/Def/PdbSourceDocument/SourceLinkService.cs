@@ -66,14 +66,16 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             var flags = SymbolLocatorSearchFlags.None; // TODO: Add option to specify ForceMsftSymbolServer and ForceNuGetSymbolServer: https://github.com/dotnet/roslyn/issues/55834
             var result = await _debuggerSymbolLocatorService.LocateSymbolFileAsync(pdbInfo, flags, progress: null, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Logging: https://github.com/dotnet/roslyn/issues/57352
             if (result.Found && result.SymbolFilePath is not null)
             {
-                return new PdbFilePathResult(
-                    result.SymbolFilePath,
-                    result.Status,
-                    result.Log,
-                    result.IsPortablePdb);
+                return new PdbFilePathResult(result.SymbolFilePath);
+            }
+            else if (logger is not null)
+            {
+                // We log specific info from the debugger if there is a failure, but the caller will log general failure
+                // information otherwise
+                logger.Log(result.Status);
+                logger.Log(result.Log);
             }
 
             return null;
@@ -83,12 +85,15 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
         {
             var result = await _debuggerSourceLinkService.GetSourceLinkAsync(url, relativePath, allowInteractiveLogin: false, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Logging: https://github.com/dotnet/roslyn/issues/57352
             if (result.Status == SourceLinkResultStatus.Succeeded && result.Path is not null)
             {
-                return new SourceFilePathResult(
-                    result.Path,
-                    result.Log);
+                return new SourceFilePathResult(result.Path);
+            }
+            else if (logger is not null && result.Log is not null)
+            {
+                // We log specific info from the debugger if there is a failure, but the caller will log general failure
+                // information otherwise.
+                logger.Log(result.Log);
             }
 
             return null;

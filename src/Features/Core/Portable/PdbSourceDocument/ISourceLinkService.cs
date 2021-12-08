@@ -21,15 +21,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     /// The result of findding a PDB file
     /// </summary>
     /// <param name="PdbFilePath">The path to the PDB file in the debugger cache</param>
-    /// <param name="Status">Status of the operation</param>
-    /// <param name="Log">Any log messages the debugger wrote during the operation</param>
-    /// <param name="IsPortablePdb">Whether the PDB found is portable</param>
-    internal record PdbFilePathResult(string PdbFilePath, string Status, string? Log, bool IsPortablePdb);
+    internal record PdbFilePathResult(string PdbFilePath);
 
     /// <summary>
     /// The result of finding a source file via SourceLink
     /// </summary>
     /// <param name="SourceFilePath">The path to the source file in the debugger cache</param>
-    /// <param name="Log">Any log messages the debugger wrote during the operation</param>
-    internal record SourceFilePathResult(string SourceFilePath, string? Log);
+    internal record SourceFilePathResult(string SourceFilePath);
 }
