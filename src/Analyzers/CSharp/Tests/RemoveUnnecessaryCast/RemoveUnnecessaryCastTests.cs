@@ -12275,5 +12275,126 @@ namespace WrongRedundantCastWarning
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(37041, "https://github.com/dotnet/roslyn/issues/37041")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryMethodGroupToDelegateCast1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+namespace RedundantCast
+{
+    class Program
+    {
+        class A { }
+        class B : A { }
+
+        B Goo() { return null; }
+
+        static void Main()
+        {
+            (new Program()). Run();
+        }
+
+        void Run()
+        {
+            var list = new List<Func<A>>();
+            list. Add((Func<B>) Goo);
+            switch (list[0])
+            {
+                case Func<B> value: Console.WriteLine(""B""); break;
+                case Func<A> value: Console.WriteLine(""A""); break;
+            }
+        }
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(54388, "https://github.com/dotnet/roslyn/issues/54388")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntToDecimal()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    void M()
+    {
+        X v = new((decimal)-1);
+    }
+}
+
+class X
+{
+    public X(decimal d) { }
+    public X(double d) { }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(33285, "https://github.com/dotnet/roslyn/issues/33285")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableToStructCast1()
+        {
+            var source = @"
+using System;
+
+namespace System
+{
+    public readonly struct ReadOnlyMemory<T> : IEquatable<ReadOnlyMemory<T>>
+    {
+        private readonly object _dummy;
+        private readonly int _dummyPrimitive;
+        public static ReadOnlyMemory<T> Empty => throw new NotImplementedException();
+        public bool IsEmpty => throw new NotImplementedException();
+        public int Length => throw new NotImplementedException();
+        public ReadOnlyMemory(T[] array) => throw new NotImplementedException();
+        public ReadOnlyMemory(T[] array, int start, int length) => throw new NotImplementedException();
+        public bool Equals(ReadOnlyMemory<T> other) => throw new NotImplementedException();
+    }
+
+    public class Lazy<T>
+    {
+        public bool IsValueCreated => throw new NotImplementedException();
+        public T Value => throw new NotImplementedException();
+        public Lazy() => throw new NotImplementedException();
+        public Lazy(bool isThreadSafe) => throw new NotImplementedException();
+        public Lazy(Func<T> valueFactory) => throw new NotImplementedException();
+        public Lazy(Func<T> valueFactory, bool isThreadSafe) => throw new NotImplementedException();
+        public Lazy(T value) => throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private C(ReadOnlyMemory<byte>? buffer = null)
+    {
+        var v = new Lazy<ReadOnlyMemory<byte>>((ReadOnlyMemory<byte>)buffer);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
