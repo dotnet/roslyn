@@ -63,7 +63,7 @@
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <!-- <Metalama> -->
     <!-- TODO: Change to public version. -->
-    <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">0.1.0.50-dev-debug</PostSharpBackstageSettingsVersion>
+    <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">0.1.0.56-dev-debug</PostSharpBackstageSettingsVersion>
     <!-- </Metalama> -->
   </PropertyGroup>
   <!--
