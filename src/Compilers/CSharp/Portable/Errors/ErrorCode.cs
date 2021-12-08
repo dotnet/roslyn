@@ -2015,8 +2015,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedTypeForListPattern = 8979,
         ERR_MisplacedSlicePattern = 8980,
 
-        #endregion
+        WRN_LowerCaseTypeName = 8981,
 
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

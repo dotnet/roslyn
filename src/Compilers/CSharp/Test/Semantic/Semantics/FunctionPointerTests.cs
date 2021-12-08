@@ -45,6 +45,9 @@ using s = delegate*<void>;");
                 // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
 
                 // See same-named test in TopLevelStatementsParsingTests, there is a single top-level statement in the tree and it is an empty statement.
                 // (2,26): error CS8937: At least one top-level statement must be non-empty.

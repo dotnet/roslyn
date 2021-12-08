@@ -6329,7 +6329,7 @@ class H
         {
             string source =
 @"
-using var = System.Int32;
+using @var = System.Int32;
 
 H.Dummy(1 is var x1);
 
