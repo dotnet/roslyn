@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     syntaxFacts.IsWordOrNumber(previousToken) &&
                     syntaxFacts.IsWordOrNumber(resultNode.GetFirstToken()))
                 {
-                    resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticSpace);
+                    resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
                 }
             }
 
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     syntaxFacts.IsWordOrNumber(nextToken) &&
                     syntaxFacts.IsWordOrNumber(resultNode.GetLastToken()))
                 {
-                    resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticSpace);
+                    resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
                 }
             }
 
