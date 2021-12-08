@@ -23,22 +23,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Main() 
-    {
-        int i = 0;
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyTypeHints(input, output)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -233,22 +218,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Main(string[] args) 
-    {
-        foreach (string j in args) {}
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyTypeHints(input, output)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -337,22 +307,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Main(string[] args) 
-    {
-        if (args is { Length: int goo }) { }
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyTypeHints(input, output)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -447,23 +402,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-using System.Linq;
-class A
-{
-    void Main(string[] args) 
-    {
-        args.Where((string a) => a.Length > 0);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyTypeHints(input, output)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -564,24 +503,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Main(string[] args) 
-    {
-        if (int.TryParse("", out int x))
-        {
-        }
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyTypeHints(input, output)
+            Await VerifyTypeHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>

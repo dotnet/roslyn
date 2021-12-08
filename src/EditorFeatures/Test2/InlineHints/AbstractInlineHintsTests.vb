@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineHintsTests
-        Protected Async Function VerifyParamHints(test As XElement, Optional output As XElement = Nothing, Optional optionIsEnabled As Boolean = True) As Task
+        Protected Async Function VerifyParamHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             AssertEx.Equal(expectedText.ToString(), newText)
         End Function
 
-        Protected Async Function VerifyTypeHints(test As XElement, Optional output As XElement = Nothing, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
+        Protected Async Function VerifyTypeHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)

@@ -27,26 +27,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    int testMethod()
-    {
-        return 5;
-    }
-    void Main() 
-    {
-        testMethod();
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -371,26 +352,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    int testMethod(int)
-    {
-        return 5;
-    }
-    void Main() 
-    {
-        testMethod();
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -459,20 +421,7 @@ unsafe class Example {
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true" AllowUnsafe="true">
-                    <Document>
-unsafe class Example {
-    void Example(delegate*&lt;int, void&gt; f) {
-        f(42);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -727,26 +676,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void EnableLogging(bool value)
-    {
-    }
-
-    void Main() 
-    {
-        EnableLogging(true);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -771,26 +701,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void DisableLogging(bool value)
-    {
-    }
-
-    void Main() 
-    {
-        DisableLogging(true);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -903,26 +814,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void SetClassification(string classification)
-    {
-    }
-
-    void Main() 
-    {
-        SetClassification("IO");
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -991,26 +883,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Goo(int objA, int objB, int objC)
-    {
-    }
-
-    void Main() 
-    {
-        Goo(1, 2, 3);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -1079,26 +952,7 @@ class A
                 </Project>
             </Workspace>
 
-            Dim output =
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document>
-class A
-{
-    void Goo(int obj1, int obj2, int obj3)
-    {
-    }
-
-    void Main() 
-    {
-        Goo(1, 2, 3);
-    }
-}
-                    </Document>
-                </Project>
-            </Workspace>
-
-            Await VerifyParamHints(input, output)
+            Await VerifyParamHints(input, input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
