@@ -66,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             Dim newText = value.WithChanges(textChanges).ToString()
             Dim expectedText = Await expectedDocument.GetTextAsync().ConfigureAwait(False)
 
-            AssertEx.Equal(newText, expectedText.ToString())
+            AssertEx.Equal(expectedText.ToString(), newText)
         End Function
 
-        Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
+        Protected Async Function VerifyTypeHints(test As XElement, Optional output As XElement = Nothing, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -91,6 +91,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
 
                 ValidateSpans(hostDocument, producedTags)
+
+                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
+                Await ValidateDoubleClick(document, expectedDocument, typeHints)
             End Using
         End Function
     End Class

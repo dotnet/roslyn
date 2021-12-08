@@ -5,11 +5,13 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -75,11 +77,19 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             {
                 if (node is ParameterSyntax { Type: null } parameterNode)
                 {
+                    var span = new TextSpan(parameterNode.Identifier.SpanStart, 0);
                     var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
+                        if (parameterNode.Parent!.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+                        {
+                            return new(parameter.Type, span, textChange: new TextChange(span, parameter.Type.ToDisplayString(s_minimalTypeStyle) + " "), trailingSpace: true);
+                        }
+                        else
+                        {
+                            return new(parameter.Type, span, textChange: null, trailingSpace: true);
+                        }
                     }
                 }
             }
@@ -92,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                     {
                         var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
-                        return new(type, span, new TextChange(span, type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
+                        return new(type, span, new TextChange(span, " " + type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
                     }
                 }
             }
