@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (signaturesOnly)
                 return null;
 
+            using var _ = TelemetryHelper.Start(cancellationToken);
+
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
             _logger?.Clear();
@@ -174,6 +176,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 navigateDocument!.Name,
                 firstSourceFileInfo.SourceDescription);
 
+            TelemetryHelper.Log(timeout: false, sourceDocuments[0].PdbSource, firstSourceFileInfo.SourceFileSource);
+
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
         }
 
@@ -276,5 +280,5 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         }
     }
 
-    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
+    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl, string PdbSource);
 }

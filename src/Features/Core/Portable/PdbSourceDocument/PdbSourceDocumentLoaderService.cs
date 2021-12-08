@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // We might have already navigated to this file before, so it might exist, but
             // we still need to re-validate the checksum and make sure its not the wrong file
             if (File.Exists(filePath) &&
-                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false) is { } existing)
+                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, "embedded", ignoreChecksum: false) is { } existing)
             {
                 logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
                 return existing;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                var result = LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false);
+                var result = LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, "embedded", ignoreChecksum: false);
                 if (result is not null)
                 {
                     logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (sourceFile is not null)
                 {
                     // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
-                    var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", ignoreChecksum: true);
+                    var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", "sourcelink", ignoreChecksum: true);
                     if (result is not null)
                     {
                         logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
                 else
                 {
+                    TelemetryHelper.Log(timeout: true, sourceDocument.PdbSource, "sourcelink");
                     logger?.Log(FeaturesResources.Timeout_SourceLink);
                 }
             }
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false);
+                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, "ondisk", ignoreChecksum: false);
                 if (result is not null)
                 {
                     logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, bool ignoreChecksum)
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, string sourceFileSource, bool ignoreChecksum)
         {
             return IOUtilities.PerformIO(() =>
             {
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, sourceDescription, textLoader);
+                    return new SourceFileInfo(filePath, sourceDescription, sourceFileSource, textLoader);
                 }
 
                 return null;
