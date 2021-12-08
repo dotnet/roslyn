@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
@@ -18,19 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal sealed class AnonymousDelegateTemplateSymbol : AnonymousTypeOrDelegateTemplateSymbol
         {
-            private readonly AnonymousTypeDescriptor _typeDescr;
             private readonly ImmutableArray<Symbol> _members;
 
-            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr)
-                : base(manager, typeDescr.Location)
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTemplateSignature signature, Location location)
+                : base(manager, location)
             {
-                _typeDescr = typeDescr;
-            }
-
-            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTemplateSignature signature, AnonymousTypeDescriptor typeDescr)
-                : base(manager, signature.Location)
-            {
-                _typeDescr = typeDescr;
+                Signature = signature;
 
                 int typeParameterCount = signature.TypeParameterCount;
                 TypeMap typeMap;
@@ -81,11 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override AnonymousTypeKey GetAnonymousTypeKey()
-            {
-                var fields = _typeDescr.Fields.SelectAsArray(f => new AnonymousTypeKeyField(f.Name, isKey: false, ignoreCase: false));
-                return new AnonymousTypeKey(fields, isDelegate: true);
-            }
+            internal AnonymousDelegateTemplateSignature Signature { get; }
+
+            internal override AnonymousTypeKey GetAnonymousTypeKey() => throw new NotImplementedException(); // PROTOTYPE: Remove.
 
             // PROTOTYPE:
             internal override string TypeDescriptorKey => throw new System.NotImplementedException();

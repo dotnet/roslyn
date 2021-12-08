@@ -64,6 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
+        Public Overrides Function MapAnonymousDelegates(targetCompilation As Compilation, anonymousDelegates As IReadOnlyDictionary(Of AnonymousDelegateKey, AnonymousTypeValue)) As IReadOnlyDictionary(Of AnonymousDelegateKey, AnonymousTypeValue)
+            Debug.Assert(anonymousDelegates.Count = 0)
+            Return anonymousDelegates
+        End Function
+
         Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return _symbols.TryGetAnonymousTypeName(template, name, index)
         End Function

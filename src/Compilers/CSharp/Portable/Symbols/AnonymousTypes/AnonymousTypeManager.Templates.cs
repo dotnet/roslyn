@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Cache of created anonymous delegate templates used as an implementation of anonymous 
         /// delegates in emit phase.
         /// </summary>
-        private ConcurrentDictionary<string, AnonymousDelegateTemplateSymbol> _lazyAnonymousDelegateTemplates;
+        private ConcurrentDictionary<AnonymousDelegateTemplateSignature, AnonymousDelegateTemplateSymbol> _lazyAnonymousDelegateTemplates;
 
         /// <summary>
         /// Maps delegate signature shape (number of parameters and their ref-ness) to a synthesized generic delegate symbol.
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConcurrentDictionary<string, AnonymousDelegateTemplateSymbol> AnonymousDelegateTemplates
+        private ConcurrentDictionary<AnonymousDelegateTemplateSignature, AnonymousDelegateTemplateSymbol> AnonymousDelegateTemplates
         {
             get
             {
@@ -161,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Interlocked.CompareExchange(ref _lazyAnonymousDelegateTemplates,
                                                 previousCache == null
-                                                    ? new ConcurrentDictionary<string, AnonymousDelegateTemplateSymbol>()
-                                                    : new ConcurrentDictionary<string, AnonymousDelegateTemplateSymbol>(previousCache),
+                                                    ? new ConcurrentDictionary<AnonymousDelegateTemplateSignature, AnonymousDelegateTemplateSymbol>()
+                                                    : new ConcurrentDictionary<AnonymousDelegateTemplateSignature, AnonymousDelegateTemplateSymbol>(previousCache),
                                                 null);
                 }
 
@@ -259,18 +260,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 // Get anonymous delegate template
-                typeDescr = new AnonymousTypeDescriptor(signature.ParametersAndReturn.SelectAsArray(p => new AnonymousTypeField(GetAnonymousDelegateKeyField(p.Type.Type), typeDescr.Location, p.Type, p.RefKind)), typeDescr.Location);
-                var key = typeDescr.Key;
                 AnonymousDelegateTemplateSymbol? template;
-                if (!this.AnonymousDelegateTemplates.TryGetValue(key, out template))
+                if (!this.AnonymousDelegateTemplates.TryGetValue(signature, out template))
                 {
-                    template = this.AnonymousDelegateTemplates.GetOrAdd(key, new AnonymousDelegateTemplateSymbol(this, signature, typeDescr));
+                    template = this.AnonymousDelegateTemplates.GetOrAdd(signature, new AnonymousDelegateTemplateSymbol(this, signature, typeDescr.Location));
                 }
 
                 // Adjust template location if the template is owned by this manager
                 if (ReferenceEquals(template.Manager, this))
                 {
-                    template.AdjustLocation(signature.Location);
+                    template.AdjustLocation(typeDescr.Location);
                 }
 
                 Debug.Assert(typeParameters.Length == template.TypeParameters.Length);
@@ -280,35 +279,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool TryGetAnonymousDelegateKey(NamedTypeSymbol type, ArrayBuilder<AnonymousTypeKeyField> builder)
+        internal static bool TryGetAnonymousDelegateKey(NamedTypeSymbol type, out AnonymousDelegateTemplateSignature? signature)
         {
             var invokeMethod = type.DelegateInvokeMethod;
             if (invokeMethod is null)
             {
+                signature = null;
                 return false;
             }
 
+            var builder = ArrayBuilder<AnonymousDelegateParameterOrReturn>.GetInstance();
             foreach (var parameter in invokeMethod.Parameters)
             {
-                builder.Add(getField(parameter.Type));
+                builder.Add(new AnonymousDelegateParameterOrReturn(parameter.RefKind, parameter.TypeWithAnnotations));
             }
 
             // PROTOTYPE: How do we differentiate a method with a return type from a void method with an extra parameter?
             if (!invokeMethod.ReturnsVoid)
             {
-                builder.Add(getField(invokeMethod.ReturnType));
+                builder.Add(new AnonymousDelegateParameterOrReturn(invokeMethod.RefKind, invokeMethod.ReturnTypeWithAnnotations));
             }
 
+            // PROTOTYPE: Test with type parameters.
+            Debug.Assert(!invokeMethod.IsGenericMethod);
+            signature = new AnonymousDelegateTemplateSignature(typeParameterCount: 0, builder.ToImmutableAndFree());
             return true;
-
-            static AnonymousTypeKeyField getField(TypeSymbol type) =>
-                new AnonymousTypeKeyField(GetAnonymousDelegateKeyField(type), isKey: false, ignoreCase: false);
-        }
-
-        private static string GetAnonymousDelegateKeyField(TypeSymbol type)
-        {
-            // PROTOTYPE: What is the correct SymbolDisplayFormat?
-            return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
 
         /// <summary>
@@ -352,10 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        private static AnonymousTypeDescriptor CreatePlaceholderTypeDescriptor(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
+        private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
             var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None));
-            return new AnonymousTypeDescriptor(fields, Location.None);
+            var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
+            return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }
 
         private SynthesizedDelegateValue CreatePlaceholderSynthesizedDelegateValue(string name, RefKindVector refKinds, bool returnsVoid, int parameterCount)
@@ -381,15 +377,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // types are available for subsequent edit and continue generations.
             foreach (var key in moduleBeingBuilt.GetPreviousAnonymousTypes())
             {
+                Debug.Assert(!key.IsDelegate);
                 var templateKey = AnonymousTypeDescriptor.ComputeKey(key.Fields, f => f.Name);
-                var typeDescr = CreatePlaceholderTypeDescriptor(key);
-                if (key.IsDelegate)
+                this.AnonymousTypeTemplates.GetOrAdd(templateKey, k => this.CreatePlaceholderTemplate(key));
+            }
+
+            if (moduleBeingBuilt is PEDeltaAssemblyBuilder deltaAssemblyBuilder)
+            {
+                var previousAnonymousDelegates = EmitHelpers.MapAnonymousDelegateTypesToCompilation(Compilation, deltaAssemblyBuilder);
+                foreach (var (key, _) in previousAnonymousDelegates)
                 {
-                    this.AnonymousDelegateTemplates.GetOrAdd(templateKey, k => new AnonymousDelegateTemplateSymbol(this, typeDescr));
-                }
-                else
-                {
-                    this.AnonymousTypeTemplates.GetOrAdd(templateKey, k => new AnonymousTypeTemplateSymbol(this, typeDescr));
+                    this.AnonymousDelegateTemplates.GetOrAdd((AnonymousDelegateTemplateSignature)key, k => new AnonymousDelegateTemplateSymbol(this, k, Location.None));
                 }
             }
 
@@ -581,15 +579,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()
         {
             var result = new Dictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue>();
-            var templates = ArrayBuilder<AnonymousTypeOrDelegateTemplateSymbol>.GetInstance();
+            var templates = ArrayBuilder<AnonymousTypeTemplateSymbol>.GetInstance();
             // Get anonymous types including synthesized delegates that require AnonymousDelegateTemplateSymbol
             // rather than SynthesizedDelegateSymbol (which is handled in the method above).
-            GetAnonymousTypeAndDelegateTemplates(templates);
+            GetCreatedAnonymousTypeTemplates(templates, _lazyAnonymousTypeTemplates);
             foreach (var template in templates)
             {
                 var nameAndIndex = template.NameAndIndex;
                 var key = template.GetAnonymousTypeKey();
                 var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter());
+                result.Add(key, value);
+            }
+            templates.Free();
+            return result;
+        }
+
+        internal IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> GetAnonymousDelegates()
+        {
+            var result = new Dictionary<AnonymousDelegateKey, AnonymousTypeValue>();
+            var templates = ArrayBuilder<AnonymousDelegateTemplateSymbol>.GetInstance();
+            // Get anonymous types including synthesized delegates that require AnonymousDelegateTemplateSymbol
+            // rather than SynthesizedDelegateSymbol (which is handled in the method above).
+            GetCreatedAnonymousTypeTemplates(templates, _lazyAnonymousDelegateTemplates);
+            foreach (var template in templates)
+            {
+                var nameAndIndex = template.NameAndIndex;
+                var key = template.Signature;
+                var value = new AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter());
                 result.Add(key, value);
             }
             templates.Free();

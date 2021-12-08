@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var anonymousDelegates = moduleBeingBuilt.GetAnonymousDelegates();
             var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                anonymousDelegates,
                 synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
@@ -159,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
+                anonymousDelegates,
                 synthesizedDelegates,
                 sourceAssembly,
                 sourceContext,
@@ -171,6 +174,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 compilation,
                 moduleBeingBuilt,
                 mappedSynthesizedMembers);
+        }
+
+        internal static IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> MapAnonymousDelegateTypesToCompilation(
+            CSharpCompilation compilation,
+            PEDeltaAssemblyBuilder moduleBeingBuilt)
+        {
+            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
+            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
+
+            var previousAnonymousDelegates = previousGeneration.AnonymousDelegates;
+
+            if (previousGeneration.Ordinal == 0)
+            {
+                // Initial generation, nothing to map. (Since the initial generation
+                // is always loaded from metadata in the context of the current
+                // compilation, there's no separate mapping step.)
+                return previousAnonymousDelegates;
+            }
+
+            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
+
+            var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
+            var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+
+            var matcher = new CSharpSymbolMatcher(
+                // PROTOTYPE: Not including anonymous types from module being built because NameAndIndex haven't been calculated yet.
+                anonymousTypeMap: SpecializedCollections.EmptyReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>(),
+                anonymousDelegateMap: SpecializedCollections.EmptyReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue>(),
+                synthesizedDelegates,
+                sourceAssembly,
+                sourceContext,
+                compilation.SourceAssembly,
+                otherContext,
+                currentSynthesizedMembers);
+
+            return matcher.MapAnonymousDelegates(compilation, previousAnonymousDelegates);
         }
     }
 }

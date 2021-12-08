@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -61,11 +62,27 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
+        // PROTOTYPE: Add comment that describes the difference in handling of anonymous delegates between C# and VB.
+        internal readonly struct AnonymousTypesAndDelegates
+        {
+            public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? AnonymousTypes;
+            public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? SynthesizedDelegates;
+            public readonly IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> AnonymousDelegates;
+
+            public AnonymousTypesAndDelegates(
+                IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? anonymousTypes,
+                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? synthesizedDelegates,
+                IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> anonymousDelegates)
+            {
+                AnonymousTypes = anonymousTypes;
+                SynthesizedDelegates = synthesizedDelegates;
+                AnonymousDelegates = anonymousDelegates;
+            }
+        }
+
         internal sealed class MetadataSymbols
         {
-            public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
-
-            public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates;
+            public readonly AnonymousTypesAndDelegates AnonymousTypesAndDelegates;
 
             /// <summary>
             /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
@@ -78,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Emit
             public MetadataSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes,
                 IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+                IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> anonymousDelegates,
                 object metadataDecoder,
                 ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
@@ -86,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(metadataDecoder != null);
                 Debug.Assert(assemblyReferenceIdentityMap != null);
 
-                this.AnonymousTypes = anonymousTypes;
-                this.SynthesizedDelegates = synthesizedDelegates;
+                this.AnonymousTypesAndDelegates = new AnonymousTypesAndDelegates(anonymousTypes, synthesizedDelegates, anonymousDelegates);
                 this.MetadataDecoder = metadataDecoder;
                 this.AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
             }
@@ -230,6 +247,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
                 synthesizedDelegates: null, // Unset for initial metadata
+                anonymousDelegates: null, // Unset for initial metadata
                 synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
@@ -316,8 +334,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToEventMap;
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
-        private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? _anonymousTypeMap;
-        private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? _synthesizedDelegates;
+        private readonly AnonymousTypesAndDelegates _anonymousTypesAndDelegates;
         internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
 
         private EmitBaseline(
@@ -347,6 +364,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? anonymousTypeMap,
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? synthesizedDelegates,
+            IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> anonymousDelegates,
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
@@ -410,8 +428,7 @@ namespace Microsoft.CodeAnalysis.Emit
             StringStreamLengthAdded = stringStreamLengthAdded;
             UserStringStreamLengthAdded = userStringStreamLengthAdded;
             GuidStreamLengthAdded = guidStreamLengthAdded;
-            _anonymousTypeMap = anonymousTypeMap;
-            _synthesizedDelegates = synthesizedDelegates;
+            _anonymousTypesAndDelegates = new AnonymousTypesAndDelegates(anonymousTypeMap, synthesizedDelegates, anonymousDelegates);
             SynthesizedMembers = synthesizedMembers;
             AddedOrChangedMethods = methodsAddedOrChanged;
 
@@ -446,16 +463,17 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+            IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> anonymousDelegates,
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
         {
-            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
-            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
+            Debug.Assert(_anonymousTypesAndDelegates.AnonymousTypes == null || anonymousTypeMap != null);
+            Debug.Assert(_anonymousTypesAndDelegates.AnonymousTypes == null || anonymousTypeMap.Count >= _anonymousTypesAndDelegates.AnonymousTypes.Count);
 
-            Debug.Assert(_synthesizedDelegates == null || synthesizedDelegates != null);
-            Debug.Assert(_synthesizedDelegates == null || synthesizedDelegates.Count >= _synthesizedDelegates.Count);
+            Debug.Assert(_anonymousTypesAndDelegates.SynthesizedDelegates == null || synthesizedDelegates != null);
+            Debug.Assert(_anonymousTypesAndDelegates.SynthesizedDelegates == null || synthesizedDelegates.Count >= _anonymousTypesAndDelegates.SynthesizedDelegates.Count);
 
             return new EmitBaseline(
                 InitialBaseline,
@@ -484,6 +502,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: guidStreamLengthAdded,
                 anonymousTypeMap: anonymousTypeMap,
                 synthesizedDelegates: synthesizedDelegates,
+                anonymousDelegates: anonymousDelegates,
                 synthesizedMembers: synthesizedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
                 debugInformationProvider: debugInformationProvider,
@@ -493,35 +512,25 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodImpls: MethodImpls);
         }
 
-        internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap
+        private ref readonly AnonymousTypesAndDelegates GetAnonymousTypesAndDelegates()
         {
-            get
+            if (Ordinal > 0)
             {
-                if (Ordinal > 0)
-                {
-                    Debug.Assert(_anonymousTypeMap is object);
-                    return _anonymousTypeMap;
-                }
-
-                RoslynDebug.AssertNotNull(LazyMetadataSymbols);
-                return LazyMetadataSymbols.AnonymousTypes;
+                return ref _anonymousTypesAndDelegates;
             }
+
+            Debug.Assert(LazyMetadataSymbols != null);
+            return ref LazyMetadataSymbols.AnonymousTypesAndDelegates;
         }
 
-        internal IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates
-        {
-            get
-            {
-                if (Ordinal > 0)
-                {
-                    Debug.Assert(_synthesizedDelegates is not null);
-                    return _synthesizedDelegates;
-                }
+        internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap =>
+            GetAnonymousTypesAndDelegates().AnonymousTypes;
 
-                RoslynDebug.AssertNotNull(LazyMetadataSymbols);
-                return LazyMetadataSymbols.SynthesizedDelegates;
-            }
-        }
+        internal IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates =>
+            GetAnonymousTypesAndDelegates().SynthesizedDelegates;
+
+        internal IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> AnonymousDelegates =>
+            GetAnonymousTypesAndDelegates().AnonymousDelegates;
 
         internal MetadataReader MetadataReader
         {
@@ -634,6 +643,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
+            return nextIndex;
+        }
+
+        internal int GetNextAnonymousDelegateIndex()
+        {
+            int nextIndex = 0;
+            foreach (var value in this.AnonymousDelegates.Values)
+            {
+                int index = value.UniqueIndex;
+                if (index >= nextIndex)
+                {
+                    nextIndex = index + 1;
+                }
+            }
             return nextIndex;
         }
     }

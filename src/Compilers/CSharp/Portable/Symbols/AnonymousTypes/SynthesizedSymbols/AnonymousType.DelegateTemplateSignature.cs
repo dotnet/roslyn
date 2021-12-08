@@ -5,19 +5,20 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class AnonymousTypeManager
     {
-        // PROTOTYPE: Do we need this signature type or is AnonymousTypeDescriptor sufficient?
-        internal sealed class AnonymousDelegateTemplateSignature : IEquatable<AnonymousDelegateTemplateSignature>
+        internal sealed class AnonymousDelegateTemplateSignature : AnonymousDelegateKey, IEquatable<AnonymousDelegateTemplateSignature>
         {
             internal readonly int TypeParameterCount;
             internal readonly ImmutableArray<AnonymousDelegateParameterOrReturn> ParametersAndReturn;
-            internal readonly Location Location;
 
             internal static AnonymousDelegateTemplateSignature FromTypeDescriptor(ImmutableArray<TypeParameterSymbol> typeParameters, AnonymousTypeDescriptor typeDescr)
             {
@@ -28,17 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeDescr = typeDescr.SubstituteTypes(typeMap, out _);
                 }
 
-                Debug.Assert(typeDescr.Fields.All(f => f.Type.VisitType((t, _, _) => t.IsTypeParameter() && t is not IndexedTypeParameterSymbol, arg: (object?)null) is null));
-
                 // PROTOTYPE: If signature is independent of the original containing symbol, the signature should depend on the constraints of the type parameters.
-                return new AnonymousDelegateTemplateSignature(typeParameterCount, typeDescr.Fields.SelectAsArray(static f => new AnonymousDelegateParameterOrReturn(f.RefKind, f.TypeWithAnnotations)), typeDescr.Location);
+                return new AnonymousDelegateTemplateSignature(typeParameterCount, typeDescr.Fields.SelectAsArray(static f => new AnonymousDelegateParameterOrReturn(f.RefKind, f.TypeWithAnnotations)));
             }
 
-            private AnonymousDelegateTemplateSignature(int typeParameterCount, ImmutableArray<AnonymousDelegateParameterOrReturn> parametersAndReturn, Location location)
+            internal AnonymousDelegateTemplateSignature(int typeParameterCount, ImmutableArray<AnonymousDelegateParameterOrReturn> parametersAndReturn)
             {
+                Debug.Assert(parametersAndReturn.All(p => p.Type.Type.VisitType((t, _, _) => t.IsTypeParameter() && t is not IndexedTypeParameterSymbol, arg: (object?)null) is null));
+
+                // PROTOTYPE: Assert there are no type parameters other than IndexedTypeParameterSymbol.
                 TypeParameterCount = typeParameterCount;
                 ParametersAndReturn = parametersAndReturn;
-                Location = location;
             }
 
             /// <summary>
@@ -76,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return other is { } &&
                     TypeParameterCount == other.TypeParameterCount &&
                     ParametersAndReturn.SequenceEqual(other.ParametersAndReturn, comparison, static (x, y, comparison) => x.Equals(y, comparison));
+            }
+
+            public override bool Equals(AnonymousDelegateKey? other)
+            {
+                return Equals(other as AnonymousDelegateTemplateSignature);
             }
 
             public override bool Equals(object? obj)

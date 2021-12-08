@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypesAndDelegates.AnonymousTypes, sourceAssembly, context, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
             ' VB synthesized delegates are handled as anonymous types in the map above
             Dim synthesizedDelegates = SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, synthesizedDelegates, metadataDecoder, assemblyReferenceIdentityMap)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, synthesizedDelegates, anonymousDelegates:=Nothing, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
@@ -238,6 +238,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function GetSynthesizedDelegates() As IReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetSynthesizedDelegates
             ' VB synthesized delegates are handled as anonymous types in the method above
             Return SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
+        End Function
+
+        Friend Overloads Function GetAnonymousDelegates() As IReadOnlyDictionary(Of AnonymousDelegateKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegates
+            ' VB synthesized delegates are handled as anonymous types in the method above
+            Return SpecializedCollections.EmptyReadOnlyDictionary(Of AnonymousDelegateKey, AnonymousTypeValue)
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator

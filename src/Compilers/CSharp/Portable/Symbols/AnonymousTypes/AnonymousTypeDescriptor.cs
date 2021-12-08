@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var field in fields)
             {
                 key.Builder.Append('|');
-                key.Builder.Append(getName(field));
+                key.Builder.Append(getName(field)); // PROTOTYPE: Ignoring field.RefKind.
             }
             return key.ToStringAndFree();
         }
