@@ -27,5 +27,13 @@ See Modifications.md for details.
 
 ## 5. Make sure all test are green
 
-To run Roslyn tests, execute `Build.cmd -test`.
+TODO: Update for the new PostSharp Engineering.
+To run Roslyn tests, execute `eng\Build.ps1 -test`.
 To run Metalama.Compiler tests, execute `dotnet test src\Metalama\Metalama.Compiler.UnitTests\Metalama.Compiler.UnitTests.csproj`.
+
+## 6. Update Metalama Framework
+
+In the Metalama repo:
+- Update the Metalama.Compiler version.
+- Regenerate the `MetaSyntaxRewriter.g.cs` by executing `dotnet run Build\Metalama.Framework.GenerateMetaSyntaxRewriter\Metalama.Framework.GenerateMetaSyntaxRewriter.csproj`. "Cannot find factory method SyntaxNode." is OK.
+- Replace the file in in `Metalama.Framework.Impl\Templating`.
