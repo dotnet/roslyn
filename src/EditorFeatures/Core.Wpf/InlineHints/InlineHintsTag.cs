@@ -16,10 +16,13 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -269,7 +272,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 e.Handled = true;
                 var replacementValue = _hint.ReplacementTextChange!.Value;
-                _ = _subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
+
+                if (_subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
+                {
+                    _subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
+                }
+                else
+                {
+                    Internal.Log.Logger.Log(FunctionId.Inline_Hints_DoubleClick,
+                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{_subjectBuffer.CurrentSnapshot.Length}");
+                }
             }
         }
     }
