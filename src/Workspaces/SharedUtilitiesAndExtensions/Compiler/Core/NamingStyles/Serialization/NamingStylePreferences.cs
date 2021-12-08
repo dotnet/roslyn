@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
 
-        public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
+        public static string DefaultNamingPreferencesString => s_defaultNamingPreferencesString.Value;
 
         internal NamingStyle GetNamingStyle(Guid namingStyleID)
             => NamingStyles.Single(s => s.ID == namingStyleID);
@@ -139,252 +140,258 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     Hash.CombineValues(NamingRules)));
         }
 
-        private static readonly string _defaultNamingPreferencesString = $@"
-<NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
-  <SymbolSpecifications>
-    <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{CompilerExtensionsResources.Class}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Class</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""23d856b4-5089-4405-83ce-749aada99153"" Name=""{CompilerExtensionsResources.Interface}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Interface</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""d1796e78-ff66-463f-8576-eb46416060c0"" Name=""{CompilerExtensionsResources.Struct}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Struct</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""d8af8dc6-1ade-441d-9947-8946922e198a"" Name=""{CompilerExtensionsResources.Enum}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Enum</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""408a3347-b908-4b54-a954-1355e64c1de3"" Name=""{CompilerExtensionsResources.Delegate}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Delegate</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""830657f6-e7e5-4830-b328-f109d3b6c165"" Name=""{CompilerExtensionsResources.Event}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Event</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{CompilerExtensionsResources.Method}"">
-      <ApplicableSymbolKindList>
-        <MethodKind>Ordinary</MethodKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""af410767-f189-47c6-b140-aeccf1ff242e"" Name=""{CompilerExtensionsResources.Private_Method}"">
-      <ApplicableSymbolKindList>
-        <MethodKind>Ordinary</MethodKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Private</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""8076757e-6a4a-47f1-9b4b-ae8a3284e987"" Name=""{CompilerExtensionsResources.Abstract_Method}"">
-      <ApplicableSymbolKindList>
-        <MethodKind>Ordinary</MethodKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList>
-        <ModifierKind>IsAbstract</ModifierKind>
-      </RequiredModifierList>
-    </SymbolSpecification>
-    <SymbolSpecification ID=""16133061-a8e7-4392-92c3-1d93cd54c218"" Name=""{CompilerExtensionsResources.Static_Method}"">
-      <ApplicableSymbolKindList>
-        <MethodKind>Ordinary</MethodKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList>
-        <ModifierKind>IsStatic</ModifierKind>
-      </RequiredModifierList>
-    </SymbolSpecification>
-    <SymbolSpecification ID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" Name=""{CompilerExtensionsResources.Property}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Property</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""b24a91ce-3501-4799-b6df-baf044156c83"" Name=""{CompilerExtensionsResources.Public_or_Protected_Field}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Field</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""70af42cb-1741-4027-969c-9edc4877d965"" Name=""{CompilerExtensionsResources.Static_Field}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Field</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList>
-        <ModifierKind>IsStatic</ModifierKind>
-      </RequiredModifierList>
-    </SymbolSpecification>
-    <SymbolSpecification ID=""10790aa6-0a0b-432d-a52d-d252ca92302b"" Name=""{CompilerExtensionsResources.Private_or_Internal_Field}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Field</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""ac995be4-88de-4771-9dcc-a456a7c02d89"" Name=""{CompilerExtensionsResources.Private_or_Internal_Static_Field}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Field</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList>
-        <ModifierKind>IsStatic</ModifierKind>
-      </RequiredModifierList>
-    </SymbolSpecification>
-    <SymbolSpecification ID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" Name=""{CompilerExtensionsResources.Types}"">
-      <ApplicableSymbolKindList>
-        <TypeKind>Class</TypeKind>
-        <TypeKind>Struct</TypeKind>
-        <TypeKind>Interface</TypeKind>
-        <TypeKind>Enum</TypeKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-    <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{CompilerExtensionsResources.Non_Field_Members}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Property</SymbolKind>
-        <SymbolKind>Event</SymbolKind>
-        <MethodKind>Ordinary</MethodKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList />
-    </SymbolSpecification>
-  </SymbolSpecifications>
-  <NamingStyles>
-    <NamingStyle ID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" Name=""{CompilerExtensionsResources.Pascal_Case}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
-    <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{CompilerExtensionsResources.Begins_with_I}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
-  </NamingStyles>
-  <NamingRules>
-    <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" />
-    <SerializableNamingRule SymbolSpecificationID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
-    <SerializableNamingRule SymbolSpecificationID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
-  </NamingRules>
-</NamingPreferencesInfo>
-";
+        private static readonly Lazy<string> s_defaultNamingPreferencesString = new(() => ConstructDefaultNamingPreferencesString());
+
+        private static string ConstructDefaultNamingPreferencesString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            sb.Append(@$"<NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">");
+            sb.Append("  <SymbolSpecifications>");
+            sb.Append(@$"    <SymbolSpecification ID=""23d856b4-5089-4405-83ce-749aada99153"" Name=""{CompilerExtensionsResources.Interfaces}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <TypeKind>Interface</TypeKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""830657f6-e7e5-4830-b328-f109d3b6c165"" Name=""{CompilerExtensionsResources.Events}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Event</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{CompilerExtensionsResources.Methods}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <MethodKind>Ordinary</MethodKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" Name=""{CompilerExtensionsResources.Properties}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Property</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" Name=""{CompilerExtensionsResources.Types}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Namespace</SymbolKind>");
+            sb.Append("        <TypeKind>Class</TypeKind>");
+            sb.Append("        <TypeKind>Struct</TypeKind>");
+            sb.Append("        <TypeKind>Interface</TypeKind>");
+            sb.Append("        <TypeKind>Enum</TypeKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""998a19f2-94d6-47c0-a54e-af01d881849a"" Name=""{CompilerExtensionsResources.Type_Parameters}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>TypeParameter</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>NotApplicable</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""0c69f9a2-668a-4041-bb76-aee7befd4d81"" Name=""{CompilerExtensionsResources.Public_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""69da61da-4234-4526-9dad-a472cd04c352"" Name=""{CompilerExtensionsResources.Private_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""ac64fd47-0c2e-46be-909d-5f985cc31857"" Name=""{CompilerExtensionsResources.Private_Static_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList>");
+            sb.Append("        <ModifierKind>IsStatic</ModifierKind>");
+            sb.Append("      </RequiredModifierList>");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""1f26297d-ef0a-4d51-9d46-78f3b3c89f44"" Name=""{CompilerExtensionsResources.Private_Constant_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList>");
+            sb.Append("        <ModifierKind>IsConst</ModifierKind>");
+            sb.Append("      </RequiredModifierList>");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""b40d58d0-902a-4097-b6c7-a0150a3a2415"" Name=""{CompilerExtensionsResources.Local_Variables}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Local</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>NotApplicable</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""07e97ff0-6de9-42e9-9095-1f7fb1e6f16a"" Name=""{CompilerExtensionsResources.Parameters}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Parameter</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>NotApplicable</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""24267880-58f7-4b34-8bc3-2bf801ef6207"" Name=""{CompilerExtensionsResources.Public_Static_Readonly_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList>");
+            sb.Append("        <ModifierKind>IsReadOnly</ModifierKind>");
+            sb.Append("        <ModifierKind>IsStatic</ModifierKind>");
+            sb.Append("      </RequiredModifierList>");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""872456da-6683-4b25-b460-2216ebc3b793"" Name=""{CompilerExtensionsResources.Private_Static_Readonly_Fields}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Field</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList>");
+            sb.Append("        <ModifierKind>IsReadOnly</ModifierKind>");
+            sb.Append("        <ModifierKind>IsStatic</ModifierKind>");
+            sb.Append("      </RequiredModifierList>");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""a1ba7f1a-32ec-44c3-83c6-b0719cdec9e9"" Name=""{CompilerExtensionsResources.Local_Functions}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <MethodKind>LocalFunction</MethodKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>Public</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Internal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Private</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>Protected</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>");
+            sb.Append("        <AccessibilityKind>NotApplicable</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList />");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append(@$"    <SymbolSpecification ID=""c7cb6f1a-bd31-49cc-80ca-d66053ef0535"" Name=""{CompilerExtensionsResources.Local_Constants}"">");
+            sb.Append("      <ApplicableSymbolKindList>");
+            sb.Append("        <SymbolKind>Local</SymbolKind>");
+            sb.Append("      </ApplicableSymbolKindList>");
+            sb.Append("      <ApplicableAccessibilityList>");
+            sb.Append("        <AccessibilityKind>NotApplicable</AccessibilityKind>");
+            sb.Append("      </ApplicableAccessibilityList>");
+            sb.Append("      <RequiredModifierList>");
+            sb.Append("        <ModifierKind>IsConst</ModifierKind>");
+            sb.Append("      </RequiredModifierList>");
+            sb.Append("    </SymbolSpecification>");
+            sb.Append("  </SymbolSpecifications>");
+            sb.Append("  <NamingStyles>");
+            sb.Append(@$"    <NamingStyle ID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" Name=""{CompilerExtensionsResources.PascalCase}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />");
+            sb.Append(@$"    <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{CompilerExtensionsResources.IPascalCase}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />");
+            sb.Append(@$"    <NamingStyle ID=""86ca3195-21dd-45cd-a1ce-c514e001b150"" Name=""{CompilerExtensionsResources.TPascalCase}"" Prefix=""T"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />");
+            sb.Append(@$"    <NamingStyle ID=""f39e1169-ce89-492c-9859-d96c3dbf0330"" Name=""{CompilerExtensionsResources._camelCase}"" Prefix=""_"" Suffix="""" WordSeparator="""" CapitalizationScheme=""CamelCase"" />");
+            sb.Append(@$"    <NamingStyle ID=""5fc83531-01c4-435b-b215-a8df6f0f0bcc"" Name=""{CompilerExtensionsResources.camelCase}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""CamelCase"" />");
+            sb.Append(@$"    <NamingStyle ID=""ca1f2e07-8f9f-4eb1-8b2c-757b16c9a34c"" Name=""{CompilerExtensionsResources.s_camelCase}"" Prefix=""s_"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />");
+            sb.Append("  </NamingStyles>");
+            sb.Append("  <NamingRules>");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""998a19f2-94d6-47c0-a54e-af01d881849a"" NamingStyleID=""86ca3195-21dd-45cd-a1ce-c514e001b150"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""830657f6-e7e5-4830-b328-f109d3b6c165"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""b40d58d0-902a-4097-b6c7-a0150a3a2415"" NamingStyleID=""5fc83531-01c4-435b-b215-a8df6f0f0bcc"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""c7cb6f1a-bd31-49cc-80ca-d66053ef0535"" NamingStyleID=""5fc83531-01c4-435b-b215-a8df6f0f0bcc"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""07e97ff0-6de9-42e9-9095-1f7fb1e6f16a"" NamingStyleID=""5fc83531-01c4-435b-b215-a8df6f0f0bcc"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""0c69f9a2-668a-4041-bb76-aee7befd4d81"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""69da61da-4234-4526-9dad-a472cd04c352"" NamingStyleID=""f39e1169-ce89-492c-9859-d96c3dbf0330"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""ac64fd47-0c2e-46be-909d-5f985cc31857"" NamingStyleID=""ca1f2e07-8f9f-4eb1-8b2c-757b16c9a34c"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""1f26297d-ef0a-4d51-9d46-78f3b3c89f44"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""24267880-58f7-4b34-8bc3-2bf801ef6207"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""872456da-6683-4b25-b460-2216ebc3b793"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append(@"    <SerializableNamingRule SymbolSpecificationID=""a1ba7f1a-32ec-44c3-83c6-b0719cdec9e9"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />");
+            sb.Append("  </NamingRules>");
+            sb.Append(" </NamingPreferencesInfo>");
+            return sb.ToString();
+        }
 
         private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)
         {

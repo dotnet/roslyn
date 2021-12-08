@@ -279,4 +279,67 @@
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>
   </data>
+  <data name="camelCase" xml:space="preserve">
+    <value>camelCase</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>Events</value>
+  </data>
+  <data name="Interfaces" xml:space="preserve">
+    <value>Interfaces</value>
+  </data>
+  <data name="IPascalCase" xml:space="preserve">
+    <value>IPascalCase</value>
+  </data>
+  <data name="Local_Constants" xml:space="preserve">
+    <value>Local Constants</value>
+  </data>
+  <data name="Local_Functions" xml:space="preserve">
+    <value>Local Functions</value>
+  </data>
+  <data name="Local_Variables" xml:space="preserve">
+    <value>Local Variables</value>
+  </data>
+  <data name="Methods" xml:space="preserve">
+    <value>Methods</value>
+  </data>
+  <data name="Parameters" xml:space="preserve">
+    <value>Parameters</value>
+  </data>
+  <data name="PascalCase" xml:space="preserve">
+    <value>PascalCase</value>
+  </data>
+  <data name="Private_Constant_Fields" xml:space="preserve">
+    <value>Private Constant Fields</value>
+  </data>
+  <data name="Private_Fields" xml:space="preserve">
+    <value>Private Fields</value>
+  </data>
+  <data name="Private_Static_Fields" xml:space="preserve">
+    <value>Private Static Fields</value>
+  </data>
+  <data name="Private_Static_Readonly_Fields" xml:space="preserve">
+    <value>Private Static Readonly Fields</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="Public_Fields" xml:space="preserve">
+    <value>Public Fields</value>
+  </data>
+  <data name="Public_Static_Readonly_Fields" xml:space="preserve">
+    <value>Public Static Readonly Fields</value>
+  </data>
+  <data name="s_camelCase" xml:space="preserve">
+    <value>s_camelCase</value>
+  </data>
+  <data name="TPascalCase" xml:space="preserve">
+    <value>TPascalCase</value>
+  </data>
+  <data name="Type_Parameters" xml:space="preserve">
+    <value>Type Parameters</value>
+  </data>
+  <data name="_camelCase" xml:space="preserve">
+    <value>_camelCase</value>
+  </data>
 </root>

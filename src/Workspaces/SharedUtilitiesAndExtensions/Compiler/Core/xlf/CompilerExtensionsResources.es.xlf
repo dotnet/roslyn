@@ -47,6 +47,11 @@
         <target state="translated">La conversión es redundante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Events">
+        <source>Events</source>
+        <target state="new">Events</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Preferencias de nivel de expresión</target>
@@ -57,20 +62,50 @@
         <target state="translated">Preferencias de campo</target>
         <note />
       </trans-unit>
+      <trans-unit id="IPascalCase">
+        <source>IPascalCase</source>
+        <target state="new">IPascalCase</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Interfaces">
+        <source>Interfaces</source>
+        <target state="new">Interfaces</target>
+        <note />
       </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>
         <target state="translated">Preferencias de palabras clave frente a tipos de BCL</target>
         <note />
       </trans-unit>
+      <trans-unit id="Local_Constants">
+        <source>Local Constants</source>
+        <target state="new">Local Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_Functions">
+        <source>Local Functions</source>
+        <target state="new">Local Functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_Variables">
+        <source>Local Variables</source>
+        <target state="new">Local Variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
         <target state="translated">método</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Methods">
+        <source>Methods</source>
+        <target state="new">Methods</target>
+        <note />
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
         <source>Missing prefix: '{0}'</source>
@@ -117,9 +152,19 @@
         <target state="translated">Preferencias de parámetro</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameters">
+        <source>Parameters</source>
+        <target state="new">Parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parentheses_preferences">
         <source>Parentheses preferences</source>
         <target state="translated">Preferencias de paréntesis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PascalCase">
+        <source>PascalCase</source>
+        <target state="new">PascalCase</target>
         <note />
       </trans-unit>
       <trans-unit id="Pascal_Case">
@@ -137,10 +182,30 @@
         <target state="translated">No se espera el prefijo "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Private_Constant_Fields">
+        <source>Private Constant Fields</source>
+        <target state="new">Private Constant Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_Fields">
+        <source>Private Fields</source>
+        <target state="new">Private Fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_Method">
         <source>Private Method</source>
         <target state="translated">Método privado</target>
         <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Private_Static_Fields">
+        <source>Private Static Fields</source>
+        <target state="new">Private Static Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_Static_Readonly_Fields">
+        <source>Private Static Readonly Fields</source>
+        <target state="new">Private Static Readonly Fields</target>
+        <note />
       </trans-unit>
       <trans-unit id="Private_or_Internal_Field">
         <source>Private or Internal Field</source>
@@ -152,10 +217,25 @@
         <target state="translated">Campo estático privado o interno</target>
         <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="new">Properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
         <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Public_Fields">
+        <source>Public Fields</source>
+        <target state="new">Public Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Public_Static_Readonly_Fields">
+        <source>Public Static Readonly Fields</source>
+        <target state="new">Public Static Readonly Fields</target>
+        <note />
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
         <source>Public or Protected Field</source>
@@ -197,6 +277,11 @@
         <target state="translated">Especificaciones de símbolos</target>
         <note />
       </trans-unit>
+      <trans-unit id="TPascalCase">
+        <source>TPascalCase</source>
+        <target state="new">TPascalCase</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
         <source>The first word, '{0}', must begin with a lower case character</source>
         <target state="translated">La primera palabra, '{0}', debe comenzar con un carácter en minúscula</target>
@@ -232,10 +317,30 @@
         <target state="translated">Estas palabras deben comenzar por caracteres en mayúscula: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_Parameters">
+        <source>Type Parameters</source>
+        <target state="new">Type Parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types">
         <source>Types</source>
         <target state="translated">Tipos</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="_camelCase">
+        <source>_camelCase</source>
+        <target state="new">_camelCase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="camelCase">
+        <source>camelCase</source>
+        <target state="new">camelCase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="s_camelCase">
+        <source>s_camelCase</source>
+        <target state="new">s_camelCase</target>
+        <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>
