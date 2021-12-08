@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis
                             sb.Append($"Enumerating {enumeratedFiles.Length} files: ");
                             foreach (var enumeratedFile in enumeratedFiles)
                             {
-                                sb.Append($"'{enumeratedFile}', ");
+                                sb.Append($"'{File.ReadAllText(enumeratedFile)}', ");
                             }
                             throw new Exception(sb.ToString());
                         }
