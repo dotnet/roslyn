@@ -1266,7 +1266,9 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Ugly check to see what's going on CI :(
                             var sb = new StringBuilder();
-                            sb.Append($"null directory?: {directory is null}, ");
+                            sb.Append($"directory: '{directory}', ");
+                            sb.Append($"baseDirectory: '{baseDirectory}', ");
+                            sb.Append($"resolvedDirectoryPath: '{resolvedDirectoryPath}', ");
                             var enumeratedFiles = EnumerateFiles(resolvedDirectoryPath, pattern, searchOption).ToArray();
                             sb.Append($"Enumerating {enumeratedFiles.Length} files: ");
                             foreach (var enumeratedFile in enumeratedFiles)
