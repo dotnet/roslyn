@@ -21,7 +21,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
         
-        <InternalsVisibleTo Include="Metalama.Framework.Impl" Key="$(MetalamaKey)" />
+        <InternalsVisibleTo Include="Metalama.Framework.Engine" Key="$(MetalamaKey)" />
     </ItemGroup>
     
     <ItemGroup>

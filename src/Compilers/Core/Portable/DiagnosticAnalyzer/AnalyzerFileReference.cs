@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // These constants are referenced in Metalama.Try.
         public const string CompilerPlugInAttributeTypeName = "CompilerPluginAttribute";
-        public const string CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Impl.Sdk";
+        public const string CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Engine.Sdk";
         public const string CompilerPlugInAttributeAssembly = "Metalama.Framework.Sdk";
         // </Metalama>
 

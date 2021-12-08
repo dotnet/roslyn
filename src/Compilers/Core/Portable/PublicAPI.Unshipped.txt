@@ -24,7 +24,7 @@ Metalama.Compiler.TransformerContext.RegisterDiagnosticFilter(Microsoft.CodeAnal
 Metalama.Compiler.TransformerContext.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> void
 Metalama.Compiler.TransformerContext.Resources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription!>
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeAssembly = "Metalama.Framework.Sdk" -> string!
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Impl.Sdk" -> string!
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Engine.Sdk" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
