@@ -209,7 +209,7 @@ struct C
     #endregion
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped0()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -249,7 +249,7 @@ class C
     }
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped1()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped1()
     {
         var source = @"
 using System;
@@ -291,7 +291,7 @@ class D<T>
     }
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped2()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped2()
     {
         var source = @"
 using System;
@@ -336,7 +336,7 @@ class E<V>
     }
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped3()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped3()
     {
         var source = @"
 using System;
@@ -382,7 +382,7 @@ class E<V>
     }
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped4()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped4()
     {
         var source = @"
 using System;
@@ -428,7 +428,7 @@ class E<V>
     }
 
     [Fact]
-    public void CacheExplicitConversions_ModuleScoped5()
+    public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped5()
     {
         var source = @"
 using System;
@@ -1027,7 +1027,7 @@ class E<K>
     }
 
     [Fact]
-    public void CacheImplicitConversions_ModuleScoped0()
+    public void CacheImplicitConversions_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -1064,7 +1064,7 @@ class C
     }
 
     [Fact]
-    public void CacheImplicitConversions_ModuleScoped1()
+    public void CacheImplicitConversions_TypeScoped_CouldBeModuleScoped1()
     {
         var source = @"
 using System;
@@ -1895,7 +1895,7 @@ class E
     }
 
     [Fact]
-    public void ExtensionMethod_ModuleScoped0()
+    public void ExtensionMethod_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -1933,7 +1933,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMethod_ModuleScoped1()
+    public void ExtensionMethod_TypeScoped_CouldBeModuleScoped1()
     {
         var source = @"
 using System;
@@ -1971,7 +1971,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMethod_ModuleScoped2()
+    public void ExtensionMethod_TypeScoped_CouldBeModuleScoped2()
     {
         var source = @"
 using System;
@@ -2246,7 +2246,7 @@ static class E
     }
 
     [Fact]
-    public void Lambda_ModuleScoped0()
+    public void Lambda_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -2284,7 +2284,7 @@ class C
     }
 
     [Fact]
-    public void Lambda_ModuleScoped1()
+    public void Lambda_TypeScoped_CouldBeModuleScoped1()
     {
         var source = @"
 using System;
@@ -3088,7 +3088,7 @@ static class E
     }
 
     [Fact]
-    public void EventHandlers_ModuleScoped0()
+    public void EventHandlers_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -3124,7 +3124,7 @@ class C
     }
 
     [Fact]
-    public void EventHandlers_ModuleScoped1()
+    public void EventHandlers_TypeScoped_CouldBeModuleScoped1()
     {
         var source = @"
 using System;
@@ -3243,7 +3243,7 @@ class D<TEventArgs> where TEventArgs : EventArgs
     }
 
     [Fact]
-    public void AnonymousTypes_ModuleScoped0()
+    public void AnonymousTypes_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -3478,7 +3478,7 @@ class D
     }
 
     [Fact]
-    public void Pointer_ModuleScoped0()
+    public void Pointer_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
@@ -3591,7 +3591,7 @@ class C
     }
 
     [Fact]
-    public void Dynamic_ModuleScoped0()
+    public void Dynamic_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
 using System;
