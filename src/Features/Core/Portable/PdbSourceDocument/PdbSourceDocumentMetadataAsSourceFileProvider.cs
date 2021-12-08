@@ -144,7 +144,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
             }
 
-            var documentPath = sourceFileInfos[0]!.FilePath;
+            // TODO: Support results from multiple source files: https://github.com/dotnet/roslyn/issues/55834
+            var firstSourceFileInfo = sourceFileInfos[0]!;
+            var documentPath = firstSourceFileInfo.FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(documentPath, StringComparison.OrdinalIgnoreCase) ?? false);
 
             // In order to open documents in VS we need to understand the link from temp file to document and its encoding
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var documentName = string.Format(
                 "{0} [{1}]",
                 navigateDocument!.Name,
-                sourceFileInfos[0]!.SourceDescription);
+                firstSourceFileInfo.SourceDescription);
 
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
         }
