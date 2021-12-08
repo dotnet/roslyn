@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
 
         private static IWorkspaceSettingsProviderFactory<T> GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<T>()
             => GetWorkspace().Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
+
         private static ILanguageSettingsProviderFactory<T> GettingSettingsProviderFactoryFromLanguageServiceWithNullProjectPath<T>(string languageName)
             => GetWorkspace().Services.GetLanguageServices(languageName).GetRequiredService<ILanguageSettingsProviderFactory<T>>();
 
@@ -81,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public void TestGettingNamingStyleSettingsProvider()
+        {
+            TestGettingSettingsProviderFromWorkspace<NamingStyleSetting>();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public void TestGettingAnalyzerSettingsProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<AnalyzerSetting>();
@@ -109,6 +116,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             // CodeStyleOptions2.FileHeaderTemplate
             var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 2;
             Assert.Equal(optionsCount, dataSnapShot.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public void TestGettingNamingStyleSettingProviderWorkspaceServiceAsync()
+        {
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<NamingStyleSetting>();
+            var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
+            var model = new TestViewModel();
+            settingsProvider.RegisterViewModel(model);
+            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
+            Assert.Collection(dataSnapShot,
+                namingStyle1 =>
+                {
+                    Assert.Equal(CompilerExtensionsResources.Begins_with_I, namingStyle1.StyleName);
+                    Assert.Equal(CompilerExtensionsResources.Interface, namingStyle1.TypeName);
+                    Assert.Equal(ReportDiagnostic.Info, namingStyle1.Severity);
+                },
+                namingStyle2 =>
+                {
+                    Assert.Equal(CompilerExtensionsResources.Pascal_Case, namingStyle2.StyleName);
+                    Assert.Equal(CompilerExtensionsResources.Types, namingStyle2.TypeName);
+                    Assert.Equal(ReportDiagnostic.Info, namingStyle2.Severity);
+                },
+                namingStyle3 =>
+                {
+                    Assert.Equal(CompilerExtensionsResources.Pascal_Case, namingStyle3.StyleName);
+                    Assert.Equal(CompilerExtensionsResources.Non_Field_Members, namingStyle3.TypeName);
+                    Assert.Equal(ReportDiagnostic.Info, namingStyle3.Severity);
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -198,6 +234,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         public void TestGettingSettingProviderWithNullProjectPath5()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<AnalyzerSetting>();
+            var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
+            var model = new TestViewModel();
+            settingsProvider.RegisterViewModel(model);
+            var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
+            Assert.Empty(dataSnapShot);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public void TestGettingSettingProviderWithNullProjectPath6()
+        {
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspaceWithNullProjectPath<NamingStyleSetting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
