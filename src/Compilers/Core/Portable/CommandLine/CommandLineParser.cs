@@ -1130,6 +1130,12 @@ namespace Microsoft.CodeAnalysis
 
             string path = RemoveQuotesAndSlashes(arg);
             int wildcard = path.IndexOfAny(s_wildcards);
+            if (arg.ToString() == "//langversion:?")
+            {
+                // Ugly check to see what's going on CI :(
+                throw new Exception($"In ParseFileArgument. wildcard: {wildcard}");
+            }
+
             if (wildcard != -1)
             {
                 foreach (var file in ExpandFileNamePattern(path, baseDirectory, SearchOption.TopDirectoryOnly, errors))
