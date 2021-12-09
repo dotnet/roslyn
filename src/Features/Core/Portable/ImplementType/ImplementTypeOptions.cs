@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ImplementType
 {
-    internal record struct ImplementTypeOptions(
+    internal readonly record struct ImplementTypeOptions(
         ImplementTypeInsertionBehavior InsertionBehavior,
         ImplementTypePropertyGenerationBehavior PropertyGenerationBehavior)
     {
