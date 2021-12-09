@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -1232,16 +1232,16 @@ recurse:
 
         internal SyntaxNode WithAdditionalAnnotationsInternal(IEnumerable<SyntaxAnnotation> annotations)
         {
-            // <Caravela>
+            // <Metalama>
             return TreeTracker.TrackIfNeeded(this).Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
-            // </Caravela>
+            // </Metalama>
         }
 
         internal SyntaxNode GetNodeWithoutAnnotations(IEnumerable<SyntaxAnnotation> annotations)
         {
-            // <Caravela>
+            // <Metalama>
             return TreeTracker.TrackIfNeeded(this).Green.WithoutAnnotationsGreen(annotations).CreateRed();
-            // </Caravela>
+            // </Metalama>
         }
 
         /// <summary>

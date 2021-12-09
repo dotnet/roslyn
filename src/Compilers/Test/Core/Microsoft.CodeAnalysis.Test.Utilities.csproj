@@ -11,7 +11,7 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj" />
+    <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
   <ItemGroup>
@@ -59,9 +59,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
-    <!-- <Caravela> -->
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
-    <!-- </Caravela> -->
+    <!-- <Metalama> -->
+    <InternalsVisibleTo Include="Metalama.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
     <!-- TODO: Remove the below IVTs to CodeStyle Unit test projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->

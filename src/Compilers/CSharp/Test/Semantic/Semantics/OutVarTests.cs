@@ -32288,12 +32288,12 @@ class H
                 );
         }
 
-    [Fact(Skip = "Caravela: TODO 29127")]
-    /* <Caravela>
+    [Fact(Skip = "Metalama: TODO 29127")]
+    /* <Metalama>
         This test is brittle and the resulting diagnostic depends on queries performed on the compilation before checking diagnostics.
-            But Caravela transformer is executed in these tests as part of VerifyDiagnostics,
+            But Metalama transformer is executed in these tests as part of VerifyDiagnostics,
             which means those queries are performed on the wrong compilation, so they don't affect the result as this test expects."
-        </Caravela>
+        </Metalama>
         */
         public void GlobalCode_InferenceFailure_05()
         {

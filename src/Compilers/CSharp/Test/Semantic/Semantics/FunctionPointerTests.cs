@@ -1028,7 +1028,7 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Object> ptr3) (OperationK
         }
 
         [Fact(
-             Skip = "Caravela: The way transformations are ran in tests doesn't support SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention."
+             Skip = "Metalama: The way transformations are ran in tests doesn't support SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention."
             )]
         public void FunctionPointerToFunctionPointerInvalid_CallingConvention()
         {

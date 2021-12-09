@@ -21527,7 +21527,7 @@ namespace MySpace
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
         }
 
-        [Fact( Skip = "Caravela: the behavior with Caravela seems correct with maybe a difference in white space.")]
+        [Fact( Skip = "Metalama: the behavior with Metalama seems correct with maybe a difference in white space.")]
         public void CS1589WRN_NoResolver()
         {
             var text = @"
@@ -21550,7 +21550,7 @@ class Test
                     WithArguments("CS1589.doc", @"MyDocs/MyMembers[@name=""test""]/", "References to XML documents are not supported."));
         }
 
-        [Fact( Skip = "Caravela: the behavior with Caravela seems correct with maybe a difference in white space.")]
+        [Fact( Skip = "Metalama: the behavior with Metalama seems correct with maybe a difference in white space.")]
         public void CS1589WRN_FailedInclude()
         {
             var text = @"

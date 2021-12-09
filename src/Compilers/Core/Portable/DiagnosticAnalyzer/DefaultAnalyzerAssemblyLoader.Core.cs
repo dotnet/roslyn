@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis
            ImmutableHashSet.Create(
                StringComparer.OrdinalIgnoreCase,
                "Microsoft.CodeAnalysis",
-               // <Caravela>
-               "Caravela.Compiler.Interface",
-               // </Caravela>
+               // <Metalama>
+               "Metalama.Compiler.Interface",
+               // </Metalama>
                "Microsoft.CodeAnalysis.CSharp",
                "Microsoft.CodeAnalysis.VisualBasic",
                "System.Collections",

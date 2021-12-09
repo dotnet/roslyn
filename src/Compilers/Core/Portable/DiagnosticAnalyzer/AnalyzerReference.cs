@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="language">Language name.</param>
         public virtual ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray<ISourceGenerator>.Empty;
 
-        // <Caravela>
+        // <Metalama>
         public virtual ImmutableArray<ISourceTransformer> GetTransformers() => ImmutableArray<ISourceTransformer>.Empty;
 
         public virtual ImmutableArray<object> GetPlugins() => ImmutableArray<object>.Empty;
-        // </Caravela>
+        // </Metalama>
     }
 }

@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
         
-        // <Caravela>
+        // <Metalama>
         private protected SyntaxTree GetSourceTree(SyntaxTree tree) => SyntaxTreeHistory.GetFirst(tree);
-        // </Caravela>
+        // </Metalama>
 
     }
 
@@ -79,17 +79,17 @@ namespace Microsoft.CodeAnalysis
 
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
         {
-            // <Caravela>
+            // <Metalama>
             tree = GetSourceTree(tree);
-            // </Caravela>
+            // </Metalama>
             return _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
         }
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
-            // <Caravela>
+            // <Metalama>
             tree = GetSourceTree(tree);
-            // </Caravela>
+            // </Metalama>
             
             if (_options.TryGetValue(tree, out var value))
             {

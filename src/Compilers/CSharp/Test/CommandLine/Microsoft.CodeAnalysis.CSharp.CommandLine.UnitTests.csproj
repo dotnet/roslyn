@@ -18,15 +18,15 @@
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj" />
+    <ProjectReference Include="..\..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" Version="$(BasicReferenceAssembliesNetStandard13Version)" />
   </ItemGroup>
   <ItemGroup>
-    <!-- <Caravela> -->
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
-    <!-- </Caravela> -->
+    <!-- <Metalama> -->
+    <InternalsVisibleTo Include="Metalama.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Metalama> -->
     <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>

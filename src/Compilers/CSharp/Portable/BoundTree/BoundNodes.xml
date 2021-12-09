@@ -2208,10 +2208,10 @@
     <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
   </Node>
 
-  <!-- <Caravela> -->
-  <Node Name="BoundGetRuntimeHandleExpression" Base="BoundExpression" IsCaravelaSpecific="1">
+  <!-- <Metalama> -->
+  <Node Name="BoundGetRuntimeHandleExpression" Base="BoundExpression" IsMetalamaSpecific="1">
     <Field Name="Symbol" Type="Symbol" Null="disallow" />
   </Node>
-  <!-- </Caravela> -->
+  <!-- </Metalama> -->
 
 </Tree>

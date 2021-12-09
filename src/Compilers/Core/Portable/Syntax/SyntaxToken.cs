@@ -10,7 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -310,17 +310,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotations));
             }
 
-            // <Caravela>
+            // <Metalama>
             var token = TreeTracker.TrackIfNeeded(this);
-            // </Caravela>
+            // </Metalama>
 
             if (token.Node != null)
             {
                 return new SyntaxToken(
                     parent: null,
-                    // <Caravela>
+                    // <Metalama>
                     token: token.Node.WithAdditionalAnnotationsGreen(annotations),
-                    // </Caravela>
+                    // </Metalama>
                     position: 0,
                     index: 0);
             }
@@ -346,17 +346,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotations));
             }
             
-            // <Caravela>
+            // <Metalama>
             var token = TreeTracker.TrackIfNeeded(this);
             
             if (token.Node != null)
-                // </Caravela>
+                // </Metalama>
             {
                 return new SyntaxToken(
                     parent: null,
-                    // <Caravela>
+                    // <Metalama>
                     token: token.Node.WithoutAnnotationsGreen(annotations),
-                    // // </Caravela>
+                    // // </Metalama>
                     position: 0,
                     index: 0);
             }
@@ -390,9 +390,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public SyntaxToken CopyAnnotationsTo(SyntaxToken token)
         {
-            // <Caravela>
+            // <Metalama>
             token = TreeTracker.TrackIfNeeded(token);
-            // </Caravela>
+            // </Metalama>
 
             if (token.Node == null)
             {
@@ -404,9 +404,9 @@ namespace Microsoft.CodeAnalysis
                 return token;
             }
 
-            // <Caravela>
+            // <Metalama>
             var annotations = Node.GetAnnotations();
-            // </Caravela>
+            // </Metalama>
             
             if (annotations?.Length > 0)
             {
@@ -498,13 +498,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            // <Caravela>
+            // <Metalama>
             var token = TreeTracker.TrackIfNeeded(this);
 
             return token.Node != null
                 ? new SyntaxToken(null, token.Node.WithLeadingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
-            // </Caravela>
+            // </Metalama>
         }
 
         /// <summary>
@@ -528,13 +528,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            // <Caravela>
+            // <Metalama>
             var token = TreeTracker.TrackIfNeeded(this);
 
             return token.Node != null
                 ? new SyntaxToken(null, token.Node.WithTrailingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
-            // </Caravela>
+            // </Metalama>
         }
 
         /// <summary>

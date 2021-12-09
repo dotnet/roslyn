@@ -2976,7 +2976,7 @@ class Class : Interface
         }
 
         [Fact(
-             Skip = "Caravela: the way transformations are ran in tests doesn't support setting assembly identity."
+             Skip = "Metalama: the way transformations are ran in tests doesn't support setting assembly identity."
             )]
 
         public void TestNoImplementationOfInterfaceMethod_02()

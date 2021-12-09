@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
-    <ProjectReference Include="..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj" />
+    <ProjectReference Include="..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
   </ItemGroup>

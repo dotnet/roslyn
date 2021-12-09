@@ -147,27 +147,27 @@ namespace BoundTreeGenerator
             --_indent;
         }
 
-        // <Caravela>
-        private void WriteCaravelaSpecificHeader(TreeType node)
+        // <Metalama>
+        private void WriteMetalamaSpecificHeader(TreeType node)
         {
-            if (!node.IsCaravelaSpecific)
+            if (!node.IsMetalamaSpecific)
             {
                 return;
             }
 
-            WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
+            WriteLine("// <Metalama> This change is generated. See Modifications.md for details.");
         }
 
-        private void WriteCaravelaSpecificFooter(TreeType node)
+        private void WriteMetalamaSpecificFooter(TreeType node)
         {
-            if (!node.IsCaravelaSpecific)
+            if (!node.IsMetalamaSpecific)
             {
                 return;
             }
 
-            WriteLine("// </Caravela>");
+            WriteLine("// </Metalama>");
         }
-        // </Caravela>
+        // </Metalama>
 
         private void WriteFile()
         {
@@ -277,13 +277,13 @@ namespace BoundTreeGenerator
                     WriteLine("internal enum BoundKind : byte");
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
-                    // <Caravela>
+                    // <Metalama>
                     {
-                        WriteCaravelaSpecificHeader(node);
+                        WriteMetalamaSpecificHeader(node);
                         WriteLine("{0},", FixKeyword(StripBound(node.Name)));
-                        WriteCaravelaSpecificFooter(node);
+                        WriteMetalamaSpecificFooter(node);
                     }
-                    // </Caravela>
+                    // </Metalama>
                     Unbrace();
                     break;
 
@@ -322,9 +322,9 @@ namespace BoundTreeGenerator
             {
                 case TargetLanguage.CSharp:
                     {
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         string abstr = "";
                         if (node is AbstractNode)
                             abstr = "abstract ";
@@ -360,9 +360,9 @@ namespace BoundTreeGenerator
             {
                 case TargetLanguage.CSharp:
                     Unbrace();
-                    // <Caravela>
-                    WriteCaravelaSpecificFooter(node);
-                    // </Caravela>
+                    // <Metalama>
+                    WriteMetalamaSpecificFooter(node);
+                    // </Metalama>
                     break;
 
                 case TargetLanguage.VB:
@@ -1092,16 +1092,16 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         WriteLine("case BoundKind.{0}:", FixKeyword(StripBound(node.Name)));
                         Indent();
                         WriteLine("return Visit{0}(({1})node, arg);", StripBound(node.Name), node.Name);
                         Outdent();
-                        // <Caravela>
-                        WriteCaravelaSpecificFooter(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificFooter(node);
+                        // </Metalama>
                     }
                     Unbrace();
                     Blank(); // end switch
@@ -1114,13 +1114,13 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         WriteLine($"public virtual R Visit{StripBound(node.Name)}({node.Name} node, A arg) => this.DefaultVisit(node, arg);");
-                        // <Caravela>
-                        WriteCaravelaSpecificFooter(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificFooter(node);
+                        // </Metalama>
                     }
                     Unbrace();
 
@@ -1129,13 +1129,13 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         WriteLine($"public virtual BoundNode? Visit{StripBound(node.Name)}({node.Name} node) => this.DefaultVisit(node);");
-                        // <Caravela>
-                        WriteCaravelaSpecificFooter(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificFooter(node);
+                        // </Metalama>
                     }
                     Unbrace();
                     break;
@@ -1217,18 +1217,18 @@ namespace BoundTreeGenerator
                         var fields = AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f));
                         if (!fields.Any())
                         {
-                            // <Caravela>
-                            WriteCaravelaSpecificHeader(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificHeader(node);
+                            // </Metalama>
                             WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => null;");
-                            // <Caravela>
-                            WriteCaravelaSpecificFooter(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificFooter(node);
+                            // </Metalama>
                             continue;
                         }
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                         Brace();
                         foreach (Field field in fields)
@@ -1237,9 +1237,9 @@ namespace BoundTreeGenerator
                         }
                         WriteLine("return null;");
                         Unbrace();
-                        // <Caravela>
-                        WriteCaravelaSpecificFooter(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificFooter(node);
+                        // </Metalama>
                     }
                     Unbrace();
 
@@ -1288,9 +1288,9 @@ namespace BoundTreeGenerator
                     WriteLine("public static TreeDumperNode MakeTree(BoundNode node) => (new BoundTreeDumperNodeProducer()).Visit(node, null);");
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        // <Caravela>
-                        WriteCaravelaSpecificHeader(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificHeader(node);
+                        // </Metalama>
                         Write("public override TreeDumperNode Visit{0}({1} node, object? arg) => new TreeDumperNode(\"{2}\", null, ", StripBound(node.Name), node.Name, ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
                         if (allFields.Length > 0)
@@ -1340,9 +1340,9 @@ namespace BoundTreeGenerator
                             WriteLine("Array.Empty<TreeDumperNode>()");
                         }
                         WriteLine(");");
-                        // <Caravela>
-                        WriteCaravelaSpecificFooter(node);
-                        // </Caravela>
+                        // <Metalama>
+                        WriteMetalamaSpecificFooter(node);
+                        // </Metalama>
                     }
                     Unbrace();
                     break;
@@ -1424,9 +1424,9 @@ namespace BoundTreeGenerator
                                 WriteLine($"{GetVisitFunctionDeclaration(node.Name, isOverride: true)} => node;");
                                 continue;
                             }
-                            // <Caravela>
-                            WriteCaravelaSpecificHeader(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificHeader(node);
+                            // </Metalama>
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
@@ -1452,9 +1452,9 @@ namespace BoundTreeGenerator
                             }
 
                             Unbrace();
-                            // <Caravela>
-                            WriteCaravelaSpecificFooter(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificFooter(node);
+                            // </Metalama>
                         }
                         Unbrace();
                         break;
@@ -1552,9 +1552,9 @@ namespace BoundTreeGenerator
                             }
 
                             Blank();
-                            // <Caravela>
-                            WriteCaravelaSpecificHeader(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificHeader(node);
+                            // </Metalama>
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
@@ -1616,9 +1616,9 @@ namespace BoundTreeGenerator
                             }
 
                             Unbrace();
-                            // <Caravela>
-                            WriteCaravelaSpecificFooter(node);
-                            // </Caravela>
+                            // <Metalama>
+                            WriteMetalamaSpecificFooter(node);
+                            // </Metalama>
 
                             void writeNullabilityCheck(bool inverted) =>
                                 WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");

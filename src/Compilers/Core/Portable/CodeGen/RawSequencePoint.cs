@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal RawSequencePoint(SyntaxTree syntaxTree, int ilMarker, TextSpan span)
         {
-            // <Caravela>
+            // <Metalama>
 #if DEBUG
             Debug.Assert(!TreeTracker.IsUndebuggable(syntaxTree));
 #endif
-            // </Caravela>
+            // </Metalama>
 
             this.SyntaxTree = syntaxTree;
             this.ILMarker = ilMarker;

@@ -1,4 +1,4 @@
-PostSharp "Caravela" is preview software. It is released under the terms of 
+Metalama is preview software. It is released under the terms of 
 the **Evaluation License** defined in the License and Support Services
 Agreement for PostSharp.
 

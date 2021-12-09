@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1083,17 +1083,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
-            // <Caravela>
+            // <Metalama>
             var preTransformationSyntax = TreeTracker.GetSourceSyntaxNode(syntax);
             return BoundSequencePoint.Create(preTransformationSyntax, statement);
-            // </Caravela>
+            // </Metalama>
         }
 
         public BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan? span, BoundStatement statement)
         {
-            // <Caravela>
+            // <Metalama>
             return BoundSequencePoint.Create(syntax, span, statement);
-            // </Caravela>
+            // </Metalama>
         }
 
         public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)

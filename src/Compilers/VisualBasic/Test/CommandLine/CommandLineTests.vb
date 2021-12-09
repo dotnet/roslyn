@@ -5853,7 +5853,7 @@ End Class
         End Function
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_01()
             Dim source =
                 <compilation>
@@ -5911,7 +5911,7 @@ PATH(11) : warning BC42105: Function 'goo' doesn't return a value on all code pa
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_02()
             ' It verifies the case where diagnostic does not have the associated location in it.
             Dim source =
@@ -5962,7 +5962,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_03()
             ' It verifies the case where the squiggles covers the error span with tabs in it.
             Dim source = "Module Module1" + vbCrLf +
@@ -6001,7 +6001,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_04()
             ' It verifies the case where the squiggles covers multiple lines.
             Dim source =
@@ -6049,7 +6049,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_05()
             ' It verifies the case where the squiggles covers multiple lines.
             Dim source =
@@ -6093,7 +6093,7 @@ Module _
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_06()
             ' It verifies the case where the squiggles covers the very long error span.
             Dim source =
@@ -6141,7 +6141,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
         End Sub
 
         <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_07()
             ' It verifies the case where the error is on the last line.
             Dim source =
@@ -6187,7 +6187,7 @@ End Class
         End Sub
 
         <WorkItem(531606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531606")>
-        <Fact(Skip:="Caravela does not have consistent assembly informational version.")>
+        <Fact(Skip:="Metalama does not have consistent assembly informational version.")>
         Public Sub ErrorMessageWithSquiggles_08()
             Dim source =
                 <compilation>
@@ -9168,7 +9168,7 @@ End Class
         End Sub
 
         <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
-        <Fact(Skip:="Caravela does not have consistent assembly versions for tests.")>
+        <Fact(Skip:="Metalama does not have consistent assembly versions for tests.")>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
 

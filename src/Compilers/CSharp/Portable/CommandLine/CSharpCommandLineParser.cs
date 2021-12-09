@@ -276,11 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ParseAndResolveReferencePaths(name, valueMemory, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
                         continue;
 
-// <Caravela> Enable even in release build
+// <Metalama> Enable even in release build
                     case "attachdebugger":
                         Debugger.Launch();
                         continue;
-// </Caravela>                        
+// </Metalama>                        
                 }
 
                 if (IsScriptCommandLineParser)
@@ -1870,16 +1870,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 
-                // <Caravela>
-                // Caravela.Compiler.Interface.dll is specified as analyzer assembly, so that source generators that run inside VS can reference it
-                // but within Caravela.Compiler, these types have to be loaded from MS.CA
+                // <Metalama>
+                // Metalama.Compiler.Interface.dll is specified as analyzer assembly, so that source generators that run inside VS can reference it
+                // but within Metalama.Compiler, these types have to be loaded from MS.CA
                 var pathString = path.ToString();
                 
-                if (string.Equals(Path.GetFileName(pathString), "Caravela.Compiler.Interface.dll", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Path.GetFileName(pathString), "Metalama.Compiler.Interface.dll", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
-                // </Caravela>
+                // </Metalama>
 
                 analyzerReferences.Add(new CommandLineAnalyzerReference(pathString));
             }

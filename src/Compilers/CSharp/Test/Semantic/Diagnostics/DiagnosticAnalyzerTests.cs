@@ -1002,7 +1002,7 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, Diagnostic("BC101").WithLocation(1, 1));
         }
 
-        [Theory(Skip = "Caravela.Compiler disables this exception"),
+        [Theory(Skip = "Metalama.Compiler disables this exception"),
          WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         [CombinatorialData]
         public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind)

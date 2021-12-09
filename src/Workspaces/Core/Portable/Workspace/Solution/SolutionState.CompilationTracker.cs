@@ -374,14 +374,14 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            // <Caravela> This code is used by Try.Caravela.
+            // <Metalama> This code is used by Try.Metalama.
             public async Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return compilationInfo.TransformerDiagnostics;
             }
-            // </Caravela>
+            // </Metalama>
 
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
@@ -447,9 +447,9 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            // <Caravela> This code is used by Try.Caravela.
+                            // <Metalama> This code is used by Try.Metalama.
                             return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents, state.TransformerDiagnostics);
-                            // </Caravela>
+                            // </Metalama>
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -491,9 +491,9 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents, state.TransformerDiagnostics);
-                    // </Caravela>
+                    // </Metalama>
                 }
 
                 compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
@@ -687,18 +687,18 @@ namespace Microsoft.CodeAnalysis
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
                 public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
-                // <Caravela> This code is used by Try.Caravela.
+                // <Metalama> This code is used by Try.Metalama.
                 public ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
-                // </Caravela>
+                // </Metalama>
 
                 public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, ImmutableArray<Diagnostic> transformerDiagnostics)
                 {
                     Compilation = compilation;
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     GeneratedDocuments = generatedDocuments;
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     TransformerDiagnostics = transformerDiagnostics;
-                    // </Caravela>
+                    // </Metalama>
                 }
             }
             
@@ -792,8 +792,8 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithGenerators;
 
                     var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-                    // <Caravela>
-                    // Caravela TODO #29156: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
+                    // <Metalama>
+                    // Metalama TODO #29156: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
                     // if (generatorInfo.DocumentsAreFinal)
                     // {
                     //     // We must have ran generators before, but for some reason had to remake the compilation from scratch.
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis
                     //         await generatorInfo.Documents.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                     // }
                     // else
-                    // </Caravela>
+                    // </Metalama>
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis
                             if (generatorInfo.Driver == null)
                             {
                                 var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                                // <Caravela /> The retrieval of the compilation factory has been moved outside of the block.
+                                // <Metalama /> The retrieval of the compilation factory has been moved outside of the block.
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                     
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     ImmutableArray<Diagnostic> transformerDiagnostics = default;
 
                     if (!compilationWithGenerators.GetParseDiagnostics(cancellationToken).HasAnyErrors())
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis
                         if (runTransformers != null)
                             (compilationWithGenerators, transformerDiagnostics) = runTransformers(compilationWithGenerators);
                     }
-                    // </Caravela>
+                    // </Metalama>
 
                     var finalState = FinalState.Create(
                         CompilationTrackerState.CreateValueSource(compilationWithGenerators, solution.Services),
@@ -927,17 +927,17 @@ namespace Microsoft.CodeAnalysis
                         compilationWithGenerators,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId,
-                        // <Caravela> This code is used by Try.Caravela.
+                        // <Metalama> This code is used by Try.Metalama.
                         transformerDiagnostics
-                        // </Caravela>
+                        // </Metalama>
                         );
 
                     this.WriteState(finalState, solution.Services);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo.Documents,
-                        // <Caravela> This code is used by Try.Caravela.
+                        // <Metalama> This code is used by Try.Metalama.
                         transformerDiagnostics
-                        // </Caravela>
+                        // </Metalama>
                         );
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

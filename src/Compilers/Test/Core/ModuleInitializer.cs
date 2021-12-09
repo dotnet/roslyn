@@ -15,11 +15,11 @@ namespace Roslyn.Test.Utilities
         [ModuleInitializer]
         internal static void Initialize()
         {
-            // <Caravela> Even though the Roslyn test facility implements various ways to handle
+            // <Metalama> Even though the Roslyn test facility implements various ways to handle
             // the culture info, various test fail when incompatible culture is set on the system.
             System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-            // </Caravela>
+            // </Metalama>
 
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new ThrowingTraceListener());
