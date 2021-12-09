@@ -2852,7 +2852,7 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
@@ -26093,7 +26093,7 @@ public record D : B {}
             var test = @"
 namespace x
 {
-    public record iii
+    public record @iii
     {
         ~iiii(){}
         public static void Main()

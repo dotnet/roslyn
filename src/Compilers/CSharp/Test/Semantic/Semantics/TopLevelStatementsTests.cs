@@ -3859,7 +3859,7 @@ using alias1 = args;
 
 System.Console.WriteLine(args);
 
-class args {}
+class @args {}
 
 class Derived : args
 {
@@ -4008,7 +4008,7 @@ System.Console.WriteLine(args);
             var text2 = @"
 using alias1 = args;
 
-class args {}
+class @args {}
 
 class Derived : args
 {

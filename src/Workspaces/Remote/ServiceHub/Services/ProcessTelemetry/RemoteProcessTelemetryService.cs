@@ -5,17 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.CodeAnalysis.Notification;
-using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -60,7 +61,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 WatsonReporter.InitializeFatalErrorHandlers();
 
                 // log telemetry that service hub started
-                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m => m["Host"] = hostProcessId));
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+                {
+                    m["Host"] = hostProcessId;
+                    m["Framework"] = RuntimeInformation.FrameworkDescription;
+                }));
 
 #if DEBUG
                 // start performance reporter

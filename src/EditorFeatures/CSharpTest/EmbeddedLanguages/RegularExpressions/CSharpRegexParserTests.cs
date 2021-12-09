@@ -326,6 +326,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             position += virtualChars.Length;
         }
 
+        private static string And(params string[] regexes)
+        {
+            var conj = $"({regexes[regexes.Length - 1]})";
+            for (var i = regexes.Length - 2; i >= 0; i--)
+                conj = $"(?({regexes[i]}){conj}|[0-[0]])";
+
+            return conj;
+        }
+
+        private static string Not(string regex)
+            => $"(?({regex})[0-[0]]|.*)";
+
         [Fact]
         public void TestDeepRecursion()
         {

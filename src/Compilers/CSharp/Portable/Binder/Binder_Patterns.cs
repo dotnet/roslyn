@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, receiver: null, out lengthAccess, diagnostics);
+                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
             }
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -374,11 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!systemIndexType.HasUseSiteError)
             {
-                // Check required well-known member. They may not be needed
-                // during lowering, but it's simpler to always require them to prevent
-                // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__op_Implicit_FromInt32, diagnostics, syntax: node);
-
+                // Check required well-known member.
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
             }
 

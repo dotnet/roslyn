@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]
     [SuggestedActionPriority(DefaultOrderings.Default)]
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
