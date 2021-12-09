@@ -394,9 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
         {
-            if (offset == 0)
-                return infos;
-
+            Debug.Assert(infos.Length > 0);
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
             foreach (var info in infos)
             {
