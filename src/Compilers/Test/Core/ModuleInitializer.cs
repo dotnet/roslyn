@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
 {
     internal static class ModuleInitializer
     {
-        private static readonly FileSystemWatcher s_watcher = new() { IncludeSubdirectories = true, EnableRaisingEvents = true };
+        private static readonly FileSystemWatcher s_watcher = new("/") { IncludeSubdirectories = true, EnableRaisingEvents = true };
 
         [ModuleInitializer]
         internal static void Initialize()
