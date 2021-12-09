@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                static BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
                     switch (node)
                     {
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.TupleElementIndex is int i)
                             {
                                 // The elements of an input tuple were evaluated beforehand, so don't need to be evaluated now.
-                                return replacement(evalNode.Next);
+                                return replacement[evalNode.Next];
                             }
 
                             // Since we are performing an optimization whose precondition is that the original
