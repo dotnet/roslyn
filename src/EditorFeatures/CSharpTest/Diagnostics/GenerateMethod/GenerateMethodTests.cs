@@ -3990,7 +3990,7 @@ static void Main(string[] args)
     Goo();
 }
 
-void Goo()
+static void Goo()
 {
     throw new NotImplementedException();
 }",
@@ -4014,7 +4014,7 @@ static void Main(string[] args)
     Goo();
 }
 
-void Goo()
+static void Goo()
 {
     throw new NotImplementedException();
 }");
