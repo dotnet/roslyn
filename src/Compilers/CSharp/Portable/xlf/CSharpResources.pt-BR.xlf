@@ -243,8 +243,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotMixVerbatimAndRawStrings">
-        <source>Raw string literals cannot be verbatim ('@'). If needed, increase the number of quote characters starting and ending the literal.</source>
-        <target state="new">Raw string literals cannot be verbatim ('@'). If needed, increase the number of quote characters starting and ending the literal.</target>
+        <source>Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
