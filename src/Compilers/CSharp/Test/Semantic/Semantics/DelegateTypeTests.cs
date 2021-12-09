@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3405,11 +3406,19 @@ class Program
         F((string s) => { });
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(Action<T>)' and 'Program.F(StringAction)'
                 //         F((string s) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(System.Action<T>)", "Program.F(StringAction)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(System.Action<T>)", "Program.F(StringAction)").WithLocation(8, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3429,11 +3438,19 @@ class Program
         F1(M);
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (10,9): error CS0411: The type arguments for method 'Program.F0<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F0(M);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Action<T>)").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Action<T>)").WithLocation(10, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3452,14 +3469,22 @@ class Program
         F(M);
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(Action<T>)' and 'Program.F<T>(MyAction<T>)'
                 //         F((string s) => { });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(System.Action<T>)", "Program.F<T>(MyAction<T>)").WithLocation(9, 9),
                 // (10,9): error CS0411: The type arguments for method 'Program.F<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(M);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Action<T>)").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Action<T>)").WithLocation(10, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3479,14 +3504,22 @@ class Program
         F((string s) => { });
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Action<string>)' and 'Program.F(StringAction)'
                 //         F(M);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Action<string>)", "Program.F(StringAction)").WithLocation(10, 9),
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Action<string>)' and 'Program.F(StringAction)'
                 //         F((string s) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Action<string>)", "Program.F(StringAction)").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Action<string>)", "Program.F(StringAction)").WithLocation(11, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6490,6 +6523,364 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4").WithLocation(25, 9));
         }
 
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_03()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+void Test1<T>(Func<T> exp) {}
+void Test2<T>(Expression<Func<T>> exp) {}
+void Test3<T>(Func<Func<T>> exp) {}
+void Test4<T>(Func<Expression<Func<T>>> exp) {}
+
+Test1(() => 1);
+Test2(() => 2);
+Test3(() => () => 3);
+Test4(() => () => 4);
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,6): warning CS8321: The local function 'Test3' is declared but never used
+                // void Test3<T>(Func<Func<T>> exp) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test3").WithArguments("Test3").WithLocation(6, 6),
+                // (7,6): warning CS8321: The local function 'Test4' is declared but never used
+                // void Test4<T>(Func<Expression<Func<T>>> exp) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test4").WithArguments("Test4").WithLocation(7, 6),
+                // (11,1): error CS0411: The type arguments for method 'Test3<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // Test3(() => () => 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("Test3<T>(System.Func<System.Func<T>>)").WithLocation(11, 1),
+                // (12,1): error CS0411: The type arguments for method 'Test4<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // Test4(() => () => 4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test4").WithArguments("Test4<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(12, 1)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_04()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+delegate int D();
+class Program
+{
+    static int F() => 0;
+    static void M1<T>(T t, Func<T> f) { }
+    static void M2<T>(T t, Expression<Func<T>> e) { }
+    static void Main()
+    {
+        D d = null;
+        M1(d, () => F);
+        M2(d, () => F);
+        M1(d, () => () => 1);
+        M2(d, () => () => 2);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_05()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+delegate int D();
+class Program
+{
+    static int F() => 0;
+    static void M1<T>(ref T t, Func<T> f) { }
+    static void M2<T>(ref T t, Expression<Func<T>> e) { }
+    static void Main()
+    {
+        D d = null;
+        M1(ref d, () => F);
+        M2(ref d, () => F);
+        M1(ref d, () => () => 1);
+        M2(ref d, () => () => 2);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_06()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static int F() => 0;
+    static void M1<T>(Func<T> f) { }
+    static void M2<T>(Expression<Func<T>> e) { }
+    static void Main()
+    {
+        M1(() => F);
+        M2(() => F);
+        M1(() => () => 1);
+        M2(() => () => 2);
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(() => F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(11, 9),
+                // (12,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M2(() => F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(() => () => 1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<T>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.M2<T>(Expression<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M2(() => () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Linq.Expressions.Expression<System.Func<T>>)").WithLocation(14, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_07()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static int F() => 0;
+    static void M1<T>(Func<Func<T>> f) { }
+    static void M2<T>(Func<Expression<Func<T>>> e) { }
+    static void M3<T>(Expression<Func<Func<T>>> e) { }
+    static void Main()
+    {
+        M1(() => () => F);
+        M2(() => () => F);
+        M3(() => () => F);
+        M1(() => () => () => 1);
+        M2(() => () => () => 2);
+        M3(() => () => () => 3);
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (12,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(() => () => F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M2(() => () => F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M3(() => () => F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(14, 9),
+                // (15,9): error CS0411: The type arguments for method 'Program.M1<T>(Func<Func<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(() => () => () => 1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(System.Func<System.Func<T>>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.M2<T>(Func<Expression<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M2(() => () => () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<T>(System.Func<System.Linq.Expressions.Expression<System.Func<T>>>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.M3<T>(Expression<Func<Func<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M3(() => () => () => 3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("Program.M3<T>(System.Linq.Expressions.Expression<System.Func<System.Func<T>>>)").WithLocation(17, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_08()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+delegate int D();
+class Program
+{
+    static int F() => 0;
+    static void M1<T>(T t, Func<Func<T>> f) { }
+    static void M2<T>(T t, Func<Expression<Func<T>>> e) { }
+    static void M3<T>(T t, Expression<Func<Func<T>>> e) { }
+    static void Main()
+    {
+        D d = null;
+        M1(d, () => () => F);
+        M2(d, () => () => F);
+        M3(d, () => () => F);
+        M1(d, () => () => () => 1);
+        M2(d, () => () => () => 2);
+        M3(d, () => () => () => 3);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_09()
+        {
+            var source =
+@"#nullable enable
+using System;
+delegate void D<T>(object x, T y);
+class Program
+{
+    static void F(object x, int y) { }
+    static void M<T>(T t, Func<T> f) { }
+    static void Main()
+    {
+        D<int> d = null;
+        M(d, () => F);
+        M(d, () => (object x, int y) => { });
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_10()
+        {
+            var source =
+@"#nullable enable
+using System;
+delegate void D1<T>(object x, T y);
+delegate T D2<T>();
+class Program
+{
+    static void F(object x, int y) { }
+    static void M<T>(T t, D2<T> d) { }
+    static void Main()
+    {
+        D1<int> d = null;
+        M(d, () => F);
+        M(d, () => (object x, int y) => { });
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_11()
+        {
+            var source =
+@"#nullable enable
+using System;
+delegate T D1<T>();
+delegate T D2<T>(ref object o);
+class Program
+{
+    static int F() => 0;
+    static void M<T>(T t, D2<T> d) { }
+    static void Main()
+    {
+        D1<int> d = null;
+        M(d, (ref object o) => F);
+        M(d, (ref object o) => () => 1);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57517, "https://github.com/dotnet/roslyn/issues/57517")]
+        [Fact]
+        public void TypeInference_12()
+        {
+            var source =
+@"#nullable enable
+using System;
+delegate int D();
+class Program
+{
+    static void M<T>(T t, Func<bool, T> f) { }
+    static void Main()
+    {
+        D d = null;
+        M(d, (bool b) => { if (b) return () => 1; return () => 2; });
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
+        [WorkItem(57630, "https://github.com/dotnet/roslyn/issues/57630")]
+        [Fact]
+        public void TypeInference_13()
+        {
+            var source =
+@"#nullable enable
+using System;
+delegate void D();
+class C<T> { }
+static class E
+{
+    public static void F<T>(this C<T> c, Func<T> f) { }
+}
+class Program
+{
+    static void Main()
+    {
+        var c = new C<D>();
+        c.F(() => () => { });
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
+        }
+
         [Fact]
         public void Variance_01()
         {
@@ -9237,6 +9628,191 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        /// <summary>
+        /// Overload resolution and method type inference should not need to infer delegate
+        /// types for lambdas and method groups when the overloads have specific delegate types.
+        /// It is important to avoid inferring delegate types unnecessarily in these cases because
+        /// that would add overhead (particularly for overload resolution with nested lambdas)
+        /// while adding explicit parameter types for lambda expressions should ideally improve
+        /// overload resolution performance in those cases because fewer overloads may be applicable.
+        /// </summary>
+        [Fact]
+        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
+        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        public void InferDelegateType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(int i) { }
+    static void Main()
+    {
+        int x = 0;
+        F(x, (int y) => { });
+        F(x, M);
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Action<int, int> y) { }
+    static void F<T>(int x, Func<T> y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(0, data.InferredDelegateCount);
+        }
+
+        /// <summary>
+        /// Similar to test above but with errors in the overloaded calls which means overload resolution
+        /// will consider more overloads when binding for error recovery.
+        /// </summary>
+        [Fact]
+        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
+        [WorkItem(58106, "https://github.com/dotnet/roslyn/issues/58106")]
+        public void InferDelegateType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(int i) { }
+    static void Main()
+    {
+        F(x, (int y) => { });
+        F(x, M);
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Action<int, int> y) { }
+    static void F<T>(int x, Func<T> y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, (int y) => { });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, M);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 11));
+            Assert.Equal(0, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void InferDelegateType_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(int i) { }
+    static void Main()
+    {
+        int x = 0;
+        F(x, (int y) => { });
+        F(x, M);
+    }
+    static void F(int x, Action<int> y) { }
+    static void F(int x, Delegate y) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(2, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void InferDelegateType_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(int i) { }
+    static void Main()
+    {
+        F(x, (int y) => { });
+        F(x, M);
+    }
+    static void F(int x, Action<int> y) { }
+    static void F<T>(int x, T y, int z) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new InferredDelegateTypeData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, (int y) => { });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 'x' does not exist in the current context
+                //         F(x, M);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 11));
+            Assert.Equal(2, data.InferredDelegateCount);
+        }
+
+        [Fact]
+        public void FunctionTypeSymbolOperations()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var objectType = comp.GetSpecialType(SpecialType.System_Object);
+            var stringType = comp.GetSpecialType(SpecialType.System_String);
+            var funcOfT = comp.GetWellKnownType(WellKnownType.System_Func_T);
+            var funcOfObjectNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(objectType, NullableAnnotation.Annotated)));
+            var funcOfStringNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(stringType, NullableAnnotation.Annotated)));
+            var funcOfStringNotNullable = funcOfT.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(stringType, NullableAnnotation.NotAnnotated)));
+
+            var functionTypeObjectNullable = new FunctionTypeSymbol(funcOfObjectNullable);
+            var functionTypeStringNullable = new FunctionTypeSymbol(funcOfStringNullable);
+            var functionTypeStringNotNullable = new FunctionTypeSymbol(funcOfStringNotNullable);
+            var functionTypeNullA = new FunctionTypeSymbol(null!);
+            var functionTypeNullB = new FunctionTypeSymbol(null!);
+
+            // MergeEquivalentTypes
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNullable.MergeEquivalentTypes(functionTypeStringNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNullable.MergeEquivalentTypes(functionTypeStringNotNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeStringNotNullable, functionTypeStringNotNullable.MergeEquivalentTypes(functionTypeStringNotNullable, VarianceKind.Out));
+            Assert.Equal(functionTypeNullA, functionTypeNullA.MergeEquivalentTypes(functionTypeNullA, VarianceKind.Out));
+
+            // SetNullabilityForReferenceTypes
+            var setNotNullable = (TypeWithAnnotations type) => TypeWithAnnotations.Create(type.Type, NullableAnnotation.NotAnnotated);
+            Assert.Equal(functionTypeStringNotNullable, functionTypeStringNullable.SetNullabilityForReferenceTypes(setNotNullable));
+            Assert.Equal(functionTypeNullA, functionTypeNullA.SetNullabilityForReferenceTypes(setNotNullable));
+
+            // Equals
+            Assert.True(functionTypeStringNotNullable.Equals(functionTypeStringNullable, TypeCompareKind.AllIgnoreOptions));
+            Assert.False(functionTypeStringNotNullable.Equals(functionTypeStringNullable, TypeCompareKind.ConsiderEverything));
+            Assert.False(functionTypeNullA.Equals(functionTypeStringNullable, TypeCompareKind.AllIgnoreOptions));
+            Assert.False(functionTypeStringNullable.Equals(functionTypeNullA, TypeCompareKind.AllIgnoreOptions));
+            Assert.True(functionTypeNullA.Equals(functionTypeNullA, TypeCompareKind.ConsiderEverything));
+            Assert.False(functionTypeNullA.Equals(functionTypeNullB, TypeCompareKind.ConsiderEverything));
+
+            // GetHashCode
+            Assert.Equal(functionTypeStringNullable.GetHashCode(), functionTypeStringNotNullable.GetHashCode());
+            Assert.Equal(functionTypeNullA.GetHashCode(), functionTypeNullB.GetHashCode());
+
+            // ConversionsBase.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes
+            var conversions = new TypeConversions(comp.SourceAssembly.CorLibrary);
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Assert.Equal(ConversionKind.FunctionType, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeStringNotNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.FunctionType, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeObjectNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeStringNullable, functionTypeNullA, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeNullA, functionTypeStringNullable, ref useSiteInfo).Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(functionTypeNullA, functionTypeNullA, ref useSiteInfo).Kind);
         }
 
         [Fact]

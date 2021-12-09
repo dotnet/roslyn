@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -2605,9 +2603,9 @@ struct Type<T>
         {
             // don't crash
             using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
             var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
@@ -2622,7 +2620,7 @@ struct Type<T>
                 globalOptions,
                 listenerProvider);
 
-            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
             using (var edit = extraBuffer.CreateEdit())
             {
                 edit.Insert(0, "class A { }");
@@ -3618,6 +3616,17 @@ class X
         public async Task TestStringEscape8(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape9(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),

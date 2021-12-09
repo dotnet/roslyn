@@ -5053,7 +5053,7 @@ class C<T>
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
-static class m
+static class @m
 {
     public static int NotAConstant()
     {
@@ -5061,7 +5061,7 @@ static class m
     }
 }
 
-public enum e1
+public enum @e1
 {
     a
 }

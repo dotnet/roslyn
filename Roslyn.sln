@@ -501,6 +501,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests", "src\Workspaces\Remote\ServiceHubTest\Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests.csproj", "{8D830CBB-CA6E-47D8-9FB8-9230AAD272F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests", "src\VisualStudio\IntegrationTest\New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj", "{6272739B-31E4-483E-A3A5-2ABB5040ABF0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

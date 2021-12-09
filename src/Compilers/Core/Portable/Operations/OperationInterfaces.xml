@@ -3184,4 +3184,58 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IListPatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>Represents a C# list pattern.</summary>
+    </Comments>
+    <Property Name="LengthSymbol" Type="ISymbol?">
+      <Comments>
+        <summary>
+          The <c>Length</c> or <c>Count</c> property that is being used to fetch the length value.
+          Returns <c>null</c> if no such property is found.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="IndexerSymbol" Type="ISymbol?">
+      <Comments>
+        <summary>
+          The indexer that is being used to fetch elements.
+          Returns <c>null</c> for an array input.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="Patterns" Type="ImmutableArray&lt;IPatternOperation&gt;">
+      <Comments>
+        <summary>
+          Returns subpatterns contained within the list pattern.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="DeclaredSymbol" Type="ISymbol?">
+      <Comments>
+        <summary>Symbol declared by the pattern, if any.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="ISlicePatternOperation" Base="IPatternOperation">
+    <Comments>
+      <summary>
+        Represents a C# slice pattern.
+      </summary>
+    </Comments>
+    <Property Name="SliceSymbol" Type="ISymbol?">
+      <Comments>
+        <summary>
+          The range indexer or the <c>Slice</c> method used to fetch the slice value.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="Pattern" Type="IPatternOperation?">
+      <Comments>
+        <summary>
+          The pattern that the slice value is matched with, if any.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1559,18 +1560,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
             {
-                _ = SharedStopwatch.StartNew();
-
-                // This call to StartNew isn't required by the API, but is included to avoid measurement errors
-                // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
-                // operations can block at their return point on the completion of a background GC operation. When
-                // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
-                // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
-                // timing data was observed.
-                //
-                // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
-                // after the timer has already recorded its stop time.
                 timer = SharedStopwatch.StartNew();
             }
 

@@ -122,6 +122,11 @@
         <target state="translated">Fournisseur de ressources</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
         <target state="translated">Outil de recherche de symboles</target>
