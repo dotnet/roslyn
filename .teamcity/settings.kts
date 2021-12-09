@@ -98,6 +98,10 @@ object PublicBuild : BuildType({
         vcs {
         }
     }
+
+    requirements {
+        equals("env.BuildAgentType", "caravela02")
+    }
 })
 
 // Publish the release build to public feeds
@@ -129,5 +133,9 @@ object Deploy : BuildType({
                 artifactRules = "+:artifacts/publish/**/*=>artifacts/publish"
             }
         }
+    }
+
+    requirements {
+        equals("env.BuildAgentType", "caravela02")
     }
 })
