@@ -266,19 +266,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal enum InterpolatedStringKind
         {
             /// <summary>
-            /// Normal interpolated string that just starts with $"
+            /// Normal interpolated string that just starts with <c>$"</c>
             /// </summary>
             Normal = 1,
             /// <summary>
-            /// Verbatim interpolated string that starts with $@" or @$"
+            /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>
             /// </summary>
             Verbatim = 2,
             /// <summary>
-            /// Single-line raw interpolated string that starts with some number of $ and at least three """.
+            /// Single-line raw interpolated string that starts with some number of <c>$</c>s and at least three <c>"</c>s.
             /// </summary>
             SingleLineRaw = 3,
             /// <summary>
-            /// Multi-line raw interpolated string that starts with some number of $ and at least three """.
+            /// Multi-line raw interpolated string that starts with some number of <c>$</c>s and at least three <c>"</c>s.
             /// </summary>
             MultiLineRaw = 4,
         }
