@@ -5,16 +5,16 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
-{
-    public class RawInterpolatedStringLiteralParsingTests : CSharpTestBase
-    {
-        #region Single Line
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
 
-        [Fact]
-        public void SingleLine1()
-        {
-            var text = @"
+public class RawInterpolatedStringLiteralParsingTests : CSharpTestBase
+{
+    #region Single Line
+
+    [Fact]
+    public void SingleLine1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -23,13 +23,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineTooManyCloseQuotes1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineTooManyCloseQuotes1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -38,16 +38,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                    // (6,25): error CS9102: Too many closing quotes for raw string literal
-                    //         var v = $""" """";
-                    Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""").WithLocation(6, 25));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+                // (6,25): error CS9102: Too many closing quotes for raw string literal
+                //         var v = $""" """";
+                Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""").WithLocation(6, 25));
+    }
 
-        [Fact]
-        public void SingleLineTooManyCloseQuotes2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineTooManyCloseQuotes2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -56,16 +56,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,25): error CS9102: Too many closing quotes for raw string literal
-                //         var v = $""" """"";
-                Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""""").WithLocation(6, 25));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,25): error CS9102: Too many closing quotes for raw string literal
+            //         var v = $""" """"";
+            Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""""").WithLocation(6, 25));
+    }
 
-        [Fact]
-        public void SingleLineSingleQuoteInside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineSingleQuoteInside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -74,13 +74,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineDoubleQuoteInside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineDoubleQuoteInside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -89,13 +89,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationInside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationInside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -104,13 +104,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationInsideSpacesOutside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationInsideSpacesOutside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -119,13 +119,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationInsideSpacesInside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationInsideSpacesInside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -134,13 +134,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationInsideSpacesInsideAndOutside()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationInsideSpacesInsideAndOutside()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -149,13 +149,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -164,16 +164,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,21): error CS9122: Too many open braces for raw string literal
-                //         var v = $"""{{0}}""";
-                Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{").WithLocation(6, 21));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,21): error CS9122: Too many open braces for raw string literal
+            //         var v = $"""{{0}}""";
+            Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{").WithLocation(6, 21));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -182,16 +182,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS9122: Too many open braces for raw string literal
-                //         var v = $$"""{{{{0}}}}""";
-                Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{{").WithLocation(6, 22));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,22): error CS9122: Too many open braces for raw string literal
+            //         var v = $$"""{{{{0}}}}""";
+            Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{{").WithLocation(6, 22));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed3()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -200,16 +200,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,24): error CS9123: Too many closing braces for raw string literal
-                //         var v = $"""{0}}}""";
-                Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,24): error CS9123: Too many closing braces for raw string literal
+            //         var v = $"""{0}}}""";
+            Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed4()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -218,16 +218,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,28): error CS9123: Too many closing braces for raw string literal
-                //         var v = $$"""{{{0}}}}""";
-                Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 28));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,28): error CS9123: Too many closing braces for raw string literal
+            //         var v = $$"""{{{0}}}}""";
+            Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 28));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed5()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -236,16 +236,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,24): error CS9123: Too many closing braces for raw string literal
-                //         var v = $$"""{0}}""";
-                Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,24): error CS9123: Too many closing braces for raw string literal
+            //         var v = $$"""{0}}""";
+            Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesNotAllowed6()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesNotAllowed6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -254,16 +254,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS9121: Not enough closing braces for raw string literal
-                //         var v = $$"""{{{0}""";
-                Diagnostic(ErrorCode.ERR_NotEnoughCloseBracesForRawString, "{").WithLocation(6, 22));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,22): error CS9121: Not enough closing braces for raw string literal
+            //         var v = $$"""{{{0}""";
+            Diagnostic(ErrorCode.ERR_NotEnoughCloseBracesForRawString, "{").WithLocation(6, 22));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesAllowed1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesAllowed1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -272,13 +272,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesAllowed2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesAllowed2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -287,13 +287,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationMultipleCurliesAllowed4()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationMultipleCurliesAllowed4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -302,13 +302,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingNormalString()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingNormalString()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -317,13 +317,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimString1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimString1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -332,13 +332,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimString2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimString2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -348,13 +348,13 @@ a""}"""""";
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingInterpolatedString1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingInterpolatedString1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -363,13 +363,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingInterpolatedString2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingInterpolatedString2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -378,13 +378,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimInterpolatedString1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimInterpolatedString1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -393,13 +393,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimInterpolatedString2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimInterpolatedString2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -408,13 +408,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimInterpolatedString3()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimInterpolatedString3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -424,13 +424,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingVerbatimInterpolatedString4()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingVerbatimInterpolatedString4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -441,13 +441,13 @@ $@""{
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawStringLiteral1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawStringLiteral1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -456,13 +456,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawStringLiteral2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawStringLiteral2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -473,13 +473,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawStringLiteral3()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawStringLiteral3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -490,16 +490,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (7,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
-                //   a
-                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (7,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+            //   a
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral1()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -508,13 +508,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral2()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -523,13 +523,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral3()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -538,13 +538,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral4()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -554,13 +554,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral5()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -571,13 +571,13 @@ $""""""{
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral6()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -586,13 +586,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral7()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral7()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -601,13 +601,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingRawInterpolatedStringLiteral8()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingRawInterpolatedStringLiteral8()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -616,13 +616,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingClosingBraceAsCharacterLiteral()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingClosingBraceAsCharacterLiteral()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -631,13 +631,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingClosingBraceAsRegularStringLiteral()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingClosingBraceAsRegularStringLiteral()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -646,13 +646,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingClosingBraceAsVerbatimStringLiteral()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingClosingBraceAsVerbatimStringLiteral()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -661,13 +661,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void SingleLineInterpolationContainingClosingBraceAsRawStringLiteral()
-        {
-            var text = @"
+    [Fact]
+    public void SingleLineInterpolationContainingClosingBraceAsRawStringLiteral()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -676,13 +676,13 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void MultipleAtSigns1()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -691,16 +691,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         var v = @@;
-                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+            //         var v = @@;
+            Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MultipleAtSigns2()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -709,19 +709,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17),
-                // (6,21): error CS1002: ; expected
-                //         var v = @@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17),
+            // (6,21): error CS1002: ; expected
+            //         var v = @@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21));
+    }
 
-        [Fact]
-        public void MultipleAtSigns3()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -730,16 +730,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MultipleAtSigns4()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -748,16 +748,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MultipleAtSigns5()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -766,16 +766,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         var v = @@@;
-                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+            //         var v = @@@;
+            Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MultipleAtSigns6()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -784,19 +784,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17),
-                // (6,22): error CS1002: ; expected
-                //         var v = @@@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17),
+            // (6,22): error CS1002: ; expected
+            //         var v = @@@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
+    }
 
-        [Fact]
-        public void MultipleAtSigns7()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns7()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -805,16 +805,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MultipleAtSigns8()
-        {
-            var text = @"
+    [Fact]
+    public void MultipleAtSigns8()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -823,16 +823,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt1()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -841,16 +841,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt2()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -859,19 +859,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17),
-                // (6,22): error CS1002: ; expected
-                //         var v = $@@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17),
+            // (6,22): error CS1002: ; expected
+            //         var v = $@@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
+    }
 
-        [Fact]
-        public void DollarThenAt3()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -880,16 +880,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt4()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -898,16 +898,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt5()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -916,16 +916,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@@;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@@;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt6()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -934,19 +934,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17),
-                // (6,23): error CS1002: ; expected
-                //         var v = $@@@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17),
+            // (6,23): error CS1002: ; expected
+            //         var v = $@@@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
+    }
 
-        [Fact]
-        public void DollarThenAt7()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt7()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -955,16 +955,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarThenAt8()
-        {
-            var text = @"
+    [Fact]
+    public void DollarThenAt8()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -973,16 +973,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = $@@@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = $@@@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar1()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -991,16 +991,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar2()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1009,19 +1009,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17),
-                // (6,22): error CS1002: ; expected
-                //         var v = @@$";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17),
+            // (6,22): error CS1002: ; expected
+            //         var v = @@$";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
+    }
 
-        [Fact]
-        public void AtThenDollar3()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1030,16 +1030,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar4()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1048,16 +1048,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar5()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1066,16 +1066,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar6()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1084,19 +1084,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17),
-                // (6,23): error CS1002: ; expected
-                //         var v = @@$$";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17),
+            // (6,23): error CS1002: ; expected
+            //         var v = @@$$";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
+    }
 
-        [Fact]
-        public void AtThenDollar7()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar7()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1105,16 +1105,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollar8()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollar8()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1123,16 +1123,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt1()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1141,16 +1141,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$@;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$@;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt2()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1159,19 +1159,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17),
-                // (6,23): error CS1002: ; expected
-                //         var v = @@$@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17),
+            // (6,23): error CS1002: ; expected
+            //         var v = @@$@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt3()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1180,16 +1180,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt4()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt4()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1198,16 +1198,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt5()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt5()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1216,16 +1216,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$@;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$@").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$@;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$@").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt6()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt6()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1234,19 +1234,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$@";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17),
-                // (6,24): error CS1002: ; expected
-                //         var v = @@$$@";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 24));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$@";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17),
+            // (6,24): error CS1002: ; expected
+            //         var v = @@$$@";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 24));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt7()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt7()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1255,16 +1255,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$@" ";
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$@" ";
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void AtThenDollarThenAt8()
-        {
-            var text = @"
+    [Fact]
+    public void AtThenDollarThenAt8()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1273,16 +1273,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: Cannot mix verbatim and raw strings
-                //         var v = @@$$@""" """;
-                Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""""""").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            //         var v = @@$$@""" """;
+            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""""""").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarsWithoutQuotes1()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithoutQuotes1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1291,16 +1291,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$;
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$;
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarsWithoutQuotes2()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithoutQuotes2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1309,16 +1309,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$$;
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$$").WithLocation(6, 17));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,17): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$$;
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$$").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void DollarsWithQuotes1()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithQuotes1()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1327,19 +1327,19 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$";
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19),
-                // (6,21): error CS1002: ; expected
-                //         var v = $$";
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,19): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$";
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19),
+            // (6,21): error CS1002: ; expected
+            //         var v = $$";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21));
+    }
 
-        [Fact]
-        public void DollarsWithQuotes2()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithQuotes2()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1348,16 +1348,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$" ";
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,19): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$" ";
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
+    }
 
-        [Fact]
-        public void DollarsWithQuotes3()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithQuotes3()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1366,20 +1366,20 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$"" "";
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,19): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$"" "";
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
+    }
 
-        #endregion
+    #endregion
 
-        #region Multi Line
+    #region Multi Line
 
-        [Fact]
-        public void DollarsWithQuotes2_MultiLine()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithQuotes2_MultiLine()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1390,16 +1390,16 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$"
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,19): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$"
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
+    }
 
-        [Fact]
-        public void DollarsWithQuotes3_MultiLine()
-        {
-            var text = @"
+    [Fact]
+    public void DollarsWithQuotes3_MultiLine()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -1410,12 +1410,11 @@ class C
     }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS9120: Not enough quotes for raw string literal
-                //         var v = $$""
-                Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
-        }
-
-        #endregion
+        CreateCompilation(text).VerifyDiagnostics(
+            // (6,19): error CS9120: Not enough quotes for raw string literal
+            //         var v = $$""
+            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
     }
+
+    #endregion
 }
