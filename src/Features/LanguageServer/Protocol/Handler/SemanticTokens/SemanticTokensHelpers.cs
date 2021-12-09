@@ -4,11 +4,15 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -149,9 +153,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
 
-            var options = ClassificationOptions.From(document.Project);
-            var classifiedSpans = Classifier.GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
-            Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            await GetClassifiedSpansForDocumentAsync(
+                document, root, semanticModel, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -160,6 +164,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
+        }
+
+        private static async Task GetClassifiedSpansForDocumentAsync(
+            Document document,
+            SyntaxNode root,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            CancellationToken cancellationToken)
+        {
+            // Case 1 - C# and VB documents:
+            //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
+            //     classifications.
+            if (!document.IsRazorDocument())
+            {
+                var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+                await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
+                    document, textSpan, classificationService, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            // Case 2 - Generated Razor documents:
+            //     In Razor, the syntax classifier does not run on the client. This means we need to return both
+            //     syntactic and semantic classifications.
+            else
+            {
+                var isFullyLoaded = document.IsWorkspaceFullyLoaded(cancellationToken);
+                var didRetrieveTokens = await SemanticClassificationCacheUtilities.TryAddSemanticClassificationsFromCacheAsync(
+                    document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                if (didRetrieveTokens)
+                {
+                    // Case 2a - Semantic tokens are cached and the workspace isn't fully loaded:
+                    // We also have to compute the syntactic tokens and then sort.
+                    var syntaxClassificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+                    syntaxClassificationService.AddSyntacticClassifications(root, textSpan, classifiedSpans, cancellationToken);
+                }
+                else
+                {
+                    // Case 2b - Semantic tokens are not cached or workspace is fully loaded:
+                    //     There should be no need for retrieving tokens from the cache if the workspace is fully loaded.
+                    //     The cache is only applicable on solution load.
+                    var options = ClassificationOptions.From(document.Project);
+                    var computedSpans = Classifier.GetClassifiedSpans(
+                        document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
+                    classifiedSpans.AddRange(computedSpans);
+                }
+            }
+
+            // Depending on what method we use, the returned spans could be returned in order from either lowest->highest
+            // or highest->lowest TextSpan. We'll sort just to be safe.
+            classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
         }
 
         private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
@@ -370,6 +423,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
+        }
+
+        private class ClassifiedSpanComparer : IComparer<ClassifiedSpan>
+        {
+            public static readonly ClassifiedSpanComparer Instance = new();
+
+            public int Compare(ClassifiedSpan x, ClassifiedSpan y) => x.TextSpan.CompareTo(y.TextSpan);
         }
     }
 }

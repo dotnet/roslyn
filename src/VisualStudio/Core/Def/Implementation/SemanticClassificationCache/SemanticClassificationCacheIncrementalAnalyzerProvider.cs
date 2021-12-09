@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -49,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                     return;
 
                 var solution = document.Project.Solution;
+
+                // Only cache classifications in non-LSP scenarios. LSP caching is handled separately.
+                var workspaceContextService = solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                if (workspaceContextService.IsInLspEditorContext())
+                    return;
+
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client == null)
                 {

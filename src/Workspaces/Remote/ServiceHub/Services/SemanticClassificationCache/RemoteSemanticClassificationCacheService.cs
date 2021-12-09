@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
