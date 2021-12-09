@@ -268,19 +268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// <summary>
             /// Normal interpolated string that just starts with <c>$"</c>
             /// </summary>
-            Normal = 1,
+            Normal,
             /// <summary>
             /// Verbatim interpolated string that starts with <c>$@"</c> or <c>@$"</c>
             /// </summary>
-            Verbatim = 2,
+            Verbatim,
             /// <summary>
             /// Single-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
             /// </summary>
-            SingleLineRaw = 3,
+            SingleLineRaw,
             /// <summary>
             /// Multi-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
             /// </summary>
-            MultiLineRaw = 4,
+            MultiLineRaw,
         }
 
         /// <summary>
@@ -335,7 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(_lexer.TextWindow.Position != start);
 
                 openQuoteRange = start.._lexer.TextWindow.Position;
-                Debug.Assert(kind != default);
 
                 if (!succeeded)
                 {
