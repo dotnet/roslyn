@@ -492,14 +492,14 @@
         <target state="translated">继承边距</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="new">Inline Diagnostics (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">继承的接口</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
