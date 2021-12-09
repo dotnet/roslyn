@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Only bother trying to do dedentation if we have a multiline literal without errors.  There's no point
             // trying in the presence of errors as we may not even be able to determine what the dedentation should be.
-            var isMultiLineWithoutErrors = kind == Lexer.InterpolatedStringKind.MultiLineRaw && error == null;
+            var needsDedentation = kind == Lexer.InterpolatedStringKind.MultiLineRaw && error == null;
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(originalTextSpan), getCloseQuote());
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var content = PooledStringBuilder.GetInstance();
                 var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
-                var indentationWhitespace = isMultiLineWithoutErrors ? getIndentationWhitespace(originalTextSpan) : default;
+                var indentationWhitespace = needsDedentation ? getIndentationWhitespace(originalTextSpan) : default;
 
                 var currentContentStart = openQuoteRange.End;
                 for (var i = 0; i < interpolations.Count; i++)
@@ -145,7 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (text.Length == 0)
                     return null;
 
-                if (!isMultiLineWithoutErrors)
+                // If we're not dedenting then just make a standard interpolated text token.  Also, we can short-circuit
+                // if the indentation whitespace is empty (nothing to dedent in that case).
+                if (!needsDedentation || indentationWhitespace.IsEmpty)
                     return SyntaxFactory.InterpolatedStringText(MakeInterpolatedStringTextToken(kind, text.ToString()));
 
                 content.Clear();
