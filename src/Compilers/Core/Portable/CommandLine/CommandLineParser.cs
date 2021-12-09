@@ -1262,21 +1262,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         resolvedPath = enumerator.Current;
-                        if (path == "//langversion:?")
-                        {
-                            // Ugly check to see what's going on CI :(
-                            var sb = new StringBuilder();
-                            sb.Append($"directory: '{directory}', ");
-                            sb.Append($"baseDirectory: '{baseDirectory}', ");
-                            sb.Append($"resolvedDirectoryPath: '{resolvedDirectoryPath}', ");
-                            var enumeratedFiles = EnumerateFiles(resolvedDirectoryPath, pattern, searchOption).ToArray();
-                            sb.Append($"Enumerating {enumeratedFiles.Length} files: ");
-                            foreach (var enumeratedFile in enumeratedFiles)
-                            {
-                                sb.Append($"'{File.ReadAllText(enumeratedFile)}', ");
-                            }
-                            throw new Exception(sb.ToString());
-                        }
                     }
                     catch
                     {
