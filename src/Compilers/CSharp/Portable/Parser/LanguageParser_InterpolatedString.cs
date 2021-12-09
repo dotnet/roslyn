@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Add a token for text preceding the interpolation
                     builder.Add(makeContent(
                         indentationWhitespace, content, first: i == 0, last: false,
-                        originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start])!);
+                        originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
                     builder.Add(ParseInterpolation(this.Options, originalText, interpolation, kind));
                     currentContentStart = interpolation.CloseBraceRange.End;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Add a token for text following the last interpolation
                 builder.Add(makeContent(
                     indentationWhitespace, content, first: interpolations.Count == 0, last: true,
-                    originalTextSpan[currentContentStart..closeQuoteRange.Start])!);
+                    originalTextSpan[currentContentStart..closeQuoteRange.Start]));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
                 _pool.Free(builder);
