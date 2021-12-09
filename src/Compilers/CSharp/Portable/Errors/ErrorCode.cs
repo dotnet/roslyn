@@ -2015,8 +2015,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedTypeForListPattern = 8979,
         ERR_MisplacedSlicePattern = 8980,
 
-        #endregion
+        WRN_LowerCaseTypeName = 8981,
 
+        #endregion
 
         #region diagnostics introduced for C# 11.0
 

@@ -3282,7 +3282,11 @@ class C
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using var = C;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(2, 7)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
