@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return captureId;
         }
 
-        private void SpillEvalStack()
+        private void SpillEvalStack(bool spillDeclarationExpressions = false)
         {
             Debug.Assert(_startSpillingAt <= _evalStack.Count);
 #if DEBUG
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 // Declarations cannot have control flow, so we don't need to spill them.
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
-                    && operationOpt.Kind != OperationKind.DeclarationExpression
+                    && (operationOpt.Kind != OperationKind.DeclarationExpression || spillDeclarationExpressions)
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument)
                 {
@@ -6401,7 +6401,7 @@ oneMoreTime:
             // We turn the interpolated string into a call to create the handler type, a series of append calls (potentially with branches, depending on the
             // handler semantics), and then evaluate to the handler flow capture temp.
 
-            SpillEvalStack();
+            SpillEvalStack(spillDeclarationExpressions: true);
             int maxStackDepth = _evalStack.Count - 2;
 
 #if DEBUG
