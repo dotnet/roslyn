@@ -63,7 +63,7 @@
     <!-- <Metalama> -->
     <!-- TODO: Change to public version. -->
     <PostSharpBackstageSettingsVersion Condition="'$(PostSharpBackstageSettingsVersion)'==''">branch:master</PostSharpBackstageSettingsVersion>
-    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.11-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.15-preview</PostSharpEngineeringVersion>
     <!-- </Metalama> -->
   </PropertyGroup>
   <!--
