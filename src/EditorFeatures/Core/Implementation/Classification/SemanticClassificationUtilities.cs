@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                     await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, isRazorDoc: false, cancellationToken).ConfigureAwait(false);
 
                     foreach (var span in classifiedSpans)
                         context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));

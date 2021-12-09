@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.SemanticClassificationCache
             TextSpan textSpan,
             IClassificationService classificationService,
             ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            bool isRazorDoc,
             CancellationToken cancellationToken)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SemanticClassificationCache
             // all tokens.
             // Ideally, Razor will eventually run the C# syntactic classifier on their end so we can remove this
             // special casing: https://github.com/dotnet/razor-tooling/issues/5850
-            if (document.IsRazorDocument())
+            if (isRazorDoc)
             {
                 var spans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 classifiedSpans.AddRange(spans);

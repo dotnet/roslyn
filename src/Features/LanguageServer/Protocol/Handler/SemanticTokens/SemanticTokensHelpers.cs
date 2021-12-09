@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            bool isRazorDoc,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             document = frozenDocument;
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
-            await GetClassifiedSpansForDocumentAsync(document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            await GetClassifiedSpansForDocumentAsync(document, textSpan, classifiedSpans, isRazorDoc, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            bool isRazorDoc,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
             // Until then, the `AddSemanticClassificationsAsync` call below is special-cased to deal with both scenarios.
             await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
-                document, textSpan, classificationService, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                document, textSpan, classificationService, classifiedSpans, isRazorDoc, cancellationToken).ConfigureAwait(false);
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
