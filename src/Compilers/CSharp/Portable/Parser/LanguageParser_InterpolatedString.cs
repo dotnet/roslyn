@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // Add a token for text preceding the interpolation
                     builder.Add(makeContent(
-                        indentationWhitespace, content, first: i == 0, last: false,
+                        indentationWhitespace, content, isFirst: i == 0, isLast: false,
                         originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
                     builder.Add(ParseInterpolation(this.Options, originalText, interpolation, kind));
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Add a token for text following the last interpolation
                 builder.Add(makeContent(
-                    indentationWhitespace, content, first: interpolations.Count == 0, last: true,
+                    indentationWhitespace, content, isFirst: interpolations.Count == 0, isLast: true,
                     originalTextSpan[currentContentStart..closeQuoteRange.Start]));
 
                 CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> result = builder;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             InterpolatedStringContentSyntax? makeContent(
-                ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool first, bool last, ReadOnlySpan<char> text)
+                ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, ReadOnlySpan<char> text)
             {
                 if (text.Length == 0)
                     return null;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // If we're not processing the first content chunk, then we must be processing a chunk that came after
                 // an interpolation.  In that case, we need to consume up through the next newline of that chunk as
                 // content that is not subject to dedentation.
-                if (!first)
+                if (!isFirst)
                     currentIndex = ConsumeRemainingContentOnLine(content, text, currentIndex);
 
                 // We're either the first item, or we consumed up through a newline from the previous line. We're
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // If we're not on a blank line then this is bad.  That's a content line that doesn't start
                             // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
                             // we do have is a prefix of the indentation whitespace.
-                            var isBlankLine = (currentIndex == text.Length && last) || (currentIndex < text.Length && SyntaxFacts.IsNewLine(text[currentIndex]));
+                            var isBlankLine = (currentIndex == text.Length && isLast) || (currentIndex < text.Length && SyntaxFacts.IsNewLine(text[currentIndex]));
                             var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
                             if (!isLegalBlankLine)
                             {
