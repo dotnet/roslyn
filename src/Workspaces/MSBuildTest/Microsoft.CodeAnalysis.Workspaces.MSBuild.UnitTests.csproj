@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild.UnitTests</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -26,13 +26,23 @@
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="$(MicrosoftVisualStudioSetupConfigurationInteropVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+
+    <!--
+      The package "Microsoft.CodeAnalysis.Analyzer.Testing" brings in a lower version of these NuGet dependencies than is expected by the
+      NET SDK. In order to test against the same verion of NuGet as our configured SDK, we must set the version to be the same.
+     -->
+    <PackageReference Include="NuGet.Common" Version="$(NuGetCommonVersion)" />
+    <PackageReference Include="NuGet.Configuration" Version="$(NuGetConfigurationVersion)" />
+    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetProtocolVersion)" />
+    <PackageReference Include="NuGet.Versioning" Version="$(NuGetVersioningVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Xaml">
+    <Reference Include="System.Xaml" Condition="$(TargetFramework) == 'net472'">
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -59,4 +69,10 @@
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
+
+  <Target Name="_DoNotCopyMicrosoftBuildFramework" AfterTargets="ResolvePackageAssets">
+    <ItemGroup Condition="$(TargetFramework) == 'net472'">
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Framework'" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.SourceLink.Tools;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -44,14 +42,51 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var document = _pdbReader.GetDocument(handle);
                 var filePath = _pdbReader.GetString(document.Name);
-                var embeddedText = TryGetEmbeddedSourceText(handle);
-                sourceDocuments.Add(new SourceDocument(filePath, embeddedText));
+
+                var hashAlgorithmGuid = _pdbReader.GetGuid(document.HashAlgorithm);
+                var hashAlgorithm = SourceHashAlgorithms.GetSourceHashAlgorithm(hashAlgorithmGuid);
+                var checksum = _pdbReader.GetBlobContent(document.Hash);
+
+                var embeddedTextBytes = TryGetEmbeddedTextBytes(handle);
+                var sourceLinkUrl = TryGetSourceLinkUrl(handle);
+
+                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl));
             }
 
             return sourceDocuments.ToImmutable();
         }
 
-        private SourceText? TryGetEmbeddedSourceText(DocumentHandle handle)
+        private string? TryGetSourceLinkUrl(DocumentHandle handle)
+        {
+            var document = _pdbReader.GetDocument(handle);
+            if (document.Name.IsNil)
+                return null;
+
+            var documentName = _pdbReader.GetString(document.Name);
+            if (documentName is null)
+                return null;
+
+            foreach (var cdiHandle in _pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+            {
+                var cdi = _pdbReader.GetCustomDebugInformation(cdiHandle);
+                if (_pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink && !cdi.Value.IsNil)
+                {
+                    var blobReader = _pdbReader.GetBlobReader(cdi.Value);
+                    var sourceLinkJson = blobReader.ReadUTF8(blobReader.Length);
+
+                    var map = SourceLinkMap.Parse(sourceLinkJson);
+
+                    if (map.TryGetUri(documentName, out var uri))
+                    {
+                        return uri;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private byte[]? TryGetEmbeddedTextBytes(DocumentHandle handle)
         {
             var handles = _pdbReader.GetCustomDebugInformation(handle);
             foreach (var cdiHandle in handles)
@@ -60,34 +95,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var guid = _pdbReader.GetGuid(cdi.Kind);
                 if (guid == PortableCustomDebugInfoKinds.EmbeddedSource)
                 {
-                    var blob = _pdbReader.GetBlobBytes(cdi.Value);
-                    if (blob is not null)
-                    {
-                        var uncompressedSize = BitConverter.ToInt32(blob, 0);
-                        var stream = new MemoryStream(blob, sizeof(int), blob.Length - sizeof(int));
-
-                        if (uncompressedSize != 0)
-                        {
-                            var decompressed = new MemoryStream(uncompressedSize);
-
-                            using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
-                            {
-                                deflater.CopyTo(decompressed);
-                            }
-
-                            if (decompressed.Length != uncompressedSize)
-                            {
-                                return null;
-                            }
-
-                            stream = decompressed;
-                        }
-
-                        using (stream)
-                        {
-                            return EncodedStringText.Create(stream);
-                        }
-                    }
+                    return _pdbReader.GetBlobBytes(cdi.Value);
                 }
             }
 

@@ -252,6 +252,11 @@
         <target state="translated">Commentaires</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Calculer les actions rapides de manière asynchrone (expérimental, requiert un redémarrage)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Membre conteneur</target>
@@ -1027,6 +1032,11 @@
         <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Actions rapides</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Refactoring Only</target>
@@ -1050,6 +1060,11 @@
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">Supprimer les références inutilisées</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1225,6 +1240,11 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Certaines couleurs du modèle de couleurs sont substituées à la suite des changements apportés dans la page d'options Environnement &gt; Polices et couleurs. Choisissez Utiliser les valeurs par défaut dans la page Polices et couleurs pour restaurer toutes les personnalisations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="new">Sort usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

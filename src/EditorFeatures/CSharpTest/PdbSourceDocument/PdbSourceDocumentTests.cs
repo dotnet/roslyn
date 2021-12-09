@@ -2,39 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 {
-    [UseExportProvider]
-    public partial class PdbSourceDocumentTests
+    public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
     {
-        public enum Location
-        {
-            OnDisk,
-            Embedded
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
@@ -530,219 +513,167 @@ public class C
             });
         }
 
-        private static Task TestAsync(
-            Location pdbLocation,
-            Location sourceLocation,
-            string metadataSource,
-            Func<Compilation, ISymbol> symbolMatcher,
-            string[]? preprocessorSymbols = null,
-            bool buildReferenceAssembly = false,
-            bool expectNullResult = false)
+        [Fact]
+        public async Task OldPdb_NullResult()
         {
-            return RunTestAsync(path => TestAsync(
-                path,
-                pdbLocation,
-                sourceLocation,
-                metadataSource,
-                symbolMatcher,
-                preprocessorSymbols,
-                buildReferenceAssembly,
-                expectNullResult));
+            var source1 = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            var source2 = @"
+public class C
+{
+    // A change
+    public event System.EventHandler E { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                // Archive off the current PDB so we can restore it later
+                var pdbFilePath = GetPdbPath(path);
+                var archivePdbFilePath = pdbFilePath + ".old";
+                File.Move(pdbFilePath, archivePdbFilePath);
+
+                CompileTestSource(path, SourceText.From(source2, Encoding.UTF8), project, Location.OnDisk, Location.OnDisk, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Move the old file back, so the PDB is now old
+                File.Delete(pdbFilePath);
+                File.Move(archivePdbFilePath, pdbFilePath);
+
+                await GenerateFileAndVerifyAsync(project, symbol, source1, expectedSpan, expectNullResult: true);
+            });
         }
 
-        private static async Task RunTestAsync(Func<string, Task> testRunner)
+        [Theory]
+        [CombinatorialData]
+        public async Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
         {
-            var path = Path.Combine(Path.GetTempPath(), nameof(PdbSourceDocumentTests));
+            var source1 = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            var source2 = @"
+public class C
+{
+    // A change
+    public event System.EventHandler E { add { } remove { } }
+}";
 
-            try
+            await RunTestAsync(async path =>
             {
-                Directory.CreateDirectory(path);
+                MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
 
-                await testRunner(path);
-            }
-            finally
-            {
-                if (Directory.Exists(path))
-                {
-                    Directory.Delete(path, recursive: true);
-                }
-            }
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
+
+                await GenerateFileAndVerifyAsync(project, symbol, metadataSource, expectedSpan, expectNullResult: true);
+            });
         }
 
-        private static async Task TestAsync(
-            string path,
-            Location pdbLocation,
-            Location sourceLocation,
-            string metadataSource,
-            Func<Compilation, ISymbol> symbolMatcher,
-            string[]? preprocessorSymbols,
-            bool buildReferenceAssembly,
-            bool expectNullResult)
+        [Theory]
+        [InlineData(Location.Embedded, "utf-16")]
+        [InlineData(Location.Embedded, "utf-16BE")]
+        [InlineData(Location.Embedded, "utf-32")]
+        [InlineData(Location.Embedded, "utf-32BE")]
+        [InlineData(Location.Embedded, "us-ascii")]
+        [InlineData(Location.Embedded, "iso-8859-1")]
+        [InlineData(Location.Embedded, "utf-8")]
+        [InlineData(Location.OnDisk, "utf-16")]
+        [InlineData(Location.OnDisk, "utf-16BE")]
+        [InlineData(Location.OnDisk, "utf-32")]
+        [InlineData(Location.OnDisk, "utf-32BE")]
+        [InlineData(Location.OnDisk, "us-ascii")]
+        [InlineData(Location.OnDisk, "iso-8859-1")]
+        [InlineData(Location.OnDisk, "utf-8")]
+        public async Task EncodedEmbeddedSource(Location pdbLocation, string encodingWebName)
         {
-            MarkupTestFile.GetSpan(metadataSource, out var source, out var expectedSpan);
+            var source = @"
+public class C
+{
+    public event System.EventHandler E { add { } remove { } }
+}";
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(
-                path,
-                pdbLocation,
-                sourceLocation,
-                source,
-                symbolMatcher,
-                preprocessorSymbols,
-                buildReferenceAssembly,
-                windowsPdb: false);
+            var encoding = Encoding.GetEncoding(encodingWebName);
 
-            await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult);
+            await RunTestAsync(async path =>
+            {
+                using var ms = new MemoryStream(encoding.GetBytes(source));
+                var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
+
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
         }
 
-        private static async Task GenerateFileAndVerifyAsync(
-            Project project,
-            ISymbol symbol,
-            string source,
-            Text.TextSpan expectedSpan,
-            bool expectNullResult)
+        [Theory]
+        [CombinatorialData]
+        public async Task EncodedEmbeddedSource_SJIS(Location pdbLocation)
         {
-            using var workspace = (TestWorkspace)project.Solution.Workspace;
+            var source = @"
+public class C
+{
+    // ワ
+    public event System.EventHandler E { add { } remove { } }
+}";
 
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            try
+            var encoding = Encoding.GetEncoding("SJIS");
+
+            await RunTestAsync(async path =>
             {
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation: false, CancellationToken.None).ConfigureAwait(false);
+                using var ms = new MemoryStream(encoding.GetBytes(source));
+                var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-                if (expectNullResult)
-                {
-                    Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
-                    return;
-                }
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-                AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
 
-                var masWorkspace = service.TryGetWorkspace();
-
-                var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
-
-                var actual = await document.GetTextAsync();
-                var actualSpan = file!.IdentifierLocation.SourceSpan;
-
-                // Compare exact texts and verify that the location returned is exactly that
-                // indicated by expected
-                AssertEx.EqualOrDiff(source, actual.ToString());
-                Assert.Equal(expectedSpan.Start, actualSpan.Start);
-                Assert.Equal(expectedSpan.End, actualSpan.End);
-            }
-            finally
-            {
-                service.CleanupGeneratedFiles();
-                service.TryGetWorkspace()?.Dispose();
-            }
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
         }
 
-        private static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
-            string path,
-            Location pdbLocation,
-            Location sourceLocation,
-            string source,
-            Func<Compilation, ISymbol> symbolMatcher,
-            string[]? preprocessorSymbols = null,
-            bool buildReferenceAssembly = false,
-            bool windowsPdb = false)
+        [Theory]
+        [CombinatorialData]
+        public async Task EncodedEmbeddedSource_SJIS_FallbackEncoding(Location pdbLocation)
         {
-            var assemblyName = "ReferencedAssembly";
-            var sourceCodePath = GetSourceFilePath(path);
-            var dllFilePath = GetDllPath(path);
-            var pdbFilePath = GetPdbPath(path);
+            var source = @"
+public class C
+{
+    // ワ
+    public event System.EventHandler E { add { } remove { } }
+}";
 
-            var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
-                ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
-                : "";
+            var encoding = Encoding.GetEncoding("SJIS");
 
-            // We construct our own composition here because we only want the decompilation metadata as source provider
-            // to be available.
-            var composition = EditorTestCompositions.EditorFeatures
-                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
-                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
-
-            var workspace = TestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
-    </Project>
-</Workspace>", composition: composition);
-
-            var project = workspace.CurrentSolution.Projects.First();
-
-            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
-            var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
-            var parseOptions = project.ParseOptions;
-
-            var compilation = compilationFactory
-                .CreateCompilation(assemblyName, options)
-                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
-                .AddReferences(project.MetadataReferences);
-
-            IEnumerable<EmbeddedText>? embeddedTexts;
-            if (sourceLocation == Location.OnDisk)
+            await RunTestAsync(async path =>
             {
-                embeddedTexts = null;
-                File.WriteAllText(sourceCodePath, source);
-            }
-            else
-            {
-                embeddedTexts = new[] { EmbeddedText.FromSource(sourceCodePath, compilation.SyntaxTrees.First().GetText()) };
-            }
+                using var ms = new MemoryStream(encoding.GetBytes(source));
+                var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-            EmitOptions emitOptions;
-            if (buildReferenceAssembly)
-            {
-                pdbFilePath = null;
-                emitOptions = new EmitOptions(metadataOnly: true, includePrivateMembers: false);
-            }
-            else if (pdbLocation == Location.OnDisk)
-            {
-                emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: pdbFilePath);
-            }
-            else
-            {
-                pdbFilePath = null;
-                emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
-            }
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
 
-            // TODO: When supported, move this to pdbLocation
-            if (windowsPdb)
-            {
-                emitOptions = emitOptions.WithDebugInformationFormat(DebugInformationFormat.Pdb);
-            }
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
 
-            using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
-            using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
-            {
-                var result = compilation.Emit(dllStream, pdbStream, options: emitOptions, embeddedTexts: embeddedTexts);
-                Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
-            }
-
-            project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
-
-            var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-
-            var symbol = symbolMatcher(mainCompilation);
-
-            AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
-
-            return (project, symbol);
-        }
-
-        private static string GetDllPath(string path)
-        {
-            return Path.Combine(path, "reference.dll");
-        }
-
-        private static string GetSourceFilePath(string path)
-        {
-            return Path.Combine(path, "source.cs");
-        }
-
-        private static string GetPdbPath(string path)
-        {
-            return Path.Combine(path, "reference.pdb");
+                AssertEx.NotNull(actualText);
+                AssertEx.NotNull(actualText.Encoding);
+                AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
+                AssertEx.EqualOrDiff(source, actualText.ToString());
+            });
         }
     }
 }

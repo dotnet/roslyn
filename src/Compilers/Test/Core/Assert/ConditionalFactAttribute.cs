@@ -169,6 +169,19 @@ namespace Roslyn.Test.Utilities
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
+
+        private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
+        {
+            var tempDir = Path.GetTempPath();
+            var path = Path.GetFullPath(Path.Combine(tempDir, "aux.txt"));
+            return path.StartsWith(@"\\.\", StringComparison.Ordinal);
+        });
+
+        /// <summary>
+        /// Is this a version of Windows that has ancient restrictions on file names. For example 
+        /// prevents file names that are aux, com1, etc ...
+        /// </summary>
+        public static bool OperatingSystemRestrictsFileNames => s_operatingSystemRestrictsFileNames.Value;
     }
 
     public enum ExecutionArchitecture
@@ -285,6 +298,12 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !PathUtilities.IsUnixLikePlatform;
         public override string SkipReason => "Test not supported on Windows";
+    }
+
+    public class WindowsOrMacOSOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => PathUtilities.IsUnixLikePlatform && !ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on Linux";
     }
 
     public class WindowsOrLinuxOnly : ExecutionCondition

@@ -4973,7 +4973,7 @@ public class Program738490379
             string Type() => types[r.Next(types.Length)];
             string Pattern(int d = 5)
             {
-                switch (r.Next(d <= 1 ? 9 : 12))
+                switch (r.Next(d <= 1 ? 9 : 13))
                 {
                     default:
                         return Expression(); // a "constant" pattern
@@ -4989,11 +4989,13 @@ public class Program738490379
                     case 8:
                         return "(" + Pattern(d - 1) + ")";
                     case 9:
-                        return makeRecursivePattern(d);
+                        return r.Next(2) == 0 ? makeRecursivePattern(d) : makeListPattern(d);
                     case 10:
                         return Pattern(d - 1) + " and " + Pattern(d - 1);
                     case 11:
                         return Pattern(d - 1) + " or " + Pattern(d - 1);
+                    case 12:
+                        return ".." + (r.Next(2) == 0 ? Pattern(d - 1) : null);
                 }
 
                 string makeRecursivePattern(int d)
@@ -5008,6 +5010,12 @@ public class Program738490379
                         bool haveIdentifier = r.Next(2) == 0;
                         return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
                     }
+                }
+
+                string makeListPattern(int d)
+                {
+                    bool haveIdentifier = r.Next(2) == 0;
+                    return $"[{makePatternList(d - 1, false)}]{(haveIdentifier ? " x" + r.Next(10) : null)}";
                 }
 
                 string makePatternList(int d, bool propNames)

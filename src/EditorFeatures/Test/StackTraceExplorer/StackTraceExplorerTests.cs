@@ -6,12 +6,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 {
@@ -27,8 +29,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             var stackFrame = result.ParsedFrames[0] as ParsedStackFrame;
             AssertEx.NotNull(stackFrame);
 
-            var symbol = await stackFrame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            // Test that ToString() and reparsing keeps the same outcome
+            var reparsedResult = await StackTraceAnalyzer.AnalyzeAsync(stackFrame.ToString(), CancellationToken.None);
+            Assert.Single(reparsedResult.ParsedFrames);
 
+            var reparsedFrame = reparsedResult.ParsedFrames[0] as ParsedStackFrame;
+            AssertEx.NotNull(reparsedFrame);
+            StackFrameUtils.AssertEqual(stackFrame.Root, reparsedFrame.Root);
+
+            // Get the definition for the parsed frame
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, stackFrame, StackFrameSymbolPart.Method, CancellationToken.None);
+            AssertEx.NotNull(definition);
+
+            // Get the symbol that was indicated in the source code by cursor position
             var cursorDoc = workspace.Documents.Single();
             var selectedSpan = cursorDoc.SelectedSpans.Single();
             var doc = workspace.CurrentSolution.GetRequiredDocument(cursorDoc.Id);
@@ -39,7 +53,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
             var expectedSymbol = semanticModel.GetDeclaredSymbol(node);
             AssertEx.NotNull(expectedSymbol);
 
-            Assert.Equal(expectedSymbol, symbol);
+            // Compare the definition found to the definition for the test symbol
+            var expectedDefinition = expectedSymbol.ToNonClassifiedDefinitionItem(workspace.CurrentSolution, includeHiddenLocations: true);
+
+            Assert.Equal(expectedDefinition.IsExternal, definition.IsExternal);
+            AssertEx.SetEqual(expectedDefinition.NameDisplayParts, definition.NameDisplayParts);
+            AssertEx.SetEqual(expectedDefinition.OriginationParts, definition.OriginationParts);
+            AssertEx.SetEqual(expectedDefinition.Properties, definition.Properties);
+            AssertEx.SetEqual(expectedDefinition.SourceSpans, definition.SourceSpans);
+            AssertEx.SetEqual(expectedDefinition.Tags, definition.Tags);
+        }
+
+        private static void AssertContents(ImmutableArray<ParsedFrame> frames, params string[] contents)
+        {
+            Assert.Equal(contents.Length, frames.Length);
+            for (var i = 0; i < contents.Length; i++)
+            {
+                Assert.Equal(contents[i], frames[i].ToString());
+            }
         }
 
         [Fact]
@@ -58,11 +89,41 @@ namespace ConsoleApp4
 }");
         }
 
+        [Theory]
+        [InlineData("object", "Object")]
+        [InlineData("bool", "Boolean")]
+        [InlineData("sbyte", "SByte")]
+        [InlineData("byte", "Byte")]
+        [InlineData("decimal", "Decimal")]
+        [InlineData("float", "Single")]
+        [InlineData("double", "Double")]
+        [InlineData("short", "Int16")]
+        [InlineData("int", "Int32")]
+        [InlineData("long", "Int64")]
+        [InlineData("string", "String")]
+        [InlineData("ushort", "UInt16")]
+        [InlineData("uint", "UInt32")]
+        [InlineData("ulong", "UInt64")]
+        public Task TestSpecialTypes(string type, string typeName)
+        {
+            return TestSymbolFoundAsync(
+                $"at ConsoleApp.MyClass.M({typeName} value)",
+                @$"using System;
+
+namespace ConsoleApp
+{{
+    class MyClass
+    {{
+        void [|M|]({type} value) {{}}
+    }}
+}}");
+        }
+
         [Fact]
         public Task TestSymbolFound_DebuggerLine_SingleSimpleClassParam()
         {
             return TestSymbolFoundAsync(
-                "ConsoleApp4.dll!ConsoleApp4.MyClass.M(string s)",
+                "ConsoleApp4.dll!ConsoleApp4.MyClass.M(String s)",
                 @"using System;
 
 namespace ConsoleApp4
@@ -94,7 +155,7 @@ namespace ConsoleApp4
         public Task TestSymbolFound_ExceptionLine_SingleSimpleClassParam()
         {
             return TestSymbolFoundAsync(
-                "at ConsoleApp4.MyClass.M(string s)",
+                "at ConsoleApp4.MyClass.M(String s)",
                 @"using System;
 
 namespace ConsoleApp4
@@ -118,6 +179,51 @@ namespace ConsoleApp4
     class MyClass
     {
         void [|M|]() {}
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_GenericType()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`1.M(String s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T> 
+    {
+        void [|M|](string s) { }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_GenericType2()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`2.M(String s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T, U> 
+    {
+        void [|M|](string s) { }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_GenericType_GenericArg()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp.MyClass`1.M(T s)",
+                @"using System;
+namespace ConsoleApp
+{
+    class MyClass<T>
+    {
+        void [|M|](T s) { }
     }
 }");
         }
@@ -170,7 +276,130 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "The parser does not handle arity on types yet")]
+        [Fact]
+        public Task TestSymbolFound_ParameterSpacing()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M( String   s    )",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_OverloadsWithSameName()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String value)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string value)
+        {
+        }
+
+        void M(int value)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ArrayParameter()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[,] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[ , ] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter_WithSpaces2()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[,] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[ , ] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_MultidimensionArrayParameter2()
+        {
+            return TestSymbolFoundAsync(
+                "at ConsoleApp.MyClass.M(String[,][] s)",
+                @"
+namespace ConsoleApp
+{
+    class MyClass
+    {
+        void [|M|](string[,][] s)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Symbol search for nested types does not work")]
         public Task TestSymbolFound_ExceptionLine_GenericsHierarchy()
         {
             return TestSymbolFoundAsync(
@@ -183,7 +412,7 @@ namespace ConsoleApp4
     {
         public class MyInnerClass<B>
         {
-            public void M<T>(T t) 
+            public void [|M|]<T>(T t) 
             {
                 throw new Exception();
             }
@@ -457,8 +686,9 @@ class C
             Assert.Equal(1, result.ParsedFrames.Length);
 
             var parsedFame = result.ParsedFrames.OfType<ParsedStackFrame>().Single();
-            var symbol = await parsedFame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
-            Assert.Null(symbol);
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFame, StackFrameSymbolPart.Method, CancellationToken.None);
+            Assert.Null(definition);
         }
 
         [Fact]
@@ -467,31 +697,32 @@ class C
             var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw&lt;string&gt;()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(activityLogException, CancellationToken.None);
-            Assert.Equal(6, result.ParsedFrames.Length);
+            AssertContents(result.ParsedFrames,
+                @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))",
+                @"at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)",
+                @"at Microsoft.VisualStudio.Shell.Package.Initialize()",
+                @"--- End of stack trace from previous location where exception was thrown ---",
+                @"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()",
+                @"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)");
+        }
 
-            var ignoredFrame1 = result.ParsedFrames[0] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame1);
-            Assert.Equal(@"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))", ignoredFrame1.OriginalText);
+        [Fact]
+        public async Task TestMetadataSymbol()
+        {
+            var code = @"class C{}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
 
-            var parsedFrame2 = result.ParsedFrames[1] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame2);
-            Assert.Equal(@"at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)", parsedFrame2.OriginalText);
+            var result = await StackTraceAnalyzer.AnalyzeAsync("at System.String.ToLower()", CancellationToken.None);
+            Assert.Single(result.ParsedFrames);
 
-            var parsedFrame3 = result.ParsedFrames[2] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame3);
-            Assert.Equal(@"at Microsoft.VisualStudio.Shell.Package.Initialize()", parsedFrame3.OriginalText);
+            var frame = result.ParsedFrames[0] as ParsedStackFrame;
+            AssertEx.NotNull(frame);
 
-            var ignoredFrame4 = result.ParsedFrames[3] as IgnoredFrame;
-            AssertEx.NotNull(ignoredFrame4);
-            Assert.Equal(@"--- End of stack trace from previous location where exception was thrown ---", ignoredFrame4.OriginalText);
+            var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+            var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, frame, StackFrameSymbolPart.Method, CancellationToken.None);
 
-            var parsedFrame5 = result.ParsedFrames[4] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame5);
-            Assert.Equal(@"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()", parsedFrame5.OriginalText);
-
-            var parsedFrame6 = result.ParsedFrames[5] as ParsedStackFrame;
-            AssertEx.NotNull(parsedFrame6);
-            Assert.Equal(@"at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)", parsedFrame6.OriginalText);
+            AssertEx.NotNull(definition);
+            Assert.Equal("String.ToLower", definition.NameDisplayParts.ToVisibleDisplayString(includeLeftToRightMarker: false));
         }
     }
 }

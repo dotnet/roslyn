@@ -565,6 +565,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">明示的に実装されたレコードのメソッドには、コンパイラ生成と同等の '{0}' と一致するパラメーター名が必要です</target>
         <note />
       </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">基底クラスの抽出...</target>
@@ -2298,6 +2303,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Selection_not_contained_inside_a_type">
         <source>Selection not contained inside a type.</source>
         <target state="translated">選択が型の内部に含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

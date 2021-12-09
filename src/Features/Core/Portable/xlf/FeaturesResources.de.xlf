@@ -565,6 +565,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Explizit implementierte Methoden von Datensätzen müssen Parameternamen aufweisen, die mit dem vom Compiler generierten Äquivalent "{0}" übereinstimmen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="new">Explicitly inherit documentation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Basisklasse extrahieren...</target>
@@ -2298,6 +2303,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Selection_not_contained_inside_a_type">
         <source>Selection not contained inside a type.</source>
         <target state="translated">Die Auswahl ist nicht in keinem Typ enthalten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="new">Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("25");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("26");
 
         public readonly Checksum? Checksum;
 
@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var solution = document.Project.Solution;
             var database = solution.Options.GetPersistentStorageDatabase();
-            return LoadAsync(solution.Workspace.Services, DocumentKey.ToDocumentKey(document), checksum, database, GetStringTable(document.Project), cancellationToken);
+
+            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
+            return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, GetStringTable(document.Project), cancellationToken);
         }
 
         public static async Task<SyntaxTreeIndex?> LoadAsync(
-            HostWorkspaceServices services, DocumentKey documentKey, Checksum? checksum, StorageDatabase database, StringTable stringTable, CancellationToken cancellationToken)
+            IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
             try
             {
-                var persistentStorageService = services.GetPersistentStorageService(database);
-
-                var storage = await persistentStorageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
+                var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // attempt to load from persisted state

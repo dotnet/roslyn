@@ -6247,7 +6247,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureImplicitObjectCreation" xml:space="preserve">
     <value>target-typed object creation</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+  <data name="ERR_ExpressionTreeContainsPatternImplicitIndexer" xml:space="preserve">
     <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
   </data>
   <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
@@ -6727,6 +6727,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
     <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
+  <data name="IDS_FeatureListPattern" xml:space="preserve">
+    <value>list pattern</value>
+  </data>
+  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
+    <value>length pattern</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
+    <value>List patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
+    <value>Slice patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_MisplacedSlicePattern" xml:space="preserve">
+    <value>Slice patterns may only be used once and directly inside a list pattern.</value>
+  </data>
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>
@@ -6875,10 +6890,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CompileTimeCheckedOverflow_Title" xml:space="preserve">
     <value>The operation may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
+  <data name="ERR_CannotUseRefInUnmanagedCallersOnly" xml:space="preserve">
+    <value>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</value>
+  </data>
   <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
     <value>newlines in interpolations</value>
   </data>
   <data name="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers" xml:space="preserve">
     <value>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</value>
+  </data>
+  <data name="ERR_CannotBeMadeNullable" xml:space="preserve">
+    <value>'{0}' cannot be made nullable.</value>
   </data>
 </root>

@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnusedReferences;
@@ -38,17 +39,11 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class ServiceDescriptors
     {
-        /// <summary>
-        /// Brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
-        /// </summary>
-        internal const string ServiceNameTopLevelPrefix = "Microsoft.VisualStudio.";
-
         internal const string ComponentName = "LanguageServices";
 
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        internal const string Prefix = "roslyn";
         private const string Suffix64 = "64";
         private const string SuffixServerGC = "S";
         private const string SuffixCoreClr = "Core";
@@ -83,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
+            (typeof(IRemoteStackTraceExplorerService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;
@@ -102,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));
         }
 
-        internal static string GetServiceName(Type serviceInterface)
+        internal static string GetSimpleName(Type serviceInterface)
         {
             Contract.ThrowIfFalse(serviceInterface.IsInterface);
             var interfaceName = serviceInterface.Name;
@@ -112,18 +108,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
         }
 
-        internal string GetQualifiedServiceName(Type serviceInterface)
-            => ServiceNameTopLevelPrefix + _componentName + "." + GetServiceName(serviceInterface);
-
         private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
-            var qualifiedServiceName = GetQualifiedServiceName(serviceInterface);
-            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + SuffixCoreClr + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
+            var simpleName = GetSimpleName(serviceInterface);
+            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
 
             return (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC);
         }
@@ -143,37 +136,11 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        internal static string GetFeatureDisplayName(string qualifiedServiceName)
-        {
-            var prefixLength = qualifiedServiceName.LastIndexOf('.') + 1;
-            Contract.ThrowIfFalse(prefixLength > 0);
-
-            int suffixLength;
-            if (qualifiedServiceName.EndsWith(SuffixCoreClr + Suffix64, StringComparison.Ordinal))
-            {
-                suffixLength = SuffixCoreClr.Length + Suffix64.Length;
-            }
-            else if (qualifiedServiceName.EndsWith(SuffixCoreClr + Suffix64 + SuffixServerGC, StringComparison.Ordinal))
-            {
-                suffixLength = SuffixCoreClr.Length + Suffix64.Length + SuffixServerGC.Length;
-            }
-            else if (qualifiedServiceName.EndsWith(Suffix64, StringComparison.Ordinal))
-            {
-                suffixLength = Suffix64.Length;
-            }
-            else if (qualifiedServiceName.EndsWith(Suffix64 + SuffixServerGC, StringComparison.Ordinal))
-            {
-                suffixLength = Suffix64.Length + SuffixServerGC.Length;
-            }
-            else
-            {
-                suffixLength = 0;
-            }
-
-            var shortName = qualifiedServiceName.Substring(prefixLength, qualifiedServiceName.Length - prefixLength - suffixLength);
-
-            return RemoteWorkspacesResources.GetResourceString("FeatureName_" + shortName);
-        }
+        /// <summary>
+        /// <paramref name="serviceName"/> is a short service name, e.g. "EditAndContinue".
+        /// </summary>
+        internal static string GetFeatureDisplayName(string serviceName)
+            => RemoteWorkspacesResources.GetResourceString("FeatureName_" + serviceName);
 
         internal TestAccessor GetTestAccessor()
             => new(this);

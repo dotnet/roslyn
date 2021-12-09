@@ -18,15 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IClassificationFormatMap _formatMap;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IThreadingContext _threadingContext;
-        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
 
-        public StackTraceExplorerRootViewModel(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
+        public StackTraceExplorerRootViewModel(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _formatMap = formatMap;
             _typeMap = typeMap;
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = new();
@@ -45,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 ? 0
                 : Tabs.Max(t => t.NameIndex);
 
-            var newTab = new StackTraceExplorerTab(_threadingContext, _workspace, _formatMap, _typeMap, _streamingFindUsagesPresenter, highestIndex + 1);
+            var newTab = new StackTraceExplorerTab(_threadingContext, _workspace, _formatMap, _typeMap, highestIndex + 1);
             Tabs.Add(newTab);
 
             SelectedTab = newTab;

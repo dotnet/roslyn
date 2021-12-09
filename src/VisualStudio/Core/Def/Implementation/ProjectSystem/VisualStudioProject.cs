@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -37,11 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         /// <summary>
-        /// A gate taken for all mutation of any mutable field in this type.
+        /// A semaphore taken for all mutation of any mutable field in this type.
         /// </summary>
         /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
         /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-        private readonly object _gate = new();
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
         /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
@@ -55,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new();
         private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new();
+
+        /// <summary>
+        /// The list of <see cref="VisualStudioAnalyzer"/> that will be removed in this batch. They have not yet
+        /// been disposed, and will be disposed once the batch is applied.
+        /// </summary>
         private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
         private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
@@ -199,38 +205,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                // If nothing is changing, we can skip entirely
-                if (object.Equals(field, newValue))
-                {
-                    return;
-                }
+                ChangeProjectProperty_NoLock(ref field, newValue, withNewValue, logThrowAwayTelemetry);
+            }
+        }
 
-                field = newValue;
+        private void ChangeProjectProperty_NoLock<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
+        {
+            // If nothing is changing, we can skip entirely
+            if (object.Equals(field, newValue))
+            {
+                return;
+            }
 
-                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-                // fully loaded.
-                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
-                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+            field = newValue;
 
-                // We only log telemetry during solution open
-                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
-                {
-                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
-                }
+            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+            // fully loaded.
+            var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+            var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
 
-                if (_activeBatchScopes > 0)
-                {
-                    _projectPropertyModificationsInBatch.Add(withNewValue);
-                }
-                else
-                {
-                    _workspace.ApplyChangeToWorkspace(Id, withNewValue);
-                }
+            // We only log telemetry during solution open
+            if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+            {
+                TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+            }
+
+            if (_activeBatchScopes > 0)
+            {
+                _projectPropertyModificationsInBatch.Add(withNewValue);
+            }
+            else
+            {
+                _workspace.ApplyChangeToWorkspace(Id, withNewValue);
             }
         }
 
@@ -268,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ChangeProjectOutputPath(ref string? field, string? newValue, Func<Solution, Solution> withNewValue)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 // Skip if nothing changing
                 if (field == newValue)
@@ -286,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _workspace.AddProjectOutputPath(Id, newValue);
                 }
 
-                ChangeProjectProperty(ref field, newValue, withNewValue);
+                ChangeProjectProperty_NoLock(ref field, newValue, withNewValue);
             }
         }
 
@@ -416,18 +427,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
         }
 
+        private bool HasBeenRemoved => !_workspace.CurrentSolution.ContainsProject(Id);
+
         #region Batching
 
         public BatchScope CreateBatchScope()
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 _activeBatchScopes++;
                 return new BatchScope(this);
             }
         }
 
-        public sealed class BatchScope : IDisposable
+        public sealed class BatchScope : IDisposable, IAsyncDisposable
         {
             private readonly VisualStudioProject _project;
 
@@ -443,18 +456,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                 {
-                    _project.OnBatchScopeDisposed();
+                    // If we're passing useAsync: false, we should always get a task that was already completed.
+#pragma warning disable CA2012 // Use ValueTasks correctly
+                    var valueTask = _project.OnBatchScopeDisposedMaybeAsync(useAsync: false);
+                    Contract.ThrowIfFalse(valueTask.IsCompleted);
+                    if (valueTask.IsFaulted)
+                    {
+                        throw valueTask.AsTask().Exception;
+                    }
+#pragma warning restore CA2012 // Use ValueTasks correctly
+                }
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
+                {
+                    return _project.OnBatchScopeDisposedMaybeAsync(useAsync: true);
+                }
+                else
+                {
+                    return ValueTaskFactory.CompletedTask;
                 }
             }
         }
 
-        private void OnBatchScopeDisposed()
+        private async ValueTask OnBatchScopeDisposedMaybeAsync(bool useAsync)
         {
-            lock (_gate)
+            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 _activeBatchScopes--;
 
                 if (_activeBatchScopes > 0)
+                {
+                    return;
+                }
+
+                // If the project was already removed, we'll just ignore any further requests to complete batches.
+                if (HasBeenRemoved)
                 {
                     return;
                 }
@@ -464,7 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
                 var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
-                _workspace.ApplyBatchChangeToWorkspace(solution =>
+                await _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solution =>
                 {
                     var solutionChanges = new SolutionChangeAccumulator(startingSolution: solution);
 
@@ -589,6 +628,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solutionChanges.UpdateSolutionForProjectAction(
                             Id,
                             newSolution: solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference()));
+
+                        analyzerReference.Dispose();
                     }
 
                     ClearAndZeroCapacity(_analyzersRemovedInBatch);
@@ -604,21 +645,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
 
                     return solutionChanges;
-                });
+                }).ConfigureAwait(false);
 
                 foreach (var (documentId, textContainer) in documentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAdditionalDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer));
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
                 }
 
                 // Check for those files being opened to start wire-up if necessary
@@ -733,7 +774,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (_dynamicFilePathMaps.ContainsKey(dynamicFilePath))
                 {
@@ -757,7 +798,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // If fileInfo is not null, that means we found a provider so this should be not-null as well
                     // since we had to go through the earlier assignment.
                     Contract.ThrowIfNull(providerForFileInfo);
-                    _sourceFiles.AddDynamicFile(providerForFileInfo, fileInfo, folders);
+                    _sourceFiles.AddDynamicFile_NoLock(providerForFileInfo, fileInfo, folders);
                 }
             }
         }
@@ -778,7 +819,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             IDynamicFileInfoProvider provider;
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var sourceFilePath))
                 {
@@ -794,7 +835,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                provider = _sourceFiles.RemoveDynamicFile(sourceFilePath);
+                provider = _sourceFiles.RemoveDynamicFile_NoLock(sourceFilePath);
             }
 
             // provider is free-threaded. so fine to call Wait rather than JTF
@@ -806,7 +847,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             string? fileInfoPath;
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
                 {
@@ -830,28 +871,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            var visualStudioAnalyzer = new VisualStudioAnalyzer(
-                fullPath,
-                _hostDiagnosticUpdateSource,
-                Id,
-                Language);
-
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (_analyzerPathsToAnalyzers.ContainsKey(fullPath))
                 {
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                 }
 
-                _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
-
-                if (_activeBatchScopes > 0)
+                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
+                // it once we apply the batch
+                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == fullPath);
+                if (analyzerPendingRemoval != null)
                 {
-                    _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
+                    _analyzerPathsToAnalyzers.Add(fullPath, analyzerPendingRemoval);
                 }
                 else
                 {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    // Nope, we actually need to make a new one.
+                    var visualStudioAnalyzer = new VisualStudioAnalyzer(
+                        fullPath,
+                        _hostDiagnosticUpdateSource,
+                        Id,
+                        Language);
+
+                    _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
+
+                    if (_activeBatchScopes > 0)
+                    {
+                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                    }
+                    else
+                    {
+                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                    }
                 }
             }
         }
@@ -863,7 +916,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException("message", nameof(fullPath));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 if (!_analyzerPathsToAnalyzers.TryGetValue(fullPath, out var visualStudioAnalyzer))
                 {
@@ -874,11 +927,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_activeBatchScopes > 0)
                 {
-                    _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
+                    // it in the first place.
+                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                    {
+                        // Nothing is holding onto this analyzer now, so get rid of it
+                        visualStudioAnalyzer.Dispose();
+                    }
+                    else
+                    {
+                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                    }
                 }
                 else
                 {
                     _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
+                    visualStudioAnalyzer.Dispose();
                 }
             }
         }
@@ -901,9 +965,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                if (ContainsMetadataReference(fullPath, properties))
+                if (ContainsMetadataReference_NoLock(fullPath, properties))
                 {
                     throw new InvalidOperationException("The metadata reference has already been added to the project.");
                 }
@@ -939,10 +1003,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public bool ContainsMetadataReference(string fullPath, MetadataReferenceProperties properties)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                return GetPropertiesForMetadataReference(fullPath).Contains(properties);
+                return ContainsMetadataReference_NoLock(fullPath, properties);
             }
+        }
+
+        private bool ContainsMetadataReference_NoLock(string fullPath, MetadataReferenceProperties properties)
+        {
+            Debug.Assert(_gate.CurrentCount == 0);
+
+            return _allMetadataReferences.TryGetValue(fullPath, out var propertiesList) && propertiesList.Contains(properties);
         }
 
         /// <summary>
@@ -951,7 +1022,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public ImmutableArray<MetadataReferenceProperties> GetPropertiesForMetadataReference(string fullPath)
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
             }
@@ -964,9 +1035,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                if (!ContainsMetadataReference(fullPath, properties))
+                if (!ContainsMetadataReference_NoLock(fullPath, properties))
                 {
                     throw new InvalidOperationException("The metadata reference does not exist in this project.");
                 }
@@ -1016,9 +1087,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                if (ContainsProjectReference(projectReference))
+                if (ContainsProjectReference_NoLock(projectReference))
                 {
                     throw new ArgumentException("The project reference has already been added to the project.");
                 }
@@ -1044,25 +1115,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
-                if (_projectReferencesRemovedInBatch.Contains(projectReference))
-                {
-                    return false;
-                }
-
-                if (_projectReferencesAddedInBatch.Contains(projectReference))
-                {
-                    return true;
-                }
-
-                return _workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences.Contains(projectReference);
+                return ContainsProjectReference_NoLock(projectReference);
             }
+        }
+
+        private bool ContainsProjectReference_NoLock(ProjectReference projectReference)
+        {
+            Debug.Assert(_gate.CurrentCount == 0);
+
+            if (_projectReferencesRemovedInBatch.Contains(projectReference))
+            {
+                return false;
+            }
+
+            if (_projectReferencesAddedInBatch.Contains(projectReference))
+            {
+                return true;
+            }
+
+            return _workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences.Contains(projectReference);
         }
 
         public IReadOnlyList<ProjectReference> GetProjectReferences()
         {
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 // If we're not batching, then this is cheap: just fetch from the workspace and we're done
                 var projectReferencesInWorkspace = _workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences;
@@ -1088,8 +1166,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
+                if (!ContainsProjectReference_NoLock(projectReference))
+                {
+                    throw new ArgumentException("The project does not contain that project reference.");
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     if (!_projectReferencesAddedInBatch.Remove(projectReference))
@@ -1108,10 +1191,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveFromWorkspace()
         {
-            _documentFileChangeContext.Dispose();
-
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
+                if (!_workspace.CurrentSolution.ContainsProject(Id))
+                {
+                    throw new InvalidOperationException("The project has already been removed.");
+                }
+
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
@@ -1120,6 +1206,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _eventSubscriptionTracker.Clear();
             }
+
+            _documentFileChangeContext.Dispose();
 
             IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
 
@@ -1138,6 +1226,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (PortableExecutableReference reference in remainingMetadataReferences)
             {
                 _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
+            }
+
+            // Dispose of any analyzers that might still be around to remove their load diagnostics
+            foreach (var visualStudioAnalyzer in _analyzerPathsToAnalyzers.Values.Concat(_analyzersRemovedInBatch))
+            {
+                visualStudioAnalyzer.Dispose();
             }
         }
 
@@ -1196,7 +1290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// and additional files.
         /// </summary>
         /// <remarks>This class should be free-threaded, and any synchronization is done via <see cref="VisualStudioProject._gate"/>.
-        /// This class is otehrwise free to operate on private members of <see cref="_project"/> if needed.</remarks>
+        /// This class is otherwise free to operate on private members of <see cref="_project"/> if needed.</remarks>
         private sealed class BatchingDocumentCollection
         {
             private readonly VisualStudioProject _project;
@@ -1269,7 +1363,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     filePath: fullPath,
                     isGenerated: false);
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     if (_documentPathsToDocumentIds.ContainsKey(fullPath))
                     {
@@ -1316,7 +1410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     designTimeOnly: designTimeOnly,
                     documentServiceProvider: documentServiceProvider);
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     if (_sourceTextContainersToDocumentIds.ContainsKey(textContainer))
                     {
@@ -1343,7 +1437,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         _project._workspace.ApplyChangeToWorkspace(w =>
                         {
-                            _project._workspace.AddDocumentToDocumentsNotFromFiles(documentInfo.Id);
+                            _project._workspace.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
                             _documentAddAction(w, documentInfo);
                             w.OnDocumentOpened(documentInfo.Id, textContainer);
                         });
@@ -1353,68 +1447,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
+            public void AddDynamicFile_NoLock(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
+                Debug.Assert(_project._gate.CurrentCount == 0);
+
                 var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.NullToEmpty());
 
                 // Generally, DocumentInfo.FilePath can be null, but we always have file paths for dynamic files.
                 Contract.ThrowIfNull(documentInfo.FilePath);
                 var documentId = documentInfo.Id;
 
-                lock (_project._gate)
+                var filePath = documentInfo.FilePath;
+                if (_documentPathsToDocumentIds.ContainsKey(filePath))
                 {
-                    var filePath = documentInfo.FilePath;
-                    if (_documentPathsToDocumentIds.ContainsKey(filePath))
-                    {
-                        throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
-                    }
+                    throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
+                }
 
-                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
-                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
+                // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
+                _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
-                    _documentPathsToDocumentIds.Add(filePath, documentId);
+                _documentPathsToDocumentIds.Add(filePath, documentId);
 
-                    _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
+                _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
 
-                    if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
-                    {
-                        // subscribe to the event when we use this provider the first time
-                        fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
-                    }
+                if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
+                {
+                    // subscribe to the event when we use this provider the first time
+                    fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
+                }
 
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsAddedInBatch.Add(documentInfo);
-                    }
-                    else
-                    {
-                        // right now, assumption is dynamically generated file can never be opened in editor
-                        _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                    }
+                if (_project._activeBatchScopes > 0)
+                {
+                    _documentsAddedInBatch.Add(documentInfo);
+                }
+                else
+                {
+                    // right now, assumption is dynamically generated file can never be opened in editor
+                    _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
                 }
             }
 
-            public IDynamicFileInfoProvider RemoveDynamicFile(string fullPath)
+            public IDynamicFileInfoProvider RemoveDynamicFile_NoLock(string fullPath)
             {
+                Debug.Assert(_project._gate.CurrentCount == 0);
+
                 if (string.IsNullOrEmpty(fullPath))
                 {
                     throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
                 }
 
-                lock (_project._gate)
+                if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
+                    !_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
                 {
-                    if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
-                        !_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
-                    {
-                        throw new ArgumentException($"'{fullPath}' is not a dynamic file of this project.");
-                    }
-
-                    _documentIdToDynamicFileInfoProvider.Remove(documentId);
-
-                    RemoveFileInternal(documentId, fullPath);
-
-                    return fileInfoProvider;
+                    throw new ArgumentException($"'{fullPath}' is not a dynamic file of this project.");
                 }
+
+                _documentIdToDynamicFileInfoProvider.Remove(documentId);
+
+                RemoveFileInternal(documentId, fullPath);
+
+                return fileInfoProvider;
             }
 
             public void RemoveFile(string fullPath)
@@ -1424,7 +1516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
                 }
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId))
                     {
@@ -1479,7 +1571,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentNullException(nameof(textContainer));
                 }
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     if (!_sourceTextContainersToDocumentIds.TryGetValue(textContainer, out var documentId))
                     {
@@ -1516,7 +1608,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // TODO: Can't we just remove the document without closing it?
                                 w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
                                 _documentRemoveAction(w, documentId);
-                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles(documentId);
+                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
                             });
                         }
                     }
@@ -1541,7 +1633,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
                 }
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     return _documentPathsToDocumentIds.ContainsKey(fullPath);
                 }
@@ -1557,15 +1649,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath. ex) dynamic file</param>
             public void ProcessFileChange(string projectSystemFilePath, string workspaceFilePath)
             {
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
+                    // If our project has already been removed, this is a stale notification, and we can disregard.
+                    if (_project.HasBeenRemoved)
+                    {
+                        return;
+                    }
+
                     if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
                     {
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock
-
+                        // check without taking the main workspace lock. We don't have to check for documents removed in
+                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                         if (_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
                             return;
@@ -1621,7 +1719,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentOutOfRangeException("The specified files are empty.", nameof(filePaths));
                 }
 
-                lock (_project._gate)
+                using (_project._gate.DisposableWait())
                 {
                     if (_documentPathsToDocumentIds.Count != filePaths.Length)
                     {
@@ -1648,14 +1746,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyBatchChangeToWorkspace(solution =>
-                        {
-                            var solutionChanges = new SolutionChangeAccumulator(solution);
-                            solutionChanges.UpdateSolutionForProjectAction(
-                                _project.Id,
-                                solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
-                            return solutionChanges;
-                        });
+                        _project._workspace.ApplyChangeToWorkspace(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
                     }
                 }
             }

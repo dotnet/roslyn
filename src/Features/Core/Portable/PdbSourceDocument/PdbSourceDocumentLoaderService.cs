@@ -4,44 +4,169 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbSourceDocumentLoaderService)), Shared]
     internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
+        private const int SourceLinkTimeout = 1000;
+
+        /// <summary>
+        /// Lazy import ISourceLinkService because it can cause debugger 
+        /// binaries to be eagerly loaded even if they are never used.
+        /// </summary>
+        private readonly Lazy<ISourceLinkService?> _sourceLinkService;
+
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentLoaderService()
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
+        public PdbSourceDocumentLoaderService([Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService)
         {
+            _sourceLinkService = sourceLinkService;
         }
 
-        public Task<TextLoader?> LoadSourceDocumentAsync(SourceDocument sourceDocument, CancellationToken cancellationToken)
+        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
-            // If we already have the embedded text then use that directly
-            if (sourceDocument.EmbeddedText is not null)
+            // First we try getting "local" files, either from embedded source or a local file on disk
+            // and if they don't work we call the debugger to download a file from SourceLink info
+            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding) ??
+                TryGetOriginalFile(sourceDocument, encoding) ??
+                await TryGetSourceLinkFileAsync(sourceDocument, encoding, logger, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding)
+        {
+            if (sourceDocument.EmbeddedTextBytes is null)
+                return null;
+
+            var filePath = Path.Combine(tempFilePath, Path.GetFileName(sourceDocument.FilePath));
+
+            // We might have already navigated to this file before, so it might exist, but
+            // we still need to re-validate the checksum and make sure its not the wrong file
+            if (File.Exists(filePath) &&
+                LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false) is { } existing)
             {
-                var textAndVersion = TextAndVersion.Create(sourceDocument.EmbeddedText, VersionStamp.Default, sourceDocument.FilePath);
-                return Task.FromResult<TextLoader?>(TextLoader.From(textAndVersion));
+                return existing;
             }
 
-            // Otherwise, check the easiest (but most unlikely) case which is the document exists on the disk
+            var embeddedTextBytes = sourceDocument.EmbeddedTextBytes;
+            var uncompressedSize = BitConverter.ToInt32(embeddedTextBytes, 0);
+            var stream = new MemoryStream(embeddedTextBytes, sizeof(int), embeddedTextBytes.Length - sizeof(int));
+
+            if (uncompressedSize != 0)
+            {
+                var decompressed = new MemoryStream(uncompressedSize);
+
+                using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
+                {
+                    deflater.CopyTo(decompressed);
+                }
+
+                if (decompressed.Length != uncompressedSize)
+                {
+                    return null;
+                }
+
+                stream = decompressed;
+            }
+
+            if (stream is not null)
+            {
+                // Even though Roslyn supports loading SourceTexts from a stream, Visual Studio requires
+                // a file to exist on disk so we have to write embedded source to a temp file.
+                using (stream)
+                {
+                    try
+                    {
+                        stream.Position = 0;
+                        using (var file = File.OpenWrite(filePath))
+                        {
+                            stream.CopyTo(file);
+                        }
+
+                        new FileInfo(filePath).IsReadOnly = true;
+                    }
+                    catch (IOException)
+                    {
+                        // TODO: Log message to inform the user what went wrong: https://github.com/dotnet/roslyn/issues/57352
+                        return null;
+                    }
+                }
+
+                return LoadSourceFile(filePath, sourceDocument, encoding, ignoreChecksum: false);
+            }
+
+            return null;
+        }
+
+        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        {
+            if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
+                return null;
+
+            // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
+            var relativePath = Path.GetFileName(sourceDocument.FilePath);
+
+            var delay = Task.Delay(SourceLinkTimeout, cancellationToken);
+            var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
+
+            var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
+
+            if (winner == sourceFileTask)
+            {
+                var sourceFile = await sourceFileTask.ConfigureAwait(false);
+                if (sourceFile is not null)
+                {
+                    // TODO: Log results from sourceFile.Log: https://github.com/dotnet/roslyn/issues/57352
+                    // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
+                    return LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, ignoreChecksum: true);
+                }
+                else
+                {
+                    // TODO: Log the timeout: https://github.com/dotnet/roslyn/issues/57352
+                }
+            }
+
+            return null;
+        }
+
+        private static SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding)
+        {
             if (File.Exists(sourceDocument.FilePath))
             {
-                // TODO: Make sure the hash of the file is correct: https://github.com/dotnet/roslyn/issues/57351
-                return Task.FromResult<TextLoader?>(new FileTextLoader(sourceDocument.FilePath, Encoding.UTF8));
+                return LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, ignoreChecksum: false);
             }
 
-            // TODO: Call the debugger to download the file
-            // Maybe they'll download to a temp file, in which case this method could return a string
-            // or maybe they'll return a stream, in which case we could create a new StreamTextLoader
+            return null;
+        }
 
-            return Task.FromResult<TextLoader?>(null);
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, bool ignoreChecksum)
+        {
+            return IOUtilities.PerformIO(() =>
+            {
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+
+                var sourceText = SourceText.From(stream, encoding, sourceDocument.HashAlgorithm, throwIfBinaryDetected: true);
+
+                var fileChecksum = sourceText.GetChecksum();
+                if (ignoreChecksum || fileChecksum.SequenceEqual(sourceDocument.Checksum))
+                {
+                    var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
+                    var textLoader = TextLoader.From(textAndVersion);
+                    return new SourceFileInfo(filePath, textLoader);
+                }
+
+                return null;
+            });
         }
     }
 }

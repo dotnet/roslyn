@@ -67,9 +67,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(VsMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(MockDiagnosticUpdateSourceRegistrationService),
                 GetType(HostDiagnosticUpdateSource),
-                GetType(HierarchyItemToProjectIdMap))
+                GetType(HierarchyItemToProjectIdMap),
+                GetType(DiagnosticService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
@@ -274,12 +274,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Friend Async Function RaiseFileChangeAsync(path As String) As Task
+        Friend Async Function GetFileChangeServiceAsync() As Task(Of MockVsFileChangeEx)
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
             Dim mockFileChangeService = Assert.IsType(Of MockVsFileChangeEx)(ServiceProvider.GetService(GetType(SVsFileChangeEx)))
             Await ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync()
-            mockFileChangeService.FireUpdate(path)
+            Return mockFileChangeService
+        End Function
+
+        Friend Async Function RaiseFileChangeAsync(path As String) As Task
+            Dim service = Await GetFileChangeServiceAsync()
+            service.FireUpdate(path)
+        End Function
+
+        ''' <inheritdoc cref="MockVsFileChangeEx.FireStaleUpdate(String, Action)" />
+        Friend Async Function RaiseStaleFileChangeAsync(path As String, unsubscribingAction As Action) As Task
+            Dim service = Await GetFileChangeServiceAsync()
+            service.FireStaleUpdate(path, unsubscribingAction)
         End Function
 
         Private Class MockVsSmartOpenScope

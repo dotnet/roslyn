@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -59,6 +60,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public LspWorkspaceManager GetLspWorkspaceManager() => _queue._lspWorkspaceManager;
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
+
+            public async Task WaitForProcessingToStopAsync()
+            {
+                await _queue._queueProcessingTask.ConfigureAwait(false);
+            }
+
+            /// <summary>
+            /// Test only method to validate that remaining items in the queue are cancelled.
+            /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations
+            /// are done before calling.
+            /// </summary>
+            public async Task<bool> AreAllItemsCancelledUnsafeAsync()
+            {
+                while (!_queue._queue.IsEmpty)
+                {
+                    var (_, cancellationToken) = await _queue._queue.DequeueAsync().ConfigureAwait(false);
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

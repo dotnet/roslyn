@@ -236,6 +236,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRelationalPatternOperation((BoundRelationalPattern)boundNode);
                 case BoundKind.TypePattern:
                     return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
+                case BoundKind.SlicePattern:
+                    return CreateBoundSlicePatternOperation((BoundSlicePattern)boundNode);
+                case BoundKind.ListPattern:
+                    return CreateBoundListPatternOperation((BoundListPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -300,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -314,10 +318,13 @@ namespace Microsoft.CodeAnalysis.Operations
                                 break;
                         }
                     }
-
                     ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
-                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
-
+                    ITypeSymbol? type = boundNode switch
+                    {
+                        BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                        _ => null
+                    };
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
@@ -453,16 +460,16 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
-            ImmutableArray<IOperation> children;
 
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
+                ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            children = GetIOperationChildren(boundFunctionPointerInvocation);
-            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+            var pointer = Create(boundFunctionPointerInvocation.InvokedExpression);
+            var arguments = DeriveArguments(boundFunctionPointerInvocation);
+            return new FunctionPointerInvocationOperation(pointer, arguments, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
@@ -2368,6 +2375,33 @@ namespace Microsoft.CodeAnalysis.Operations
                 semanticModel: _semanticModel,
                 syntax: boundTypePattern.Syntax,
                 isImplicit: boundTypePattern.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
+        {
+            return new SlicePatternOperation(
+                sliceSymbol: boundNode.Pattern is null ? null :
+                    Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                pattern: (IPatternOperation?)Create(boundNode.Pattern),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
+        {
+            return new ListPatternOperation(
+                lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),
+                indexerSymbol: Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
+                declaredSymbol: boundNode.Variable.GetPublicSymbol(),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundNegatedPatternOperation(BoundNegatedPattern boundNegatedPattern)
