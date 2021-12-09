@@ -1,5 +1,11 @@
 ﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
+
+   <!-- <Metalama> -->
+    <Import Sdk="PostSharp.Engineering.Sdk" Project="Assets.props" />
+    <!-- </Metalama> -->
+ 
+
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
 
@@ -11,15 +17,14 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <!-- <Metalama> -->
     <PackageDescription>
-      PostSharp project "Metalama" compiler package.
+      Metalama compiler package.
       Referencing this package will cause the project to be built using the Metalama compiler contained in the package, as opposed to the version of the C# compiler installed with MSBuild.
       This package is not meant to be used directly and only serves as a dependency for Metalama.Framework and Metalama.Framework.Sdk.
-
-      This package requires either MSBuild 16.3 and .NET Framework 4.7.2+ or .NET Core 3.1+.
     </PackageDescription>
+
     
-    <PackageIcon>PostSharpIcon.png</PackageIcon>
-    <PackageIconFullPath>$(MSBuildThisFileDirectory)..\..\Metalama\PostSharpIcon.png</PackageIconFullPath>
+    <PackageIcon>metalama.png</PackageIcon>
+    <PackageIconFullPath>$(AssetsDirectory)\metalama.png</PackageIconFullPath>
     <!-- </Metalama> -->
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->

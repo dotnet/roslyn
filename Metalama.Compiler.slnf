@@ -54,6 +54,7 @@
       "src\\Interactive\\Host\\Microsoft.CodeAnalysis.InteractiveHost.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package.csproj",
+      "src\\NuGet\\Microsoft.CodeAnalysis.Scripting.Package.csproj",
       "src\\NuGet\\Microsoft.NETCore.Compilers\\Microsoft.NETCore.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.Net.Compilers.Toolset\\Metalama.Compiler.csproj",
       "src\\NuGet\\Microsoft.Net.Compilers\\Microsoft.Net.Compilers.Package.csproj",

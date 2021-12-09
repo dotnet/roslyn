@@ -198,3 +198,5 @@ publish/
 # Metalama
 /tools/
 Metalama.Compiler.Import.props
+*.g.props
+/dependencies/
