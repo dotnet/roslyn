@@ -3465,12 +3465,12 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IListPatternOperation : IPatternOperation
     {
         /// <summary>
-        /// The <c>Length</c> or <c>Count</c> property that is being used to fetch the length value.
+        /// The <c>Length</c> or <c>Count</c> property that is used to fetch the length value.
         /// Returns <c>null</c> if no such property is found.
         /// </summary>
         ISymbol? LengthSymbol { get; }
         /// <summary>
-        /// The indexer that is being used to fetch elements.
+        /// The indexer that is used to fetch elements.
         /// Returns <c>null</c> for an array input.
         /// </summary>
         ISymbol? IndexerSymbol { get; }
@@ -3506,7 +3506,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IPatternOperation? Pattern { get; }
     }
     /// <summary>
-    /// Represents a reference to an implicit System.Index or System.Range indexer over non-array type.
+    /// Represents a reference to an implicit System.Index or System.Range indexer over a non-array type.
     /// <para>
     ///   Current usage:
     ///   (1) C# implicit System.Index or System.Range indexer reference expression.
@@ -3531,11 +3531,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Argument { get; }
         /// <summary>
-        /// The <c>Length</c> or <c>Count</c> property that can be used to fetch the length value.
+        /// The <c>Length</c> or <c>Count</c> property that might be used to fetch the length value.
         /// </summary>
         ISymbol LengthSymbol { get; }
         /// <summary>
-        /// Symbol for the underlying indexer or a slice method that is being used to implement the implicit indexer.
+        /// Symbol for the underlying indexer or a slice method that is used to implement the implicit indexer.
         /// </summary>
         ISymbol IndexerSymbol { get; }
     }
