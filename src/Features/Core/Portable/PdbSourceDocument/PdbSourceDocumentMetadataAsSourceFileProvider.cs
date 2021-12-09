@@ -58,7 +58,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
-            _logger?.Clear();
+            if (_logger is not null)
+            {
+                // We block to clear the log from the previous operation, so things don't get confusing
+                // if the log messages are delayed
+                await _logger.ClearAsync().ConfigureAwait(false);
+            }
+
             _logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
 
             // If this is a reference assembly then we won't have the right information available, so bail out
