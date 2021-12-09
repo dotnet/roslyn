@@ -69,11 +69,26 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
 
-                await CacheSemanticClassificationsHelperAsync(document, cancellationToken).ConfigureAwait(false);
+                await CacheSemanticClassificationsAsync(document, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        private static async Task CacheSemanticClassificationsHelperAsync(Document document, CancellationToken cancellationToken)
+        public ValueTask CacheLSPSemanticClassificationsAsync(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                // We only get called to cache classifications once we're fully loaded.  At that point there's no need
+                // for us to keep around any of the data we cached in-memory during the time the solution was loading.
+                lock (_cachedData)
+                    _cachedData.Clear();
+
+                await CacheSemanticClassificationsAsync(document, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
+        private static async Task CacheSemanticClassificationsAsync(Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistenceService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);

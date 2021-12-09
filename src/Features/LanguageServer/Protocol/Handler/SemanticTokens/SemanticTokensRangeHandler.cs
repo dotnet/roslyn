@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return;
             }
 
-            // TO-DO: Cache the LSP version of the document
+            // We pass in LSP's version of the document instead of using the workspace's version.
             await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                 document.Project,
-                (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
+                (service, _, cancellationToken) => service.CacheLSPSemanticClassificationsAsync(document, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }
