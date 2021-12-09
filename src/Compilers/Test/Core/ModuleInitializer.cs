@@ -20,8 +20,25 @@ namespace Roslyn.Test.Utilities
         [ModuleInitializer]
         internal static void Initialize()
         {
-            s_watcher.Created += Watcher_CreatedOrRenamed;
-            s_watcher.Renamed += Watcher_CreatedOrRenamed;
+            try
+            {
+                if (File.Exists("/1"))
+                {
+                    RoslynDebug.AssertOrFailFast(false, "File /1 already exists :/");
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                s_watcher.Created += Watcher_CreatedOrRenamed;
+                s_watcher.Renamed += Watcher_CreatedOrRenamed;
+            }
+            catch
+            {
+            }
 
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new ThrowingTraceListener());
@@ -33,7 +50,7 @@ namespace Roslyn.Test.Utilities
 
         private static void Watcher_CreatedOrRenamed(object sender, FileSystemEventArgs e)
         {
-            if (e.Name?.EndsWith("1") == true)
+            if (e.Name?.EndsWith("/1") == true)
             {
                 RoslynDebug.AssertOrFailFast(false, $"Who is creating '{e.FullPath}' ??");
             }
