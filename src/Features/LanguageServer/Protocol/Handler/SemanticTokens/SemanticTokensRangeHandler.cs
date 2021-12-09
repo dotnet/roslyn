@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
-            // If we're fully loaded, cache the document's tokens for faster file open perf.
+            // If we're fully loaded, cache the document's tokens for faster solution open perf
+            // next time around.
             await CacheSemanticTokensAsync(context.Document, cancellationToken).ConfigureAwait(false);
 
             // The results from the range handler should not be cached since we don't want to cache
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return;
             }
 
+            // TO-DO: Cache the LSP version of the document
             await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                 document.Project,
                 (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),

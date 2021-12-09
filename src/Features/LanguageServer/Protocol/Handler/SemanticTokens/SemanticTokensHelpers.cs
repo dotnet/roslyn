@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             document = frozenDocument;
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
-            await GetClassifiedSpansForDocumentAsync(
-                document, root, semanticModel, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            await GetClassifiedSpansForDocumentAsync(document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -168,8 +167,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static async Task GetClassifiedSpansForDocumentAsync(
             Document document,
-            SyntaxNode root,
-            SemanticModel semanticModel,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
@@ -177,41 +174,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // Case 1 - C# and VB documents:
             //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
             //     classifications.
-            if (!document.IsRazorDocument())
-            {
-                var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-                await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
-                    document, textSpan, classificationService, classifiedSpans, cancellationToken).ConfigureAwait(false);
-            }
-            // Case 2 - Generated Razor documents:
-            //     In Razor, the syntax classifier does not run on the client. This means we need to return both
-            //     syntactic and semantic classifications.
-            else
-            {
-                var isFullyLoaded = document.IsWorkspaceFullyLoaded(cancellationToken);
-                var didRetrieveTokens = await SemanticClassificationCacheUtilities.TryAddSemanticClassificationsFromCacheAsync(
-                    document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false);
-                if (didRetrieveTokens)
-                {
-                    // Case 2a - Semantic tokens are cached and the workspace isn't fully loaded:
-                    // We also have to compute the syntactic tokens and then sort.
-                    var syntaxClassificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
-                    syntaxClassificationService.AddSyntacticClassifications(root, textSpan, classifiedSpans, cancellationToken);
-                }
-                else
-                {
-                    // Case 2b - Semantic tokens are not cached or workspace is fully loaded:
-                    //     There should be no need for retrieving tokens from the cache if the workspace is fully loaded.
-                    //     The cache is only applicable on solution load.
-                    var options = ClassificationOptions.From(document.Project);
-                    var computedSpans = Classifier.GetClassifiedSpans(
-                        document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
-                    classifiedSpans.AddRange(computedSpans);
-                }
-            }
 
-            // Depending on what method we use, the returned spans could be returned in order from either lowest->highest
-            // or highest->lowest TextSpan. We'll sort just to be safe.
+            // Case 2 - Generated Razor documents:
+            //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
+            //     syntactic and semantic classifications.
+
+            // Ideally, Razor will eventually run the classifier on their end and we can get rid of this special
+            // casing: https://github.com/dotnet/razor-tooling/issues/5850
+
+            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+            await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
+                document, textSpan, classificationService, classifiedSpans, cancellationToken).ConfigureAwait(false);
+
+            // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
         }
 

@@ -48,19 +48,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         internal static Document WithSolutionOptions(this Document document, OptionSet options)
             => document.Project.Solution.WithOptions(options).GetDocument(document.Id)!;
-
-        public static bool IsWorkspaceFullyLoaded(this Document document, CancellationToken cancellationToken)
-        {
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-
-            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-            // fully loaded.
-            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
-            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
-            return isFullyLoaded;
-        }
     }
 }
