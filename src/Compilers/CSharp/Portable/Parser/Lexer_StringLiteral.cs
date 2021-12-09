@@ -394,7 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                // From this point we have a raw literal of some sort.
+                // From this point we have either a complete error case that we cannot process further, or a raw literal
+                // of some sort.
                 var prefixAtCount = _lexer.ConsumeAtSignSequence();
                 startingDollarSignCount = _lexer.ConsumeDollarSignSequence();
                 var suffixAtCount = _lexer.ConsumeAtSignSequence();
