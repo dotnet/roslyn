@@ -274,11 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// </summary>
             Verbatim = 2,
             /// <summary>
-            /// Single-line raw interpolated string that starts with some number of <c>$</c>s and at least three <c>"</c>s.
+            /// Single-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
             /// </summary>
             SingleLineRaw = 3,
             /// <summary>
-            /// Multi-line raw interpolated string that starts with some number of <c>$</c>s and at least three <c>"</c>s.
+            /// Multi-line raw interpolated string that starts with at least one <c>$</c>, and at least three <c>"</c>s.
             /// </summary>
             MultiLineRaw = 4,
         }
