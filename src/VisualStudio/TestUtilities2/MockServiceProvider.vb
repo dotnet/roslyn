@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
             Select Case serviceType
-                Case GetType(SVsSolution)
+                Case GetType(SVsSolution), GetType(SVsShell)
                     ' Return a loose mock that just is a big no-op
                     Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
                     Return solutionMock.Object

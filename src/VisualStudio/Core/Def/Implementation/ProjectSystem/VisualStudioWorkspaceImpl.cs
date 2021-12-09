@@ -1417,7 +1417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.Dispose(finalize);
         }
 
-        public void EnsureEditableDocuments(IEnumerable<DocumentId> documents)
+        public virtual void EnsureEditableDocuments(IEnumerable<DocumentId> documents)
         {
             var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GlobalProvider.GetService(typeof(SVsQueryEditQuerySave));
 

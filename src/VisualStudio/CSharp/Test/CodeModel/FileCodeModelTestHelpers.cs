@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
+using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks;
 using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
 
@@ -26,20 +27,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, EnvDTE.FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
+        public static (TestWorkspace workspace, EnvDTE.FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
         {
-            var workspace = TestWorkspace.CreateCSharp(file, composition: VisualStudioTestCompositions.LanguageServices);
+            var workspace = TestWorkspace.CreateCSharp(file, composition: CodeModelTestHelpers.Composition);
 
             try
             {
                 var project = workspace.CurrentSolution.Projects.Single();
                 var document = project.Documents.Single().Id;
 
+                var serviceProvider = workspace.ExportProvider.GetExportedValue<MockServiceProvider>();
                 var componentModel = new MockComponentModel(workspace.ExportProvider);
-                var serviceProvider = new MockServiceProvider(componentModel);
                 WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance;
 
-                var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
+                var visualStudioWorkspaceMock = workspace.ExportProvider.GetExportedValue<MockVisualStudioWorkspace>();
+                visualStudioWorkspaceMock.SetWorkspace(workspace);
+
                 var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
@@ -48,15 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                     serviceProvider,
                     project.LanguageServices,
                     visualStudioWorkspaceMock,
-                    new ProjectCodeModelFactory(
-                        visualStudioWorkspaceMock,
-                        serviceProvider,
-                        threadingContext,
-                        listenerProvider));
+                    workspace.ExportProvider.GetExportedValue<ProjectCodeModelFactory>());
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
 
-                return (workspace, visualStudioWorkspaceMock, codeModel);
+                return (workspace, codeModel);
             }
             catch
             {
