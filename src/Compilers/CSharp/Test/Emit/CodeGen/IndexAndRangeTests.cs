@@ -1632,44 +1632,117 @@ class C
     public static void Main()
     {
         var s = ""abcdef"";
-        Console.WriteLine(s[new Index(1, false)]);
+        int i = 1;
+        Console.WriteLine(s[new Index(i, false)]);
         Console.WriteLine(s[(Index)2]);
         Console.WriteLine(s[^1]);
+        Console.WriteLine(s[new Index(3, false)]);
+        Console.WriteLine(s[new Index(2, true)]);
+        i = 6;
+        Console.WriteLine(s[new Index(i, true)]);
+        Console.WriteLine(s[new Index(value: 2, fromEnd: false)]);
+        Console.WriteLine(s[new Index(fromEnd: true, value: 3)]);
+        Console.WriteLine(s[new Index(3, false) {}]);
     }
 }", expectedOutput: @"b
 c
-f");
+f
+d
+e
+a
+c
+d
+d");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       70 (0x46)
+  // Code size      219 (0xdb)
   .maxstack  4
-  .locals init (string V_0,
-                System.Index V_1)
+  .locals init (int V_0, //i
+                string V_1,
+                System.Index V_2)
   IL_0000:  ldstr      ""abcdef""
-  IL_0005:  dup
+  IL_0005:  ldc.i4.1
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  ldc.i4.0
-  IL_000a:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  ldloc.0
-  IL_0013:  callvirt   ""int string.Length.get""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  callvirt   ""char string.this[int].get""
-  IL_0022:  call       ""void System.Console.WriteLine(char)""
-  IL_0027:  dup
-  IL_0028:  ldc.i4.2
-  IL_0029:  callvirt   ""char string.this[int].get""
-  IL_002e:  call       ""void System.Console.WriteLine(char)""
-  IL_0033:  dup
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  ldc.i4.1
-  IL_003a:  sub
-  IL_003b:  callvirt   ""char string.this[int].get""
-  IL_0040:  call       ""void System.Console.WriteLine(char)""
-  IL_0045:  ret
+  IL_0007:  dup
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0011:  stloc.2
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   ""int string.Length.get""
+  IL_001a:  call       ""int System.Index.GetOffset(int)""
+  IL_001f:  callvirt   ""char string.this[int].get""
+  IL_0024:  call       ""void System.Console.WriteLine(char)""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.2
+  IL_002b:  callvirt   ""char string.this[int].get""
+  IL_0030:  call       ""void System.Console.WriteLine(char)""
+  IL_0035:  dup
+  IL_0036:  dup
+  IL_0037:  callvirt   ""int string.Length.get""
+  IL_003c:  ldc.i4.1
+  IL_003d:  sub
+  IL_003e:  callvirt   ""char string.this[int].get""
+  IL_0043:  call       ""void System.Console.WriteLine(char)""
+  IL_0048:  dup
+  IL_0049:  ldc.i4.3
+  IL_004a:  callvirt   ""char string.this[int].get""
+  IL_004f:  call       ""void System.Console.WriteLine(char)""
+  IL_0054:  dup
+  IL_0055:  dup
+  IL_0056:  callvirt   ""int string.Length.get""
+  IL_005b:  ldc.i4.2
+  IL_005c:  sub
+  IL_005d:  callvirt   ""char string.this[int].get""
+  IL_0062:  call       ""void System.Console.WriteLine(char)""
+  IL_0067:  ldc.i4.6
+  IL_0068:  stloc.0
+  IL_0069:  dup
+  IL_006a:  stloc.1
+  IL_006b:  ldloc.1
+  IL_006c:  ldloc.0
+  IL_006d:  ldc.i4.1
+  IL_006e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0073:  stloc.2
+  IL_0074:  ldloca.s   V_2
+  IL_0076:  ldloc.1
+  IL_0077:  callvirt   ""int string.Length.get""
+  IL_007c:  call       ""int System.Index.GetOffset(int)""
+  IL_0081:  callvirt   ""char string.this[int].get""
+  IL_0086:  call       ""void System.Console.WriteLine(char)""
+  IL_008b:  dup
+  IL_008c:  ldc.i4.2
+  IL_008d:  callvirt   ""char string.this[int].get""
+  IL_0092:  call       ""void System.Console.WriteLine(char)""
+  IL_0097:  dup
+  IL_0098:  stloc.1
+  IL_0099:  ldloc.1
+  IL_009a:  ldc.i4.3
+  IL_009b:  ldc.i4.1
+  IL_009c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00a1:  stloc.2
+  IL_00a2:  ldloca.s   V_2
+  IL_00a4:  ldloc.1
+  IL_00a5:  callvirt   ""int string.Length.get""
+  IL_00aa:  call       ""int System.Index.GetOffset(int)""
+  IL_00af:  callvirt   ""char string.this[int].get""
+  IL_00b4:  call       ""void System.Console.WriteLine(char)""
+  IL_00b9:  stloc.1
+  IL_00ba:  ldloc.1
+  IL_00bb:  ldc.i4.3
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00c2:  stloc.2
+  IL_00c3:  ldloca.s   V_2
+  IL_00c5:  ldloc.1
+  IL_00c6:  callvirt   ""int string.Length.get""
+  IL_00cb:  call       ""int System.Index.GetOffset(int)""
+  IL_00d0:  callvirt   ""char string.this[int].get""
+  IL_00d5:  call       ""void System.Console.WriteLine(char)""
+  IL_00da:  ret
 }
 ");
         }
@@ -1819,7 +1892,8 @@ class C
 
     public static void M(int[] array)
     {
-        Console.WriteLine(array[new Index(1, false)]);
+        bool fromEnd = false;
+        Console.WriteLine(array[new Index(1, fromEnd)]);
         Console.WriteLine(array[^1]);
     }
 }", TestOptions.ReleaseExe);
@@ -1827,33 +1901,36 @@ class C
 11");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  3
-  .locals init (int[] V_0,
-                System.Index V_1)
-  IL_0000:  ldarg.0
+  .locals init (bool V_0, //fromEnd
+                int[] V_1,
+                System.Index V_2)
+  IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  ldc.i4.0
-  IL_0005:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  ldloc.0
-  IL_000e:  ldlen
-  IL_000f:  conv.i4
-  IL_0010:  call       ""int System.Index.GetOffset(int)""
-  IL_0015:  ldelem.i4
-  IL_0016:  call       ""void System.Console.WriteLine(int)""
-  IL_001b:  ldarg.0
-  IL_001c:  dup
-  IL_001d:  ldlen
-  IL_001e:  conv.i4
-  IL_001f:  ldc.i4.1
-  IL_0020:  sub
-  IL_0021:  ldelem.i4
-  IL_0022:  call       ""void System.Console.WriteLine(int)""
-  IL_0027:  ret
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldloc.0
+  IL_0007:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.1
+  IL_0010:  ldlen
+  IL_0011:  conv.i4
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  ldelem.i4
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldarg.0
+  IL_001e:  dup
+  IL_001f:  ldlen
+  IL_0020:  conv.i4
+  IL_0021:  ldc.i4.1
+  IL_0022:  sub
+  IL_0023:  ldelem.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
 }");
         }
 
