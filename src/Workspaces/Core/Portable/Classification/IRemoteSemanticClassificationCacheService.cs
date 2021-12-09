@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.Classification
         ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
-        ValueTask CacheLSPSemanticClassificationsAsync(
-            Document document, CancellationToken cancellationToken);
-
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
         /// name="textSpan"/>.  Will return an empty array not able to.

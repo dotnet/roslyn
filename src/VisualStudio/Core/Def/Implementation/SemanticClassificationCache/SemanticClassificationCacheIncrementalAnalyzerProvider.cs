@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -21,10 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
     [ExportIncrementalAnalyzerProvider(nameof(SemanticClassificationCacheIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host }), Shared]
     internal class SemanticClassificationCacheIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticClassificationCacheIncrementalAnalyzerProvider()
+        public SemanticClassificationCacheIncrementalAnalyzerProvider(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace)
@@ -32,11 +37,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
             if (workspace is not VisualStudioWorkspace)
                 return null;
 
-            return new SemanticClassificationCacheIncrementalAnalyzer();
+            return new SemanticClassificationCacheIncrementalAnalyzer(_globalOptions);
         }
 
         private class SemanticClassificationCacheIncrementalAnalyzer : IncrementalAnalyzerBase
         {
+            private readonly IGlobalOptionService _globalOptions;
+
+            public SemanticClassificationCacheIncrementalAnalyzer(IGlobalOptionService globalOptions)
+            {
+                _globalOptions = globalOptions;
+            }
+
             public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 // only process C# and VB.  OOP does not contain files for other languages.
@@ -53,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
 
                 // Only cache classifications in non-LSP scenarios. LSP caching is handled separately.
                 var workspaceContextService = solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
-                if (workspaceContextService.IsInLspEditorContext())
+                if (workspaceContextService.IsInLspEditorContext() || _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag))
                     return;
 
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
