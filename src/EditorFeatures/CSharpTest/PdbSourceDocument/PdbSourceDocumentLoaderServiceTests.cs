@@ -43,7 +43,7 @@ public class C
                 using var hash = SHA256.Create();
                 var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
-                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.Sha256, fileHash.ToImmutableArray(), null, "https://sourcelink");
+                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.Sha256, fileHash.ToImmutableArray(), null, "https://sourcelink", "symbolserver");
                 var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, logger: null, CancellationToken.None);
 
                 Assert.NotNull(result);
@@ -73,7 +73,7 @@ public class C
                 var sourceLinkService = new Lazy<ISourceLinkService?>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
                 var service = new PdbSourceDocumentLoaderService(sourceLinkService);
 
-                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
+                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null, "symbolserver");
                 var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, logger: null, CancellationToken.None);
 
                 Assert.Null(result);

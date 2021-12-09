@@ -63,7 +63,7 @@ public class C
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath, isPortablePdb: false);
+                var sourceLinkService = new TestSourceLinkService(pdbFilePath);
                 var service = new PdbFileLocatorService(sourceLinkService);
 
                 using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
