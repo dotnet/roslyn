@@ -5,6 +5,12 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildCaravelaCompiler", "BuildCaravelaCompiler.csproj", "{12F214E2-56B6-4065-B0D4-1087217EEADA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A337050-BB90-457F-A678-2857F191A07C}"
+	ProjectSection(SolutionItems) = preProject
+		..\MainVersion.props = ..\MainVersion.props
+		..\..\eng\Versions.props = ..\..\eng\Versions.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

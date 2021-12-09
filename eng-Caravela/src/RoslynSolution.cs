@@ -18,9 +18,9 @@ namespace Build
         }
 
 
-        public override bool Build(BuildContext context, BuildOptions options)
+        public override bool Build(BuildContext context, BuildSettings settings)
         {
-            return ExecuteScript(context, options, "-build");
+            return ExecuteScript(context, settings, "-build");
         }
 
         private static bool ExecuteScript(BuildContext context, BaseBuildSettings options, string args)
@@ -37,9 +37,9 @@ namespace Build
                            context.RepoDirectory);
         }
 
-        public override bool Pack(BuildContext context, BuildOptions options)
+        public override bool Pack(BuildContext context, BuildSettings settings)
         {
-            return ExecuteScript(context, options, "-build -pack");
+            return ExecuteScript(context, settings, "-build -pack");
         }
 
         public override bool Restore(BuildContext context, BaseBuildSettings options)
@@ -47,18 +47,18 @@ namespace Build
             return ExecuteScript(context, options, "-restore");
         }
 
-        public override bool Test(BuildContext context, BuildOptions options)
+        public override bool Test(BuildContext context, BuildSettings settings)
         {
             var filter = "";
 
-            if (!options.Properties.ContainsKey("TestAll"))
+            if (!settings.Properties.ContainsKey("TestAll"))
             {
                 filter = "Category!=OuterLoop";
             }
 
             // We run Caravela's unit tests.
             var project = Path.Combine(context.RepoDirectory, "src", "Caravela", "Caravela.Compiler.UnitTests", "Caravela.Compiler.UnitTests.csproj");
-            return DotNetHelper.Run(context, options, project, "test", $"--filter \"{filter}\"");
+            return DotNetHelper.Run(context, settings, project, "test", $"--filter \"{filter}\"");
 
 
         }
