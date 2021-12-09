@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
         public static async Task<OmniSharpBlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<BlockStructureService>();
-            var blockStructure = await service.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = BlockStructureOptions.From(document.Project);
+            var blockStructure = await service.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure != null)
             {
                 return new OmniSharpBlockStructure(blockStructure.Spans.SelectAsArray(x => new OmniSharpBlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
