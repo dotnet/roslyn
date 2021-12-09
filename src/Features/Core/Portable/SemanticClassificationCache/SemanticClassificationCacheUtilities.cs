@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.SemanticClassificationCache
             // return both syntactic + semantic classifications. The cache already special-cases Razor so both types
             // of classifications are returned. However, if the cache doesn't return results, we need to recompute
             // all tokens.
-            // Ideally, Razor will eventually run the C# syntactic classifier on their end and we can then remove
-            // this special casing: https://github.com/dotnet/razor-tooling/issues/5850
+            // Ideally, Razor will eventually run the C# syntactic classifier on their end so we can remove this
+            // special casing: https://github.com/dotnet/razor-tooling/issues/5850
             if (document.IsRazorDocument())
             {
                 var spans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);

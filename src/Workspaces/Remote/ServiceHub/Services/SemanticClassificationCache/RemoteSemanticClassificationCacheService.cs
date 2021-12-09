@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -102,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Compute classifications for the full span. Razor documents need to cache both syntactic and semantic
             // classifications since the client doesn't run the C# classifier in Razor LSP scenarios.
-            // Ideally, Razor will eventually run the C# syntactic classifier on their end and we can then remove
-            // this special casing: https://github.com/dotnet/razor-tooling/issues/5850
+            // Ideally, Razor will eventually run the C# syntactic classifier on their end so we can remove this
+            // special casing: https://github.com/dotnet/razor-tooling/issues/5850
             if (document.FilePath is not null && document.FilePath.EndsWith(".g.cs"))
             {
                 var computedSpans = await Classifier.GetClassifiedSpansAsync(document, new TextSpan(0, text.Length), cancellationToken).ConfigureAwait(false);

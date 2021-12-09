@@ -171,18 +171,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
+            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+
             // Case 1 - C# and VB documents:
             //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
             //     classifications.
-
             // Case 2 - Generated Razor documents:
             //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
             //     syntactic and semantic classifications.
-
-            // Ideally, Razor will eventually run the classifier on their end and we can get rid of this special
+            //
+            // Ideally, Razor will eventually run the classifier on their end so we can get rid of this special
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
-
-            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+            // Until then, the `AddSemanticClassificationsAsync` call below is special-cased to deal with both scenarios.
             await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
                 document, textSpan, classificationService, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
