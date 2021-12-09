@@ -7549,12 +7549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (addedPlaceholders)
                 {
-                    Debug.Assert(_resultForPlaceholdersOpt != null);
                     foreach (var placeholder in handlerData.ArgumentPlaceholders)
                     {
-                        if (placeholder.ArgumentIndex >= 0)
+                        if (placeholder.ArgumentIndex < previousArgumentConversionResults.Count && placeholder.ArgumentIndex >= 0)
                         {
-                            _resultForPlaceholdersOpt.Remove(placeholder);
+                            RemovePlaceholderReplacement(placeholder);
                         }
                     }
                 }
