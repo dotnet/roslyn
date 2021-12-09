@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                         // TODO: Support windows PDBs: https://github.com/dotnet/roslyn/issues/55834
                         // TODO: Log results from pdbResult.Log: https://github.com/dotnet/roslyn/issues/57352
-                        if (pdbResult is not null && pdbResult.IsPortablePdb)
+                        if (pdbResult is not null)
                         {
                             pdbStream = IOUtilities.PerformIO(() => File.OpenRead(pdbResult.PdbFilePath));
                             if (pdbStream is not null)

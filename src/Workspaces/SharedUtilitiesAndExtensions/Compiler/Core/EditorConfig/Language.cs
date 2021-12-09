@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfig
 {
     [Flags]
     internal enum Language
