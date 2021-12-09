@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             var updatedClassNode = CodeGenerator.AddMemberDeclarations(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                _document.Project.Solution.Workspace,
+                _document.Project.Solution.Workspace.Services,
                 new CodeGenerationOptions(
                     contextLocation: classNodeToAddMembersTo.GetLocation(),
                     autoInsertionLocation: groupMembers,

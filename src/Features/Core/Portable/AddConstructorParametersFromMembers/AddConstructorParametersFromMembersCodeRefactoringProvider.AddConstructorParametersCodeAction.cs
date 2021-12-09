@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var workspace = _document.Project.Solution.Workspace;
+                var services = _document.Project.Solution.Workspace.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, services);
+                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), services)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;

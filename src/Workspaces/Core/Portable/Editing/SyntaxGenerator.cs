@@ -51,7 +51,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-            => workspace.Services.GetLanguageServices(language).GetService<SyntaxGenerator>();
+            => GetGenerator(workspace.Services, language);
+
+        internal static SyntaxGenerator GetGenerator(HostWorkspaceServices services, string language)
+            => services.GetLanguageServices(language).GetService<SyntaxGenerator>();
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the document.

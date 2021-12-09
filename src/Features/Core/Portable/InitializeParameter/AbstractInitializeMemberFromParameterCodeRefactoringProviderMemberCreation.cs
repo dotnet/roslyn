@@ -422,9 +422,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             ISymbol fieldOrProperty,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -451,13 +451,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         if (fieldOrProperty is IPropertySymbol property)
                         {
                             return CodeGenerator.AddPropertyDeclaration(
-                                currentTypeDecl, property, workspace,
+                                currentTypeDecl, property, services,
                                 GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return CodeGenerator.AddFieldDeclaration(
-                                currentTypeDecl, field, workspace,
+                                currentTypeDecl, field, services,
                                 GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(options, fullProperty);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 if (property.Ancestors().Contains(block))
                 {
                     editor.ReplaceNode(block, (currentTypeDecl, _)
-                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
+                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, services)
                         .WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }

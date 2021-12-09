@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
-            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace);
+            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
 
             var options = new CodeGenerationOptions(
                 generateMethodBodies: true,

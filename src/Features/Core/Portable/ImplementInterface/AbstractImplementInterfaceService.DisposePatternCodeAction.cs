@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    document.Project.Solution.Workspace,
+                    document.Project.Solution.Workspace.Services,
                     new CodeGenerationOptions(
                         addImports: false,
                         parseOptions: rootWithCoreMembers.SyntaxTree.Options,

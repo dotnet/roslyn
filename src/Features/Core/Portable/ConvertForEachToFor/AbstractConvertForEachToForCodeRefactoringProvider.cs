@@ -422,8 +422,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             CancellationToken cancellationToken)
         {
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var workspace = document.Project.Solution.Workspace;
-            var editor = new SyntaxEditor(model.SyntaxTree.GetRoot(cancellationToken), workspace);
+            var services = document.Project.Solution.Workspace.Services;
+            var editor = new SyntaxEditor(model.SyntaxTree.GetRoot(cancellationToken), services);
 
             ConvertToForStatement(model, foreachInfo, editor, cancellationToken);
 

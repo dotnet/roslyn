@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -23,21 +24,24 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
+        [Obsolete("Use SyntaxEditor(SyntaxNode, HostWorkspaceServices)")]
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
+            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services)
         {
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
+        }
 
-            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
-            _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
-            _changes = new List<Change>();
+        /// <summary>
+        /// Creates a new <see cref="SyntaxEditor"/> instance.
+        /// </summary>
+        public SyntaxEditor(SyntaxNode root, HostWorkspaceServices services)
+            : this(root ?? throw new ArgumentNullException(nameof(root)),
+                   SyntaxGenerator.GetGenerator(services ?? throw new ArgumentNullException(nameof(services)), root.Language))
+        {
         }
 
         internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
         {
-            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
+            OriginalRoot = root;
             _generator = generator;
             _changes = new List<Change>();
         }
