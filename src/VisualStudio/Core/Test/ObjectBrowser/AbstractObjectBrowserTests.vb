@@ -3,13 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.ExceptionServices
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
     <[UseExportProvider]>
@@ -45,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                 Dim vsWorkspace = New MockVisualStudioWorkspace(workspace)
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)
-                Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
+                Dim mockServiceProvider = New Mocks.MockServiceProvider(mockComponentModel)
                 Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
 
                 result = New TestState(workspace, vsWorkspace, libraryManager)
