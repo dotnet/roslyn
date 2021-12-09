@@ -402,7 +402,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var totalAtCount = prefixAtCount + suffixAtCount;
 
-                // We should only have gotten here if we had at least two characters that made us think we had an interpolated string.
+                // We should only have gotten here if we had at least two characters that made us think we had an
+                // interpolated string. Note that we may enter here on just `@@` or `$$` (without seeing anything else),
+                // so we can't put a stricter bound on this here.
                 Debug.Assert(totalAtCount + startingDollarSignCount + startingQuoteCount >= 2);
 
                 // Multiple @-signs, and @-signs with raw literals are always illegal.  Detect these and give a
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (startingDollarSignCount == 0 && startingQuoteCount == 0)
                     {
-                        // just multiple @'s in a row.  Give a general message about how @ signs work. We cannot
+                        // just multiple @'s in a row (and nothing else).  Give a general message about how @ signs work. We cannot
                         // continue on as we have no quotes, and thus can't even find where the string starts or ends.
                         TrySetError(_lexer.MakeError(start, width: 1, ErrorCode.ERR_ExpectedVerbatimLiteral));
                         kind = InterpolatedStringKind.SingleLineRaw;
