@@ -18,7 +18,7 @@ project {
 object DebugBuild : BuildType({
     name = "Build [Debug]"
 
-    artifactRules = "+:artifacts/publish/**/*=>artifacts/publish"
+    artifactRules = "+:artifacts/packages/Debug/Shipping/**/*=>artifacts/publish"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -48,7 +48,7 @@ object DebugBuild : BuildType({
 object ReleaseBuild : BuildType({
     name = "Build [Release]"
 
-    artifactRules = "+:artifacts/publish/**/*=>artifacts/publish"
+    artifactRules = "+:artifacts/packages/Release/Shipping/**/*=>artifacts/publish"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -60,7 +60,7 @@ object ReleaseBuild : BuildType({
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "test  --numbered %build.number% --configuration Release --sign")
+            param("jetbrains_powershell_scriptArguments", "test  --numbered %build.number% --configuration Release")
         }
     }
 
@@ -78,7 +78,7 @@ object ReleaseBuild : BuildType({
 object PublicBuild : BuildType({
     name = "Build [Public]"
 
-    artifactRules = "+:artifacts/publish/**/*=>artifacts/publish"
+    artifactRules = "+:artifacts/packages/Release/Shipping/**/*=>artifacts/publish"
 
     vcs {
         root(DslContext.settingsRoot)
