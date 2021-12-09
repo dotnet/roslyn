@@ -368,7 +368,7 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void Error()
         {
             var source = @"
