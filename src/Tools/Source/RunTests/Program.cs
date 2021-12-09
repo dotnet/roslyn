@@ -31,6 +31,13 @@ namespace RunTests
 
         private const long MaxTotalDumpSizeInMegabytes = 4096;
 
+        /// <summary>
+        /// When a test project is added to Roslyn this count must be updated.
+        /// If this count changes in the absence of adding/removing test projects,
+        /// then RunTests is inadvertently dropping test assemblies and investigation is needed.
+        /// </summary>
+        internal const int ExpectedAssemblyCount = 50;
+
         internal static async Task<int> Main(string[] args)
         {
             Logger.Log("RunTest command line");
@@ -139,6 +146,11 @@ namespace RunTests
             var assemblyCount = assemblyInfoList.GroupBy(x => x.AssemblyPath).Count();
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
+
+            if (string.Empty.Length == 0)
+            {
+                return ExitSuccess;
+            }
 
             var result = options.UseHelix
                 ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
@@ -288,7 +300,13 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
+                Console.WriteLine(assemblyPath.FilePath);
                 list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+            }
+
+            if (assemblyPaths.Count != ExpectedAssemblyCount)
+            {
+                throw new Exception($"Found {assemblyPaths.Count} assemblies instead of the expected {ExpectedAssemblyCount} assemblies.");
             }
 
             return list;
