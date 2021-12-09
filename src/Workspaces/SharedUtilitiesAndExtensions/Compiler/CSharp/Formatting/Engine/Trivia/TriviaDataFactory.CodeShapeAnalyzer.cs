@@ -107,10 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private static bool OnElastic(SyntaxTrivia trivia)
             {
                 // if this is structured trivia then we need to check for elastic trivia in any descendant
-                if (trivia.HasStructure)
+                if (trivia.GetStructure() is { ContainsAnnotations: true } structure)
                 {
-                    var structure = trivia.GetStructure()!;
-
                     foreach (var t in structure.DescendantTrivia())
                     {
                         if (t.IsElastic())
