@@ -5832,7 +5832,7 @@ class A                                                               \
                 assemblyName.ToString());
         }
 
-        // In 3.11, we've skipped this as "Caravela: does not work, but scripting is not supported anyway."
+        // In 3.11, we've skipped this as "Metalama: does not work, but scripting is not supported anyway."
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
         public void CsiScript_WithSourceCodeRedirectedViaStandardInput_ExecutesNonInteractively()
         {
@@ -6796,7 +6796,7 @@ class C
             var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-PostSharp ""Caravela"" Compiler version A.B.C-d (HASH)
+Metalama Compiler version A.B.C-d (HASH)
 Copyright (c) SharpCrafters s.r.o. All rights reserved.
 
 Based on the Microsoft (R) Visual C# Compiler.
@@ -6808,14 +6808,14 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.".Trim(),
         }
 
         [Theory,
-            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (<developer build>)",
-                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (ABCDEF01)",
-                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (abcdef90)",
-                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
-            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (12345678)",
-                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)")]
+            InlineData("Metalama Compiler version A.B.C-d (<developer build>)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (ABCDEF01)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (abcdef90)",
+                "Metalama Compiler version A.B.C-d (HASH)"),
+            InlineData("Metalama Compiler version A.B.C-d (12345678)",
+                "Metalama Compiler version A.B.C-d (HASH)")]
         public void TestReplaceCommitHash(string orig, string expected)
         {
             Assert.Equal(expected, ReplaceCommitHash(orig));
@@ -8617,7 +8617,7 @@ class Program3
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
         [WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321", AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321", AlwaysSkip = "Metalama does not have consistent assembly informational version.")]
         public void FileShareDeleteCompatibility_Xplat()
         {
             var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
@@ -8640,7 +8640,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable \"{libSrc.Path}\"", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-PostSharp ""Caravela"" Compiler version {s_compilerVersion}
+Metalama Compiler version {s_compilerVersion}
 Copyright (c) SharpCrafters s.r.o.All rights reserved.", output);
 
             // reading original content from the memory map:
@@ -11252,7 +11252,7 @@ class Runner
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321",
-            AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
+            AlwaysSkip = "Metalama does not have consistent assembly informational version.")]
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
@@ -11717,9 +11717,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 if (fileName.StartsWith("csc") ||
                     fileName.StartsWith("System.") ||
                     fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native")
-                    // <Caravela>
-                    || fileName.StartsWith("Caravela.")
-                    // </Caravela>
+                    // <Metalama>
+                    || fileName.StartsWith("Metalama.")
+                    // </Metalama>
                     )
                 {
                     dir.CopyFile(filePath);

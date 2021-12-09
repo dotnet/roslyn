@@ -10,7 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TNode node in nodes)
             {
-                // <Caravela>
+                // <Metalama>
                 var newNode = TreeTracker.TrackIfNeeded(node);
                 builder.Add(newNode);
-                // </Caravela>
+                // </Metalama>
             }
 
             return builder.ToList().Node;
@@ -320,12 +320,12 @@ namespace Microsoft.CodeAnalysis
             }
 
 
-            // <Caravela>
+            // <Metalama>
             for (int i = 0; i < items.Count; i++)
             {
                 items[i] = TreeTracker.TrackIfNeeded(items[i]);
             }
-            // </Caravela>
+            // </Metalama>
 
             var newGreen = GreenNode.CreateList(items, static n => n.Green);
             return new SyntaxList<TNode>(newGreen!.CreateRed());

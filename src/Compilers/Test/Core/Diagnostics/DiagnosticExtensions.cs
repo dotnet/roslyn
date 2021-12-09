@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            // <Caravela>
+            // <Metalama>
             
             var compilation = c;
 
-            if (CaravelaCompilerTest.ShouldExecuteTransformer)
+            if (MetalamaCompilerTest.ShouldExecuteTransformer)
             {
                 // GetDiagnostics() has side-effects that some tests are relying on
                 // (e.g. UnusedGlobalUsingNamespace_02 reads comp2.UsageOfUsingsRecordedInTrees
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis
                 compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnosticBag);
                 if (!CommonCompiler.HasUnsuppressableErrors(diagnosticBag))
                 {
-                    compilation = (TCompilation)CaravelaCompilerTest.ExecuteTransformer(
+                    compilation = (TCompilation)MetalamaCompilerTest.ExecuteTransformer(
                         compilation, 
-                        new CaravelaCompilerTest.TokenPerLineTransformer());
+                        new MetalamaCompilerTest.TokenPerLineTransformer());
 
                     // Tests using the missing types/members test feature of the Compilation class
                     // would fail if this information is lost here.
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             diagnostics.Verify(expected);
             VerifyAssemblyIds(compilation, diagnostics);
 
-            // </Caravela>
+            // </Metalama>
             return c;
         }
 

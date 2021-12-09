@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableDictionary<string, string?> _properties;
             private readonly bool _isSuppressed;
 
-            // <Caravela>
+            // <Metalama>
             private readonly Location? _originalLocation;
-            // </Caravela>
+            // </Metalama>
 
             private SimpleDiagnostic(
                 DiagnosticDescriptor descriptor,
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis
                 object?[]? messageArgs,
                 ImmutableDictionary<string, string?>? properties,
                 bool isSuppressed,
-                // <Caravela>
+                // <Metalama>
                 Location? originalLocation = null
-                // </Caravela>
+                // </Metalama>
                 )
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis
                 _properties = properties ?? ImmutableDictionary<string, string?>.Empty;
                 _isSuppressed = isSuppressed;
 
-                // <Caravela>
+                // <Metalama>
                 _originalLocation = originalLocation;
-                // </Caravela>
+                // </Metalama>
             }
 
             internal static SimpleDiagnostic Create(
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis
                 get { return _properties; }
             }
 
-            // <Caravela>
+            // <Metalama>
             internal Location OriginalLocation => _originalLocation ?? _location;
-            // </Caravela>
+            // </Metalama>
 
             public override bool Equals(Diagnostic? obj)
             {
@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != _location)
                 {
-                    // <Caravela>
+                    // <Metalama>
                     return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs, _properties, _isSuppressed, _location);
-                    // </Caravela>
+                    // </Metalama>
                 }
 
                 return this;

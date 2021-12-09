@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Host
         CompilationOptions GetDefaultCompilationOptions();
         GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
         
-        // <Caravela> This code is used by Try.Caravela.
+        // <Metalama> This code is used by Try.Metalama.
         Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader);
-        // </Caravela>
+        // </Metalama>
     }
 }

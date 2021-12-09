@@ -5,7 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public SyntaxTriviaListBuilder Add(SyntaxTrivia item)
         {
-            // <Caravela>
+            // <Metalama>
             item = TreeTracker.TrackIfNeeded(item);
-            // </Caravela>
+            // </Metalama>
 
             if (_count >= _nodes.Length)
             {

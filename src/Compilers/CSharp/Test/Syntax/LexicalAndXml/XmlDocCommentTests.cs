@@ -3271,7 +3271,7 @@ public class Program
                 );
         }
 
-        // <Caravela>
+        // <Metalama>
         [WorkItem(47278, "https://github.com/dotnet/roslyn/issues/47278")]
         [Fact]
         public void NormalizeWhitespace()
@@ -3313,7 +3313,7 @@ public class Program
             string getDocumentationCommentString() =>
                 tree.GetRoot().DescendantTrivia().Single(n => n.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).ToFullString();
         }
-        // </Caravela>
+        // </Metalama>
 
         #region Xml Test helpers
 

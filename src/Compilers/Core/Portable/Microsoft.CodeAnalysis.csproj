@@ -20,18 +20,18 @@
       Do not install this package manually, it will be added as a prerequisite by other packages that require it.
     </PackageDescription>
   </PropertyGroup>
-  <!-- <Caravela> -->
+  <!-- <Metalama> -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>CaravelaCompilerVersion</_Parameter1>
+      <_Parameter1>MetalamaCompilerVersion</_Parameter1>
       <_Parameter2>$(Version)</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>CaravelaCompilerBuildDate</_Parameter1>
+      <_Parameter1>MetalamaCompilerBuildDate</_Parameter1>
       <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
-  <!-- </Caravela> -->
+  <!-- </Metalama> -->
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
@@ -50,9 +50,9 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
-    <!-- <Caravela> -->
+    <!-- <Metalama> -->
     <PackageReference Include="PostSharp.Backstage.Settings" Version="$(PostSharpBackstageSettingsVersion)" />
-    <!-- </Caravela> -->
+    <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
     <!-- Need to include the PerformanceSensitiveAttribute definition in source build, since we can't get it from the analyzer package. -->
@@ -107,9 +107,9 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
-    <!-- <Caravela> -->
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
-    <!-- </Caravela> -->
+    <!-- <Metalama> -->
+    <InternalsVisibleTo Include="Metalama.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
@@ -129,8 +129,8 @@
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
-  <Import Project="..\..\..\Caravela\Caravela.Compiler.Shared\Caravela.Compiler.Shared.projitems" Label="Shared" />
-  <Import Project="..\..\..\Caravela\Caravela.Compiler.CodeAnalysis\Caravela.Compiler.CodeAnalysis.projitems" Label="Shared" />
+  <Import Project="..\..\..\Metalama\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
+  <Import Project="..\..\..\Metalama\Metalama.Compiler.CodeAnalysis\Metalama.Compiler.CodeAnalysis.projitems" Label="Shared" />
 
   <!-- based on https://stackoverflow.com/a/56018426/41071 -->
   <PropertyGroup>
@@ -138,7 +138,7 @@
   </PropertyGroup>
   <Target Name="SetPackageContent" DependsOnTargets="ResolveReferences">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(ArtifactsBinDir)Caravela.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Caravela.Compiler.Interface.dll" />
+      <BuildOutputInPackage Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
     </ItemGroup>
   </Target>
 </Project>

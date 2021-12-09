@@ -103,9 +103,9 @@ namespace Roslyn.Test.Utilities
         {
             Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
                          code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
-                         // <Caravela>
-                         code is Caravela.Compiler.ErrorCode ||
-                         // </Caravela>
+                         // <Metalama>
+                         code is Metalama.Compiler.ErrorCode ||
+                         // </Metalama>
                          code is int ||
                          code is string);
 

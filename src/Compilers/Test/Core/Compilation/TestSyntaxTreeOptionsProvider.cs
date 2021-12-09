@@ -63,9 +63,9 @@ namespace Roslyn.Utilities
 
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
         {
-            // <Caravela>
+            // <Metalama>
             tree = GetSourceTree(tree);
-            // </Caravela>
+            // </Metalama>
             
             return _isGenerated != null && _isGenerated.TryGetValue(tree, out var kind) ? kind : GeneratedKind.Unknown;
         }
@@ -76,9 +76,9 @@ namespace Roslyn.Utilities
             CancellationToken cancellationToken,
             out ReportDiagnostic severity)
         {
-            // <Caravela>
+            // <Metalama>
             tree = GetSourceTree(tree);
-            // </Caravela>
+            // </Metalama>
             
             if (_options != null &&
                 _options.TryGetValue(tree, out var diags)

@@ -1030,9 +1030,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
-            // <Caravela> - instead of `throw ExceptionUtilities.Unreachable;`
+            // <Metalama> - instead of `throw ExceptionUtilities.Unreachable;`
             return -1;
-            // </Caravela>
+            // </Metalama>
         }
 
         /// <summary>

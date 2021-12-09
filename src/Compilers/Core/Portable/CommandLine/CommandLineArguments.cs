@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -469,25 +469,25 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
             bool skipAnalyzers,
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<string?> transformerOrder,
-            // </Caravela>
+            // </Metalama>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            // <Caravela>
+            // <Metalama>
             out ImmutableArray<ISourceTransformer> transfomers,
             out ImmutableArray<object> plugins
-            // </Caravela>
+            // </Metalama>
             )
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
             
-            // <Caravela>
+            // <Metalama>
             var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
             var transformerOrders = new List<ImmutableArray<string?>>();
             var pluginBuilder = ImmutableArray.CreateBuilder<object>();
-            // </Caravela>
+            // </Metalama>
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -546,18 +546,18 @@ namespace Microsoft.CodeAnalysis
                 resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
                 resolvedReference.AddGenerators(generatorBuilder, language);
                 
-                // <Caravela>
+                // <Metalama>
                 resolvedReference.AddTransformers(transformerBuilder, language);
                 resolvedReference.AddTransformerOrder(transformerOrders);
                 resolvedReference.AddCompilerPlugins(pluginBuilder, language);
-                // </Caravela>
+                // </Metalama>
                 
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
-            // <Caravela>
+            // <Metalama>
             if (!transformerOrder.IsDefaultOrEmpty)
                 transformerOrders.Add(transformerOrder);
 
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis
 
             plugins = pluginBuilder.ToImmutable();
             transfomers = transformerBuilder.ToImmutable();
-            // </Caravela>
+            // </Metalama>
             
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();

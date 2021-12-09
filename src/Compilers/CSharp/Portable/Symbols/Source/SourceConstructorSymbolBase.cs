@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // we haven't found the constructor part that declares the variable:
-            // <Caravela> - instead of `throw ExceptionUtilities.Unreachable;`
+            // <Metalama> - instead of `throw ExceptionUtilities.Unreachable;`
             return -1;
-            // </Caravela>
+            // </Metalama>
         }
 
         internal abstract override bool IsNullableAnalysisEnabled();

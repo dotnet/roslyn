@@ -353,33 +353,33 @@
 
   <!--
     ========================
-    CaravelaCaravelaCompilerTransformedFilesOutputPath
+    MetalamaMetalamaCompilerTransformedFilesOutputPath
     ========================
     
-    Controls output of files transformed by the Caravela compiler.
+    Controls output of files transformed by the Metalama compiler.
     
-    CaravelaCompilerTransformedFilesOutputPath controls the location the files will be output to.
+    MetalamaCompilerTransformedFilesOutputPath controls the location the files will be output to.
     The compiler will not emit any transformed files when the path is empty, and defaults to a /transformed directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
-    CaravelaEmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
-    When CaravelaEmitCompilerTransformedFiles is true, we ensure that CaravelaCompilerTransformedFilesOutputPath has a value and issue a warning if not.
-    We will create CaravelaCompilerTransformedFilesOutputPath if it does not exist.
+    MetalamaEmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When MetalamaEmitCompilerTransformedFiles is true, we ensure that MetalamaCompilerTransformedFilesOutputPath has a value and issue a warning if not.
+    We will create MetalamaCompilerTransformedFilesOutputPath if it does not exist.
     -->
   <PropertyGroup>
-    <CaravelaEmitCompilerTransformedFiles Condition="'$(CaravelaEmitCompilerTransformedFiles)' == '' and '$(CaravelaDebugTransformedCode)' == 'true'">true</CaravelaEmitCompilerTransformedFiles>
-    <CaravelaEmitCompilerTransformedFiles Condition="'$(CaravelaEmitCompilerTransformedFiles)' == ''">false</CaravelaEmitCompilerTransformedFiles>
-    <CaravelaCompilerTransformedFilesOutputPath Condition="'$(CaravelaEmitCompilerTransformedFiles)' != 'true'"></CaravelaCompilerTransformedFilesOutputPath>
-    <CaravelaCompilerTransformedFilesOutputPath Condition="'$(CaravelaEmitCompilerTransformedFiles)' == 'true' and '$(CaravelaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</CaravelaCompilerTransformedFilesOutputPath>
+    <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == '' and '$(MetalamaDebugTransformedCode)' == 'true'">true</MetalamaEmitCompilerTransformedFiles>
+    <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == ''">false</MetalamaEmitCompilerTransformedFiles>
+    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' != 'true'"></MetalamaCompilerTransformedFilesOutputPath>
+    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and '$(MetalamaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</MetalamaCompilerTransformedFilesOutputPath>
   </PropertyGroup>
 
-  <Target Name="CreateCaravelaCompilerTransformedFilesOutputPath"
+  <Target Name="CreateMetalamaCompilerTransformedFilesOutputPath"
         BeforeTargets="CoreCompile"
-        Condition="'$(CaravelaEmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+        Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
 
-    <Warning Condition="'$(CaravelaCompilerTransformedFilesOutputPath)' == ''"
-             Text="CaravelaEmitCompilerTransformedFiles was true, but no CaravelaCompilerTransformedFilesOutputPath was provided. CaravelaCompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
+    <Warning Condition="'$(MetalamaCompilerTransformedFilesOutputPath)' == ''"
+             Text="MetalamaEmitCompilerTransformedFiles was true, but no MetalamaCompilerTransformedFilesOutputPath was provided. MetalamaCompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
 
-    <MakeDir Condition="'$(CaravelaCompilerTransformedFilesOutputPath)' != ''"
-             Directories="$(CaravelaCompilerTransformedFilesOutputPath)"  />
+    <MakeDir Condition="'$(MetalamaCompilerTransformedFilesOutputPath)' != ''"
+             Directories="$(MetalamaCompilerTransformedFilesOutputPath)"  />
   </Target>
 
 </Project>

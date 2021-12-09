@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilationWithGeneratedDocuments => null;
 
-                // <Caravela>
+                // <Metalama>
                 public virtual ImmutableArray<Diagnostic> TransformerDiagnostics => default;
-                // </Caravela>
+                // </Metalama>
 
                 protected CompilationTrackerState(
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
@@ -278,9 +278,9 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
-                // <Caravela> This code is used by Try.Caravela.
+                // <Metalama> This code is used by Try.Metalama.
                 public override ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
-                // </Caravela>
+                // </Metalama>
 
                 private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
@@ -289,9 +289,9 @@ namespace Microsoft.CodeAnalysis
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet,
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     ImmutableArray<Diagnostic> transformerDiagnostics
-                    // </Caravela>
+                    // </Metalama>
                     )
                     : base(compilationWithoutGeneratedFilesSource,
                           generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
@@ -299,11 +299,11 @@ namespace Microsoft.CodeAnalysis
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
                     UnrootedSymbolSet = unrootedSymbolSet;
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     TransformerDiagnostics = transformerDiagnostics;
-                    // </Caravela>
+                    // </Metalama>
 
-                    // <Caravela> This assertion if false for Caravela.Compiler. We change the final compilation by transformers.
+                    // <Metalama> This assertion if false for Metalama.Compiler. We change the final compilation by transformers.
                     // if (this.GeneratorInfo.Documents.IsEmpty)
                     // {
                     //    // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
                     //    Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
                     //    Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
                     // }
-                    // </Caravela>
+                    // </Metalama>
                 }
 
                 /// <param name="finalCompilation">Not held onto</param>
@@ -326,9 +326,9 @@ namespace Microsoft.CodeAnalysis
                     Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
-                    // <Caravela> This code is used by Try.Caravela.
+                    // <Metalama> This code is used by Try.Metalama.
                     ImmutableArray<Diagnostic> transformerDiagnostics = default
-                    // </Caravela>
+                    // </Metalama>
                     )
                 {
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
@@ -344,9 +344,9 @@ namespace Microsoft.CodeAnalysis
                         hasSuccessfullyLoaded,
                         generatorInfo,
                         unrootedSymbolSet,
-                        // <Caravela> This code is used by Try.Caravela.
+                        // <Metalama> This code is used by Try.Metalama.
                         transformerDiagnostics
-                        // </Caravela>
+                        // </Metalama>
                         );
                 }
 

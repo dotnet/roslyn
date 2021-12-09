@@ -1020,7 +1020,7 @@ using cc;
 using cC;
 using CC;
 
-// <Caravela /> Non-latin characters removed to make the test passing.";
+// <Metalama /> Non-latin characters removed to make the test passing.";
 
             var final =
 @"using a;
@@ -1051,7 +1051,7 @@ using cC;
 using Cc;
 using CC;
 
-// <Caravela /> Non-latin characters removed to make the test passing.";
+// <Metalama /> Non-latin characters removed to make the test passing.";
             await CheckAsync(initial, final);
         }
 
@@ -1059,10 +1059,10 @@ using CC;
         public async Task CaseSensitivity2()
         {
             var initial =
-@"// <Caravela /> Non-latin characters removed to make the test passing.";
+@"// <Metalama /> Non-latin characters removed to make the test passing.";
 
             var final =
-@"// <Caravela /> Non-latin characters removed to make the test passing.";
+@"// <Metalama /> Non-latin characters removed to make the test passing.";
 
             await CheckAsync(initial, final);
         }

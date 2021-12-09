@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using PostSharp.Backstage.Licensing.Consumption;
 using Microsoft.CodeAnalysis.Test.Utilities.Mocks;
 
@@ -20,35 +20,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<ISourceGenerator> _generators;
-        // <Caravela>
+        // <Metalama>
         private readonly ImmutableArray<ISourceTransformer> _transformers;
         private readonly ILicenseConsumptionManager _customLicenseConsumptionManager;
-        // </Caravela>
+        // </Metalama>
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
 
-        // <Caravela>
+        // <Metalama>
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, bool bypassLicensing = true)
             : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, transformers, loader, null, bypassLicensing)
-        // </Caravela>
+        // </Metalama>
         {
         }
 
-        // <Caravela>
+        // <Metalama>
         public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, bool bypassLicensing = true)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
-        // </Caravela>
+        // </Metalama>
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
-            // <Caravela>
+            // <Metalama>
             _transformers = transformers.NullToEmpty();
 
             if (bypassLicensing)
             {
                 _customLicenseConsumptionManager = new DummyLicenseConsumptionManager();
             }
-            // </Caravela>
+            // </Metalama>
         }
 
         private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
@@ -57,20 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<string> transformerOrder,
-            // </Caravela>
+            // </Metalama>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            // <Caravela>
+            // <Metalama>
             out ImmutableArray<ISourceTransformer> transformers,
             out ImmutableArray<object> plugins
-            // </Caravela>
+            // </Metalama>
             )
         {
-            // <Caravela>
+            // <Metalama>
             base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
-            // </Caravela>
+            // </Metalama>
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 generators = generators.InsertRange(0, _generators);
             }
-            // <Caravela>
+            // <Metalama>
             if (!_transformers.IsDefaultOrEmpty)
             {
                 transformers = transformers.InsertRange(0, _transformers);
             }
-            // </Caravela>
+            // </Metalama>
         }
 
         public Compilation CreateCompilation(
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return AnalyzerOptions;
         }
 
-        // <Caravela>
+        // <Metalama>
         protected override ILicenseConsumptionManager GetCustomLicenseConsumptionManager() => _customLicenseConsumptionManager;
-        // </Caravela>
+        // </Metalama>
     }
 }

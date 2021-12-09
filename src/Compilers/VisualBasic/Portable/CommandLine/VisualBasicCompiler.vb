@@ -8,7 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Caravela.Compiler
+Imports Metalama.Compiler
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
