@@ -1545,6 +1545,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     break;
 
                 case OperationKind.OmittedArgument:
+                case OperationKind.DeclarationExpression:
                 case OperationKind.Discard:
                     Assert.False(true, $"A {operation.Value.Kind} node should not be spilled or captured.");
                     break;

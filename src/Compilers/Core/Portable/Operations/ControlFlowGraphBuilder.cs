@@ -1843,6 +1843,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument)
                 {
+                    if (operationOpt is IDeclarationExpressionOperation declarationExpression)
+                    {
+                        Debug.Assert(spillDeclarationExpressions);
+                        // We don't leave regular declarations in the CFG graph, so what we really want to capture is the
+                        // node underlying the declaration. Currently, this should only happen for `out` variable declarations,
+                        // which can only be field or local references. If we ever encounter a scenario where tuples get here,
+                        // we will need to update the logic to ensure we aren't erasing information.
+                        operationOpt = OperationCloner.CloneOperation(declarationExpression.Expression);
+                        Debug.Assert(operationOpt is ILocalReferenceOperation or IFieldReferenceOperation);
+                    }
+
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
                     // directly or indirectly nested regions. The operation that we are about to spill is likely to remove references
