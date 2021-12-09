@@ -381,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var prefix = kind is Lexer.InterpolatedStringKind.Verbatim ? "@\"" : "\"";
             var fakeString = prefix + text + "\"";
             using var tempLexer = new Lexer(SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false);
-
             var mode = LexerMode.Syntax;
             var token = tempLexer.Lex(ref mode);
             Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
@@ -398,8 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
             foreach (var info in infos)
             {
-                var sd = info as SyntaxDiagnosticInfo;
-                builder.Add(sd?.WithOffset(sd.Offset + offset) ?? info);
+                // This cast should always be safe.  We are only moving diagnostics produced on syntax nodes and tokens.
+                var sd = (SyntaxDiagnosticInfo)info;
+                builder.Add(sd.WithOffset(sd.Offset + offset));
             }
 
             return builder.ToArrayAndFree();
