@@ -330,9 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
-            // string value.
+            // string value.  Note: if the current line is shorter than the indentation whitespace, this will
+            // intentionally copy nothing.
 #if NETCOREAPP
-            _builder.Append(currentLineWhitespace, indentationWhitespace.Length, Math.Max(0, currentLineWhitespace.Length - indentationWhitespace.Length));
+            _builder.Append(currentLineWhitespace, startIndex: indentationWhitespace.Length, count: Math.Max(0, currentLineWhitespace.Length - indentationWhitespace.Length));
 #else
             for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
                 _builder.Append(currentLineWhitespace[i]);
