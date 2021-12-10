@@ -620,8 +620,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     switch (_lexer.TextWindow.PeekChar())
                     {
                         case '"':
-                            // Depending on the type of string or the escapes involved, this may be the of the string
-                            // literal, or it may just be content.
+                            // Depending on the type of string or the escapes involved, this may be the end of the
+                            // string literal, or it may just be content.
                             if (IsEndDelimiterOtherwiseConsume(kind, startingQuoteCount))
                                 return;
 
