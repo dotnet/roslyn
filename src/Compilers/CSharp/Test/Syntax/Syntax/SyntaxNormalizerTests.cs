@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeExpression(
                 @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
                 @"$""""""Printed: {new Printer()
-{TextToPrint = ""Hello world!""}.PrintedText}"""""""
+{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
             );
         }
 
