@@ -3157,9 +3157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<VisitArgumentResult> argumentResults,
             BoundExpression? initializerOpt)
         {
-            Debug.Assert(node.Kind == BoundKind.ObjectCreationExpression ||
-                node.Kind == BoundKind.DynamicObjectCreationExpression ||
-                node.Kind == BoundKind.NewT);
+            Debug.Assert(node.Kind is BoundKind.ObjectCreationExpression or BoundKind.DynamicObjectCreationExpression or BoundKind.NewT or BoundKind.NoPiaObjectCreationExpression);
+
             var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
 
             int slot = -1;
@@ -9758,9 +9757,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
-            var result = base.VisitNoPiaObjectCreationExpression(node);
-            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return result;
+            Debug.Assert(!IsConditionalState);
+            VisitObjectOrDynamicObjectCreation(node, ImmutableArray<BoundExpression>.Empty, ImmutableArray<VisitArgumentResult>.Empty, node.InitializerExpressionOpt);
+            return null;
         }
 
         public override BoundNode? VisitNewT(BoundNewT node)
