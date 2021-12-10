@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,6 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullableWalker
         : LocalDataFlowPass<NullableWalker.LocalState, NullableWalker.LocalFunctionState>
     {
+        /// <summary>
+        /// Nullable analysis data for methods, parameter default values, and attributes
+        /// stored on the Compilation during testing only.
+        /// The key is a symbol for methods or parameters, and syntax for attributes.
+        /// </summary>
+        internal sealed class NullableAnalysisData
+        {
+            internal readonly int MaxRecursionDepth;
+            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
+
+            internal NullableAnalysisData(int maxRecursionDepth = -1)
+            {
+                MaxRecursionDepth = maxRecursionDepth;
+                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
+            }
+        }
+
         /// <summary>
         /// Used to copy variable slots and types from the NullableWalker for the containing method
         /// or lambda to the NullableWalker created for a nested lambda or local function.
@@ -428,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void EnsureSufficientExecutionStack(int recursionDepth)
         {
             if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
-                compilation.NullableAnalysisData is { MaxRecursionDepth: var depth } &&
+                compilation.TestOnlyCompilationData is NullableAnalysisData { MaxRecursionDepth: var depth } &&
                 depth > 0 &&
                 recursionDepth > depth)
             {
@@ -1511,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
         {
-            if (compilation.NullableAnalysisData?.Data is { } state)
+            if (compilation.TestOnlyCompilationData is NullableAnalysisData { Data: { } state })
             {
                 var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
@@ -1690,9 +1708,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? nodeType = node.Type;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var conversionsWithoutNullability = this.compilation.Conversions;
-                Debug.Assert(node.HasErrors || nodeType!.IsErrorType() ||
-                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
-                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo));
+                Debug.Assert(node.HasErrors ||
+                    (nodeType is { } &&
+                        (nodeType.IsErrorType() ||
+                        conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
+                        conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo))));
             }
 #endif
             return result;
