@@ -369,17 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             return symbol is LambdaSymbol lambda
-                && areEqual(lambda.syntaxReferenceOpt, syntaxReferenceOpt)
+                && lambda.Syntax == Syntax
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
                 && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
-
-            static bool areEqual(SyntaxReference a, SyntaxReference b)
-            {
-                return (object)a.SyntaxTree == b.SyntaxTree && a.Span == b.Span;
-            }
         }
 
         public override int GetHashCode()
