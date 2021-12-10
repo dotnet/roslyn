@@ -842,9 +842,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // In raw content we are allowed to see up to 2*N-1 open (or close) braces.  For example, if the string
                 // literal starts with `$$$"""` then we can see up to `2*3-1 = 5` braces like so `$$$""" {{{{{`.  The
-                // inner three braces start the interpolation.  The outer two braces are just content.  This ensures
-                // the rule that the content cannot contain a sequence of open or close braces equal to (or longer)
-                // than the dollar sequence.
+                // inner three braces start the interpolation.  The outer two braces are just content.  This ensures the
+                // rule that the content cannot contain a sequence of open or close braces equal to (or longer than) the
+                // dollar sequence.
                 var beforeOpenBracesPosition = _lexer.TextWindow.Position;
                 var openBraceCount = _lexer.ConsumeOpenBraceSequence();
                 if (openBraceCount < startingDollarSignCount)
