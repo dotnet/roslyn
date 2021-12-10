@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 if (property.Ancestors().Contains(block))
                 {
                     editor.ReplaceNode(block, (currentTypeDecl, _)
-                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, services)
+                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, services, CodeGenerationOptions.Default, cancellationToken)
                         .WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }

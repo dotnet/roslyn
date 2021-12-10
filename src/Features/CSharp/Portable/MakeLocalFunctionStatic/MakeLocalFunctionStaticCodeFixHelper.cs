@@ -146,7 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
-                        document.Project.Solution.Workspace.Services);
+                        document.Project.Solution.Workspace.Services,
+                        CodeGenerationOptions.Default,
+                        cancellationToken);
 
                     if (shouldWarn)
                     {

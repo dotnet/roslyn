@@ -151,15 +151,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
+                var codeGenerationOptions = new CodeGenerationOptions(
+                    addImports: false,
+                    parseOptions: rootWithCoreMembers.SyntaxTree.Options,
+                    sortMembers: false,
+                    autoInsertionLocation: false);
+
                 var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
                     document.Project.Solution.Workspace.Services,
-                    new CodeGenerationOptions(
-                        addImports: false,
-                        parseOptions: rootWithCoreMembers.SyntaxTree.Options,
-                        sortMembers: false,
-                        autoInsertionLocation: false));
+                    codeGenerationOptions,
+                    cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
                     rootWithCoreMembers.ReplaceNode(

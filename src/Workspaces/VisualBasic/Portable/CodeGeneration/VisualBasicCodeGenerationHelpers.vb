@@ -18,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destination As CodeGenerationDestination,
                 options As CodeGenerationOptions,
                 nonStructureAccessibility As Accessibility)
-            options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
                     Return
@@ -114,19 +113,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
-            options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
-
-            options = If(options, CodeGenerationOptions.Default)
 
             Return Function(list) [next]?(list)
         End Function
 
         Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
-            options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
-
-            options = If(options, CodeGenerationOptions.Default)
 
             Return Function(list) [next]?(list)
         End Function
@@ -139,8 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional after As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing,
             Optional before As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing) As SyntaxList(Of TDeclaration)
 
-            after = AfterDeclaration(options, after)
-            before = BeforeDeclaration(options, before)
+            after = AfterDeclaration(after)
+            before = BeforeDeclaration(before)
 
             Dim index = GetInsertionIndex(
                 declarationList, declaration, options, availableIndices,

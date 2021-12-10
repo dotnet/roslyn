@@ -166,7 +166,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, NamespaceBlockSyntax, CompilationUnitSyntax)(destination)
-            options = If(options, CodeGenerationOptions.Default)
             If TypeOf destination Is TypeBlockSyntax Then
                 Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of TypeBlockSyntax)(destination), namedType, options, availableIndices, cancellationToken))
             ElseIf TypeOf destination Is NamespaceBlockSyntax Then

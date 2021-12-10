@@ -106,15 +106,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             }
 
             var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var codeGenerationOptions = new CodeGenerationOptions(
+                contextLocation: classNodeToAddMembersTo.GetLocation(),
+                autoInsertionLocation: groupMembers,
+                sortMembers: groupMembers,
+                options: options);
+
             var updatedClassNode = CodeGenerator.AddMemberDeclarations(
                 classNodeToAddMembersTo,
                 memberDefinitions,
                 _document.Project.Solution.Workspace.Services,
-                new CodeGenerationOptions(
-                    contextLocation: classNodeToAddMembersTo.GetLocation(),
-                    autoInsertionLocation: groupMembers,
-                    sortMembers: groupMembers,
-                    options: options));
+                codeGenerationOptions,
+                cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(_classNode, updatedClassNode);

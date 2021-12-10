@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
                     _typeDeclaration, methods, _document.Project.Solution.Workspace.Services,
-                    new CodeGenerationOptions(options: options));
+                    new CodeGenerationOptions(options: options),
+                    cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {

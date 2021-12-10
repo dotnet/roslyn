@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// <summary>
     /// Options for controlling the code produced by the <see cref="CodeGenerator"/>.
     /// </summary>
-    internal class CodeGenerationOptions
+    internal sealed class CodeGenerationOptions
     {
         public static readonly CodeGenerationOptions Default = new();
 

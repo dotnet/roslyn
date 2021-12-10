@@ -48,8 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     namedType As INamedTypeSymbol,
                                     options As CodeGenerationOptions,
                                     cancellationToken As CancellationToken) As StatementSyntax
-            options = If(options, CodeGenerationOptions.Default)
-
             Dim declaration = GetDeclarationSyntaxWithoutMembers(namedType, options)
 
             declaration = If(options.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,

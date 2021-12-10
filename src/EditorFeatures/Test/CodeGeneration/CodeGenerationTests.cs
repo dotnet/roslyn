@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using var context = await TestContext.CreateAsync(initial, expected);
             var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(context.SemanticModel));
             var oldNode = context.GetDestinationNode();
-            var newNode = CodeGenerator.AddAttributes(oldNode, context.Document.Project.Solution.Workspace.Services, new[] { attr }, target)
+            var newNode = CodeGenerator.AddAttributes(oldNode, context.Document.Project.Solution.Workspace.Services, new[] { attr }, target, CodeGenerationOptions.Default, CancellationToken.None)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
             context.Result = context.Document.WithSyntaxRoot(context.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
         }
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
             var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
             var declarationNode = taggedNode.FirstAncestorOrSelf<T>();
-            var newNode = CodeGenerator.RemoveAttribute(declarationNode, context.Document.Project.Solution.Workspace.Services, attribute)
+            var newNode = CodeGenerator.RemoveAttribute(declarationNode, context.Document.Project.Solution.Workspace.Services, attribute, CodeGenerationOptions.Default, CancellationToken.None)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
             context.Result = context.Document.WithSyntaxRoot(context.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(declarationNode, newNode));
         }
@@ -498,15 +498,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             if (accessibility.HasValue)
             {
-                updatedDeclarationNode = CodeGenerator.UpdateDeclarationAccessibility(declarationNode, services, accessibility.Value);
+                updatedDeclarationNode = CodeGenerator.UpdateDeclarationAccessibility(declarationNode, services, accessibility.Value, new CodeGenerationOptions(reuseSyntax: true), CancellationToken.None);
             }
             else if (modifiers != null)
             {
-                updatedDeclarationNode = CodeGenerator.UpdateDeclarationModifiers(declarationNode, services, modifiers);
+                updatedDeclarationNode = CodeGenerator.UpdateDeclarationModifiers(declarationNode, services, modifiers, new CodeGenerationOptions(reuseSyntax: true), CancellationToken.None);
             }
             else if (getType != null)
             {
-                updatedDeclarationNode = CodeGenerator.UpdateDeclarationType(declarationNode, services, getType(context.SemanticModel));
+                updatedDeclarationNode = CodeGenerator.UpdateDeclarationType(declarationNode, services, getType(context.SemanticModel), new CodeGenerationOptions(reuseSyntax: true), CancellationToken.None);
             }
             else if (getNewMembers != null)
             {
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     allMembers.AddRange(newMembersToAdd);
                 }
 
-                updatedDeclarationNode = CodeGenerator.UpdateDeclarationMembers(declarationNode, services, allMembers);
+                updatedDeclarationNode = CodeGenerator.UpdateDeclarationMembers(declarationNode, services, allMembers, new CodeGenerationOptions(reuseSyntax: true), CancellationToken.None);
             }
 
             updatedDeclarationNode = updatedDeclarationNode.WithAdditionalAnnotations(Formatter.Annotation);
