@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Verify that we are actually in an location allowed for an interpolated string.
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(start);
-            if (token.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
+            if (token.SpanStart != start)
                 return false;
 
             token = token.GetPreviousToken();
