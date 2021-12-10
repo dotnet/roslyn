@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected bool Equals(Symbol other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
         {
             var areEqual = other is object && UnderlyingSymbol.Equals(other.UnderlyingSymbol, equalityComparer.CompareKind);
-            Debug.Assert(!areEqual || x.GetHashCode() == y.GetHashCode(), "Hash code should be the same for equal symbols.");
+            Debug.Assert(!areEqual || this.GetHashCode() == other.GetHashCode(), "Hash code should be the same for equal symbols.");
             return areEqual;
         }
 
