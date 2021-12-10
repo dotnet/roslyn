@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
+        public GeneratorDriver ReplaceAdditionalTexts(ImmutableArray<AdditionalText> newTexts) => FromState(_state.With(additionalTexts: newTexts));
+
         public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => newOptions is object
                                                                                    ? FromState(_state.With(parseOptions: newOptions))
                                                                                    : throw new ArgumentNullException(nameof(newOptions));

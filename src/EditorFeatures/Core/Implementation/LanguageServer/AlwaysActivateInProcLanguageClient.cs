@@ -72,7 +72,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            serverCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            serverCapabilities.ProjectContextProvider = true;
+
+            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            if (isPullDiagnostics)
+            {
+                serverCapabilities.SupportsDiagnosticRequests = true;
+                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
+            }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
             serverCapabilities.WorkspaceSymbolProvider = true;
