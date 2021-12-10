@@ -845,7 +845,7 @@ namespace IOperationGenerator
                         int slot = orderedProperties.Count - 1;
                         for (; slot >= 0; slot--)
                         {
-                            // Operation.ChildCollection.Reversed.Enumerator starts indexes at int.MaxValue. For a given property, the general psuedocode is:
+                            // Operation.ChildCollection.Reversed.Enumerator starts indexes at int.MaxValue. For a given property, the general pseudocode is:
 
                             // case previousSlot:
                             //     if (element i is valid) return (true, i, 0);

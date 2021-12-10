@@ -1319,11 +1319,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Pattern != null)
             {
-                Assert.Same(operation.Pattern, operation.Children.Single());
+                Assert.Same(operation.Pattern, operation.ChildOperations.Single());
             }
             else
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
         }
 
@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             IEnumerable<IOperation> children = operation.Patterns.Cast<IOperation>();
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)

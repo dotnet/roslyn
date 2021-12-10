@@ -376,8 +376,8 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (Arguments.IsEmpty) goto case 1;
-                    else return (true, 1, Arguments.Length - 1);
+                    if (!Arguments.IsEmpty) return (true, 1, Arguments.Length - 1);
+                    else goto case 1;
 
                 case 1 when previousIndex > 0:
                     return (true, 1, previousIndex - 1);
@@ -462,8 +462,8 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (Arguments.IsEmpty) goto case 1;
-                    else return (true, 1, Arguments.Length - 1);
+                    if (!Arguments.IsEmpty) return (true, 1, Arguments.Length - 1);
+                    else goto case 1;
 
                 case 1 when previousIndex > 0:
                     return (true, 1, previousIndex - 1);

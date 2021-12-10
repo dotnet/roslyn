@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Implements a reverse-order struct-based collection of <see cref="Operation"/> nodes.
             /// This collection is ordered, but random access into the collection is not provided.
-            /// This type is not hardened to <code>default(Reversed)</code>, and will null reference
-            /// in these cases.
             /// </summary>
             [NonDefaultable]
             public readonly struct Reversed : IReadOnlyCollection<IOperation>
@@ -42,12 +40,12 @@ namespace Microsoft.CodeAnalysis
                     Enumerator enumerator = GetEnumerator();
                     switch (_operation)
                     {
-                        case NoneOperation { Children: var children }:
-                            return children;
-                        case InvalidOperation { Children: var children }:
-                            return children;
                         case { ChildOperationsCount: 0 }:
                             return ImmutableArray<IOperation>.Empty;
+                        case NoneOperation { Children: var children }:
+                            return reverseArray(children);
+                        case InvalidOperation { Children: var children }:
+                            return reverseArray(children);
                         default:
                             var builder = ArrayBuilder<IOperation>.GetInstance(Count);
                             foreach (var child in this)
@@ -56,10 +54,30 @@ namespace Microsoft.CodeAnalysis
                             }
                             return builder.ToImmutableAndFree();
                     }
+
+                    static ImmutableArray<IOperation> reverseArray(ImmutableArray<IOperation> input)
+                    {
+                        var builder = ArrayBuilder<IOperation>.GetInstance(input.Length);
+                        for (int i = input.Length - 1; i >= 0; i--)
+                        {
+                            builder.Add(input[i]);
+                        }
+
+                        return builder.ToImmutableAndFree();
+                    }
                 }
 
-                IEnumerator<IOperation> IEnumerable<IOperation>.GetEnumerator() => this.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+                IEnumerator<IOperation> IEnumerable<IOperation>.GetEnumerator()
+                {
+                    if (this.Count == 0)
+                    {
+                        return SpecializedCollections.EmptyEnumerator<IOperation>();
+                    }
+
+                    return new EnumeratorImpl(new Enumerator(_operation));
+                }
+
+                IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<IOperation>)this).GetEnumerator();
 
                 /// <summary>
                 /// Implements a reverse-order struct-based enumerator for <see cref="Operation"/> nodes. This type is not hardened
@@ -67,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 /// <see cref="Enumerator.MoveNext"/> has returned false will throw an <see cref="InvalidOperationException"/>.
                 /// </summary>
                 [NonDefaultable]
-                public struct Enumerator : IEnumerator<IOperation>
+                public struct Enumerator
                 {
                     private readonly Operation _operation;
                     private int _currentSlot;
@@ -101,9 +119,22 @@ namespace Microsoft.CodeAnalysis
                         _currentIndex = int.MaxValue;
                         _currentSlot = int.MaxValue;
                     }
+                }
 
-                    object? IEnumerator.Current => Current;
-                    void IDisposable.Dispose() { }
+                private class EnumeratorImpl : IEnumerator<IOperation>
+                {
+                    private readonly Enumerator _enumerator;
+
+                    public EnumeratorImpl(Enumerator enumerator)
+                    {
+                        _enumerator = enumerator;
+                    }
+
+                    public IOperation Current => _enumerator.Current;
+                    object? IEnumerator.Current => _enumerator.Current;
+                    public void Dispose() { }
+                    public bool MoveNext() => _enumerator.MoveNext();
+                    public void Reset() => _enumerator.Reset();
                 }
             }
         }

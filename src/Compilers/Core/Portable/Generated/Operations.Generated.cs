@@ -9861,14 +9861,16 @@ namespace Microsoft.CodeAnalysis.Operations
         public ISymbol? IndexerSymbol { get; }
         public ImmutableArray<IPatternOperation> Patterns { get; }
         public ISymbol? DeclaredSymbol { get; }
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override int ChildOperationsCount =>
+            Patterns.Length;
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when index < Patterns.Length
                     => Patterns[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -9880,6 +9882,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 case 0:
                 case 1:
                     return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (!Patterns.IsEmpty) return (true, 0, Patterns.Length - 1);
+                    else goto case 0;
+                case 0 when previousIndex > 0:
+                    return (true, 0, previousIndex - 1);
+                case 0:
+                case -1:
+                    return (false, -1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -9900,14 +9918,16 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ISymbol? SliceSymbol { get; }
         public IPatternOperation? Pattern { get; }
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override int ChildOperationsCount =>
+            (Pattern is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when Pattern != null
                     => Pattern,
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -9917,6 +9937,20 @@ namespace Microsoft.CodeAnalysis.Operations
                 case 0:
                 case 1:
                     return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Pattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }

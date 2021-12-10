@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections;
 using System;
-using System.Diagnostics;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Implements a struct-based collection of <see cref="Operation"/> nodes. This collection is ordered, but
-        /// random access into the collection is not provided. This type is not hardened to 
-        /// <code>default(ChildCollection)</code>, and will null reference in these cases.
+        /// random access into the collection is not provided.
         /// </summary>
         [NonDefaultable]
         public readonly partial struct OperationList : IReadOnlyCollection<IOperation>
@@ -38,12 +37,12 @@ namespace Microsoft.CodeAnalysis
             {
                 switch (_operation)
                 {
+                    case { ChildOperationsCount: 0 }:
+                        return ImmutableArray<IOperation>.Empty;
                     case NoneOperation { Children: var children }:
                         return children;
                     case InvalidOperation { Children: var children }:
                         return children;
-                    case { ChildOperationsCount: 0 }:
-                        return ImmutableArray<IOperation>.Empty;
                     default:
                         var builder = ArrayBuilder<IOperation>.GetInstance(Count);
                         foreach (var child in this)
@@ -54,8 +53,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            IEnumerator<IOperation> IEnumerable<IOperation>.GetEnumerator() => this.GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+            IEnumerator<IOperation> IEnumerable<IOperation>.GetEnumerator()
+            {
+                if (this.Count == 0)
+                {
+                    return SpecializedCollections.EmptyEnumerator<IOperation>();
+                }
+
+                return new EnumeratorImpl(new Enumerator(_operation));
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<IOperation>)this).GetEnumerator();
 
             public bool Any() => Count > 0;
 
@@ -89,7 +97,7 @@ namespace Microsoft.CodeAnalysis
             /// <see cref="Enumerator.MoveNext"/> has returned false will throw an <see cref="InvalidOperationException"/>.
             /// </summary>
             [NonDefaultable]
-            public struct Enumerator : IEnumerator<IOperation>
+            public struct Enumerator
             {
                 /// <summary>
                 /// Implementation of the <see cref="Enumerator.MoveNext"/> and <see cref="Enumerator.Current"/>
@@ -131,9 +139,22 @@ namespace Microsoft.CodeAnalysis
                     _currentSlot = -1;
                     _currentIndex = -1;
                 }
+            }
 
-                object? IEnumerator.Current => this.Current;
-                void IDisposable.Dispose() { }
+            private class EnumeratorImpl : IEnumerator<IOperation>
+            {
+                private readonly Enumerator _enumerator;
+
+                public EnumeratorImpl(Enumerator enumerator)
+                {
+                    _enumerator = enumerator;
+                }
+
+                public IOperation Current => _enumerator.Current;
+                object? IEnumerator.Current => _enumerator.Current;
+                public void Dispose() { }
+                public bool MoveNext() => _enumerator.MoveNext();
+                public void Reset() => _enumerator.Reset();
             }
         }
     }
