@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return captureId;
         }
 
-        private void SpillEvalStack(bool spillDeclarationExpressions = false)
+        private void SpillEvalStack()
         {
             Debug.Assert(_startSpillingAt <= _evalStack.Count);
 #if DEBUG
@@ -1839,21 +1839,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 // Declarations cannot have control flow, so we don't need to spill them.
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
-                    && (operationOpt.Kind != OperationKind.DeclarationExpression || spillDeclarationExpressions)
+                    && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument)
                 {
-                    if (operationOpt is IDeclarationExpressionOperation declarationExpression)
-                    {
-                        Debug.Assert(spillDeclarationExpressions);
-                        // We don't leave regular declarations in the CFG graph, so what we really want to capture is the
-                        // node underlying the declaration. Currently, this should only happen for `out` variable declarations,
-                        // which can only be field or local references. If we ever encounter a scenario where tuples get here,
-                        // we will need to update the logic to ensure we aren't erasing information.
-                        operationOpt = OperationCloner.CloneOperation(declarationExpression.Expression);
-                        Debug.Assert(operationOpt is ILocalReferenceOperation or IFieldReferenceOperation);
-                    }
-
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
                     // directly or indirectly nested regions. The operation that we are about to spill is likely to remove references
@@ -2065,14 +2054,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(interpolatedStringBuilder != null);
                 _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
                     interpolatedStringBuilder.ToImmutableAndFree(),
-                    _evalStack.Count - (instancePushed ? 1 : 0),
+                    startingStackDepth: _evalStack.Count - (instancePushed ? 1 : 0),
                     hasReceiver: instancePushed);
             }
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                PushOperand(VisitRequired(arguments[i].Value));
-
                 // If there are declaration expressions in the arguments before an interpolated string handler, and that declaration
                 // expression is referenced by the handler constructor, we need to spill it to ensure the declaration doesn't end
                 // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
@@ -2080,20 +2067,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
                 // referenced a specific declaration expression in the argument list, but we think that the complexity in implementing
                 // this check is more complexity than this scenario needs.
-                if (i < lastIndexForSpilling)
+                var argument = arguments[i].Value switch
                 {
-                    SpillEvalStack(spillDeclarationExpressions: true);
-                }
+                    IDeclarationExpressionOperation declaration when i < lastIndexForSpilling => declaration.Expression,
+                    var value => value
+                };
+
+                PushOperand(VisitRequired(argument));
             }
 
             _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
-        }
-
-        private static readonly Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
-
-        private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
-        {
-            return argument.Value;
         }
 
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
