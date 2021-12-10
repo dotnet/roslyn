@@ -454,7 +454,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var newMethod = isTrampoline
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
                     : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
-                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, options: new CodeGenerationOptions(options: options, parseOptions: _expression.SyntaxTree.Options));
+
+                var codeGenOptions = new CodeGenerationOptions(options: options, parseOptions: _expression.SyntaxTree.Options);
+                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, codeGenOptions, cancellationToken);
+                Contract.ThrowIfNull(newMethodDeclaration);
                 return newMethodDeclaration;
             }
 

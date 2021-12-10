@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
                     }
 
-                    var localMethod = codeGenerationService.CreateMethodDeclaration(
-                        method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
-                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
+                    var codeGenOptions = new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination.SyntaxTree.Options);
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, codeGenOptions, cancellationToken);
+
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, CodeGenerationOptions.Default, cancellationToken);
                 }
                 else
                 {

@@ -291,12 +291,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
 
                 // GC.SuppressFinalize(this);
-                statements.Add(g.ExpressionStatement(
-                    g.InvocationExpression(
-                        g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
-                            nameof(GC.SuppressFinalize)),
-                        g.ThisExpression())));
+                var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName!);
+                if (gcType != null)
+                {
+                    statements.Add(g.ExpressionStatement(
+                        g.InvocationExpression(
+                            g.MemberAccessExpression(
+                                g.TypeExpression(gcType),
+                                nameof(GC.SuppressFinalize)),
+                            g.ThisExpression())));
+                }
 
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);

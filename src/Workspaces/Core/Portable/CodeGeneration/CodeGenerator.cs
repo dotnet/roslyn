@@ -25,80 +25,80 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Returns a newly created event declaration node from the provided event.
         /// </summary>
-        public static SyntaxNode CreateEventDeclaration(IEventSymbol @event, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, @event.Language).CreateEventDeclaration(@event, destination, options);
+        public static SyntaxNode CreateEventDeclaration(IEventSymbol @event, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, @event.Language).CreateEventDeclaration(@event, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns a newly created field declaration node from the provided field.
         /// </summary>
-        public static SyntaxNode CreateFieldDeclaration(IFieldSymbol field, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, field.Language).CreateFieldDeclaration(field, destination, options);
+        public static SyntaxNode CreateFieldDeclaration(IFieldSymbol field, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, field.Language).CreateFieldDeclaration(field, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns a newly created method declaration node from the provided method.
         /// </summary>
-        public static SyntaxNode CreateMethodDeclaration(IMethodSymbol method, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, method.Language).CreateMethodDeclaration(method, destination, options);
+        public static SyntaxNode? CreateMethodDeclaration(IMethodSymbol method, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, method.Language).CreateMethodDeclaration(method, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns a newly created property declaration node from the provided property.
         /// </summary>
-        public static SyntaxNode CreatePropertyDeclaration(IPropertySymbol property, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, property.Language).CreatePropertyDeclaration(property, destination, options);
+        public static SyntaxNode CreatePropertyDeclaration(IPropertySymbol property, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, property.Language).CreatePropertyDeclaration(property, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns a newly created named type declaration node from the provided named type.
         /// </summary>
-        public static SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, namedType.Language).CreateNamedTypeDeclaration(namedType, destination, options);
+        public static SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, namedType.Language).CreateNamedTypeDeclaration(namedType, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns a newly created namespace declaration node from the provided namespace.
         /// </summary>
-        public static SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null)
-            => GetCodeGenerationService(services, @namespace.Language).CreateNamespaceDeclaration(@namespace, destination, options);
+        public static SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, HostWorkspaceServices services, CodeGenerationDestination destination = CodeGenerationDestination.Unspecified, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
+            => GetCodeGenerationService(services, @namespace.Language).CreateNamespaceDeclaration(@namespace, destination, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with an event declaration of the same signature as the specified symbol added to it.
         /// </summary>
-        public static TDeclarationNode AddEventDeclaration<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddEvent(destination, @event, options);
+        public static TDeclarationNode AddEventDeclaration<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddEvent(destination, @event, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with a field declaration of the same signature as the specified symbol added to it.
         /// </summary>
-        public static TDeclarationNode AddFieldDeclaration<TDeclarationNode>(TDeclarationNode destination, IFieldSymbol field, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddField(destination, field, options);
+        public static TDeclarationNode AddFieldDeclaration<TDeclarationNode>(TDeclarationNode destination, IFieldSymbol field, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddField(destination, field, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with a method declaration of the same signature as the specified symbol added to it.
         /// </summary>
-        public static TDeclarationNode AddMethodDeclaration<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddMethod(destination, method, options);
+        public static TDeclarationNode AddMethodDeclaration<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddMethod(destination, method, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with a property declaration of the same signature as the specified symbol added to it.
         /// </summary>
-        public static TDeclarationNode AddPropertyDeclaration<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddProperty(destination, property, options);
+        public static TDeclarationNode AddPropertyDeclaration<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddProperty(destination, property, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with a named type declaration of the same signature as the specified symbol added to it.
         /// </summary>
-        public static TDeclarationNode AddNamedTypeDeclaration<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddNamedType(destination, namedType, options);
+        public static TDeclarationNode AddNamedTypeDeclaration<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddNamedType(destination, namedType, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with multiple member declarations of the same signatures as the specified symbols added to it.
         /// </summary>
-        public static TDeclarationNode AddMemberDeclarations<TDeclarationNode>(TDeclarationNode destination, IEnumerable<ISymbol> members, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddMembers(destination, members, options);
+        public static TDeclarationNode AddMemberDeclarations<TDeclarationNode>(TDeclarationNode destination, IEnumerable<ISymbol> members, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destination.Language).AddMembers(destination, members, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with one or more parameter declarations of the same signature as the specified symbols added to it.
         /// </summary>
-        public static TDeclarationNode AddParameterDeclarations<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<IParameterSymbol> parameters, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destinationMember.Language).AddParameters(destinationMember, parameters, options);
+        public static TDeclarationNode AddParameterDeclarations<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<IParameterSymbol> parameters, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destinationMember.Language).AddParameters(destinationMember, parameters, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new declaration node with the specified attributes added to it.
@@ -133,71 +133,71 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Create a new declaration node with one or more statements added to its body.
         /// </summary>
-        public static TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, HostWorkspaceServices services, CodeGenerationOptions? options = null) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destinationMember.Language).AddStatements(destinationMember, statements, options);
+        public static TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, HostWorkspaceServices services, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode
+            => GetCodeGenerationService(services, destinationMember.Language).AddStatements(destinationMember, statements, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional event of the same signature as the specified event symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddEventDeclarationAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddEventAsync(solution, destination, @event, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddEventAsync(solution, destination, @event, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional field of the same signature as the specified field symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddFieldDeclarationAsync(Solution solution, INamedTypeSymbol destination, IFieldSymbol field, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddFieldAsync(solution, destination, field, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddFieldAsync(solution, destination, field, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional method of the same signature as the specified method symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddMethodDeclarationAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddMethodAsync(solution, destination, method, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddMethodAsync(solution, destination, method, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional property of the same signature as the specified property symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddPropertyDeclarationAsync(Solution solution, INamedTypeSymbol destination, IPropertySymbol property, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddPropertyAsync(solution, destination, property, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddPropertyAsync(solution, destination, property, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional named type of the same signature as the specified named type symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddNamedTypeDeclarationAsync(Solution solution, INamedTypeSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamedTypeAsync(solution, destination, namedType, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamedTypeAsync(solution, destination, namedType, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional named type of the same signature as the specified named type symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddNamedTypeDeclarationAsync(Solution solution, INamespaceSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamedTypeAsync(solution, destination, namedType, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamedTypeAsync(solution, destination, namedType, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional namespace of the same signature as the specified namespace symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddNamespaceDeclarationAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamespaceAsync(solution, destination, @namespace, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamespaceAsync(solution, destination, @namespace, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional namespace or type of the same signature as the specified namespace or type symbol.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddNamespaceOrTypeDeclarationAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamespaceOrTypeAsync(solution, destination, namespaceOrType, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddNamespaceOrTypeAsync(solution, destination, namespaceOrType, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has additional members of the same signature as the specified member symbols.
         /// Returns the document in the new solution where the destination symbol is declared.
         /// </summary>
         public static Task<Document> AddMemberDeclarationsAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions? options = null, CancellationToken cancellationToken = default)
-            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddMembersAsync(solution, destination, members, options, cancellationToken);
+            => GetCodeGenerationService(solution.Workspace.Services, destination.Language).AddMembersAsync(solution, destination, members, options ?? CodeGenerationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Returns <c>true</c> if additional declarations can be added to the destination symbol's declaration.

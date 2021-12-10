@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,24 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateConversionDeclaration(
-                method, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
-
+            var methodDeclaration = GenerateConversionDeclaration(method, options, destination.SyntaxTree.Options, cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
             CodeGenerationOptions options,
-            ParseOptions parseOptions)
+            ParseOptions parseOptions,
+            CancellationToken cancellationToken)
         {
             var declaration = GenerateConversionDeclarationWorker(method, options, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
-                ConditionallyAddDocumentationCommentTo(declaration, method, options)));
+                ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken)));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
@@ -80,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
 
-                if (declaration.Body.TryConvertToArrowExpressionBody(
-                        declaration.Kind(), parseOptions, expressionBodyPreference,
-                        out var expressionBody, out var semicolonToken))
+                if (declaration.Body?.TryConvertToArrowExpressionBody(
+                    declaration.Kind(), parseOptions, expressionBodyPreference,
+                    out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)

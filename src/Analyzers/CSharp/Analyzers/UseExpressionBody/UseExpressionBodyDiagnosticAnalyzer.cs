@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 // if they don't want expression bodies for this member.  
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetExpressionBody(declaration).GetLocation();
+                    : helper.GetExpressionBody(declaration)!.GetLocation();
 
                 var properties = ImmutableDictionary<string, string?>.Empty;
                 if (fixesError)

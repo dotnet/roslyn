@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var @namespace = CodeGenerationSymbolFactory.CreateNamespaceSymbol(name, imports, members);
-            context.Result = await context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions);
+            context.Result = await context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddFieldAsync(
@@ -66,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 constantValue);
             if (!addToCompilationUnit)
             {
-                context.Result = await context.Service.AddFieldAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), field, codeGenerationOptions);
+                context.Result = await context.Service.AddFieldAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), field, codeGenerationOptions, CancellationToken.None);
             }
             else
             {
-                var newRoot = context.Service.AddField(await context.Document.GetSyntaxRootAsync(), field, codeGenerationOptions);
+                var newRoot = context.Service.AddField(await context.Document.GetSyntaxRootAsync(), field, codeGenerationOptions, CancellationToken.None);
                 context.Result = context.Document.WithSyntaxRoot(newRoot);
             }
         }
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 statements,
                 baseConstructorArguments: baseArguments,
                 thisConstructorArguments: thisArguments);
-            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), ctor, codeGenerationOptions);
+            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), ctor, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddMethodAsync(
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 parameterSymbols,
                 parsedStatements,
                 handlesExpressions: handlesExpressions);
-            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
+            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddOperatorsAsync(
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 parameterSymbols,
                 parsedStatements));
 
-            context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), methods.ToArray(), codeGenerationOptions);
+            context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), methods.ToArray(), codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddUnsupportedOperatorAsync(
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ArgumentException exception = null;
             try
             {
-                await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
+                await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions, CancellationToken.None);
             }
             catch (ArgumentException e)
             {
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 isImplicit,
                 parsedStatements);
 
-            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
+            context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddStatementsAsync(
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using var context = await TestContext.CreateAsync(initial, expected);
             var parsedStatements = context.ParseStatements(statements);
             var oldSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
-            var newSyntax = context.Service.AddStatements(oldSyntax, parsedStatements, codeGenerationOptions);
+            var newSyntax = context.Service.AddStatements(oldSyntax, parsedStatements, codeGenerationOptions, CancellationToken.None);
             context.Result = context.Document.WithSyntaxRoot((await context.Document.GetSyntaxRootAsync()).ReplaceNode(oldSyntax, newSyntax));
         }
 
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using var context = await TestContext.CreateAsync(initial, expected);
             var parameterSymbols = GetParameterSymbols(parameters, context);
             var oldMemberSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
-            var newMemberSyntax = context.Service.AddParameters(oldMemberSyntax, parameterSymbols, codeGenerationOptions);
+            var newMemberSyntax = context.Service.AddParameters(oldMemberSyntax, parameterSymbols, codeGenerationOptions, CancellationToken.None);
             context.Result = context.Document.WithSyntaxRoot((await context.Document.GetSyntaxRootAsync()).ReplaceNode(oldMemberSyntax, newMemberSyntax));
         }
 
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 name,
                 typeParameters,
                 parameterSymbols);
-            context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), type, codeGenerationOptions);
+            context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), type, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddEventAsync(
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 addMethod,
                 removeMethod,
                 raiseMethod);
-            context.Result = await context.Service.AddEventAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), @event, codeGenerationOptions);
+            context.Result = await context.Service.AddEventAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), @event, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddPropertyAsync(
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             codeGenerationOptions ??= new CodeGenerationOptions();
             codeGenerationOptions = codeGenerationOptions.With(options: codeGenerationOptions.Options ?? workspace.Options);
-            context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions);
+            context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddNamedTypeAsync(
@@ -447,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var type = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, accessibility, modifiers, typeKind, name,
                 typeParameters, baseType, interfaces, specialType, memberSymbols);
-            context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), type, codeGenerationOptions);
+            context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), type, codeGenerationOptions, CancellationToken.None);
         }
 
         internal static async Task TestAddAttributeAsync(
@@ -560,11 +561,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             if (destination.IsType)
             {
                 var members = onlyGenerateMembers ? symbol.GetMembers().ToArray() : new[] { symbol };
-                context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)destination, members, codeGenerationOptions);
+                context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)destination, members, codeGenerationOptions, CancellationToken.None);
             }
             else
             {
-                context.Result = await context.Service.AddNamespaceOrTypeAsync(context.Solution, (INamespaceSymbol)destination, symbol, codeGenerationOptions);
+                context.Result = await context.Service.AddNamespaceOrTypeAsync(context.Solution, (INamespaceSymbol)destination, symbol, codeGenerationOptions, CancellationToken.None);
             }
         }
 

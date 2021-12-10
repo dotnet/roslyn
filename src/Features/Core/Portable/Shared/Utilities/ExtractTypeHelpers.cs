@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 generateMethodBodies: true,
                 options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, options: options, cancellationToken: cancellationToken)
+            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, options, cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();

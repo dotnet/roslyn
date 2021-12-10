@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -20,33 +19,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class ConstructorGenerator
     {
-        private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
+        private static MemberDeclarationSyntax? LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
             => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
+                constructor, options, destination.SyntaxTree.Options, cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
             var members = Insert(destination.Members, constructorDeclaration, options,
                 availableIndices, after: LastConstructorOrField, before: FirstMember);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
             IMethodSymbol constructor,
             CodeGenerationOptions options,
-            ParseOptions parseOptions)
+            ParseOptions parseOptions,
+            CancellationToken cancellationToken)
         {
-            options ??= CodeGenerationOptions.Default;
-
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
             if (reusableSyntax != null)
             {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             declaration = UseExpressionBodyIfDesired(options, declaration, parseOptions);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
+                ConditionallyAddDocumentationCommentTo(declaration, constructor, options, cancellationToken));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
@@ -76,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
-                if (declaration.Body.TryConvertToArrowExpressionBody(
-                        declaration.Kind(), parseOptions, expressionBodyPreference,
-                        out var expressionBody, out var semicolonToken))
+                if (declaration.Body?.TryConvertToArrowExpressionBody(
+                    declaration.Kind(), parseOptions, expressionBodyPreference,
+                    out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static ConstructorInitializerSyntax GenerateConstructorInitializer(
+        private static ConstructorInitializerSyntax? GenerateConstructorInitializer(
             IMethodSymbol constructor)
         {
             var thisArguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor);

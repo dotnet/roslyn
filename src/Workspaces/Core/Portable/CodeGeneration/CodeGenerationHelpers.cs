@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
+        public static bool IsSpecialType([NotNullWhen(true)] ITypeSymbol? type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
 
         public static int GetPreferredIndex(int index, IList<bool>? availableIndices, bool forward)
@@ -192,11 +192,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration>? before = null)
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var body = GetBody(declaration);
             if (body != null)
             {
-                return base.GetDiagnosticLocation(declaration);
+                return body.Statements[0].GetLocation();
             }
 
             var getAccessor = GetSingleGetAccessor(declaration.AccessorList);

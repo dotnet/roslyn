@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             BaseNamespaceDeclarationSyntax destination,
             INamespaceSymbol @namespace,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamespaceDeclaration(
                 service, @namespace,
                 CodeGenerationDestination.Namespace,
-                options, destination.SyntaxTree.Options ?? options.ParseOptions,
+                options, destination.SyntaxTree.Options,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamespaceSymbol @namespace,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamespaceDeclaration(
                 service, @namespace,
                 CodeGenerationDestination.CompilationUnit,
-                options, destination.SyntaxTree.Options ?? options.ParseOptions,
+                options, destination.SyntaxTree.Options,
                 cancellationToken);
             if (declaration is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 throw new ArgumentException(CSharpWorkspaceResources.Namespace_can_not_be_added_in_this_destination);
@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ParseOptions? parseOptions,
             CancellationToken cancellationToken)
         {
-            options ??= CodeGenerationOptions.Default;
             GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(

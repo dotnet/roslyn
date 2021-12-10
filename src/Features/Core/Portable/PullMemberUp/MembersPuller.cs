@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         {
                             ChangeMemberToPublicAndNonStatic(
                                 codeGenerationService, originalMemberEditor,
-                                declaration, analysisResult.Member);
+                                declaration, analysisResult.Member,
+                                cancellationToken);
                         }
                     }
                 }
@@ -174,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ICodeGenerationService codeGenerationService,
             DocumentEditor editor,
             SyntaxNode memberDeclaration,
-            ISymbol member)
+            ISymbol member,
+            CancellationToken cancellationToken)
         {
             var modifiers = DeclarationModifiers.From(member).WithIsStatic(false);
             // Event is different since several events may be declared in one line.
@@ -185,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     editor,
                     eventSymbol,
                     memberDeclaration,
-                    modifiers);
+                    modifiers,
+                    cancellationToken);
             }
             else
             {
@@ -199,7 +202,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             DocumentEditor editor,
             IEventSymbol eventSymbol,
             SyntaxNode eventDeclaration,
-            DeclarationModifiers modifiers)
+            DeclarationModifiers modifiers,
+            CancellationToken cancellationToken)
         {
             var declaration = editor.Generator.GetDeclaration(eventDeclaration);
             var isEventHasExplicitAddOrRemoveMethod =
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     accessibility: Accessibility.Public,
                     modifiers: modifiers);
                 var options = new CodeGenerationOptions(generateMethodBodies: false);
-                var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
+                var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, options, cancellationToken);
                 // Insert a new declaration and remove the original declaration
                 editor.InsertAfter(declaration, publicAndNonStaticSyntax);
                 editor.RemoveNode(eventDeclaration);

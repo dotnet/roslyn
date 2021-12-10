@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamedTypeDeclaration(service, namedType, GetDestination(destination), options, cancellationToken);
             var members = Insert(destination.Members, declaration, options, availableIndices);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         public static BaseNamespaceDeclarationSyntax AddNamedTypeTo(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             BaseNamespaceDeclarationSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.Namespace, options, cancellationToken);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             INamedTypeSymbol namedType,
             CodeGenerationOptions options,
-            IList<bool> availableIndices,
+            IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, options, cancellationToken);
@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            options ??= CodeGenerationOptions.Default;
-
             var declaration = GetDeclarationSyntaxWithoutMembers(namedType, destination, options);
 
             // If we are generating members then make sure to exclude properties that cannot be generated.
@@ -308,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return tokens.ToSyntaxTokenListAndFree();
         }
 
-        private static TypeParameterListSyntax GenerateTypeParameterList(
+        private static TypeParameterListSyntax? GenerateTypeParameterList(
             INamedTypeSymbol namedType, CodeGenerationOptions options)
         {
             return TypeParameterGenerator.GenerateTypeParameterList(namedType.TypeParameters, options);

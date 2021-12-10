@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace, CancellationToken cancellationToken)
         {
             var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
+            Contract.ThrowIfNull(typeExpression);
+
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }

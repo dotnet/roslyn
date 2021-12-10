@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class EventGenerator
     {
-        private static MemberDeclarationSyntax AfterMember(
+        private static MemberDeclarationSyntax? AfterMember(
             SyntaxList<MemberDeclarationSyntax> members,
             MemberDeclarationSyntax eventDeclaration)
         {
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private static MemberDeclarationSyntax BeforeMember(
+        private static MemberDeclarationSyntax? BeforeMember(
             SyntaxList<MemberDeclarationSyntax> members,
             MemberDeclarationSyntax eventDeclaration)
         {
@@ -62,9 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CompilationUnitSyntax destination,
             IEventSymbol @event,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool> availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateEventDeclaration(@event, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GenerateEventDeclaration(@event, CodeGenerationDestination.CompilationUnit, options, cancellationToken);
 
             // Place the event depending on its shape.  Field style events go with fields, property
             // style events go with properties.  If there 
@@ -77,9 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             IEventSymbol @event,
             CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var declaration = GenerateEventDeclaration(@event, GetDestination(destination), options);
+            var declaration = GenerateEventDeclaration(@event, GetDestination(destination), options, cancellationToken);
 
             var members = Insert(destination.Members, declaration, options, availableIndices,
                 after: list => AfterMember(list, declaration),
@@ -88,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Find the best place to put the field.  It should go after the last field if we already
             // have fields, or at the beginning of the file if we don't.
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         public static MemberDeclarationSyntax GenerateEventDeclaration(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(@event, options);
             if (reusableSyntax != null)
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? GenerateEventFieldDeclaration(@event, destination, options)
                 : GenerateEventDeclarationWorker(@event, destination, options);
 
-            return ConditionallyAddDocumentationCommentTo(declaration, @event, options);
+            return ConditionallyAddDocumentationCommentTo(declaration, @event, options, cancellationToken);
         }
 
         private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorDeclarationSyntax GenerateAccessorDeclaration(
             IEventSymbol @event,
-            IMethodSymbol accessor,
+            IMethodSymbol? accessor,
             SyntaxKind kind,
             CodeGenerationDestination destination,
             CodeGenerationOptions options)
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static bool HasAccessorBodies(
             IEventSymbol @event,
             CodeGenerationDestination destination,
-            IMethodSymbol accessor)
+            IMethodSymbol? accessor)
         {
             return destination != CodeGenerationDestination.InterfaceType &&
                 !@event.IsAbstract &&

@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var obsoleteAttribute = await GetObsoleteAttributeAsync(document, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(obsoleteAttribute);
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var containers = diagnostics.Select(d => GetContainer(root, d.Location.FindNode(cancellationToken)))

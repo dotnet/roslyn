@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -40,10 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 typeName: typeName,
                 parameters: default);
 
-            return CodeGenerationService.CreateMethodDeclaration(
-                newMethodSymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options: null));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options: null);
+            return CodeGenerationService.CreateMethodDeclaration(newMethodSymbol, destination, codeGenOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreateDestructorDeclaration(SyntaxNode containerNode, string typeName)
@@ -54,8 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 attributes: default,
                 typeName: typeName);
 
-            return CodeGenerationService.CreateMethodDeclaration(
-                newMethodSymbol, destination);
+            return CodeGenerationService.CreateMethodDeclaration(newMethodSymbol, destination, CodeGenerationOptions.Default, CancellationToken.None);
         }
 
         protected SyntaxNode CreateDelegateTypeDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, INamedTypeSymbol returnType)
@@ -70,10 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 refKind: RefKind.None,
                 name: name);
 
-            return CodeGenerationService.CreateNamedTypeDeclaration(
-                newTypeSymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options: null));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options: null);
+
+            return CodeGenerationService.CreateNamedTypeDeclaration(newTypeSymbol, destination, codeGenOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreateEventDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol type, bool createPropertyStyleEvent)
@@ -118,10 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 addMethod: addMethod,
                 removeMethod: removeMethod);
 
-            return CodeGenerationService.CreateEventDeclaration(
-                newEventSymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options: null));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options: null);
+            return CodeGenerationService.CreateEventDeclaration(newEventSymbol, destination, codeGenOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreateFieldDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol type)
@@ -135,10 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 type: type,
                 name: name);
 
-            return CodeGenerationService.CreateFieldDeclaration(
-                newFieldSymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options: null));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options: null);
+            return CodeGenerationService.CreateFieldDeclaration(newFieldSymbol, destination, codeGenOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreateMethodDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol returnType)
@@ -165,9 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 codeGenerationOptions = codeGenerationOptions.With(generateMethodBodies: false);
             }
 
-            return CodeGenerationService.CreateMethodDeclaration(
-                newMethodSymbol, destination,
-                options: codeGenerationOptions);
+            return CodeGenerationService.CreateMethodDeclaration(newMethodSymbol, destination, codeGenerationOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreatePropertyDeclaration(
@@ -224,22 +215,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 getMethod: getMethod,
                 setMethod: setMethod);
 
-            return CodeGenerationService.CreatePropertyDeclaration(
-                newPropertySymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options);
+            return CodeGenerationService.CreatePropertyDeclaration(newPropertySymbol, destination, codeGenOptions, CancellationToken.None);
         }
 
         protected SyntaxNode CreateNamespaceDeclaration(SyntaxNode containerNode, string name)
         {
             var destination = CodeModelService.GetDestination(containerNode);
-
             var newNamespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol(name);
 
-            var newNamespace = CodeGenerationService.CreateNamespaceDeclaration(
-                newNamespaceSymbol, destination);
-
-            return newNamespace;
+            return CodeGenerationService.CreateNamespaceDeclaration(newNamespaceSymbol, destination, CodeGenerationOptions.Default, CancellationToken.None);
         }
 
         protected SyntaxNode CreateTypeDeclaration(
@@ -264,10 +249,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 specialType: SpecialType.None,
                 members: default);
 
-            return CodeGenerationService.CreateNamedTypeDeclaration(
-                newTypeSymbol, destination,
-                options: GetCodeGenerationOptions(
-                    access, containerNode.SyntaxTree.Options, options: null));
+            var codeGenOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options, options: null);
+            return CodeGenerationService.CreateNamedTypeDeclaration(newTypeSymbol, destination, codeGenOptions, CancellationToken.None);
         }
     }
 }

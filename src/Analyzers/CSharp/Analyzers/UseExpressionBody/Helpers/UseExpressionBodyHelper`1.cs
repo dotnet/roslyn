@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxKinds = syntaxKinds;
         }
 
-        protected static AccessorDeclarationSyntax GetSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static AccessorDeclarationSyntax? GetSingleGetAccessor(AccessorListSyntax? accessorList)
         {
             if (accessorList != null &&
                 accessorList.Accessors.Count == 1 &&
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
+        protected static BlockSyntax? GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
             => GetSingleGetAccessor(accessorList)?.Body;
 
-        public override BlockSyntax GetBody(SyntaxNode declaration)
+        public override BlockSyntax? GetBody(SyntaxNode declaration)
             => GetBody((TDeclaration)declaration);
 
-        public override ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration)
+        public override ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration)
             => GetExpressionBody((TDeclaration)declaration);
 
         public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
@@ -85,7 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => GetDiagnosticLocation((TDeclaration)declaration);
 
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
-            => GetBody(declaration).Statements[0].GetLocation();
+        {
+            var body = GetBody(declaration);
+            Contract.ThrowIfNull(body);
+            return body.Statements[0].GetLocation();
+        }
 
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
             ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
@@ -130,9 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private bool TryConvertToExpressionBodyWorker(
             SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
             var body = GetBody(declaration);
+            if (body is null)
+            {
+                expressionWhenOnSingleLine = null;
+                semicolonWhenOnSingleLine = default;
+                return false;
+            }
 
             return body.TryConvertToArrowExpressionBody(
                 declaration.Kind(), options, conversionPreference,
@@ -142,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected bool TryConvertToExpressionBodyForBaseProperty(
             BasePropertyDeclarationSyntax declaration, ParseOptions options,
             ExpressionBodyPreference conversionPreference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
             if (TryConvertToExpressionBodyWorker(
@@ -181,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
 
             var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
-            if (expressionBodyOpt.Expression.IsKind(SyntaxKind.ThrowExpression) &&
+            if (expressionBodyOpt!.Expression.IsKind(SyntaxKind.ThrowExpression) &&
                 languageVersion < LanguageVersion.CSharp7)
             {
                 // If they're using a throw expression in a declaration and it's prior to C# 7
@@ -244,17 +254,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        protected abstract BlockSyntax GetBody(TDeclaration declaration);
+        protected abstract BlockSyntax? GetBody(TDeclaration declaration);
 
-        protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
+        protected abstract ArrowExpressionClauseSyntax? GetExpressionBody(TDeclaration declaration);
 
         protected abstract bool CreateReturnStatementForExpression(SemanticModel semanticModel, TDeclaration declaration);
 
         protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
 
         protected abstract TDeclaration WithSemicolonToken(TDeclaration declaration, SyntaxToken token);
-        protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax expressionBody);
-        protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
+        protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax? expressionBody);
+        protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax? body);
 
         protected virtual TDeclaration WithGenerateBody(SemanticModel semanticModel, TDeclaration declaration)
         {

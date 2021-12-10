@@ -58,18 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 version >= LanguageVersion.CSharp7 ||
                 (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
 
-            if (!acceptableVersion ||
-                !block.TryConvertToExpressionBody(
-                    options, preference,
-                    out var expression, out semicolonToken))
+            if (acceptableVersion &&
+                block.TryConvertToExpressionBody(options, preference, out var expression, out semicolonToken))
             {
-                arrowExpression = null;
-                semicolonToken = default;
-                return false;
+                arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+                return true;
             }
 
-            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
-            return true;
+            arrowExpression = null;
+            semicolonToken = default;
+            return false;
         }
 
         private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)

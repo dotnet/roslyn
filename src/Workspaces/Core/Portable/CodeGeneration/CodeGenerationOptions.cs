@@ -154,23 +154,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
             CheckLocation(beforeThisLocation, nameof(beforeThisLocation));
 
-            this.ContextLocation = contextLocation;
-            this.AfterThisLocation = afterThisLocation;
-            this.BeforeThisLocation = beforeThisLocation;
-            this.AddImports = addImports;
-            this.AdditionalImports = additionalImports ?? SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
-            this.GenerateMembers = generateMembers;
-            this.MergeNestedNamespaces = mergeNestedNamespaces;
-            this.MergeAttributes = mergeAttributes;
-            this.GenerateDefaultAccessibility = generateDefaultAccessibility;
-            this.GenerateMethodBodies = generateMethodBodies;
-            this.GenerateDocumentationComments = generateDocumentationComments;
-            this.AutoInsertionLocation = autoInsertionLocation;
-            this.SortMembers = sortMembers;
-            this.ReuseSyntax = reuseSyntax;
+            ContextLocation = contextLocation;
+            AfterThisLocation = afterThisLocation;
+            BeforeThisLocation = beforeThisLocation;
+            AddImports = addImports;
+            AdditionalImports = additionalImports ?? SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+            GenerateMembers = generateMembers;
+            MergeNestedNamespaces = mergeNestedNamespaces;
+            MergeAttributes = mergeAttributes;
+            GenerateDefaultAccessibility = generateDefaultAccessibility;
+            GenerateMethodBodies = generateMethodBodies;
+            GenerateDocumentationComments = generateDocumentationComments;
+            AutoInsertionLocation = autoInsertionLocation;
+            SortMembers = sortMembers;
+            ReuseSyntax = reuseSyntax;
 
-            this.Options = options;
-            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree?.Options;
+            Options = options;
+            ParseOptions = parseOptions ?? BestLocation?.SourceTree!.Options;
         }
 
         private static void CheckLocation(Location? location, string name)

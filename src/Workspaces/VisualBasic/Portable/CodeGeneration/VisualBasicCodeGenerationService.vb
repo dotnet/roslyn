@@ -78,7 +78,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destinationType As TDeclarationNode,
                 [event] As IEventSymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax)(destinationType)
             Return Cast(Of TDeclarationNode)(AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
         End Function
@@ -87,7 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destinationType As TDeclarationNode,
                 field As IFieldSymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of EnumBlockSyntax, TypeBlockSyntax, CompilationUnitSyntax)(destinationType)
             If TypeOf destinationType Is EnumBlockSyntax Then
                 Return Cast(Of TDeclarationNode)(EnumMemberGenerator.AddEnumMemberTo(Cast(Of EnumBlockSyntax)(destinationType), field, options))
@@ -102,7 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destinationType As TDeclarationNode,
                 [property] As IPropertySymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, CompilationUnitSyntax)(destinationType)
 
             If TypeOf destinationType Is TypeBlockSyntax Then
@@ -116,7 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destination As TDeclarationNode,
                 method As IMethodSymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, CompilationUnitSyntax, NamespaceBlockSyntax)(destination)
 
             ' Synthesized methods for properties/events are not things we actually generate 
@@ -500,7 +504,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateMethodDeclaration(method As IMethodSymbol,
                                                           destination As CodeGenerationDestination,
-                                                          options As CodeGenerationOptions) As SyntaxNode
+                                                          options As CodeGenerationOptions,
+                                                          cancellationToken As CancellationToken) As SyntaxNode
             ' Synthesized methods for properties/events are not things we actually generate 
             ' declarations for.
             If method.AssociatedSymbol IsNot Nothing Then
@@ -520,13 +525,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateEventDeclaration([event] As IEventSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions) As SyntaxNode
+                                                         options As CodeGenerationOptions,
+                                                         cancellationToken As CancellationToken) As SyntaxNode
             Return EventGenerator.GenerateEventDeclaration([event], destination, options)
         End Function
 
         Public Overrides Function CreateFieldDeclaration(field As IFieldSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions) As SyntaxNode
+                                                         options As CodeGenerationOptions,
+                                                         cancellationToken As CancellationToken) As SyntaxNode
             If destination = CodeGenerationDestination.EnumType Then
                 Return EnumMemberGenerator.GenerateEnumMemberDeclaration(field, Nothing, options)
             Else
@@ -536,7 +543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreatePropertyDeclaration([property] As IPropertySymbol,
                                                             destination As CodeGenerationDestination,
-                                                            options As CodeGenerationOptions) As SyntaxNode
+                                                            options As CodeGenerationOptions,
+                                                            cancellationToken As CancellationToken) As SyntaxNode
             Return PropertyGenerator.GeneratePropertyDeclaration([property], destination, options)
         End Function
 
@@ -725,7 +733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), Optional options As CodeGenerationOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode IsNot Nothing Then
                 Select Case syntaxNode.Kind

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class TypeParameterGenerator
     {
-        public static TypeParameterListSyntax GenerateTypeParameterList(
+        public static TypeParameterListSyntax? GenerateTypeParameterList(
             ImmutableArray<ITypeParameterSymbol> typeParameters, CodeGenerationOptions options)
         {
             return typeParameters.Length == 0
