@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -98,7 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         protected bool Equals(Symbol other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
         {
-            return other is object && UnderlyingSymbol.Equals(other.UnderlyingSymbol, equalityComparer.CompareKind);
+            var areEqual = other is object && UnderlyingSymbol.Equals(other.UnderlyingSymbol, equalityComparer.CompareKind);
+            Debug.Assert(!areEqual || x.GetHashCode() == y.GetHashCode(), "Hash code should be the same for equal symbols.");
+            return areEqual;
         }
 
         ImmutableArray<Location> ISymbol.Locations

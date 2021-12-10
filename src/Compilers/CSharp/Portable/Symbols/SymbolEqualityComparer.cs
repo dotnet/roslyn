@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -47,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool Equals(Symbol x, Symbol y)
         {
-            return x is null ? y is null : x.Equals(y, _comparison);
+            var areEqual = x is null ? y is null : x.Equals(y, _comparison);
+            Debug.Assert(!areEqual || GetHashCode(x) == GetHashCode(y), "Hash code should be the same for equal symbols.");
+            return areEqual;
         }
     }
 }

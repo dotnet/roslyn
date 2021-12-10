@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis
                 return y is null;
             }
 
-            return x.Equals(y, this);
+            var areEqual = x.Equals(y, this);
+            Debug.Assert(!areEqual || GetHashCode(x) == GetHashCode(y), "Hash code should be the same for equal symbols.");
+            return areEqual;
         }
 
         public int GetHashCode(ISymbol? obj)
