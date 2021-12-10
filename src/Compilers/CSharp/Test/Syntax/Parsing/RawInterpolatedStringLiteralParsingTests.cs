@@ -1304,6 +1304,27 @@ class C
     }
 
     [Fact]
+    public void DollarsWithoutQuotes0()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $;
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics(
+                    // (6,17): error CS1525: Invalid expression term ''
+                    //         var v = $;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "$").WithArguments("").WithLocation(6, 17),
+                    // (6,17): error CS1056: Unexpected character '$'
+                    //         var v = $;
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(6, 17));
+    }
+
+    [Fact]
     public void DollarsWithoutQuotes1()
     {
         var text = @"
