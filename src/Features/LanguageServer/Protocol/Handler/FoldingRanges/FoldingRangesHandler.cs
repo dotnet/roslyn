@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<FoldingRange>();
             }
 
-            var options = BlockStructureOptions.From(document.Project);
-            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
+            var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {
                 return Array.Empty<FoldingRange>();

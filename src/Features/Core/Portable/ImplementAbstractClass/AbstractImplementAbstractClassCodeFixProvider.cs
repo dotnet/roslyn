@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
@@ -41,9 +40,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (classNode == null)
                 return;
 
-            var options = ImplementTypeOptions.From(document.Project);
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), options, cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 

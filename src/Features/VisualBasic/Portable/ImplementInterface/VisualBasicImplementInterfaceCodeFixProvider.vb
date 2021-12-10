@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ImplementInterface
-Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
@@ -58,11 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
                 Return
             End If
 
-            Dim options = ImplementTypeOptions.From(document.Project)
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
             Dim actions = service.GetCodeActions(
                 document,
-                options,
                 Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False),
                 typeNode,
                 cancellationToken)
