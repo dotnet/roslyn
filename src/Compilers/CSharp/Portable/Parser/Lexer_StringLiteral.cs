@@ -421,20 +421,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // so we can't put a stricter bound on this here.
                 Debug.Assert(totalAtCount + startingDollarSignCount + startingQuoteCount >= 2);
 
-                // @-signs with interpolations are always illegal.  Detect these and give a reasonable error message.
-                // Continue on if we can.
-                if (totalAtCount > 0)
-                {
-                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_IllegalAtSequence));
-                }
-
                 if (startingQuoteCount == 0)
                 {
                     // We have no quotes at all.  We cannot continue on as we have no quotes, and thus can't even find
                     // where the string starts or ends.
                     TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_StringMustStartWithQuoteCharacter));
-                    kind = InterpolatedStringKind.SingleLineRaw;
+                    kind = totalAtCount == 1 && startingDollarSignCount == 1
+                        ? InterpolatedStringKind.Verbatim
+                        : InterpolatedStringKind.SingleLineRaw;
                     return false;
+                }
+
+                // @-signs with interpolations are always illegal.  Detect these and give a reasonable error message.
+                // Continue on if we can.
+                if (totalAtCount > 0)
+                {
+                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_IllegalAtSequence));
                 }
 
                 if (startingQuoteCount < 3)

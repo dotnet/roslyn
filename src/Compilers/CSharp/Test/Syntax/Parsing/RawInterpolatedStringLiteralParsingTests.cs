@@ -866,9 +866,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = $@@;
-            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "$@@").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = $@@;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -941,9 +941,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = $@@@;
-            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "$@@@").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = $@@@;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1016,9 +1016,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.
+                    // (6,17): error CS9125: String must start with quote character: "
                     //         var v = @@$;
-                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$").WithLocation(6, 17));
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1091,9 +1091,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@$$;
-            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$$").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = @@$$;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$$").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1166,9 +1166,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@$@;
-            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$@").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = @@$@;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1241,9 +1241,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@$$@;
-            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$$@").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = @@$$@;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$$@").WithLocation(6, 17));
     }
 
     [Fact]
