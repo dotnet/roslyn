@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             foreach (JObject obj in array)
             {
                 var options = (RegexOptions)obj.Value<int>("Options");
-                var pattern = obj.Value<string>("Pattern").Replace(@"""", @"""""");
+                var pattern = obj.Value<string>("Pattern")!.Replace(@"""", @"""""");
                 var (_, tree, _) = JustParseTree($@"@""{pattern}""", options, conversionFailureOk: false);
                 Assert.NotNull(tree);
             }
