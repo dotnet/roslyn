@@ -423,6 +423,17 @@ Console.WriteLine(""""""abc""def"""""");
     }
 
     [Fact]
+    public void TestSingleLineOutput3()
+    {
+        CompileAndVerify(
+@"
+using System;
+
+Console.WriteLine("""""" abc""def """""");
+", expectedOutput: @" abc""def ");
+    }
+
+    [Fact]
     public void TestMultiLineOutput1()
     {
         CompileAndVerify(

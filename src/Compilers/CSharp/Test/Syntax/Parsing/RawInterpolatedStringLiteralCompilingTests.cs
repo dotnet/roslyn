@@ -525,6 +525,13 @@ System.Console.Write(
     }
 
     [Fact]
+    public void TestSingleLineWithWhitespaceAndContent()
+    {
+        RenderAndVerify(@"
+System.Console.Write($"""""" abc""def """""");", expectedOutput: @" abc""def ");
+    }
+
+    [Fact]
     public void TestSingleLineDiagnosticLocationWithTrivia1()
     {
         RenderAndVerify(@"
