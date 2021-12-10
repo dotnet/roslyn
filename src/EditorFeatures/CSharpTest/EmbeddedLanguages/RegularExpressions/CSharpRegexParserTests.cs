@@ -228,12 +228,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private XElement NodeToElement(RegexNode node)
         {
-            var element = new XElement(node.Kind.ToString());
-            foreach (var child in node)
+            if (node is RegexAlternationNode alternationNode)
             {
-                element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
+                return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
             }
+            else
+            {
+                var element = new XElement(node.Kind.ToString());
+                foreach (var child in node)
+                {
+                    element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
+                }
 
+                return element;
+            }
+        }
+
+        private XElement AlternationToElement(
+            RegexAlternationNode alternationNode, int end)
+        {
+            // to keep tests in sync with how we used to structure alternations, we specially handle this node.
+            // First, if the node only has a single element, then just print that element as that's what would
+            // normally be inlined into the parent.
+            if (end == 1)
+                return NodeToElement(alternationNode.SequenceList.NodesAndTokens[0].Node);
+
+            var element = new XElement(alternationNode.Kind.ToString());
+            element.Add(AlternationToElement(alternationNode, end - 2));
+            element.Add(TokenToElement(alternationNode.SequenceList.NodesAndTokens[end - 2].Token));
+            element.Add(NodeToElement(alternationNode.SequenceList.NodesAndTokens[end - 1].Node));
             return element;
         }
 

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
+    using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 
     /// <summary>
     /// Produces a <see cref="RegexTree"/> from a sequence of <see cref="VirtualChar"/> characters.
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // However, we're the topmost call and have not consumed an open paren.  And, we want
             // this call to consume all the way to the end, eating up excess close-paren tokens that
             // are encountered.
-            var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: true, isConditional: false);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
@@ -236,13 +238,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexExpressionNode ParseAlternatingSequences(bool consumeCloseParen)
+        private RegexAlternationNode ParseAlternatingSequences(
+            bool consumeCloseParen, bool isConditional)
         {
             try
             {
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                return ParseAlternatingSequencesWorker(consumeCloseParen);
+                return ParseAlternatingSequencesWorker(consumeCloseParen, isConditional);
             }
             finally
             {
@@ -259,18 +262,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// 
         /// An empty sequence just means "match at every position in the test string".
         /// </summary>
-        private RegexExpressionNode ParseAlternatingSequencesWorker(bool consumeCloseParen)
+        private RegexAlternationNode ParseAlternatingSequencesWorker(
+            bool consumeCloseParen, bool isConditional)
         {
-            RegexExpressionNode current = ParseSequence(consumeCloseParen);
+            using var _ = ArrayBuilder<RegexNodeOrToken>.GetInstance(out var builder);
+            builder.Add(ParseSequence(consumeCloseParen));
 
             while (_currentToken.Kind == RegexKind.BarToken)
             {
                 // Trivia allowed between the | and the next token.
-                current = new RegexAlternationNode(
-                    current, ConsumeCurrentToken(allowTrivia: true), ParseSequence(consumeCloseParen));
+                var barToken = ConsumeCurrentToken(allowTrivia: true);
+                if (isConditional && builder.Count > 1)
+                {
+                    // a conditional alternative expression only allows two cases (the true and false branches).
+                    // We already have seen both.  Error on any further cases we see.
+                    barToken = barToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                        FeaturesResources.Too_many_bars_in_conditional_grouping,
+                        barToken.GetSpan()));
+                }
+
+                builder.Add(barToken);
+                builder.Add(ParseSequence(consumeCloseParen));
             }
 
-            return current;
+            return new RegexAlternationNode(new RegexAlternatingSequenceList(builder.ToImmutable()));
         }
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
@@ -697,7 +712,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // When parsing out the sequence don't grab the close paren, that will be for our caller
             // to get.
-            var expression = this.ParseAlternatingSequences(consumeCloseParen: false);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: false);
             _options = currentOptions;
             return expression;
         }
@@ -931,26 +946,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexExpressionNode ParseConditionalGroupingResult()
         {
             var currentOptions = _options;
-            var result = this.ParseAlternatingSequences(consumeCloseParen: false);
+            var result = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: true);
             _options = currentOptions;
-
-            result = CheckConditionalAlternation(result);
-            return result;
-        }
-
-        private static RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
-        {
-            if (result is RegexAlternationNode topAlternation &&
-                topAlternation.Left is RegexAlternationNode)
-            {
-                return new RegexAlternationNode(
-                    topAlternation.Left,
-                    topAlternation.BarToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        FeaturesResources.Too_many_bars_in_conditional_grouping,
-                        topAlternation.BarToken.GetSpan())),
-                    topAlternation.Right);
-            }
-
             return result;
         }
 
