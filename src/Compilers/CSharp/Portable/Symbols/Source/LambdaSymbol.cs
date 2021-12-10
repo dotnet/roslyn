@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            return syntaxReferenceOpt.GetHashCode();
+            return Syntax.GetHashCode();
         }
 
         public override bool IsImplicitlyDeclared
