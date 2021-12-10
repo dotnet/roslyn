@@ -780,9 +780,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(kind is InterpolatedStringKind.MultiLineRaw or InterpolatedStringKind.SingleLineRaw);
 
                     // A close quote is normally fine as content in a raw interpolated string literal. However, similar
-                    // to the rules around quotes, we do not allow a subsequence of curlies to be longer than the number
+                    // to the rules around quotes, we do not allow a subsequence of braces to be longer than the number
                     // of `$`s the literal starts with.  Note: this restriction is only on *content*.  It acceptable to
-                    // have a sequence of curlies be longer, as long as it is part content and also part of an
+                    // have a sequence of braces be longer, as long as it is part content and also part of an
                     // interpolation.  In that case, the content portion must abide by this rule.
                     var closeBraceCount = _lexer.ConsumeCloseBraceSequence();
                     if (closeBraceCount >= startingDollarSignCount)
@@ -840,16 +840,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 Debug.Assert(kind is InterpolatedStringKind.SingleLineRaw or InterpolatedStringKind.MultiLineRaw);
 
-                // In raw content we are allowed to see up to 2*N-1 open (or close) curlies.  For example, if the string
-                // literal starts with `$$$"""` then we can see up to `2*3-1 = 5` curlies like so `$$$""" {{{{{`.  The
-                // inner three curlies start the interpolation.  The outer two curies are just content.  This ensures
-                // the rule that the content cannot contain a sequence of open or close curlies equal to (or longer)
+                // In raw content we are allowed to see up to 2*N-1 open (or close) braces.  For example, if the string
+                // literal starts with `$$$"""` then we can see up to `2*3-1 = 5` braces like so `$$$""" {{{{{`.  The
+                // inner three braces start the interpolation.  The outer two braces are just content.  This ensures
+                // the rule that the content cannot contain a sequence of open or close braces equal to (or longer)
                 // than the dollar sequence.
                 var beforeOpenBracesPosition = _lexer.TextWindow.Position;
                 var openBraceCount = _lexer.ConsumeOpenBraceSequence();
                 if (openBraceCount < startingDollarSignCount)
                 {
-                    // not enough open curlies to matter.  Just treat as content.
+                    // not enough open braces to matter.  Just treat as content.
                     return;
                 }
 
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (closeBraceCount == 0)
                 {
-                    // Didn't find any close braces.  Report a particular error on the open curlies that they are unclosed.
+                    // Didn't find any close braces.  Report a particular error on the open braces that they are unclosed.
                     TrySetError(_lexer.MakeError(
                         position: afterOpenBracePosition - startingDollarSignCount,
                         width: startingDollarSignCount,
