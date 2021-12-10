@@ -2047,17 +2047,45 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerArgumentContext;
 
-            if (arguments.SelectAsArray(predicate: arg => arg.Value is IInterpolatedStringHandlerCreationOperation,
-                                        selector: arg => (IInterpolatedStringHandlerCreationOperation)arg.Value)
-                    is { IsDefaultOrEmpty: false } interpolatedStrings)
+            ArrayBuilder<IInterpolatedStringHandlerCreationOperation>? interpolatedStringBuilder = null;
+            int lastIndexForSpilling = -1;
+
+            for (int i = 0; i < arguments.Length; i++)
             {
+                if (arguments[i].Value is IInterpolatedStringHandlerCreationOperation creation)
+                {
+                    lastIndexForSpilling = i;
+                    interpolatedStringBuilder ??= ArrayBuilder<IInterpolatedStringHandlerCreationOperation>.GetInstance();
+                    interpolatedStringBuilder.Add(creation);
+                }
+            }
+
+            if (lastIndexForSpilling > -1)
+            {
+                Debug.Assert(interpolatedStringBuilder != null);
                 _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
-                    interpolatedStrings,
+                    interpolatedStringBuilder.ToImmutableAndFree(),
                     _evalStack.Count - (instancePushed ? 1 : 0),
                     hasReceiver: instancePushed);
             }
 
-            VisitAndPushArray(arguments, UnwrapArgument);
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                PushOperand(VisitRequired(arguments[i].Value));
+
+                // If there are declaration expressions in the arguments before an interpolated string handler, and that declaration
+                // expression is referenced by the handler constructor, we need to spill it to ensure the declaration doesn't end
+                // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
+                // have unexpected affects on consumers. So we limit the spilling to those indexes before the last interpolated string
+                // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
+                // referenced a specific declaration expression in the argument list, but we think that the complexity in implementing
+                // this check is more complexity than this scenario needs.
+                if (i < lastIndexForSpilling)
+                {
+                    SpillEvalStack(spillDeclarationExpressions: true);
+                }
+            }
+
             _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
         }
 
@@ -6412,7 +6440,7 @@ oneMoreTime:
             // We turn the interpolated string into a call to create the handler type, a series of append calls (potentially with branches, depending on the
             // handler semantics), and then evaluate to the handler flow capture temp.
 
-            SpillEvalStack(spillDeclarationExpressions: true);
+            SpillEvalStack();
             int maxStackDepth = _evalStack.Count - 2;
 
 #if DEBUG

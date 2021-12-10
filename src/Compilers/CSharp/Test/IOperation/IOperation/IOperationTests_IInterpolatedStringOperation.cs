@@ -5814,7 +5814,7 @@ Block[B2] - Exit
         }
 
         [Fact]
-        public void OutVariableDeclarationAsParameter()
+        public void OutVariableDeclarationAsParameter_01()
         {
             var code = @"
 using System;
@@ -5925,6 +5925,163 @@ Block[B0] - Entry
 }
 Block[B2] - Exit
     Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OutVariableDeclarationAsParameter_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    public static void M1(object o1, object o2)
+    /*<bind>*/{
+        C.M(out int i, o1 ?? o2, $""literal{1}"");
+    }/*</bind>*/
+
+    public static void M(out int i, object o, [InterpolatedStringHandlerArgument(""i"")]CustomHandler c) 
+    {
+        i = 0;
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, out int i) : this(literalLength, formattedCount)
+    {
+        i = 1;
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    CaptureIds: [0] [2] [3]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value:
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'o1')
+                  Value:
+                    IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o1')
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'o1')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o1')
+                Leaving: {R2}
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'o1')
+                  Value:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o1')
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'o2')
+              Value:
+                IParameterReferenceOperation: o2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o2')
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (4)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '$""literal{1}""')
+              Value:
+                IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, out System.Int32 i)) (OperationKind.ObjectCreation, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{1}""')
+                  Arguments(3):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""literal{1}""')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: '$""literal{1}""')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""literal{1}""')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '$""literal{1}""')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'out int i')
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer:
+                    null
+            IInvocationOperation ( void CustomHandler.AppendLiteral(System.String literal)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'literal')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{1}""')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literal) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'literal')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""literal"") (Syntax: 'literal')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{1}')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{1}""')
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Boxing)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{1}')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{1}')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{1}')
+                    IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{1}')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'C.M(out int ... teral{1}"");')
+              Expression:
+                IInvocationOperation (void C.M(out System.Int32 i, System.Object o, CustomHandler c)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'C.M(out int ... iteral{1}"")')
+                  Instance Receiver:
+                    null
+                  Arguments(3):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out int i')
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null) (Syntax: 'o1 ?? o2')
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o1 ?? o2')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: '$""literal{1}""')
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsImplicit) (Syntax: '$""literal{1}""')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
