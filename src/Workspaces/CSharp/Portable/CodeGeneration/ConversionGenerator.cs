@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateConversionDeclaration(method, options, destination.SyntaxTree.Options, cancellationToken);
+            var methodDeclaration = GenerateConversionDeclaration(method, options, destination.GetLanguageVersion(), cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
             CodeGenerationOptions options,
-            ParseOptions parseOptions,
+            LanguageVersion languageVersion,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, options, parseOptions);
+            var declaration = GenerateConversionDeclarationWorker(method, options, languageVersion);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken)));
         }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
             CodeGenerationOptions options,
-            ParseOptions parseOptions)
+            LanguageVersion languageVersion)
         {
             var hasNoBody = !options.GenerateMethodBodies || method.IsExtern;
 
@@ -67,20 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            declaration = UseExpressionBodyIfDesired(options, declaration, parseOptions);
+            declaration = UseExpressionBodyIfDesired(options, declaration, languageVersion);
 
             return declaration;
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration, ParseOptions parseOptions)
+            CodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration, LanguageVersion languageVersion)
         {
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), parseOptions, expressionBodyPreference,
+                    declaration.Kind(), languageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)

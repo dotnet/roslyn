@@ -110,10 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     // They don't have an expression body.  See if we could convert the block they
                     // have into one.
 
-                    var options = declaration.SyntaxTree.Options;
                     var conversionPreference = forAnalyzer ? preference : ExpressionBodyPreference.WhenPossible;
 
-                    return TryConvertToExpressionBody(declaration, options, conversionPreference,
+                    return TryConvertToExpressionBody(declaration, conversionPreference,
                         expressionWhenOnSingleLine: out _, semicolonWhenOnSingleLine: out _);
                 }
             }
@@ -123,17 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference,
+            ExpressionBodyPreference conversionPreference,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
-                declaration, options, conversionPreference,
+                declaration, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         private bool TryConvertToExpressionBodyWorker(
-            SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
+            SyntaxNode declaration, ExpressionBodyPreference conversionPreference,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
             var body = GetBody(declaration);
@@ -144,20 +143,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return false;
             }
 
+            var languageVersion = ((CSharpParseOptions)body.SyntaxTree.Options).LanguageVersion;
+
             return body.TryConvertToArrowExpressionBody(
-                declaration.Kind(), options, conversionPreference,
+                declaration.Kind(), languageVersion, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
 
         protected bool TryConvertToExpressionBodyForBaseProperty(
-            BasePropertyDeclarationSyntax declaration, ParseOptions options,
+            BasePropertyDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
             [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (TryConvertToExpressionBodyWorker(
-                    declaration, options, conversionPreference,
-                    out arrowExpression, out semicolonToken))
+            if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, out arrowExpression, out semicolonToken))
             {
                 return true;
             }
@@ -229,9 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             if (useExpressionBody)
             {
-                TryConvertToExpressionBody(
-                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out var semicolonToken);
+                TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
                                                    .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)

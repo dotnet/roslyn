@@ -64,20 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // They don't have an expression body.  See if we could convert the block they 
             // have into one.
-            var options = declaration.SyntaxTree.Options;
-            return TryConvertToExpressionBody(declaration, options, preference, out _, out _);
+            return TryConvertToExpressionBody(declaration, preference, out _, out _);
         }
 
         private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ExpressionSyntax expression, out SyntaxToken semicolon)
+            ExpressionBodyPreference conversionPreference,
+            out ExpressionSyntax expression,
+            out SyntaxToken semicolon)
         {
             var body = declaration.Body as BlockSyntax;
 
-            return body.TryConvertToExpressionBody(
-                options, conversionPreference,
-                out expression, out semicolon);
+            return body.TryConvertToExpressionBody(conversionPreference, out expression, out semicolon);
         }
 
         private static bool CanOfferUseBlockBody(
@@ -140,9 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
         {
-            if (!TryConvertToExpressionBody(
-                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out _))
+            if (!TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
             {
                 return declaration;
             }

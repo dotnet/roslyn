@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, options, destination.SyntaxTree.Options, cancellationToken);
+                constructor, options, destination.GetLanguageVersion(), cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
             IMethodSymbol constructor,
             CodeGenerationOptions options,
-            ParseOptions parseOptions,
+            LanguageVersion languageVersion,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
@@ -63,20 +63,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            declaration = UseExpressionBodyIfDesired(options, declaration, parseOptions);
+            declaration = UseExpressionBodyIfDesired(options, declaration, languageVersion);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options, cancellationToken));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, ConstructorDeclarationSyntax declaration, ParseOptions parseOptions)
+            CodeGenerationOptions options, ConstructorDeclarationSyntax declaration, LanguageVersion languageVersion)
         {
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), parseOptions, expressionBodyPreference,
+                    declaration.Kind(), languageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)

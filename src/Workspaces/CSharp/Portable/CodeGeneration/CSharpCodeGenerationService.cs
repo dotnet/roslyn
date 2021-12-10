@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
         }
 
+        internal static LanguageVersion GetLanguageVersion(CodeGenerationOptions options)
+            => ((CSharpParseOptions?)options.ParseOptions ?? CSharpParseOptions.Default).LanguageVersion;
+
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
             => CSharpCodeGenerationHelpers.GetDestination(node);
 
@@ -600,36 +603,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             options = options.With(options: options.Options ?? Workspace.Options);
-            var parseOptions = options.ParseOptions ?? CSharpParseOptions.Default;
+            var languageVersion = GetLanguageVersion(options);
 
             if (method.IsConstructor())
             {
-                return ConstructorGenerator.GenerateConstructorDeclaration(method, options, parseOptions, cancellationToken);
+                return ConstructorGenerator.GenerateConstructorDeclaration(method, options, languageVersion, cancellationToken);
             }
 
             if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, options, parseOptions, cancellationToken);
+                return OperatorGenerator.GenerateOperatorDeclaration(method, options, languageVersion, cancellationToken);
             }
 
             if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, options, parseOptions, cancellationToken);
+                return ConversionGenerator.GenerateConversionDeclaration(method, options, languageVersion, cancellationToken);
             }
 
             if (method.IsLocalFunction())
             {
-                return MethodGenerator.GenerateLocalFunctionDeclaration(method, destination, options, parseOptions, cancellationToken);
+                return MethodGenerator.GenerateLocalFunctionDeclaration(method, destination, options, languageVersion, cancellationToken);
             }
 
-            return MethodGenerator.GenerateMethodDeclaration(method, destination, options, parseOptions, cancellationToken);
+            return MethodGenerator.GenerateMethodDeclaration(method, destination, options, languageVersion, cancellationToken);
         }
 
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return PropertyGenerator.GeneratePropertyOrIndexer(
-                property, destination, options, options.ParseOptions ?? CSharpParseOptions.Default, cancellationToken);
+                property, destination, options, GetLanguageVersion(options), cancellationToken);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(
@@ -641,7 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CreateNamespaceDeclaration(
             INamespaceSymbol @namespace, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, destination, options, options.ParseOptions, cancellationToken);
+            var parseOptions = (CSharpParseOptions?)options.ParseOptions ?? CSharpParseOptions.Default;
+            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, destination, options, parseOptions, cancellationToken);
         }
 
         private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList)
