@@ -59,32 +59,28 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var start = position - 1;
             if (start < 0)
-            {
                 return false;
-            }
 
             // Check if the user is typing an interpolated or interpolated verbatim string.
             // If the preceding character(s) are not '$' or '$@' then we can't be starting an interpolated string.
             if (text[start] == '@')
             {
-                start--;
-
-                if (start < 0)
-                {
+                if (--start < 0)
                     return false;
-                }
             }
 
             if (text[start] != '$')
-            {
                 return false;
-            }
 
             // Verify that we are actually in an location allowed for an interpolated string.
-            // Note that the quote has not yet been typed so we don't actually know if we're in an interpolated string.
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(start);
-            return root.SyntaxTree.IsExpressionContext(start, token, attributes: false, cancellationToken: cancellationToken)
+            var token = root.FindToken(start);
+            if (token.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
+                return false;
+
+            token = token.GetPreviousToken();
+
+            return root.SyntaxTree.IsExpressionContext(start, token, attributes: true, cancellationToken)
                 || root.SyntaxTree.IsStatementContext(start, token, cancellationToken);
         }
     }
