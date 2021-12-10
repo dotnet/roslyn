@@ -123,7 +123,7 @@ object Deploy : BuildType({
         }
     }
     
-  dependencies {
+    dependencies {
         dependency(PublicBuild) {
             snapshot {
             }
