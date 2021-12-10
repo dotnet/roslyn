@@ -242,11 +242,6 @@
         <target state="translated">無法推斷委派類型。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotMixVerbatimAndRawStrings">
-        <source>Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
         <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
         <target state="translated">'managed' 呼叫慣例不得與未受控的呼叫慣例指定名稱並用。</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_HiddenPositionalMember">
         <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
         <target state="translated">找到之與此參數對應的「{0}」位置成員已隱藏。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -1205,6 +1205,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">已指定 stdin 引數 '-'，但尚未從標準輸入資料流重新導向輸入。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">

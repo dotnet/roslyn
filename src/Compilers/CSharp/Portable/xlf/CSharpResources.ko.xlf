@@ -242,11 +242,6 @@
         <target state="translated">대리자 형식을 유추할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotMixVerbatimAndRawStrings">
-        <source>Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
         <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
         <target state="translated">'관리되는' 호출 규칙은 관리되지 않는 호출 규칙 지정자와 함께 사용할 수 없습니다.</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_HiddenPositionalMember">
         <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
         <target state="translated">이 매개 변수에 해당 하는 위치 멤버 '{0}'이(가) 숨겨집니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -1205,6 +1205,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">stdin 인수 '-'를 지정했지만 표준 입력 스트림에서 입력이 리디렉션되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">

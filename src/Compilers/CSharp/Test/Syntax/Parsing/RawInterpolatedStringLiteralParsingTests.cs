@@ -692,9 +692,12 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-            //         var v = @@;
-            Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
+                    // (6,17): error CS1525: Invalid expression term ''
+                    //         var v = @@;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@@").WithArguments("").WithLocation(6, 17),
+                    // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                    //         var v = @@;
+                    Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(6, 17));
     }
 
     [Fact]
@@ -710,12 +713,21 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17),
-            // (6,21): error CS1002: ; expected
-            //         var v = @@";
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@";
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17),
+                    // (6,17): error CS1039: Unterminated string literal
+                    //         var v = @@";
+                    Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "").WithLocation(6, 17),
+                    // (8,2): error CS1002: ; expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),
+                    // (8,2): error CS1513: } expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+                    // (8,2): error CS1513: } expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2));
     }
 
     [Fact]
@@ -731,9 +743,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""").WithLocation(6, 17));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@" ";
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -749,9 +761,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@""""""").WithLocation(6, 17));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@""" """;
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -767,9 +779,12 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-            //         var v = @@@;
-            Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "@").WithLocation(6, 17));
+                    // (6,17): error CS1525: Invalid expression term ''
+                    //         var v = @@@;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@@@").WithArguments("").WithLocation(6, 17),
+                    // (6,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                    //         var v = @@@;
+                    Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(6, 17));
     }
 
     [Fact]
@@ -785,12 +800,21 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17),
-            // (6,22): error CS1002: ; expected
-            //         var v = @@@";
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@@";
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17),
+                    // (6,17): error CS1039: Unterminated string literal
+                    //         var v = @@@";
+                    Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "").WithLocation(6, 17),
+                    // (8,2): error CS1002: ; expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),
+                    // (8,2): error CS1513: } expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+                    // (8,2): error CS1513: } expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2));
     }
 
     [Fact]
@@ -806,9 +830,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""").WithLocation(6, 17));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@@" ";
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -824,9 +848,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@@""""""").WithLocation(6, 17));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    //         var v = @@@""" """;
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -844,7 +868,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "$@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -862,7 +886,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""").WithLocation(6, 17),
             // (6,22): error CS1002: ; expected
             //         var v = $@@";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
@@ -883,7 +907,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -901,7 +925,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -919,7 +943,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@@;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "$@@@").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "$@@@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -937,7 +961,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
             //         var v = $@@@";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
@@ -958,7 +982,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -976,7 +1000,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = $@@@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"$@@@""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -992,9 +1016,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
-            //         var v = @@$;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$").WithLocation(6, 17));
+                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.
+                    //         var v = @@$;
+                    Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1012,7 +1036,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""").WithLocation(6, 17),
             // (6,22): error CS1002: ; expected
             //         var v = @@$";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 22));
@@ -1033,7 +1057,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1051,7 +1075,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1069,7 +1093,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$$").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1087,7 +1111,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
             //         var v = @@$$";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
@@ -1108,7 +1132,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1126,7 +1150,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1144,7 +1168,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$@;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$@").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1162,7 +1186,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
             //         var v = @@$@";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 23));
@@ -1183,7 +1207,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1201,7 +1225,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$@""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1219,7 +1243,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$@;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, "@@$$@").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@$$@").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1237,7 +1261,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$@";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""").WithLocation(6, 17),
             // (6,24): error CS1002: ; expected
             //         var v = @@$$@";
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 24));
@@ -1258,7 +1282,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$@" ";
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1276,7 +1300,7 @@ class C
         CreateCompilation(text).VerifyDiagnostics(
             // (6,17): error CS9125: Cannot mix verbatim and raw strings
             //         var v = @@$$@""" """;
-            Diagnostic(ErrorCode.ERR_CannotMixVerbatimAndRawStrings, @"@@$$@""""""").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""""""").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1292,9 +1316,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9120: Not enough quotes for raw string literal
-            //         var v = $$;
-            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$").WithLocation(6, 17));
+                // (6,17): error CS9125: String must start with quote character: "
+                //         var v = $$;
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$$").WithLocation(6, 17));
     }
 
     [Fact]
@@ -1310,9 +1334,9 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9120: Not enough quotes for raw string literal
-            //         var v = $$$;
-            Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, "$$$").WithLocation(6, 17));
+                    // (6,17): error CS9125: String must start with quote character: "
+                    //         var v = $$$;
+                    Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$$$").WithLocation(6, 17));
     }
 
     [Fact]

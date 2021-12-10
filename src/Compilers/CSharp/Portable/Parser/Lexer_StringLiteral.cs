@@ -163,10 +163,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ScanVerbatimStringLiteral(ref TokenInfo info)
         {
+            Debug.Assert(TextWindow.PeekChar() == '@');
             _builder.Length = 0;
 
-            Debug.Assert(TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"');
-            TextWindow.AdvanceChar(2);
+            var start = TextWindow.Position;
+            while (TextWindow.PeekChar() == '@')
+            {
+                TextWindow.AdvanceChar();
+            }
+
+            if (TextWindow.Position - start >= 2)
+            {
+                this.AddError(start, width: TextWindow.Position - start, ErrorCode.ERR_IllegalAtSequence);
+            }
+
+            Debug.Assert(TextWindow.PeekChar() == '"');
+            TextWindow.AdvanceChar();
 
             while (true)
             {
@@ -397,6 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // of some sort.
                 var prefixAtCount = _lexer.ConsumeAtSignSequence();
                 startingDollarSignCount = _lexer.ConsumeDollarSignSequence();
+                Debug.Assert(startingDollarSignCount > 0);
+
                 var suffixAtCount = _lexer.ConsumeAtSignSequence();
                 startingQuoteCount = _lexer.ConsumeQuoteSequence();
 
@@ -407,39 +421,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // so we can't put a stricter bound on this here.
                 Debug.Assert(totalAtCount + startingDollarSignCount + startingQuoteCount >= 2);
 
-                // Multiple @-signs, and @-signs with raw literals are always illegal.  Detect these and give a
-                // reasonable error message.  Continue on if we can.
+                // @-signs with interpolations are always illegal.  Detect these and give a reasonable error message.
+                // Continue on if we can.
                 if (totalAtCount > 0)
                 {
-                    if (startingDollarSignCount == 0 && startingQuoteCount == 0)
-                    {
-                        // just multiple @'s in a row (and nothing else).  Give a general message about how @ signs work. We cannot
-                        // continue on as we have no quotes, and thus can't even find where the string starts or ends.
-                        TrySetError(_lexer.MakeError(start, width: 1, ErrorCode.ERR_ExpectedVerbatimLiteral));
-                        kind = InterpolatedStringKind.SingleLineRaw;
-                        return false;
-                    }
-
-                    // had at least a dollar sign or a quote.  pretend we have at least one dollar sign 
-                    // so we can at least try to consume the content.
-                    if (startingDollarSignCount == 0)
-                        startingDollarSignCount = 1;
-
-                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_CannotMixVerbatimAndRawStrings));
+                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_IllegalAtSequence));
                 }
 
                 if (startingQuoteCount == 0)
                 {
                     // We have no quotes at all.  We cannot continue on as we have no quotes, and thus can't even find
                     // where the string starts or ends.
-                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_NotEnoughQuotesForRawString));
+                    TrySetError(_lexer.MakeError(start, window.Position - start, ErrorCode.ERR_StringMustStartWithQuoteCharacter));
                     kind = InterpolatedStringKind.SingleLineRaw;
                     return false;
                 }
-
-                // At this point, we have some sort of reasonable string to work with that we can process the inside of
-                // and search for the end of.
-                Debug.Assert(startingDollarSignCount > 0 && startingQuoteCount > 0);
 
                 if (startingQuoteCount < 3)
                 {

@@ -242,11 +242,6 @@
         <target state="translated">Nedal se odvodit typ delegáta.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotMixVerbatimAndRawStrings">
-        <source>Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
         <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
         <target state="translated">Konvence volání managed se nedá kombinovat se specifikátory konvence nespravovaného volání.</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_HiddenPositionalMember">
         <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
         <target state="translated">Poziční člen {0}, který odpovídá tomuto parametru je skrytý.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -1205,6 +1205,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">Zadal se argument stdin -, ale vstup se nepřesměroval na stream standardního vstupu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">

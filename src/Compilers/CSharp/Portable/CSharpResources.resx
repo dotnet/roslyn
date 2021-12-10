@@ -6893,8 +6893,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NotEnoughCloseBracesForRawString" xml:space="preserve">
     <value>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</value>
   </data>
-  <data name="ERR_CannotMixVerbatimAndRawStrings" xml:space="preserve">
-    <value>Sequence of '@' characters is not allowed. A verbatim string only needs one '@' character and a raw string doesn't allow any.</value>
+  <data name="ERR_IllegalAtSequence" xml:space="preserve">
+    <value>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</value>
+  </data>
+  <data name="ERR_StringMustStartWithQuoteCharacter" xml:space="preserve">
+    <value>String must start with quote character: "</value>
   </data>
   <data name="ERR_UnterminatedRawString" xml:space="preserve">
     <value>Unterminated raw string literal.</value>
