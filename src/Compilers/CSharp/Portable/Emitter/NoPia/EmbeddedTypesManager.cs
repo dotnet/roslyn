@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             DiagnosticBag diagnostics)
         {
             Debug.Assert(method.AdaptedSymbol.IsDefinition);
-            Debug.Assert(!method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor());
+            Debug.Assert(!method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: false));
 
             EmbeddedMethod embedded = new EmbeddedMethod(type, method);
             EmbeddedMethod cached = EmbeddedMethodsMap.GetOrAdd(method, embedded);

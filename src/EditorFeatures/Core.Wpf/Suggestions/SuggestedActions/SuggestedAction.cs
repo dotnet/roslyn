@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -95,10 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+            SourceProvider.UIThreadOperationExecutor.Execute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true, action: context =>
             {
-                using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                Invoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                // If we want to report progress, we need to create a scope inside the context -- the main context itself doesn't have a way
+                // to report progress. We pass the same allow cancellation and message so otherwise nothing changes.
+                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+                using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
+                Invoke(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token);
             });
         }
 
@@ -119,8 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
                 InnerInvoke(progressTracker, cancellationToken);
-                foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    actionCallback.Value.OnSuggestedActionExecuted(this);
             }
         }
 
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We use ConfigureAwait(true) to stay on the UI thread.
             var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
+            return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
         }
 
         public virtual bool HasPreview => false;
@@ -262,11 +264,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var tags = CodeAction.Tags;
                 if (tags.Length > 0)
                 {
-                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    foreach (var service in SourceProvider.ImageIdServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
+                        if (service.Value.TryGetImageId(tags, out var imageId) && !imageId.Equals(default(ImageId)))
                         {
-                            return moniker;
+                            // Not using the extension method because it's not available in Cocoa
+                            return new ImageMoniker
+                            {
+                                Guid = imageId.Guid,
+                                Id = imageId.Id
+                            };
                         }
                     }
                 }
@@ -325,18 +332,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly SuggestedAction _suggestedAction;
-
-            public TestAccessor(SuggestedAction suggestedAction)
-                => _suggestedAction = suggestedAction;
-
-            public ref bool IsApplied => ref _suggestedAction._isApplied;
-        }
     }
 }

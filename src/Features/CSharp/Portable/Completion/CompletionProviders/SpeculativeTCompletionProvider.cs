@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
+    [ExtensionOrder(After = nameof(AwaitCompletionProvider))]
     [Shared]
     internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {

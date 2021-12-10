@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(AwaitCompletionProvider))>
     <[Shared]>
     Partial Friend Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)

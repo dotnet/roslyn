@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(compilationContext =>
+            => context.RegisterCompilationStartAction(context =>
             {
-                var objectType = compilationContext.Compilation.GetSpecialType(SpecialType.System_Object);
-                if (objectType != null)
+                var objectType = context.Compilation.GetSpecialType(SpecialType.System_Object);
+                if (objectType != null && IsLanguageVersionSupported(context.Compilation))
                 {
                     var referenceEqualsMethod = objectType.GetMembers(nameof(ReferenceEquals))
                                                           .OfType<IMethodSymbol>()
@@ -41,27 +41,23 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     if (referenceEqualsMethod != null)
                     {
                         var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+                        var unconstraintedGenericSupported = IsUnconstrainedGenericSupported(context.Compilation);
                         context.RegisterSyntaxNodeAction(
-                            c => AnalyzeSyntax(c, referenceEqualsMethod),
+                            c => AnalyzeSyntax(c, referenceEqualsMethod, unconstraintedGenericSupported),
                             syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.InvocationExpression));
                     }
                 }
             });
 
-        protected abstract bool IsLanguageVersionSupported(ParseOptions options);
-        protected abstract bool IsUnconstrainedGenericSupported(ParseOptions options);
+        protected abstract bool IsLanguageVersionSupported(Compilation compilation);
+        protected abstract bool IsUnconstrainedGenericSupported(Compilation compilation);
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod, bool unconstraintedGenericSupported)
         {
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-            if (!IsLanguageVersionSupported(syntaxTree.Options))
-            {
-                return;
-            }
 
             var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
@@ -108,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(
                 UseIsNullConstants.Kind, UseIsNullConstants.ReferenceEqualsKey);
 
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
@@ -125,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 // HasReferenceTypeConstraint returns false for base type constraint.
                 // IsReferenceType returns true.
 
-                if (!genericParameterSymbol.IsReferenceType && !IsUnconstrainedGenericSupported(syntaxTree.Options))
+                if (!genericParameterSymbol.IsReferenceType && !unconstraintedGenericSupported)
                 {
                     // Needs special casing for C# as long as
                     // 'is null' over unconstrained generic is implemented in C# 8.

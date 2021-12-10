@@ -6,7 +6,6 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITextStructureNavigator _naturalLanguageNavigator;
             private readonly AbstractTextStructureNavigatorProvider _provider;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             internal TextStructureNavigator(
                 ITextBuffer subjectBuffer,
                 ITextStructureNavigator naturalLanguageNavigator,
                 AbstractTextStructureNavigatorProvider provider,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uIThreadOperationExecutor)
             {
                 Contract.ThrowIfNull(subjectBuffer);
                 Contract.ThrowIfNull(naturalLanguageNavigator);
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 _subjectBuffer = subjectBuffer;
                 _naturalLanguageNavigator = naturalLanguageNavigator;
                 _provider = provider;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uIThreadOperationExecutor;
             }
 
             public IContentType ContentType => _subjectBuffer.ContentType;
@@ -49,13 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetExtentOfWord, CancellationToken.None))
                 {
                     var result = default(TextExtent);
-                    _waitIndicator.Wait(
+                    _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_word_extent,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_word_extent,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        result = GetExtentOfWordWorker(currentPosition, waitContext.CancellationToken);
+                        result = GetExtentOfWordWorker(currentPosition, context.UserCancellationToken);
                     });
 
                     return result;
@@ -122,16 +122,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfEnclosing, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfEnclosingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfEnclosingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
@@ -153,16 +154,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfFirstChild, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfFirstChildWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfFirstChildWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
@@ -188,16 +190,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfNextSibling, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_span_of_next_sibling,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_next_sibling,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfNextSiblingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfNextSiblingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 
@@ -239,16 +242,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfPreviousSibling, CancellationToken.None))
                 {
                     var span = default(SnapshotSpan);
-                    var result = _waitIndicator.Wait(
+                    var result = _uiThreadOperationExecutor.Execute(
                         title: EditorFeaturesResources.Text_Navigation,
-                        message: EditorFeaturesResources.Finding_span_of_previous_sibling,
-                        allowCancel: true,
-                        action: waitContext =>
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_previous_sibling,
+                        allowCancellation: true,
+                        showProgress: false,
+                        action: context =>
                     {
-                        span = GetSpanOfPreviousSiblingWorker(activeSpan, waitContext.CancellationToken);
+                        span = GetSpanOfPreviousSiblingWorker(activeSpan, context.UserCancellationToken);
                     });
 
-                    return result == WaitIndicatorResult.Completed ? span : activeSpan;
+                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
                 }
             }
 

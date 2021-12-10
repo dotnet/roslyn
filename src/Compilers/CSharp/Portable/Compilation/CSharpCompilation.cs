@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyEntryPoint == null)
             {
                 EntryPoint? entryPoint;
-                var simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+                var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
 
                 if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
@@ -1782,7 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var main in entryPointCandidates)
                         {
-                            diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            if (main is not SynthesizedSimpleProgramEntryPointSymbol)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            }
                         }
 
                         if (scriptClass is object)
@@ -2275,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
-            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            if (ignoreAccessibility && SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this) is object)
             {
                 return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
             }
@@ -3352,7 +3355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3364,7 +3366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken);
         }
@@ -3859,6 +3860,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loc1.Span.Start - loc2.Span.Start;
         }
 
+        internal override int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
         /// <summary>
         /// Return true if there is a source declaration symbol name that meets given predicate.
         /// </summary>
@@ -4335,7 +4347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.Contains(_name))
+                    if (typeDecl.MemberNames.ContainsKey(_name))
                     {
                         return true;
                     }

@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
+            // We should never encounter an interpolated string handler conversion that was implicitly inferred, because
+            // there are no target types for an anonymous object creation.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             // Rewrite the arguments.
             var rewrittenArguments = VisitList(node.Arguments);
 

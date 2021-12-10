@@ -62,8 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     builder.AddLineBreak();
                 }
+
                 builder.AddRange(section.TaggedParts);
             }
+
             return builder.ToImmutableArray();
         }
     }

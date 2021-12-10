@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
-                    if (method.MethodKind == MethodKind.EventAdd ||
-                        method.MethodKind == MethodKind.EventRemove ||
-                        method.MethodKind == MethodKind.PropertySet)
+                    if (method.MethodKind is MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.PropertySet)
                     {
                         // the name is value in C#, and Value in VB
-                        return symbol.Name == "value" || symbol.Name == "Value";
+                        return symbol.Name is "value" or "Value";
                     }
                 }
             }

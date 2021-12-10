@@ -805,11 +805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundDiscardExpression BindDiscardExpression(
+        private BoundDiscardExpression BindDiscardExpression(
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
+            // Cannot escape out of the current expression, as it's a compiler-synthesized location.
+            return new BoundDiscardExpression(syntax, LocalScopeDepth, declTypeWithAnnotations.Type);
         }
 
         /// <summary>

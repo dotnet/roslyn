@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            CompletionOptions.TypeImportCompletionFeatureFlag,
+            CompletionOptions.TargetTypedCompletionFilterFeatureFlag,
+            CompletionOptions.UnnamedSymbolCompletionDisabledFeatureFlag,
             CompletionOptions.HideAdvancedMembers,
             CompletionOptions.TriggerOnTyping,
             CompletionOptions.TriggerOnTypingLetters2,

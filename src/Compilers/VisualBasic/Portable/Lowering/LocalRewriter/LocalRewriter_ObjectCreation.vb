@@ -388,7 +388,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ReplaceObjectOrCollectionInitializer(
                             rewrittenObjectCreationExpression,
                             node.Update(node.CreateTemporaryLocalForInitialization,
-                                        node.Binder,
                                         node.PlaceholderOpt,
                                         newInitializers.AsImmutableOrNull(),
                                         node.Type))

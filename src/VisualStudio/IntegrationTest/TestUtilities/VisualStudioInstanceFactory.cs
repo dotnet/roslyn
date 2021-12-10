@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +12,6 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -36,7 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
-        private VisualStudioInstance _currentlyRunningInstance;
+        private VisualStudioInstance? _currentlyRunningInstance;
 
         /// <summary>
         /// Identifies the first time a Visual Studio instance is launched during an integration test run.
@@ -49,9 +46,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
-            if (int.Parse(majorVsProductVersion) < 16)
+            if (int.Parse(majorVsProductVersion) < 17)
             {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 17.0 and later.");
             }
         }
 
@@ -103,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
         // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
         // the assembly that is already loaded.
-        private static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
+        private static Assembly? AssemblyResolveHandler(object sender, ResolveEventArgs eventArgs)
         {
             Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
             var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
@@ -125,6 +122,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 var shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
                 await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
+                Contract.ThrowIfNull(_currentlyRunningInstance);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
             }
@@ -174,7 +172,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
                 _currentlyRunningInstance?.Close();
 
-                var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
+                var instance = (ISetupInstance2)LocateVisualStudioInstance(requiredPackageIds);
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
                 installationPath = instance.GetInstallationPath();
 
@@ -200,7 +198,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // We create a new DTE instance in the current context since the COM object could have been separated
                 // from its RCW during the previous test.
 
-                Debug.Assert(_currentlyRunningInstance != null);
+                Contract.ThrowIfNull(_currentlyRunningInstance);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -277,6 +275,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
                     }
                 }
+
                 return isMatch;
             });
 
@@ -317,7 +316,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (_firstLaunch)
             {
-                if (majorVersion == 16)
+                if (majorVersion >= 16)
                 {
                     // Make sure the start window doesn't show on launch
                     Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10")).WaitForExit();
@@ -332,22 +331,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"")).WaitForExit();
 
-                // HACK: 16.10P2 contains an LSP client bug where on solution closed, server activation tasks that are not already completed / cancelled
-                // do not properly get cancelled.  When a new solution is opened these incomplete server ativation tasks are not cleared.
-                // Any feature that waits for LSP server activations to complete will hang on the old incomplete server activation tasks.
-                //
-                // The roslyn C# always active server and intellicode's refactorings LSP server are the only LSP servers active on C# files in 16.10p2.
-                // To work around potential hangs where the intellicode server activation does not complete before solution close, we disable their LSP server entirely.
-                // To work around potential hangs in the roslyn C# server, we wait for the async listener around the LSP server activation to complete before proceeding.
-                // Editor tracking bug (to be fixed in 16.10P3) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1322125
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" Refactorings string \"0*System.Int32*2\"")).WaitForExit();
+                // Disable IntelliCode line completions to avoid interference with argument completion testing
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" wholeLineCompletions string \"0*System.Int32*2\"")).WaitForExit();
 
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
                 var lspRegistryValue = isUsingLspEditor ? "1" : "0";
-                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.

@@ -105,7 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InitOnlySettersUsage
                     Return LanguageVersion.VisualBasic16_9
-
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

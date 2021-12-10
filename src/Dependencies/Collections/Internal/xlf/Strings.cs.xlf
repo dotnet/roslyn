@@ -102,6 +102,11 @@
         <target state="translated">Posun a délka byly mimo rozsah pro dané pole nebo je počet vyšší než počet elementů z indexu do konce zdrojové kolekce.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Nepovedlo se najít starou hodnotu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">Operace, které mění nesouběžné kolekce, musí mít výhradní přístup. U této kolekce se provedla souběžná aktualizace, která poškodila její stav. Stav kolekce už není správný.</target>

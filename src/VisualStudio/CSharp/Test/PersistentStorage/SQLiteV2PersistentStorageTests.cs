@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Xunit;
@@ -22,8 +23,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
-            => new SQLitePersistentStorageService(options, exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value, locationService, faultInjector);
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageConfiguration configuration, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+            => new SQLitePersistentStorageService(
+                exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
+                configuration,
+                exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),
+                faultInjector);
 
         [Fact]
         public async Task TestCrashInNewConnection()
@@ -40,8 +45,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 onFatalError: e => throw e);
 
             // Because instantiating the connection will fail, we will not get back
-            // a working persistent storage.
-            await using (var storage = await GetStorageAsync(solution, faultInjector))
+            // a working persistent storage. We are testing a fault recovery code path.
+            await using (var storage = await GetStorageAsync(solution, faultInjector, throwOnFailure: false))
             using (var memStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memStream))
             {

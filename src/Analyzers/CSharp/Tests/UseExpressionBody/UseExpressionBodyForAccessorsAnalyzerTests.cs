@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = version,
@@ -36,12 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(string code, string fixedCode)
+        private static async Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
+                LanguageVersion = version,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible  },
@@ -51,12 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(string code, string fixedCode)
+        private static async Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
+                LanguageVersion = version,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never  },
@@ -208,6 +214,35 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOnInit1()
+        {
+            var code =
+@"class C
+{
+    int Goo
+    {
+        {|IDE0027:init
+        {
+            Bar();
+        }|}
+    }
+
+    int Bar() { return 0; }
+}";
+            var fixedCode =
+@"class C
+{
+    int Goo
+    {
+        init => Bar();
+    }
+
+    int Bar() { return 0; }
+}";
+            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp9);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestMissingWithOnlySetter()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -220,6 +255,28 @@ class C
         set => Bar();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMissingWithOnlyInit()
+        {
+            var code =
+@"class C
+{
+    int Goo
+    {
+        init => Bar();
+    }
+
+    int Bar() { return 0; }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -336,6 +393,36 @@ class C
     }
 }";
             await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyForInit1()
+        {
+            var code =
+@"class C
+{
+    int Goo
+    {
+        {|IDE0027:init => Bar();|}
+        }
+
+    int Bar() { return 0; }
+    }";
+            var fixedCode =
+@"class C
+{
+    int Goo
+    {
+        init
+        {
+            Bar();
+        }
+    }
+
+    int Bar() { return 0; }
+    }";
+
+            await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode, LanguageVersion.CSharp9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -502,6 +589,66 @@ class C
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
                 },
+            }.RunAsync();
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting_FixAll2()
+        {
+            var code =
+@"class C
+{
+    int Goo { {|IDE0027:get => Bar();|} {|IDE0027:init => Bar();|} }
+
+    int Bar() { return 0; }
+}";
+            var fixedCode =
+@"class C
+{
+    int Goo
+    {
+        get { return Bar(); }
+        init
+        {
+            Bar();
+        }
+    }
+
+    int Bar() { return 0; }
+}";
+            var batchFixedCode =
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+
+        init
+        {
+            Bar();
+        }
+    }
+
+    int Bar() { return 0; }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = code,
+                FixedCode = fixedCode,
+                BatchFixedCode = batchFixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
+                }
             }.RunAsync();
         }
 

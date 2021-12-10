@@ -9,17 +9,11 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
 
 namespace BuildValidator
@@ -40,28 +34,28 @@ namespace BuildValidator
             var rootCommand = new RootCommand
             {
                 new Option<string>(
-                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
+                    "--assembliesPath", BuildValidatorResources.Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times
                 ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
                 new Option<string>(
-                    "--exclude", "Assemblies to be excluded (substring match)"
+                    "--exclude", BuildValidatorResources.Assemblies_to_be_excluded_substring_match
                 ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<string>(
-                    "--sourcePath", "Path to sources to use in rebuild"
+                    "--sourcePath", BuildValidatorResources.Path_to_sources_to_use_in_rebuild
                 ) { IsRequired = true },
                 new Option<string>(
-                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
+                    "--referencesPath", BuildValidatorResources.Path_to_referenced_assemblies_can_be_specified_zero_or_more_times
                 ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<bool>(
-                    "--verbose", "Output verbose log information"
+                    "--verbose", BuildValidatorResources.Output_verbose_log_information
                 ),
                 new Option<bool>(
-                    "--quiet", "Do not output log information to console"
+                    "--quiet", BuildValidatorResources.Do_not_output_log_information_to_console
                 ),
                 new Option<bool>(
-                    "--debug", "Output debug info when rebuild is not equal to the original"
+                    "--debug", BuildValidatorResources.Output_debug_info_when_rebuild_is_not_equal_to_the_original
                 ),
                 new Option<string?>(
-                    "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
+                    "--debugPath", BuildValidatorResources.Path_to_output_debug_info
                 )
             };
             rootCommand.Handler = CommandHandler.Create(new Func<string[], string[]?, string, string[]?, bool, bool, bool, string, int>(HandleCommand));
@@ -335,8 +329,10 @@ namespace BuildValidator
                 return ImmutableArray<SourceLinkEntry>.Empty;
             }
 
-            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
-            var sourceLinks = parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+            var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null })?.documents
+                ?? throw new InvalidOperationException("Failed to deserialize source links.");
+
+            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
 
             if (sourceLinks.IsDefault)
             {

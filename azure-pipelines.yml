@@ -21,15 +21,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: Build.Windows.10.Amd64.Open
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: Build.Windows.10.Amd64.Open
-    buildArguments: "/p:Features=run-nullable-analysis=never"
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -118,7 +117,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-18.04'
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -148,12 +147,14 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
 
+- template: eng/common/templates/jobs/source-build.yml
+
 # Build Correctness Jobs
 
 - job: Correctness_Determinism
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -169,7 +170,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2017.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -198,34 +199,10 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
-- job: Correctness_SourceBuild
-  pool:
-   name: NetCore1ESPool-Svc-Public
-   demands: ImageOverride -equals Build.Ubuntu.1804.amd64.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-unix-task.yml
-
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --binaryLog --sourceBuild
-      displayName: Build
-
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_SourceBuild
-        configuration: Release
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'SourceBuild_Test'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
 - job: Correctness_Rebuild
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
