@@ -28,11 +28,11 @@ internal sealed partial class DelegateCacheRewriter
     }
 
     internal static bool CanRewrite(CSharpCompilation compilation, MethodSymbol topLevelMethod, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
-        => compilation.IsStaticMethodGroupDelegateCacheEnabled
-        && targetMethod.IsStatic
+        => targetMethod.IsStatic
         && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
         && topLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
+        && compilation.IsStaticMethodGroupDelegateCacheEnabled
         ;
 
     internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
