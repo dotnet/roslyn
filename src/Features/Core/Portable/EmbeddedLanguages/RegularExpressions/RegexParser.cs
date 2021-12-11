@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -19,11 +18,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
-
+    using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
     using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
-    using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 
     /// <summary>
     /// Produces a <see cref="RegexTree"/> from a sequence of <see cref="VirtualChar"/> characters.
@@ -254,12 +252,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         /// <summary>
-        /// Parses out code of the form: ...|...|...
-        /// This is the type of code you have at the top level of a regex, or inside any grouping
-        /// contruct.  Note that sequences can be empty in .NET regex.  i.e. the following is legal:
-        /// 
+        /// Parses out code of the form: ...|...|... This is the type of code you have at the top level of a regex, or
+        /// inside any grouping construct.  Note that sequences can be empty in .NET regex.  i.e. the following is
+        /// legal:
+        ///
         ///     ...||...
-        /// 
+        ///
         /// An empty sequence just means "match at every position in the test string".
         /// </summary>
         private RegexAlternationNode ParseAlternatingSequencesWorker(
@@ -297,9 +295,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParsePrimaryExpressionAndQuantifiers(last));
             }
 
-            // We wil commonly get tons of text nodes in a row.  For example, the
-            // regex `abc` will be three text nodes in a row.  To help save on memory
-            // try to merge that into one single text node.
+            // We will commonly get tons of text nodes in a row.  For example, the regex `abc` will be three text nodes
+            // in a row.  To help save on memory try to merge that into one single text node.
             using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var sequence);
             MergeTextNodes(builder, sequence);
 
@@ -1266,9 +1263,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseCharacterClassComponents(builder);
             }
 
-            // We wil commonly get tons of text nodes in a row.  For example, the
-            // regex `[abc]` will be three text nodes in a row.  To help save on memory
-            // try to merge that into one single text node.
+            // We will commonly get tons of text nodes in a row.  For example, the regex `[abc]` will be three text
+            // nodes in a row.  To help save on memory try to merge that into one single text node.
             using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
             MergeTextNodes(builder, contents);
 
