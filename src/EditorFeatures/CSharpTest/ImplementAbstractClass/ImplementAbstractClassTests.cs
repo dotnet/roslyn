@@ -1488,7 +1488,7 @@ class Derived : Base
     void Goo() { }
 
     public override int Prop => throw new System.NotImplementedException();
-}", options: Option(ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
+}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
         [WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
@@ -1665,7 +1665,7 @@ class C : AbstractClass
     public override int ReadWriteProp { get; set; }
     public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }", parameters: new TestParameters(options: Option(
-    ImplementTypeOptions.Metadata.PropertyGenerationBehavior,
+    ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
 
