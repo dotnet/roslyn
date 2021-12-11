@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -24,19 +22,7 @@ partial class DelegateCacheRewriter
 
         public override bool VisitArrayType(ArrayTypeSymbol symbol, HashSet<TypeParameterSymbol> typeParameters)
         {
-            var element = symbol.ElementTypeWithAnnotations;
-
-            if (Visit(element.Type, typeParameters))
-            {
-                return true;
-            }
-
-            if (VisitCustomModifiers(element.CustomModifiers, typeParameters))
-            {
-                return true;
-            }
-
-            return false;
+            return VisitTypeWithAnnotations(symbol.ElementTypeWithAnnotations, typeParameters);
         }
 
         public override bool VisitNamedType(NamedTypeSymbol symbol, HashSet<TypeParameterSymbol> typeParameters)
@@ -51,7 +37,7 @@ partial class DelegateCacheRewriter
 
                             foreach (var property in anonymousClass.Properties)
                             {
-                                if (Visit(property.Type, typeParameters))
+                                if (VisitTypeWithAnnotations(property.TypeWithAnnotations, typeParameters))
                                 {
                                     return true;
                                 }
@@ -63,14 +49,9 @@ partial class DelegateCacheRewriter
                         {
                             var anonymousDelegate = (AnonymousTypeManager.AnonymousDelegatePublicSymbol)symbol;
 
-                            foreach (var typeArg in anonymousDelegate.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                            foreach (var typeArgumentWithAnnotations in anonymousDelegate.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                             {
-                                if (Visit(typeArg.Type, typeParameters))
-                                {
-                                    return true;
-                                }
-
-                                if (VisitCustomModifiers(typeArg.CustomModifiers, typeParameters))
+                                if (VisitTypeWithAnnotations(typeArgumentWithAnnotations, typeParameters))
                                 {
                                     return true;
                                 }
@@ -87,14 +68,9 @@ partial class DelegateCacheRewriter
 
             if (symbol.IsTupleType)
             {
-                foreach (var property in symbol.TupleElementTypesWithAnnotations)
+                foreach (var elementTypeWithAnnotations in symbol.TupleElementTypesWithAnnotations)
                 {
-                    if (Visit(property.Type, typeParameters))
-                    {
-                        return true;
-                    }
-
-                    if (VisitCustomModifiers(property.CustomModifiers, typeParameters))
+                    if (VisitTypeWithAnnotations(elementTypeWithAnnotations, typeParameters))
                     {
                         return true;
                     }
@@ -103,14 +79,9 @@ partial class DelegateCacheRewriter
                 return false;
             }
 
-            foreach (var typeArg in symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+            foreach (var typeArgumentWithAnnotations in symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                if (Visit(typeArg.Type, typeParameters))
-                {
-                    return true;
-                }
-
-                if (VisitCustomModifiers(typeArg.CustomModifiers, typeParameters))
+                if (VisitTypeWithAnnotations(typeArgumentWithAnnotations, typeParameters))
                 {
                     return true;
                 }
@@ -121,14 +92,9 @@ partial class DelegateCacheRewriter
 
         public override bool VisitMethod(MethodSymbol symbol, HashSet<TypeParameterSymbol> typeParameters)
         {
-            foreach (var typeArg in symbol.TypeArgumentsWithAnnotations)
+            foreach (var typeArgumentWithAnnotations in symbol.TypeArgumentsWithAnnotations)
             {
-                if (Visit(typeArg.Type, typeParameters))
-                {
-                    return true;
-                }
-
-                if (VisitCustomModifiers(typeArg.CustomModifiers, typeParameters))
+                if (VisitTypeWithAnnotations(typeArgumentWithAnnotations, typeParameters))
                 {
                     return true;
                 }
@@ -140,25 +106,17 @@ partial class DelegateCacheRewriter
         public override bool VisitPointerType(PointerTypeSymbol symbol, HashSet<TypeParameterSymbol> typeParameters)
         {
             // Func<int*[]> is a good example why here is reachable.
-
-            var pointedAt = symbol.PointedAtTypeWithAnnotations;
-
-            if (Visit(pointedAt.Type, typeParameters))
-            {
-                return true;
-            }
-
-            if (VisitCustomModifiers(pointedAt.CustomModifiers, typeParameters))
-            {
-                return true;
-            }
-
-            return false;
+            return VisitTypeWithAnnotations(symbol.PointedAtTypeWithAnnotations, typeParameters);
         }
 
-        private bool VisitCustomModifiers(ImmutableArray<CustomModifier> customModifiers, HashSet<TypeParameterSymbol> typeParameters)
+        private bool VisitTypeWithAnnotations(in TypeWithAnnotations typeWithAnnotations, HashSet<TypeParameterSymbol> typeParameters)
         {
-            foreach (var customModifier in customModifiers)
+            if (Visit(typeWithAnnotations.Type, typeParameters))
+            {
+                return true;
+            }
+
+            foreach (var customModifier in typeWithAnnotations.CustomModifiers)
             {
                 if (Visit((Symbol)customModifier.Modifier, typeParameters))
                 {
