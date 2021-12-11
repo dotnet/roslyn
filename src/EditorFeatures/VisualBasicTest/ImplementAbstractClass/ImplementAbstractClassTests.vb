@@ -631,7 +631,7 @@ Class C
         End Set
     End Property
 End Class", parameters:=New TestParameters(options:=[Option](
-    ImplementTypeOptions.Metadata.PropertyGenerationBehavior,
+    ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class

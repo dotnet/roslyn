@@ -7,7 +7,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
-Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
@@ -33,22 +32,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 
         Protected Overrides Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeOptions,
-            TypeSyntax As TypeSyntax,
+            typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
         ) As Document
 
-            If TypeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
+            If typeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
                 Return Nothing
             End If
 
-            Dim classBlock = TryCast(TypeSyntax.Parent.Parent, ClassBlockSyntax)
+            Dim classBlock = TryCast(typeSyntax.Parent.Parent, ClassBlockSyntax)
             If classBlock Is Nothing Then
                 Return Nothing
             End If
 
             Dim updatedDocument = ImplementAbstractClassData.TryImplementAbstractClassAsync(
-                document, classBlock, classBlock.ClassStatement.Identifier, options, cancellationToken).WaitAndGetResult(cancellationToken)
+                document, classBlock, classBlock.ClassStatement.Identifier, cancellationToken).WaitAndGetResult(cancellationToken)
             If updatedDocument IsNot Nothing AndAlso
                 updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
                 Return Nothing
