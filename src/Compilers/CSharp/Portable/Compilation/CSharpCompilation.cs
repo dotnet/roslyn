@@ -206,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
+        internal bool IsStaticMethodGroupDelegateCacheEnabled => Feature("DisableStaticMethodGroupDelegateCache") is null;
+
         /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>

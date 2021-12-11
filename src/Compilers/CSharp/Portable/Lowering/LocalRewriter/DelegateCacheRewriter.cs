@@ -27,11 +27,12 @@ internal sealed partial class DelegateCacheRewriter
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    internal static bool CanRewrite(SyntheticBoundNodeFactory factory, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
-        => targetMethod.IsStatic && !boundConversion.IsExtensionMethod
+    internal static bool CanRewrite(CSharpCompilation compilation, MethodSymbol topLevelMethod, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
+        => compilation.IsStaticMethodGroupDelegateCacheEnabled
+        && targetMethod.IsStatic
+        && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
-        && factory.TopLevelMethod is not { MethodKind: MethodKind.StaticConstructor } // Avoid caching twice if people do it manually.
-        && factory.Syntax.IsFeatureEnabled(MessageID.IDS_CacheStaticMethodGroupConversions) // Compatibility reasons.
+        && topLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
         ;
 
     internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)

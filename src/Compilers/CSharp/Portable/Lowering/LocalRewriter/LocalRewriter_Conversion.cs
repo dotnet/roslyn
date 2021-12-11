@@ -406,7 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        if (DelegateCacheRewriter.CanRewrite(_factory, _inExpressionLambda, oldNodeOpt, method))
+                        Debug.Assert(_factory.TopLevelMethod is { });
+                        if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
                             var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _topLevelMethodOrdinal);
                             return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
