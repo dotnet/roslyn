@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static RegexTree TryParse(VirtualCharSequence text, RegexOptions options)
+        public static RegexTree? TryParse(VirtualCharSequence text, RegexOptions options)
         {
             if (text.IsDefault)
             {
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return true;
         }
 
-        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode lastExpression)
+        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode? lastExpression)
         {
             var current = ParsePrimaryExpression(lastExpression);
             if (current.Kind == RegexKind.SimpleOptionsGrouping)
@@ -569,36 +569,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia);
         }
 
-        private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode lastExpression)
+        private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode? lastExpression)
         {
-            switch (_currentToken.Kind)
+            return _currentToken.Kind switch
             {
-                case RegexKind.DotToken:
-                    return ParseWildcard();
-                case RegexKind.CaretToken:
-                    return ParseStartAnchor();
-                case RegexKind.DollarToken:
-                    return ParseEndAnchor();
-                case RegexKind.BackslashToken:
-                    return ParseEscape(_currentToken, allowTriviaAfterEnd: true);
-                case RegexKind.OpenBracketToken:
-                    return ParseCharacterClass();
-                case RegexKind.OpenParenToken:
-                    return ParseGrouping();
-                case RegexKind.CloseParenToken:
-                    return ParseUnexpectedCloseParenToken();
-                case RegexKind.OpenBraceToken:
-                    return ParsePossibleUnexpectedNumericQuantifier(lastExpression);
-                case RegexKind.AsteriskToken:
-                case RegexKind.PlusToken:
-                case RegexKind.QuestionToken:
-                    return ParseUnexpectedQuantifier(lastExpression);
-                default:
-                    return ParseText();
-            }
+                RegexKind.DotToken => ParseWildcard(),
+                RegexKind.CaretToken => ParseStartAnchor(),
+                RegexKind.DollarToken => ParseEndAnchor(),
+                RegexKind.BackslashToken => ParseEscape(_currentToken, allowTriviaAfterEnd: true),
+                RegexKind.OpenBracketToken => ParseCharacterClass(),
+                RegexKind.OpenParenToken => ParseGrouping(),
+                RegexKind.CloseParenToken => ParseUnexpectedCloseParenToken(),
+                RegexKind.OpenBraceToken => ParsePossibleUnexpectedNumericQuantifier(lastExpression),
+                RegexKind.AsteriskToken or RegexKind.PlusToken or RegexKind.QuestionToken => ParseUnexpectedQuantifier(lastExpression),
+                _ => ParseText(),
+            };
         }
 
-        private RegexPrimaryExpressionNode ParsePossibleUnexpectedNumericQuantifier(RegexExpressionNode lastExpression)
+        private RegexPrimaryExpressionNode ParsePossibleUnexpectedNumericQuantifier(RegexExpressionNode? lastExpression)
         {
             // Native parser looks for something like {0,1} in a top level sequence and reports
             // an explicit error that that's not allowed.  However, something like {0, 1} is fine
@@ -892,6 +880,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 var pos = _lexer.Position;
                 var comment = _lexer.ScanComment(options: default);
+                Contract.ThrowIfFalse(comment.HasValue);
                 _lexer.Position = pos;
 
                 if (comment.Value.Diagnostics.Length > 0)
@@ -1330,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private static bool IsEscapedMinus(RegexNode node)
+        private static bool IsEscapedMinus([NotNullWhen(true)] RegexNode? node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
         private bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
@@ -1398,16 +1387,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 #if DEBUG
                     Debug.Assert(sequence.ChildCount > 0);
                     for (int i = 0, n = sequence.ChildCount - 1; i < n; i++)
-                    {
                         Debug.Assert(IsEscapedMinus(sequence.ChildAt(i).Node));
-                    }
 #endif
 
                     var last = sequence.ChildAt(sequence.ChildCount - 1).Node;
+                    Contract.ThrowIfNull(last);
                     if (IsEscapedMinus(last))
-                    {
                         break;
-                    }
 
                     return TryGetRangeComponentValueWorker(last, out ch);
             }
@@ -1751,7 +1737,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
             var start = _lexer.Position;
 
-            var numberToken = _lexer.TryScanNumber().Value;
+            var number = _lexer.TryScanNumber();
+            Contract.ThrowIfNull(number);
+            var numberToken = number.Value;
             var capVal = (int)numberToken.Value;
             if (HasCapture(capVal) ||
                 capVal <= 9)
@@ -2001,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             out RegexToken openBraceToken,
             out RegexToken categoryToken,
             out RegexToken closeBraceToken,
-            out string message)
+            [NotNullWhen(false)] out string? message)
         {
             openBraceToken = default;
             categoryToken = default;
@@ -2045,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return true;
         }
 
-        private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode lastExpression)
+        private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode? lastExpression)
         {
             // This is just a bogus element in the higher level sequence.  Allow trivia 
             // after this to abide by the spirit of the native parser.
@@ -2054,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
-        private static void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
+        private static void CheckQuantifierExpression(RegexExpressionNode? current, ref RegexToken token)
         {
             if (current == null ||
                 current.Kind == RegexKind.SimpleOptionsGrouping)
@@ -2062,8 +2050,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
             }
-            else if (current is RegexQuantifierNode or
-                     RegexLazyQuantifierNode)
+            else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));
