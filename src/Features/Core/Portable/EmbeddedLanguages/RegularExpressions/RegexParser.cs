@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 // Trivia allowed between the | and the next token.
                 var barToken = ConsumeCurrentToken(allowTrivia: true);
-                if (isConditional && builder.Count > 1)
+                if (isConditional && builder.Count >= 3)
                 {
-                    // a conditional alternative expression only allows two cases (the true and false branches).
-                    // We already have seen both.  Error on any further cases we see.
+                    // a conditional alternative expression only allows two cases (the true and false branches). We
+                    // already have seen both once we have 3 items (`t | f`).  Error on any further cases we see.
                     barToken = barToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         FeaturesResources.Too_many_bars_in_conditional_grouping,
                         barToken.GetSpan()));
