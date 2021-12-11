@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
+        private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
         private TypeWithAnnotations _returnType;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
+            _syntax = unboundLambda.Syntax;
             if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
             {
                 _refKind = refKind;
@@ -369,22 +371,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             return symbol is LambdaSymbol lambda
-                && areEqual(lambda.syntaxReferenceOpt, syntaxReferenceOpt)
+                && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
                 && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
-
-            static bool areEqual(SyntaxReference a, SyntaxReference b)
-            {
-                return (object)a.SyntaxTree == b.SyntaxTree && a.Span == b.Span;
-            }
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(syntaxReferenceOpt.SyntaxTree.GetHashCode(), syntaxReferenceOpt.Span.GetHashCode());
+            return _syntax.GetHashCode();
         }
 
         public override bool IsImplicitlyDeclared
