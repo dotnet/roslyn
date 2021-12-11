@@ -1931,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (anonymousFunction.FunctionType is { } functionType &&
-                    functionType.GetValue() is null)
+                    functionType.GetInternalDelegateType() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
