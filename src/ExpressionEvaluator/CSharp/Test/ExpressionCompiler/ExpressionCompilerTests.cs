@@ -2299,7 +2299,7 @@ class C
         /// normally be allowed.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void Await()
         {
             var source = @"
@@ -2335,7 +2335,7 @@ class C
         /// This would be illegal in any non-debugger context.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -6073,7 +6073,7 @@ class C
         /// <summary>
         /// Ignore accessibility in async rewriter.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AsyncRewriterIgnoreAccessibility()
         {
             var source =
