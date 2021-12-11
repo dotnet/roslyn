@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim declaration = GetDeclarationSyntaxWithoutMembers([namespace], innermostNamespace, name, options)
 
-            declaration = If(options.GenerateMembers,
+            declaration = If(options.Context.GenerateMembers,
                 service.AddMembers(declaration, innermostNamespace.GetMembers().AsEnumerable(), options, cancellationToken),
                 declaration)
 

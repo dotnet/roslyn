@@ -105,19 +105,18 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                         FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
             }
 
-            var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            var codeGenerationOptions = new CodeGenerationOptions(
+            var context = new CodeGenerationContext(
                 contextLocation: classNodeToAddMembersTo.GetLocation(),
                 autoInsertionLocation: groupMembers,
-                sortMembers: groupMembers,
-                options: options);
+                sortMembers: groupMembers);
+
+            var options = await CodeGenerationOptions.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
 
             var updatedClassNode = CodeGenerator.AddMemberDeclarations(
                 classNodeToAddMembersTo,
                 memberDefinitions,
                 _document.Project.Solution.Workspace.Services,
-                codeGenerationOptions,
+                options,
                 cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

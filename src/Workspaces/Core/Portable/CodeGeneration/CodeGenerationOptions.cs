@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -11,11 +13,29 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// Options for controlling the code produced by the <see cref="CodeGenerator"/>.
+    /// Document-specific options for controlling the code produced by the <see cref="CodeGenerator"/>.
     /// </summary>
-    internal sealed class CodeGenerationOptions
+    internal readonly record struct CodeGenerationOptions(
+        CodeGenerationContext Context,
+        ParseOptions ParseOptions,
+        OptionSet Options)
     {
-        public static readonly CodeGenerationOptions Default = new();
+        public static async ValueTask<CodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
+        {
+            var parseOptions = document.DocumentState.ParseOptions;
+            Contract.ThrowIfNull(parseOptions);
+
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return new CodeGenerationOptions(context, parseOptions, documentOptions);
+        }
+    }
+
+    /// <summary>
+    /// General options for controlling the code produced by the <see cref="CodeGenerator"/> that apply to all documents.
+    /// </summary>
+    internal sealed class CodeGenerationContext
+    {
+        public static readonly CodeGenerationContext Default = new();
 
         /// <summary>
         /// A location used to determine the best place to generate a member.  This is only used for
@@ -128,11 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
-        public OptionSet? Options { get; }
-
-        public ParseOptions? ParseOptions { get; }
-
-        public CodeGenerationOptions(
+        public CodeGenerationContext(
             Location? contextLocation = null,
             Location? afterThisLocation = null,
             Location? beforeThisLocation = null,
@@ -146,9 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool generateDocumentationComments = false,
             bool autoInsertionLocation = true,
             bool sortMembers = true,
-            bool reuseSyntax = false,
-            OptionSet? options = null,
-            ParseOptions? parseOptions = null)
+            bool reuseSyntax = false)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -168,9 +182,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             AutoInsertionLocation = autoInsertionLocation;
             SortMembers = sortMembers;
             ReuseSyntax = reuseSyntax;
-
-            Options = options;
-            ParseOptions = parseOptions ?? BestLocation?.SourceTree!.Options;
         }
 
         private static void CheckLocation(Location? location, string name)
@@ -184,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal Location? BestLocation
             => this.AfterThisLocation ?? this.BeforeThisLocation ?? this.ContextLocation;
 
-        public CodeGenerationOptions With(
+        public CodeGenerationContext With(
             Optional<Location> contextLocation = default,
             Optional<Location?> afterThisLocation = default,
             Optional<Location?> beforeThisLocation = default,
@@ -198,9 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Optional<bool> generateDocumentationComments = default,
             Optional<bool> autoInsertionLocation = default,
             Optional<bool> sortMembers = default,
-            Optional<bool> reuseSyntax = default,
-            Optional<OptionSet> options = default,
-            Optional<ParseOptions> parseOptions = default)
+            Optional<bool> reuseSyntax = default)
         {
             var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
             var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
@@ -216,10 +225,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
             var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
             var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
-            var newOptions = options.HasValue ? options.Value : this.Options;
-            var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
 
-            return new CodeGenerationOptions(
+            return new CodeGenerationContext(
                 newContextLocation,
                 newAfterThisLocation,
                 newBeforeThisLocation,
@@ -233,9 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 newGenerateDocumentationComments,
                 newAutoInsertionLocation,
                 newSortMembers,
-                newReuseSyntax,
-                newOptions,
-                newParseOptions);
+                newReuseSyntax);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
-            if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
+            if (!options.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
             }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
+            if (!options.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
             {
                 return node;
             }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            if (options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            if (options.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
             {
                 var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
 

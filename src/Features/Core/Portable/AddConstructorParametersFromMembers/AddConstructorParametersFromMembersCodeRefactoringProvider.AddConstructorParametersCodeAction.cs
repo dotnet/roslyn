@@ -47,22 +47,23 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 _useSubMenuName = useSubMenuName;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var services = _document.Project.Solution.Workspace.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, services, CodeGenerationOptions.Default, cancellationToken);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), services, CodeGenerationOptions.Default, cancellationToken)
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, services, options, cancellationToken);
+                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), services, options, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return Task.FromResult(_document.WithSyntaxRoot(newRoot));
+                return _document.WithSyntaxRoot(newRoot);
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Users of this service need to express their intention explicitly, either by  
             // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
             // `method` abstract. This would provide more flexibility.
-            var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
+            var hasNoBody = !options.Context.GenerateMethodBodies || method.IsAbstract;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = !options.GenerateMethodBodies || @event.IsAbstract || @event.AddMethod == null || @event.RemoveMethod == null
+            var declaration = !options.Context.GenerateMethodBodies || @event.IsAbstract || @event.AddMethod == null || @event.RemoveMethod == null
                 ? GenerateEventFieldDeclaration(@event, destination, options)
                 : GenerateEventDeclarationWorker(@event, destination, options);
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static AccessorListSyntax GenerateAccessorList(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var accessors = new List<AccessorDeclarationSyntax>
+            var accessors = new List<AccessorDeclarationSyntax?>
             {
                 GenerateAccessorDeclaration(@event, @event.AddMethod, SyntaxKind.AddAccessorDeclaration, destination, options),
                 GenerateAccessorDeclaration(@event, @event.RemoveMethod, SyntaxKind.RemoveAccessorDeclaration, destination, options),
@@ -147,14 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
         }
 
-        private static AccessorDeclarationSyntax GenerateAccessorDeclaration(
+        private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(
             IEventSymbol @event,
             IMethodSymbol? accessor,
             SyntaxKind kind,
             CodeGenerationDestination destination,
             CodeGenerationOptions options)
         {
-            var hasBody = options.GenerateMethodBodies && HasAccessorBodies(@event, destination, accessor);
+            var hasBody = options.Context.GenerateMethodBodies && HasAccessorBodies(@event, destination, accessor);
             return accessor == null
                 ? null
                 : GenerateAccessorDeclaration(accessor, kind, hasBody);

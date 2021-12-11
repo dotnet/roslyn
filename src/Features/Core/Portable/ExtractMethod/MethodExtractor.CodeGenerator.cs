@@ -105,10 +105,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
                     }
 
-                    var codeGenOptions = new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination.SyntaxTree.Options);
-                    var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, codeGenOptions, cancellationToken);
+                    var options = new CodeGenerationOptions(
+                        new CodeGenerationContext(
+                            generateDefaultAccessibility: false,
+                            generateMethodBodies: true),
+                        ParseOptions: destination.SyntaxTree.Options,
+                        Options: Options);
 
-                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, CodeGenerationOptions.Default, cancellationToken);
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, options, cancellationToken);
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, options, cancellationToken);
                 }
                 else
                 {
@@ -116,10 +121,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                     destination = previousMemberNode.Parent ?? previousMemberNode;
-                    newContainer = codeGenerationService.AddMethod(
-                        destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: Options),
-                        cancellationToken);
+
+                    var options = new CodeGenerationOptions(
+                        new CodeGenerationContext(
+                            afterThisLocation: previousMemberNode.GetLocation(),
+                            generateDefaultAccessibility: true,
+                            generateMethodBodies: true),
+                        ParseOptions: destination.SyntaxTree.Options,
+                        Options: Options);
+
+                    newContainer = codeGenerationService.AddMethod(destination, result.Data, options, cancellationToken);
                 }
 
                 var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);

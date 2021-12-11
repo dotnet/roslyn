@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.Context.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.DestructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),

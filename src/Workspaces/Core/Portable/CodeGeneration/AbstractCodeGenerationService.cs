@@ -21,14 +21,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract partial class AbstractCodeGenerationService : ICodeGenerationService
     {
         private readonly ISymbolDeclarationService _symbolDeclarationService;
-        protected readonly Workspace Workspace;
 
         protected AbstractCodeGenerationService(
-            ISymbolDeclarationService symbolDeclarationService,
-            Workspace workspace)
+            ISymbolDeclarationService symbolDeclarationService)
         {
             _symbolDeclarationService = symbolDeclarationService;
-            Workspace = workspace;
         }
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static TNode WithAnnotations<TNode>(TNode node, CodeGenerationOptions options) where TNode : SyntaxNode
         {
-            return options?.AddImports ?? true
+            return options.Context.AddImports
                 ? node.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 : node;
         }
@@ -169,11 +166,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Solution solution,
             INamespaceOrTypeSymbol destination,
             Func<SyntaxNode, CodeGenerationOptions, IList<bool>?, CancellationToken, SyntaxNode> declarationTransform,
-            CodeGenerationOptions options,
+            CodeGenerationContext context,
             CancellationToken cancellationToken)
         {
             var (destinationDeclaration, availableIndices) =
-                await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
+                await this.FindMostRelevantDeclarationAsync(solution, destination, context, cancellationToken).ConfigureAwait(false);
 
             if (destinationDeclaration == null)
             {
@@ -182,13 +179,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var destinationTree = destinationDeclaration.SyntaxTree;
             var oldDocument = solution.GetRequiredDocument(destinationTree);
-
-            if (options.Options is null)
-            {
-                var documentOptions = await oldDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                options = options.With(options: documentOptions);
-            }
-
+            var documentOptions = await oldDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = new CodeGenerationOptions(context, destinationTree.Options, documentOptions);
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var root = await destinationTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -196,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var newDocument = oldDocument.WithSyntaxRoot(currentRoot);
 
-            if (options.AddImports)
+            if (context.AddImports)
             {
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                     newDocument,
@@ -225,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // not want an explicit declaration. The only exception are fields generated from implicit tuple fields.
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared || m.IsTupleField());
 
-            return options.AutoInsertionLocation
+            return options.Context.AutoInsertionLocation
                 ? AddMembersToAppropriateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
                 : AddMembersToEndOfDestination(destination, filteredMembers, options, cancellationToken);
         }
@@ -253,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Metadata as source generates complete declarations and doesn't modify
             // existing ones. We can take the members to generate, sort them once,
             // and then add them in that order to the end of the destination.
-            if (!GeneratingEnum(members) && options.SortMembers)
+            if (!GeneratingEnum(members) && options.Context.SortMembers)
             {
                 newMembers.Sort(GetMemberComparer());
             }
@@ -326,42 +318,50 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // The difficulty lies with ensuring that we properly understand the position we're
             // inserting into, even as we change the type by adding multiple members.  Not
             // impossible to figure out, but out of scope right now.
-            options = options.With(afterThisLocation: null, beforeThisLocation: null);
-            return options;
+            return options with { Context = options.Context.With(afterThisLocation: null, beforeThisLocation: null) };
         }
 
         public virtual Task<Document> AddEventAsync(
             Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
-            CodeGenerationOptions options, CancellationToken cancellationToken)
+            CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,
                 destination,
                 (t, opts, ai, ct) => AddEvent(t, @event, opts, ai, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddFieldAsync(Solution solution, INamedTypeSymbol destination, IFieldSymbol field, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddFieldAsync(Solution solution, INamedTypeSymbol destination, IFieldSymbol field, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,
                 destination,
                 (t, opts, ai, ct) => AddField(t, field, opts, ai, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddPropertyAsync(Solution solution, INamedTypeSymbol destination, IPropertySymbol property, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddPropertyAsync(Solution solution, INamedTypeSymbol destination, IPropertySymbol property, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddProperty(t, property, opts, ai, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddNamedTypeAsync(Solution solution, INamedTypeSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddNamedTypeAsync(Solution solution, INamedTypeSymbol destination, INamedTypeSymbol namedType, CodeGenerationContext context, CancellationToken cancellationToken)
+        {
+            return GetEditAsync(
+                solution, destination,
+                (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
+                context,
+                cancellationToken);
+        }
+
+        public Task<Document> AddNamedTypeAsync(Solution solution, INamespaceSymbol destination, INamedTypeSymbol namedType, CodeGenerationContext options, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution, destination,
@@ -370,43 +370,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 cancellationToken);
         }
 
-        public Task<Document> AddNamedTypeAsync(Solution solution, INamespaceSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions options, CancellationToken cancellationToken)
-        {
-            return GetEditAsync(
-                solution, destination,
-                (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
-                options,
-                cancellationToken);
-        }
-
-        public Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamespace(t, @namespace, opts, ai, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMethod(t, method, opts, ai, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMembers(t, members, ai, opts, ct),
-                options,
+                context,
                 cancellationToken);
         }
 
-        public Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationContext context, CancellationToken cancellationToken)
         {
             if (namespaceOrType == null)
             {
@@ -415,11 +406,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (namespaceOrType is INamespaceSymbol namespaceSymbol)
             {
-                return AddNamespaceAsync(solution, destination, namespaceSymbol, options, cancellationToken);
+                return AddNamespaceAsync(solution, destination, namespaceSymbol, context, cancellationToken);
             }
             else
             {
-                return AddNamedTypeAsync(solution, destination, (INamedTypeSymbol)namespaceOrType, options, cancellationToken);
+                return AddNamedTypeAsync(solution, destination, (INamedTypeSymbol)namespaceOrType, context, cancellationToken);
             }
         }
 

@@ -73,10 +73,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
 
+                var options = new CodeGenerationOptions(
+                    new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation()),
+                    root.SyntaxTree.Options,
+                    documentOptions);
+
                 return codeGenService.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
-                    options: new CodeGenerationOptions(beforeThisLocation: _state.IdentifierToken.GetLocation()),
+                    options,
                     cancellationToken: cancellationToken);
             }
         }

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destination As CodeGenerationDestination,
                 options As CodeGenerationOptions,
                 nonStructureAccessibility As Accessibility)
-            If Not options.GenerateDefaultAccessibility Then
+            If Not options.Context.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
                     Return
                 End If
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             options As CodeGenerationOptions,
             Optional cancellationToken As CancellationToken = Nothing) As TSyntaxNode
 
-            If Not options.GenerateDocumentationComments OrElse node.GetLeadingTrivia().Any(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia)) Then
+            If Not options.Context.GenerateDocumentationComments OrElse node.GetLeadingTrivia().Any(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia)) Then
                 Return node
             End If
 
@@ -198,14 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationOptions) As T
             ThrowIfNull(symbol)
 
-            If options IsNot Nothing AndAlso options.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1
+            If options.Context.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1 Then
                 Dim reusableNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()
 
                 ' For VB method like symbol (Function, Sub, Property & Event), DeclaringSyntaxReferences will fetch
                 ' the first line of the member's block. But what we want to reuse is the whole member's block
-                If symbol.IsKind(SymbolKind.Method) OrElse symbol.IsKind(SymbolKind.Property) OrElse symbol.IsKind(SymbolKind.Event)
+                If symbol.IsKind(SymbolKind.Method) OrElse symbol.IsKind(SymbolKind.Property) OrElse symbol.IsKind(SymbolKind.Event) Then
                     Dim declarationStatementNode = TryCast(reusableNode, DeclarationStatementSyntax)
-                    If declarationStatementNode IsNot Nothing
+                    If declarationStatementNode IsNot Nothing Then
                         Dim declarationBlockFromBegin = declarationStatementNode.GetDeclarationBlockFromBegin()
                         Return TryCast(RemoveLeadingDirectiveTrivia(declarationBlockFromBegin), T)
                     End If

@@ -151,11 +151,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
                 var codeGenerationOptions = new CodeGenerationOptions(
-                    addImports: false,
-                    parseOptions: rootWithCoreMembers.SyntaxTree.Options,
-                    sortMembers: false,
-                    autoInsertionLocation: false);
+                    new CodeGenerationContext(
+                        addImports: false,
+                        sortMembers: false,
+                        autoInsertionLocation: false),
+                    ParseOptions: rootWithCoreMembers.SyntaxTree.Options,
+                    Options: documentOptions);
 
                 var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
                     typeDeclarationWithCoreMembers,

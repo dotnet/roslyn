@@ -125,47 +125,47 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Adds a field with the provided signature into destination.
         /// </summary>
-        Task<Document> AddEventAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddEventAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a field with the provided signature into destination.
         /// </summary>
-        Task<Document> AddFieldAsync(Solution solution, INamedTypeSymbol destination, IFieldSymbol field, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddFieldAsync(Solution solution, INamedTypeSymbol destination, IFieldSymbol field, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a method with the provided signature into destination.
         /// </summary>
-        Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a property with the provided signature into destination.
         /// </summary>
-        Task<Document> AddPropertyAsync(Solution solution, INamedTypeSymbol destination, IPropertySymbol property, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddPropertyAsync(Solution solution, INamedTypeSymbol destination, IPropertySymbol property, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a named type into destination.
         /// </summary>
-        Task<Document> AddNamedTypeAsync(Solution solution, INamedTypeSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddNamedTypeAsync(Solution solution, INamedTypeSymbol destination, INamedTypeSymbol namedType, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a named type into destination.
         /// </summary>
-        Task<Document> AddNamedTypeAsync(Solution solution, INamespaceSymbol destination, INamedTypeSymbol namedType, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddNamedTypeAsync(Solution solution, INamespaceSymbol destination, INamedTypeSymbol namedType, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a namespace into destination.
         /// </summary>
-        Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds a namespace or type into destination.
         /// </summary>
-        Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adds all the provided members into destination.
         /// </summary>
-        Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// <c>true</c> if destination is a location where other symbols can be added to.
@@ -183,6 +183,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// then the declaration in the same file, then non auto-generated file,
         /// then all the potential location. Return null if no declaration.
         /// </summary>
-        Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken);
+        Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationContext context, CancellationToken cancellationToken);
     }
 }

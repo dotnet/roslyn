@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             LanguageVersion languageVersion)
         {
-            var hasNoBody = !options.GenerateMethodBodies || method.IsExtern;
+            var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConversionOperatorDeclarationSyntax>(method, options);
             if (reusableSyntax != null)

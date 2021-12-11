@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -452,14 +452,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return CodeGenerator.AddPropertyDeclaration(
                                 currentTypeDecl, property, services,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken),
+                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return CodeGenerator.AddFieldDeclaration(
                                 currentTypeDecl, field, services,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken),
+                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
                                 cancellationToken);
                         }
                         else
@@ -489,14 +489,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static CodeGenerationOptions GetAddOptions<TSymbol>(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
-            SyntaxNode typeDeclaration, OptionSet options, CancellationToken cancellationToken)
+            IParameterSymbol parameter, IBlockOperation? blockStatement,
+            SyntaxNode typeDeclaration, ParseOptions parseOptions, OptionSet options, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
             {
                 var statement = TryFindFieldOrPropertyAssignmentStatement(
-                    sibling, blockStatementOpt, out var fieldOrProperty);
+                    sibling, blockStatement, out var fieldOrProperty);
 
                 if (statement != null &&
                     fieldOrProperty is TSymbol symbol)
@@ -508,19 +508,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation(), options: options);
+                            return new CodeGenerationOptions(new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation()), parseOptions, options);
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation(), options: options);
+                            return new CodeGenerationOptions(new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation()), parseOptions, options);
                         }
                     }
                 }
             }
 
-            return new CodeGenerationOptions(options: options);
+            return new CodeGenerationOptions(CodeGenerationContext.Default, parseOptions, options);
         }
 
         private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             SyntaxToken? target = null)
         {
-            if (options.MergeAttributes)
+            if (options.Context.MergeAttributes)
             {
                 var attributeNodes =
                     attributes.OrderBy(a => a.AttributeClass?.Name)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (IsCompilerInternalAttribute(attribute))
                 return null;
 
-            if (!options.MergeAttributes)
+            if (!options.Context.MergeAttributes)
             {
                 var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute, options);
                 if (reusableSyntax != null)

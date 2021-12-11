@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GetDeclarationSyntaxWithoutMembers(
                 @namespace, innermostNamespace, name, destination, options, parseOptions);
 
-            declaration = options.GenerateMembers
+            declaration = options.Context.GenerateMembers
                 ? service.AddMembers(declaration, innermostNamespace.GetMembers(), options, cancellationToken)
                 : declaration;
 

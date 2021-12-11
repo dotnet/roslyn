@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             LanguageVersion languageVersion)
         {
-            var hasNoBody = !options.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
+            var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
 
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)

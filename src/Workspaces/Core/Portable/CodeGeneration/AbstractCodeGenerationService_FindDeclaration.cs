@@ -124,24 +124,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public async Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationOptions options,
+            CodeGenerationContext context,
             CancellationToken cancellationToken)
         {
-            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, options, cancellationToken).ConfigureAwait(false);
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, context, cancellationToken).ConfigureAwait(false);
             return declaration;
         }
 
         private async Task<(SyntaxNode? declaration, IList<bool>? availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationOptions options,
+            CodeGenerationContext context,
             CancellationToken cancellationToken)
         {
             var declaration = (SyntaxNode?)null;
             IList<bool>? availableIndices = null;
 
             var symbol = namespaceOrType;
-            var locationOpt = options.BestLocation;
+            var locationOpt = context.BestLocation;
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 

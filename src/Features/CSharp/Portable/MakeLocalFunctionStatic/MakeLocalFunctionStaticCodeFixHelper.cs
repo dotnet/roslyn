@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
+            var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(
                 localFunction,
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
                         document.Project.Solution.Workspace.Services,
-                        CodeGenerationOptions.Default,
+                        options,
                         cancellationToken);
 
                     if (shouldWarn)

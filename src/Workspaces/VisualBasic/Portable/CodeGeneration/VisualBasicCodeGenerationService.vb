@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractCodeGenerationService
 
         Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)(),
-                       provider.WorkspaceServices.Workspace)
+            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
         End Sub
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
@@ -472,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 statements As IEnumerable(Of SyntaxNode),
                 options As CodeGenerationOptions,
                 cancellationToken As CancellationToken) As TDeclarationNode
-            Dim location = options.BestLocation
+            Dim location = options.Context.BestLocation
             CheckLocation(destinationMember, location)
 
             Dim token = location.FindToken(cancellationToken)
@@ -485,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim statementArray = statements.OfType(Of StatementSyntax).ToArray()
             Dim newBlock As SyntaxNode
-            If options.BeforeThisLocation IsNot Nothing Then
+            If options.Context.BeforeThisLocation IsNot Nothing Then
                 Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
                 Dim newStatement = VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
                     oldStatement, strippedTrivia)

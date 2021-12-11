@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             LanguageVersion languageVersion)
         {
-            var hasBody = options.GenerateMethodBodies && HasAccessorBodies(property, destination, accessor);
+            var hasBody = options.Context.GenerateMethodBodies && HasAccessorBodies(property, destination, accessor);
             return accessor == null
                 ? null
                 : GenerateAccessorDeclaration(property, accessor, kind, hasBody, options, languageVersion);

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As StatementSyntax
             Dim declaration = GetDeclarationSyntaxWithoutMembers(namedType, options)
 
-            declaration = If(options.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,
+            declaration = If(options.Context.GenerateMembers AndAlso namedType.TypeKind <> TypeKind.Delegate,
                 service.AddMembers(declaration, GetMembers(namedType), options, cancellationToken),
                 declaration)
 

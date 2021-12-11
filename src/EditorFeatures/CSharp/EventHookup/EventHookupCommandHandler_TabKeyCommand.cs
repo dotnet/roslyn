@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -156,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var documentWithNameAndAnnotationsAdded = AddMethodNameAndAnnotationsToSolution(document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken);
             var semanticDocument = SemanticDocument.CreateAsync(documentWithNameAndAnnotationsAdded, cancellationToken).WaitAndGetResult(cancellationToken);
-            var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
+            var documentOptions = semanticDocument.Document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, documentOptions, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
             if (updatedRoot == null)
             {
@@ -216,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private static SyntaxNode AddGeneratedHandlerMethodToSolution(
             SemanticDocument document,
+            OptionSet documentOptions,
             string eventHandlerMethodName,
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
@@ -235,7 +238,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var container = (SyntaxNode)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
             var services = document.Project.Solution.Workspace.Services;
-            var codeGenOptions = new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation());
+            var codeGenOptions = new CodeGenerationOptions(
+                new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()),
+                root.SyntaxTree.Options,
+                documentOptions);
+
             var newContainer = CodeGenerator.AddMethodDeclaration(container, generatedMethodSymbol, services, codeGenOptions, cancellationToken);
 
             return root.ReplaceNode(container, newContainer);

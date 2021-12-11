@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetRequiredService<ISymbolDeclarationService>(),
-                   languageServices.WorkspaceServices.Workspace)
+            : base(languageServices.GetRequiredService<ISymbolDeclarationService>())
         {
         }
 
@@ -54,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override async Task<Document> AddEventAsync(
             Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
-            CodeGenerationOptions options, CancellationToken cancellationToken)
+            CodeGenerationContext context, CancellationToken cancellationToken)
         {
             var newDocument = await base.AddEventAsync(
-                solution, destination, @event, options, cancellationToken).ConfigureAwait(false);
+                solution, destination, @event, context, cancellationToken).ConfigureAwait(false);
 
             var namedType = @event.Type as INamedTypeSymbol;
             if (namedType?.AssociatedSymbol != null)
@@ -71,13 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     return await this.AddNamedTypeAsync(
                         newDocument.Project.Solution, newDestinationSymbol.ContainingType,
-                        namedType, options, cancellationToken).ConfigureAwait(false);
+                        namedType, context, cancellationToken).ConfigureAwait(false);
                 }
                 else if (newDestinationSymbol?.ContainingNamespace != null)
                 {
                     return await this.AddNamedTypeAsync(
                         newDocument.Project.Solution, newDestinationSymbol.ContainingNamespace,
-                        namedType, options, cancellationToken).ConfigureAwait(false);
+                        namedType, context, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -118,8 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, BaseNamespaceDeclarationSyntax>(destination);
-
-            options = options.With(options: options.Options ?? Workspace.Options);
 
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
@@ -482,11 +479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
             }
-            else if (destinationMember is CompilationUnitSyntax compilationUnit && options is null)
+            else if (destinationMember is CompilationUnitSyntax compilationUnit && options.Context.BestLocation is null)
             {
-                // This path supports top-level statement insertion. It only applies when 'options'
-                // is null so the fallback code below can handle cases where the insertion location
-                // is provided through options.BestLocation.
+                // This path supports top-level statement insertion. It only applies when best location is unspecified
+                // so the fallback code below can handle cases where the insertion location is provided.
                 //
                 // Insert the new global statement(s) at the end of any current global statements.
                 // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
@@ -514,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
         {
-            var location = options.BestLocation;
+            var location = options.Context.BestLocation;
             CheckLocation(destinationMember, location);
 
             var token = location.FindToken(cancellationToken);
@@ -528,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 var newStatements = statements.OfType<StatementSyntax>().ToArray();
                 BlockSyntax newBlock;
-                if (options.BeforeThisLocation != null)
+                if (options.Context.BeforeThisLocation != null)
                 {
                     var newContainingStatement = containingStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var strippedTrivia);
 
@@ -602,7 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return DestructorGenerator.GenerateDestructorDeclaration(method, options, cancellationToken);
             }
 
-            options = options.With(options: options.Options ?? Workspace.Options);
             var languageVersion = GetLanguageVersion(options);
 
             if (method.IsConstructor())
