@@ -31,14 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         internal static ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> Create(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
             ITextManagerAdapter textManagerAdapter)
         {
             return new FileCodeModel(state, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
-        private readonly ComHandle<object, object> _parentHandle;
+        private readonly ComHandle<object?, object?> _parentHandle;
 
         /// <summary>
         /// Don't use directly. Instead, call <see cref="GetDocumentId()"/>.
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private FileCodeModel(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
             ITextManagerAdapter textManagerAdapter)
             : base(state)
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             RoslynDebug.AssertNotNull(documentId);
             RoslynDebug.AssertNotNull(textManagerAdapter);
 
-            _parentHandle = new ComHandle<object, object>(parent);
+            _parentHandle = new ComHandle<object?, object?>(parent);
             _documentId = documentId;
             TextManagerAdapter = textManagerAdapter;
 
@@ -609,14 +609,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get { return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty); }
         }
 
-#nullable disable
-
-        public EnvDTE.ProjectItem Parent
+        public EnvDTE.ProjectItem? Parent
         {
             get { return _parentHandle.Object as EnvDTE.ProjectItem; }
         }
-
-#nullable restore
 
         public void Remove(object element)
         {
