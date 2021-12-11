@@ -224,28 +224,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                         GetTextAttribute(text, d.Span))));
 
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
-            => new XAttribute("Text", text.ToString(span));
+            => new("Text", text.ToString(span));
 
         private XElement NodeToElement(RegexNode node)
         {
             if (node is RegexAlternationNode alternationNode)
-            {
                 return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
-            }
-            else
-            {
-                var element = new XElement(node.Kind.ToString());
-                foreach (var child in node)
-                {
-                    element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
-                }
 
-                return element;
-            }
+            var element = new XElement(node.Kind.ToString());
+            foreach (var child in node)
+                element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
+
+            return element;
         }
 
-        private XElement AlternationToElement(
-            RegexAlternationNode alternationNode, int end)
+        private XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
         {
             // to keep tests in sync with how we used to structure alternations, we specially handle this node.
             // First, if the node only has a single element, then just print that element as that's what would
