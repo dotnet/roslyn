@@ -630,10 +630,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexAlternationNode(RegexAlternatingSequenceList sequenceList)
             : base(RegexKind.Alternation)
         {
+            Debug.Assert(sequenceList.NodesAndTokens.Length > 0);
             for (var i = 1; i < sequenceList.NodesAndTokens.Length; i += 2)
-            {
                 Debug.Assert(sequenceList.NodesAndTokens[i].Kind == RegexKind.BarToken);
-            }
 
             SequenceList = sequenceList;
         }
