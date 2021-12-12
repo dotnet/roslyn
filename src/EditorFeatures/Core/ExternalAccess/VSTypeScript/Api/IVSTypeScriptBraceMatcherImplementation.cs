@@ -5,11 +5,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal interface IVSTypeScriptBraceMatcherImplementation : IBraceMatcher
+    internal interface IVSTypeScriptBraceMatcherImplementation
     {
-        Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<VSTypeScriptBraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken);
     }
+
+    internal readonly record struct VSTypeScriptBraceMatchingResult(TextSpan LeftSpan, TextSpan RightSpan);
 }
