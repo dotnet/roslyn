@@ -121,6 +121,9 @@ public class C
 	.method public hidebysig specialname 
 		instance string get_P () cil managed 
 	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
 		// Method begins at RVA 0x2050
 		// Code size 7 (0x7)
 		.maxstack 8

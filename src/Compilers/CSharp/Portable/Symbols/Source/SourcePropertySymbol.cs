@@ -13,39 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        internal bool ContainsFieldKeyword
-        {
-            get
-            {
-                if (CSharpSyntaxNode is not PropertyDeclarationSyntax property)
-                {
-                    return false;
-                }
-
-                if (property.AccessorList is not { } accessorList)
-                {
-                    return false;
-                }
-
-                foreach (var accessor in accessorList.Accessors)
-                {
-                    var body = ((SyntaxNode?)accessor.Body ?? accessor.ExpressionBody);
-                    if (body is null)
-                    {
-                        continue;
-                    }
-
-                    var containsFieldKeyword = body.DescendantTokens()
-                        .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && !t.Parent.IsKind(SyntaxKind.AttributeTargetSpecifier));
-                    if (containsFieldKeyword)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
+        private readonly bool _containsFieldKeyword;
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
@@ -162,12 +130,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     location);
             }
 
+            _containsFieldKeyword = containsFieldKeyword();
+
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList,
                 syntax.GetExpressionBodySyntax(),
                 syntax,
                 diagnostics);
+
+            bool containsFieldKeyword()
+            {
+                if (syntax is not PropertyDeclarationSyntax property)
+                {
+                    return false;
+                }
+
+                if (property.AccessorList is not { } accessorList)
+                {
+                    return false;
+                }
+
+                foreach (var accessor in accessorList.Accessors)
+                {
+                    var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
+                    if (body is null)
+                    {
+                        continue;
+                    }
+
+                    var containsFieldKeyword = body.DescendantTokens()
+                        .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
+                    if (containsFieldKeyword)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
+
+        internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
 
@@ -393,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
@@ -406,21 +409,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
+                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), diagnostics);
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             Debug.Assert(!(syntax.AccessorList is null && GetArrowExpression(syntax) != null));
 
-            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
+            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), diagnostics);
         }
 
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             AccessorDeclarationSyntax syntax,
-            bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
@@ -428,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this,
                 _modifiers,
                 syntax,
-                isAutoPropertyAccessor,
                 diagnostics);
         }
 

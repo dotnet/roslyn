@@ -600,17 +600,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
-            bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
-            bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics);
 
         private SourcePropertyAccessorSymbol? GetMethodAccessorMethod => GetMethod as SourcePropertyAccessorSymbol;
 
@@ -623,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #pragma warning disable CS0618
                 if ((_propertyFlags & Flags.HasGetAccessor) != 0 && _getMethod is null)
                 {
-                    InterlockedOperations.Initialize(ref _getMethod, CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, _diagnostics));
+                    InterlockedOperations.Initialize(ref _getMethod, CreateGetAccessorSymbol(_diagnostics));
                 }
 
                 return _getMethod;
@@ -638,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #pragma warning disable CS0618
                 if ((_propertyFlags & Flags.HasSetAccessor) != 0 && _setMethod is null)
                 {
-                    InterlockedOperations.Initialize(ref _setMethod, CreateSetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, _diagnostics));
+                    InterlockedOperations.Initialize(ref _setMethod, CreateSetAccessorSymbol(_diagnostics));
                 }
 
                 return _setMethod;
@@ -715,9 +711,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyWithGetAccessor
-            => IsAutoProperty && _getMethod is object;
+            => IsAutoProperty && GetMethod is object;
 
-        protected bool IsAutoProperty
+        internal bool IsAutoProperty
         {
             get
             {
@@ -841,28 +837,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hasGetAccessor && hasSetAccessor)
                 {
-                    Debug.Assert(GetMethod is object);
-                    Debug.Assert(SetMethod is object);
+                    Debug.Assert(GetMethodAccessorMethod is object);
+                    Debug.Assert(SetMethodAccessorMethod is object);
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, SetMethod.Locations[0], SetMethod);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, SetMethodAccessorMethod.Locations[0], SetMethodAccessorMethod);
                     }
-                    else if ((GetMethod.LocalAccessibility != Accessibility.NotApplicable) &&
-                        (SetMethod.LocalAccessibility != Accessibility.NotApplicable))
+                    else if ((GetMethodAccessorMethod.LocalAccessibility != Accessibility.NotApplicable) &&
+                        (SetMethodAccessorMethod.LocalAccessibility != Accessibility.NotApplicable))
                     {
                         // Check accessibility is set on at most one accessor.
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, Location, this);
                     }
-                    else if (_getMethod.LocalDeclaredReadOnly && _setMethod.LocalDeclaredReadOnly)
+                    else if (GetMethodAccessorMethod.LocalDeclaredReadOnly && SetMethodAccessorMethod.LocalDeclaredReadOnly)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, Location, this);
                     }
                     else if (this.IsAbstract)
                     {
                         // Check abstract property accessors are not private.
-                        CheckAbstractPropertyAccessorNotPrivate(_getMethod, diagnostics);
-                        CheckAbstractPropertyAccessorNotPrivate(_setMethod, diagnostics);
+                        CheckAbstractPropertyAccessorNotPrivate(GetMethodAccessorMethod, diagnostics);
+                        CheckAbstractPropertyAccessorNotPrivate(SetMethodAccessorMethod, diagnostics);
                     }
                 }
                 else
@@ -880,12 +876,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0], _setMethod);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, SetMethod!.Locations[0], SetMethod);
                     }
 
                     if (!this.IsOverride)
                     {
-                        var accessor = _getMethod ?? _setMethod;
+                        var accessor = GetMethodAccessorMethod ?? SetMethodAccessorMethod;
                         if (accessor is object)
                         {
                             // Check accessibility is not set on the one accessor.
@@ -904,8 +900,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Check accessor accessibility is more restrictive than property accessibility.
-                CheckAccessibilityMoreRestrictive(_getMethod, diagnostics);
-                CheckAccessibilityMoreRestrictive(_setMethod, diagnostics);
+                CheckAccessibilityMoreRestrictive(GetMethodAccessorMethod, diagnostics);
+                CheckAccessibilityMoreRestrictive(SetMethodAccessorMethod, diagnostics);
             }
 
             PropertySymbol? explicitlyImplementedProperty = ExplicitInterfaceImplementations.FirstOrDefault();
