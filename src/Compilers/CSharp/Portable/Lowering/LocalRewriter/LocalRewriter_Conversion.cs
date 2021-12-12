@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.MethodGroup:
                     {
-                        // we eliminate the method group conversion entirely from the bound nodes following local lowering
                         Debug.Assert(oldNodeOpt is { });
                         var mg = (BoundMethodGroup)rewrittenOperand;
                         var method = oldNodeOpt.SymbolOpt;
@@ -406,9 +405,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
-                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                   isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+
+                        Debug.Assert(_factory.TopLevelMethod is { });
+                        if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
+                        {
+                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _topLevelMethodOrdinal);
+                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
+                        }
+                        else
+                        {
+                            return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                                                                       isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+                        }
                     }
+
                 default:
                     break;
             }

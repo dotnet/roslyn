@@ -8863,7 +8863,7 @@ public struct S
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S", "<>O");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider());
 
