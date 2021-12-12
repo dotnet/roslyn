@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Suggest names from existing overloads.
                 if (nameInfo.PossibleSymbolKinds.Any(k => k.SymbolKind.HasValue && k.SymbolKind.Value == SymbolKind.Parameter))
                 {
-                    var partialSemanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     if (partialSemanticModel is not null)
                         AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return baseMethod switch
                 {
-                    MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).WhereAsArray(m => m.Kind == SymbolKind.Method).CastArray<IMethodSymbol>(),
-                    ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).WhereAsArray(m => m.Kind == SymbolKind.Method).CastArray<IMethodSymbol>(),
+                    MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
+                    ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
                     _ => ImmutableArray<IMethodSymbol>.Empty
                 };
             }
