@@ -74,14 +74,20 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             // Verify that we are actually in an location allowed for an interpolated string.
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
             var token = root.FindToken(start);
-            if (token.SpanStart != start)
+            if (token.Kind() is not SyntaxKind.InterpolatedStringStartToken and
+                                not SyntaxKind.InterpolatedVerbatimStringStartToken and
+                                not SyntaxKind.StringLiteralToken and
+                                not SyntaxKind.IdentifierToken)
+            {
                 return false;
+            }
 
-            token = token.GetPreviousToken();
+            var previousToken = token.GetPreviousToken();
 
-            return root.SyntaxTree.IsExpressionContext(start, token, attributes: true, cancellationToken)
-                || root.SyntaxTree.IsStatementContext(start, token, cancellationToken);
+            return root.SyntaxTree.IsExpressionContext(token.SpanStart, previousToken, attributes: true, cancellationToken)
+                || root.SyntaxTree.IsStatementContext(token.SpanStart, previousToken, cancellationToken);
         }
     }
 }
