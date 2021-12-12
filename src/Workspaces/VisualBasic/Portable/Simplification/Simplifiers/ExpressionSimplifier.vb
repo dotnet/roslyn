@@ -289,14 +289,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         End Function
 
         Private Shared Function CanReplaceWithReducedName(
-            memberAccess As MemberAccessExpressionSyntax,
-            reducedNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            symbol As ISymbol,
-            cancellationToken As CancellationToken
-        ) As Boolean
+                memberAccess As MemberAccessExpressionSyntax,
+                reducedNode As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                symbol As ISymbol,
+                cancellationToken As CancellationToken) As Boolean
             If Not IsMeOrNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
                 Return False
+            End If
+
+            ' A static reference off of 'me' can always be replaced with a direct reference to that static symbol
+            ' without changing semantics.
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso symbol.IsStatic Then
+                Return True
             End If
 
             ' See if we can simplify a member access expression of the form E.M or E.M() to M or M()
