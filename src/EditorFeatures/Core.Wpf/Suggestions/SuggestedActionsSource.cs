@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     operationContext.UserCancellationToken);
             }
 
-            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+            private ImmutableArray<SuggestedActionSet>? GetSuggestedActions(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
                 IUIThreadOperationContext? operationContext,
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
                     var fixesTask = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, includeSuppressionFixes: true, CodeActionRequestPriority.None,
+                        addOperationScope, CodeActionRequestPriority.None,
                         isBlocking: true, cancellationToken);
                     var refactoringsTask = GetRefactoringsAsync(
                         state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(
+            protected ImmutableArray<SuggestedActionSet> ConvertToSuggestedActionSets(
                 ReferenceCountedDisposable<State> state,
                 TextSpan? selection,
                 ImmutableArray<UnifiedSuggestedActionSet> fixes,
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 int currentActionCount)
             {
                 var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
-                return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                return filteredSets.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull().ToImmutableArray();
             }
 
             [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
@@ -213,22 +213,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                 if (unifiedSuggestedActionSet == null)
-                {
                     return null;
-                }
-
-                using var _ = ArrayBuilder<ISuggestedAction>.GetInstance(out var suggestedActions);
-                foreach (var action in unifiedSuggestedActionSet.Actions)
-                {
-                    suggestedActions.Add(ConvertToSuggestedAction(action));
-                }
 
                 return new SuggestedActionSet(
-                    categoryName: unifiedSuggestedActionSet.CategoryName,
-                    actions: suggestedActions,
-                    title: unifiedSuggestedActionSet.Title,
-                    priority: ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
-                    applicableToSpan: unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
+                    unifiedSuggestedActionSet.CategoryName,
+                    unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
+                    unifiedSuggestedActionSet.Title,
+                    ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
+                    unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
                 // Local functions
                 ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)
@@ -270,7 +262,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
@@ -284,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken).AsTask();
+                    priority, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -325,6 +316,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (!globalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
+                {
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
+                }
+
+                // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
+                // No code refactoring should have this request priority.
+                if (priority == CodeActionRequestPriority.Lowest)
                 {
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
@@ -454,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     state.Target.Owner._codeRefactoringService != null &&
                     state.Target.SubjectBuffer.SupportsRefactorings())
                 {

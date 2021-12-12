@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
-            if (receiver is BoundThisReference &&
+            if (receiver?.IsEquivalentToThisReference == true &&
                 receiver.Type.IsValueType &&
                 ContainingMemberOrLambda is MethodSymbol containingMethod &&
                 containingMethod.IsEffectivelyReadOnly &&
@@ -1982,6 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
+            boundExpression = BindToNaturalType(boundExpression, diagnostics);
             RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
 
             var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;

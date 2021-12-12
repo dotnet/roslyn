@@ -2,10 +2,12 @@
 #
 # This file detects the C/C++ compiler and exports it to the CC/CXX environment variables
 #
+# NOTE: some scripts source this file and rely on stdout being empty, make sure to not output anything here! 
 
-if [[ "$#" -lt 2 ]]; then
+if [[ "$#" -lt 3 ]]; then
   echo "Usage..."
-  echo "init-compiler.sh <Architecture> <compiler> <compiler major version> <compiler minor version>"
+  echo "init-compiler.sh <script directory> <Architecture> <compiler> <compiler major version> <compiler minor version>"
+  echo "Specify the script directory."
   echo "Specify the target architecture."
   echo "Specify the name of compiler (clang or gcc)."
   echo "Specify the major version of compiler."
@@ -13,13 +15,14 @@ if [[ "$#" -lt 2 ]]; then
   exit 1
 fi
 
-. "$( cd -P "$( dirname "$0" )" && pwd )"/../pipeline-logging-functions.sh
-
-build_arch="$1"
-compiler="$2"
+nativescriptroot="$1"
+build_arch="$2"
+compiler="$3"
 cxxCompiler="$compiler++"
-majorVersion="$3"
-minorVersion="$4"
+majorVersion="$4"
+minorVersion="$5"
+
+. "$nativescriptroot"/../pipeline-logging-functions.sh
 
 # clear the existing CC and CXX from environment
 CC=
@@ -48,8 +51,8 @@ if [[ -z "$CLR_CC" ]]; then
     # Set default versions
     if [[ -z "$majorVersion" ]]; then
         # note: gcc (all versions) and clang versions higher than 6 do not have minor version in file name, if it is zero.
-        if [[ "$compiler" == "clang" ]]; then versions=( 12 11 10 9 8 7 6.0 5.0 4.0 3.9 3.8 3.7 3.6 3.5 )
-        elif [[ "$compiler" == "gcc" ]]; then versions=( 11 10 9 8 7 6 5 4.9 ); fi
+        if [[ "$compiler" == "clang" ]]; then versions=( 13 12 11 10 9 8 7 6.0 5.0 4.0 3.9 3.8 3.7 3.6 3.5 )
+        elif [[ "$compiler" == "gcc" ]]; then versions=( 12 11 10 9 8 7 6 5 4.9 ); fi
 
         for version in "${versions[@]}"; do
             parts=(${version//./ })
@@ -109,12 +112,10 @@ if [[ -z "$CC" ]]; then
     exit 1
 fi
 
-if [[ "$compiler" == "clang" ]]; then
-    if command -v "lld$desired_version" > /dev/null; then
-        # Only lld version >= 9 can be considered stable
-        if [[ "$majorVersion" -ge 9 ]]; then
-            LDFLAGS="-fuse-ld=lld"
-        fi
+# Only lld version >= 9 can be considered stable
+if [[ "$compiler" == "clang" && "$majorVersion" -ge 9 ]]; then
+    if "$CC" -fuse-ld=lld -Wl,--version >/dev/null 2>&1; then
+        LDFLAGS="-fuse-ld=lld"
     fi
 fi
 

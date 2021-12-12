@@ -204,6 +204,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceAfterCast);
             }
 
+            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                // is [
+                // and [
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // For spacing Before Square Braces
             if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
@@ -230,14 +237,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // attribute case ] *
-            // Place a space between the attribute and the next member if they're on the same line.
             if (previousKind == SyntaxKind.CloseBracketToken && previousToken.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                var attributeOwner = previousToken.Parent?.Parent;
-                if (attributeOwner is MemberDeclarationSyntax)
+                // [Attribute1]$$[Attribute2]
+                if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                    currentToken.Parent.IsKind(SyntaxKind.AttributeList))
                 {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
+
+                // [Attribute]$$ int Prop { ... }
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // For spacing delimiters - after colon
@@ -433,6 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // Slice pattern:
+            // .. var x
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.SlicePattern)
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind is SyntaxKind.InterpolatedStringStartToken or
                 SyntaxKind.InterpolatedVerbatimStringStartToken)
@@ -553,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
+            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.ListPattern);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);

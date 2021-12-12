@@ -18,11 +18,15 @@ pr:
 - features/*
 - demos/*
 
+variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+
 jobs:
 - job: VS_Integration_LSP
   pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
 
   steps:

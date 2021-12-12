@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
@@ -211,6 +212,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
+                RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
             }
 
             public void Dispose()

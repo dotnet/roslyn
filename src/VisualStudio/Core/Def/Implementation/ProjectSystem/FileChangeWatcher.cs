@@ -417,20 +417,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     case Kind.UnwatchDirectories:
                         Contract.ThrowIfFalse(_cookies is not null);
-                        foreach (var unwatchCookie in _cookies)
-                        {
-                            await service.UnadviseDirChangeAsync(unwatchCookie, cancellationToken).ConfigureAwait(false);
-                        }
-
+                        await service.UnadviseDirChangesAsync(_cookies, cancellationToken).ConfigureAwait(false);
                         return;
 
                     case Kind.UnwatchFiles:
                         Contract.ThrowIfFalse(_tokens is not null);
-                        foreach (var token in _tokens)
-                        {
-                            await service.UnadviseFileChangeAsync(token.Cookie!.Value, cancellationToken).ConfigureAwait(false);
-                        }
-
+                        await service.UnadviseFileChangesAsync(_tokens.Select(token => token.Cookie!.Value).ToArray(), cancellationToken).ConfigureAwait(false);
                         return;
 
                     default:

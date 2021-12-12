@@ -2569,7 +2569,7 @@ public class C : A {
         [Fact]
         public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
         {
-            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartalSemantics();
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
             project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
 
@@ -2613,6 +2613,26 @@ public class C : A {
 
             Assert.True(frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync().Result);
             Assert.True(frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync().Result);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsProjectDoesNotHaveAdditionalDocumentsFromInProgressChange()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.AddAdditionalDocument("Test.txt", "").Project;
+            GC.KeepAlive(originalCompilation);
+
+            // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
+            // since the compilation won't represent that either
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
         [Fact]

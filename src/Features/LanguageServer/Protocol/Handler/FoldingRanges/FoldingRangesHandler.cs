@@ -8,12 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -59,12 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static FoldingRange[] GetFoldingRanges(
             SyntaxTree syntaxTree,
             HostLanguageServices languageServices,
-            OptionSet options,
-            bool isMetadataAsSource,
+            in BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
-            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, cancellationToken);
             if (blockStructure == null)
             {
                 return Array.Empty<FoldingRange>();

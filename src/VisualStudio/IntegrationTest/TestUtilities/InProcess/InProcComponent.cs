@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Hosting.Diagnostics.Waiters;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -82,6 +83,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected static TService GetComponentModelService<TService>()
             where TService : class
          => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
+
+        protected static TestingOnly_WaitingService GetWaitingService()
+            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();

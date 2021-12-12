@@ -236,6 +236,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRelationalPatternOperation((BoundRelationalPattern)boundNode);
                 case BoundKind.TypePattern:
                     return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
+                case BoundKind.SlicePattern:
+                    return CreateBoundSlicePatternOperation((BoundSlicePattern)boundNode);
+                case BoundKind.ListPattern:
+                    return CreateBoundListPatternOperation((BoundListPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -276,6 +280,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundFunctionPointerInvocationOperation((BoundFunctionPointerInvocation)boundNode);
                 case BoundKind.UnconvertedAddressOfOperator:
                     return CreateBoundUnconvertedAddressOfOperatorOperation((BoundUnconvertedAddressOfOperator)boundNode);
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    return CreateBoundInterpolatedStringArgumentPlaceholder((BoundInterpolatedStringArgumentPlaceholder)boundNode);
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    return CreateBoundInterpolatedStringHandlerPlaceholder((BoundInterpolatedStringHandlerPlaceholder)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -296,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -310,10 +318,13 @@ namespace Microsoft.CodeAnalysis.Operations
                                 break;
                         }
                     }
-
                     ImmutableArray<IOperation> children = GetIOperationChildren(boundNode);
-                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
-
+                    ITypeSymbol? type = boundNode switch
+                    {
+                        BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                        _ => null
+                    };
+                    return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
@@ -449,16 +460,16 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
-            ImmutableArray<IOperation> children;
 
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
+                ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundFunctionPointerInvocation).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
             }
 
-            children = GetIOperationChildren(boundFunctionPointerInvocation);
-            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+            var pointer = Create(boundFunctionPointerInvocation.InvokedExpression);
+            var arguments = DeriveArguments(boundFunctionPointerInvocation);
+            return new FunctionPointerInvocationOperation(pointer, arguments, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
@@ -961,8 +972,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 // https://github.com/dotnet/roslyn/issues/54505 Support interpolation handlers in conversions
                 Debug.Assert(!forceOperandImplicitLiteral);
                 Debug.Assert(boundOperand is BoundInterpolatedString { InterpolationData: not null } or BoundBinaryOperator { InterpolatedStringHandlerData: not null });
-                var interpolatedString = Create(boundOperand);
-                return new NoneOperation(ImmutableArray.Create(interpolatedString), _semanticModel, boundConversion.Syntax, boundConversion.GetPublicTypeSymbol(), boundConversion.ConstantValue, isImplicit);
+                return CreateInterpolatedStringHandler(boundConversion);
             }
 
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
@@ -1072,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation operand = Create(boundAsOperator.Operand);
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = boundAsOperator.Conversion;
+            Conversion conversion = BoundNode.GetConversion(boundAsOperator.OperandConversion, boundAsOperator.OperandPlaceholder);
             bool isTryCast = true;
             bool isChecked = false;
             ITypeSymbol? type = boundAsOperator.GetPublicTypeSymbol();
@@ -1227,8 +1237,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation target = Create(boundCompoundAssignmentOperator.Left);
             IOperation value = Create(boundCompoundAssignmentOperator.Right);
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
-            Conversion inConversion = boundCompoundAssignmentOperator.LeftConversion;
-            Conversion outConversion = boundCompoundAssignmentOperator.FinalConversion;
+            Conversion inConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.LeftConversion, boundCompoundAssignmentOperator.LeftPlaceholder);
+            Conversion outConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.FinalConversion, boundCompoundAssignmentOperator.FinalPlaceholder);
             bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method.GetPublicSymbol();
@@ -1434,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundNullCoalescingOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValue;
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
-            Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
+            Conversion valueConversion = BoundNode.GetConversion(boundNullCoalescingOperator.LeftConversion, boundNullCoalescingOperator.LeftPlaceholder);
 
             if (valueConversion.Exists && !valueConversion.IsIdentity &&
                 boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
@@ -1693,8 +1703,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                                                             ref discardedUseSiteInfo).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
-                                                    enumeratorInfoOpt.CurrentConversion,
-                                                    boundForEachStatement.ElementConversion,
+                                                    BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
+                                                    BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
@@ -2173,6 +2183,110 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolatedStringTextOperation(text, _semanticModel, syntax, isImplicit);
         }
 
+        private IInterpolatedStringHandlerCreationOperation CreateInterpolatedStringHandler(BoundConversion conversion)
+        {
+            Debug.Assert(conversion.Conversion.IsInterpolatedStringHandler);
+
+            InterpolatedStringHandlerData interpolationData = conversion.Operand switch
+            {
+                BoundInterpolatedString { InterpolationData: { } data } => data,
+                BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data,
+                _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
+            };
+
+            var construction = Create(interpolationData.Construction);
+            var content = createContent(conversion.Operand);
+            var isImplicit = conversion.WasCompilerGenerated || !conversion.ExplicitCastInCode;
+            return new InterpolatedStringHandlerCreationOperation(
+                construction,
+                interpolationData.HasTrailingHandlerValidityParameter,
+                interpolationData.UsesBoolReturns,
+                content,
+                _semanticModel,
+                conversion.Syntax,
+                conversion.GetPublicTypeSymbol(),
+                isImplicit);
+
+            IOperation createContent(BoundExpression current)
+            {
+                switch (current)
+                {
+                    case BoundBinaryOperator binaryOperator:
+                        var left = createContent(binaryOperator.Left);
+                        var right = createContent(binaryOperator.Right);
+                        return new InterpolatedStringAdditionOperation(left, right, _semanticModel, current.Syntax, current.WasCompilerGenerated);
+
+                    case BoundInterpolatedString interpolatedString:
+                        var parts = interpolatedString.Parts.SelectAsArray(
+                            static IInterpolatedStringContentOperation (part, @this) =>
+                            {
+                                var methodName = part switch
+                                {
+                                    BoundCall { Method.Name: var name } => name,
+                                    BoundDynamicInvocation { Expression: BoundMethodGroup { Name: var name } } => name,
+                                    { HasErrors: true } => "",
+                                    _ => throw ExceptionUtilities.UnexpectedValue(part.Kind)
+                                };
+
+                                var operationKind = methodName switch
+                                {
+                                    "" => OperationKind.InterpolatedStringAppendInvalid,
+                                    BoundInterpolatedString.AppendLiteralMethod => OperationKind.InterpolatedStringAppendLiteral,
+                                    BoundInterpolatedString.AppendFormattedMethod => OperationKind.InterpolatedStringAppendFormatted,
+                                    _ => throw ExceptionUtilities.UnexpectedValue(methodName)
+                                };
+
+                                return new InterpolatedStringAppendOperation(@this.Create(part), operationKind, @this._semanticModel, part.Syntax, isImplicit: true);
+                            }, this);
+
+                        return new InterpolatedStringOperation(
+                            parts,
+                            _semanticModel,
+                            interpolatedString.Syntax,
+                            interpolatedString.GetPublicTypeSymbol(),
+                            interpolatedString.ConstantValue,
+                            isImplicit: interpolatedString.WasCompilerGenerated);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(current.Kind);
+                }
+            }
+        }
+
+        private IOperation CreateBoundInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder placeholder)
+        {
+            SyntaxNode syntax = placeholder.Syntax;
+            bool isImplicit = true;
+            ITypeSymbol? type = placeholder.GetPublicTypeSymbol();
+
+            if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
+            {
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type, placeholder.ConstantValue, isImplicit);
+            }
+
+            const int NonArgumentIndex = -1;
+
+            var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
+            {
+                >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
+                _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
+            };
+
+            return new InterpolatedStringHandlerArgumentPlaceholderOperation(argumentIndex, placeholderKind, _semanticModel, syntax, isImplicit);
+        }
+
+        private IOperation CreateBoundInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder placeholder)
+        {
+            return new InstanceReferenceOperation(
+                InstanceReferenceKind.InterpolatedStringHandler,
+                _semanticModel,
+                placeholder.Syntax,
+                placeholder.GetPublicTypeSymbol(),
+                isImplicit: placeholder.WasCompilerGenerated);
+        }
+
         private IConstantPatternOperation CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
         {
             IOperation value = Create(boundConstantPattern.Value);
@@ -2261,6 +2375,33 @@ namespace Microsoft.CodeAnalysis.Operations
                 semanticModel: _semanticModel,
                 syntax: boundTypePattern.Syntax,
                 isImplicit: boundTypePattern.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
+        {
+            return new SlicePatternOperation(
+                sliceSymbol: boundNode.Pattern is null ? null :
+                    Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                pattern: (IPatternOperation?)Create(boundNode.Pattern),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
+        {
+            return new ListPatternOperation(
+                lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),
+                indexerSymbol: Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
+                patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
+                declaredSymbol: boundNode.Variable.GetPublicSymbol(),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundNegatedPatternOperation(BoundNegatedPattern boundNegatedPattern)

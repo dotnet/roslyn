@@ -3526,6 +3526,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
+
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
