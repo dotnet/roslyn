@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -89,30 +88,27 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol? throughMember) : base(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
+                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
             {
             }
 
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: null);
             }
 
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: true, abstractly: false, throughMember: null);
             }
 
             public override string Title
