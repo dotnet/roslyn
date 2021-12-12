@@ -47,12 +47,9 @@ namespace Microsoft.CodeAnalysis.Structure
 
         public override async Task<BlockStructure> GetBlockStructureAsync(
             Document document,
-            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var context = CreateContext(syntaxTree, options, cancellationToken);
-
+            var context = await CreateContextAsync(document, cancellationToken).ConfigureAwait(false);
             return GetBlockStructure(context, _providers);
         }
 
@@ -63,6 +60,13 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             var context = CreateContext(syntaxTree, options, cancellationToken);
             return GetBlockStructure(context, _providers);
+        }
+
+        private static async Task<BlockStructureContext> CreateContextAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var options = BlockStructureOptions.From(document.Project);
+            return CreateContext(syntaxTree, options, cancellationToken);
         }
 
         private static BlockStructureContext CreateContext(
