@@ -4214,7 +4214,7 @@ class Program
         Console.WriteLine(a is nameof);
     }
 }
-class nameof { }
+class @nameof { }
 ";
             var expectedOutput =
 @"True
@@ -4449,7 +4449,7 @@ public class C
             // pattern)
             var source =
 @"
-public class var {}
+public class @var {}
 unsafe public class Typ
 {
     public static void Main(int* a, var* c, Typ* e)

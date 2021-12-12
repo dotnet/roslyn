@@ -56,9 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             modifiersListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.ModifierList));
             modifiersContentControl.Content = modifiersListView;
 
-            symbolKindsListView.AddHandler(PreviewKeyDownEvent, HandleSymbolKindsPreviewKeyDown, true);
-            accessibilitiesListView.AddHandler(PreviewKeyDownEvent, HandleAccessibilitiesPreviewKeyDown, true);
-            modifiersListView.AddHandler(PreviewKeyDownEvent, HandleModifiersPreviewKeyDown, true);
+#pragma warning disable IDE0004 // Remove unnecessary cast - without the cast the delegate type would be Action<object, KeyEventArgs>.
+            symbolKindsListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleSymbolKindsPreviewKeyDown, true);
+            accessibilitiesListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleAccessibilitiesPreviewKeyDown, true);
+            modifiersListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
+#pragma warning restore
         }
 
         private AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)

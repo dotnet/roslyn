@@ -246,17 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
-            {
-                // We're not handling nopia object creations correctly
-                // https://github.com/dotnet/roslyn/issues/45082
-                if (node.InitializerExpressionOpt is object)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
-                return null;
-            }
-
             public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
                 // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no

@@ -970,11 +970,11 @@ abstract class B : A, I
             var test = @"
 namespace x
 {
-    public class clx 
+    public class @clx 
     {
         public clx(int i){}
     }
-    public class cly : clx
+    public class @cly : clx
     {
 // static does not have an object, therefore base cannot be called.
 // objects must be known at compiler time
@@ -988,8 +988,8 @@ namespace x
                 //         static cly() : base(0){} // sc0514
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly").WithLocation(12, 24),
                 // (8,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'clx.clx(int)'
-                //     public class cly : clx
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "cly").WithArguments("i", "x.clx.clx(int)").WithLocation(8, 18));
+                //     public class @cly : clx
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "@cly").WithArguments("i", "x.clx.clx(int)").WithLocation(8, 18));
         }
 
         [Fact]
@@ -1682,7 +1682,7 @@ public class b
         {
             var test = @"
 namespace x {
-    abstract public class clx 
+    abstract public class @clx 
     {
         int i;
         public public static int Main()    // CS1004, two public keywords
@@ -1953,7 +1953,7 @@ public class Container
             CreateCompilation(
 @"namespace x
 {
-    abstract public class clx 
+    abstract public class @clx 
     {
         enum E : sbyte { x, y, z } // no error
         enum F : char { x, y, z } // CS1008, char not valid type for enums
@@ -2222,7 +2222,7 @@ namespace x
     class Bar
     {
     }
-    public class a
+    public class @a
     {
         public static int Main()
         {
@@ -2252,7 +2252,7 @@ public class S : Exception {
 };
 public class S1 : Exception {
 };
-public class mine {
+public class @mine {
     private static int retval = 2;
     public static int Main()
         {
@@ -2463,7 +2463,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
             var test = @"
 struct S {
 }
-public class a {
+public class @a {
     public static int Main() {
         for (int i=0; i < 3; i++) MyLabel: {}
         return 1;
@@ -2485,7 +2485,7 @@ public class a {
             var test = @"
 struct S {
 }
-public class a {
+public class @a {
     public static int Main() {
         for (int i=0; i < 3; i++) int j;
         return 1;
@@ -2507,7 +2507,7 @@ public class a {
             var test = @"
 struct S {
 }
-public class a {
+public class @a {
     public static int Main() {
         for (int i=0; i < 3; i++) void j() { }
         return 1;
@@ -2718,7 +2718,7 @@ namespace x
         {
             var text = @"namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main()
         {
@@ -2770,7 +2770,7 @@ namespace x
         {
             var text = @"namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main()
         {
@@ -2790,7 +2790,7 @@ namespace x
         {
             var text = @"namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main()
         {
@@ -5823,6 +5823,9 @@ class MyClass
                 // (2,7): warning CS0440: Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias
                 // using global = MyClass;   // CS0440
                 Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global").WithLocation(2, 7),
+                // (2,7): warning CS8981: The type name 'global' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "global").WithArguments("global").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using global = MyClass;   // CS0440
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using global = MyClass;").WithLocation(2, 1));

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Property(input, property));
+                            return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
                     case BoundDagDeconstructEvaluation d:
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
                             var outputTemp = new BoundDagTemp(e.Syntax, type, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
+                            return _factory.AssignmentExpression(output, _factory.Indexer(input, e.Property, _factory.Literal(e.Index)));
                         }
 
                     case BoundDagIndexerEvaluation e:
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                static BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
                     switch (node)
                     {
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.TupleElementIndex is int i)
                             {
                                 // The elements of an input tuple were evaluated beforehand, so don't need to be evaluated now.
-                                return replacement(evalNode.Next);
+                                return replacement[evalNode.Next];
                             }
 
                             // Since we are performing an optimization whose precondition is that the original
