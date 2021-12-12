@@ -980,7 +980,7 @@ End Namespace")
 [|System.Console|].WriteLine(0)",
 "Imports System
 Console.WriteLine(0)",
-                parseOptions:=TestOptions.Script)
+        parseOptions:=TestOptions.Script)
         End Function
 
         <WorkItem(542093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
