@@ -975,12 +975,13 @@ End Namespace")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestSimplifyTypeInScriptCode() As Task
-            Await TestAsync(
+            ' This changed behavior with the move to use IOperation in the simplifier codepaths. However, vb scripting
+            ' is no longer supported at all.  So it's fine for it to have any behavior here (and this test mere is used
+            ' to track the behavior and know if it changed).
+            Await TestMissingAsync(
 "Imports System
 [|System.Console.WriteLine(0)|]",
-"Imports System
-Console.WriteLine(0)",
-        parseOptions:=TestOptions.Script)
+        New TestParameters(parseOptions:=TestOptions.Script))
         End Function
 
         <WorkItem(542093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
