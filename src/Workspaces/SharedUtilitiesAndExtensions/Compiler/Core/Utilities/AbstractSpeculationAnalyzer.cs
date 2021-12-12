@@ -566,12 +566,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var originalOperation = this._semanticModel.GetOperation(currentOriginalNode, CancellationToken);
             var currentOperation = this.SpeculativeSemanticModel.GetOperation(currentReplacedNode, CancellationToken);
 
-            if (IsNullOrNone(originalOperation) != IsNullOrNone(currentOperation))
-                return false;
-
-            if (originalOperation is null && currentOperation is null)
-                return true;
-
             if (originalOperation is IInvocationOperation originalInvocation)
             {
                 // Invocations must stay invocations after update.
