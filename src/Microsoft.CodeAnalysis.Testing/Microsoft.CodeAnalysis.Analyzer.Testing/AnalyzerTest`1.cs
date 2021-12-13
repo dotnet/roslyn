@@ -412,15 +412,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (expected.IsSuppressed.HasValue)
                 {
-                    if (actual.diagnostic.TryGetIsSuppressed(out var actualValue))
-                    {
-                        message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic suppression state to match");
-                        verifier.Equal(expected.IsSuppressed.Value, actualValue, message);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException("DiagnosticSuppressors are not supported on this platform.");
-                    }
+                    message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic suppression state to match");
+                    verifier.Equal(expected.IsSuppressed.Value, actual.diagnostic.IsSuppressed(), message);
                 }
 
                 DiagnosticVerifier?.Invoke(actual.diagnostic, expected, verifier);
@@ -817,11 +810,9 @@ namespace Microsoft.CodeAnalysis.Testing
                     builder.Append(")");
                 }
 
-                if (diagnostics[i].TryGetIsSuppressed(out var isSuppressed) && isSuppressed)
+                if (diagnostics[i].IsSuppressed())
                 {
-                    builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(");
-                    builder.Append(isSuppressed);
-                    builder.Append(")");
+                    builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(true)");
                 }
 
                 builder.AppendLine(",");
@@ -910,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (diagnostics[i].IsSuppressed.HasValue)
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(");
-                    builder.Append(diagnostics[i].IsSuppressed.GetValueOrDefault());
+                    builder.Append(diagnostics[i].IsSuppressed.GetValueOrDefault() ? "true" : "false");
                     builder.Append(")");
                 }
 
