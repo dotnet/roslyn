@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 using var _ = ArrayBuilder<(string name, SymbolKind kind)>.GetInstance(out var result);
 
                 // Suggest names from existing overloads.
-                if (nameInfo.PossibleSymbolKinds.Any(k => k.SymbolKind.HasValue && k.SymbolKind.Value == SymbolKind.Parameter))
+                if (nameInfo.PossibleSymbolKinds.Any(k => k.SymbolKind == SymbolKind.Parameter))
                 {
                     var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     if (partialSemanticModel is not null)
