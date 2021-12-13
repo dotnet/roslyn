@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
-        Friend Overrides Function GetNewAccessors(options As DocumentOptionSet, propertyNode As SyntaxNode,
+        Friend Overrides Function GetNewAccessors(options As CodeGenerationOptions, propertyNode As SyntaxNode,
             fieldName As String, generator As SyntaxGenerator) _
             As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return DirectCast(propertyNode, PropertyStatementSyntax).Initializer?.Value
         End Function
 
-        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(options As DocumentOptionSet, propertyNode As SyntaxNode) As SyntaxNode
+        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(options As CodeGenerationOptions, propertyNode As SyntaxNode) As SyntaxNode
             Return propertyNode
         End Function
 

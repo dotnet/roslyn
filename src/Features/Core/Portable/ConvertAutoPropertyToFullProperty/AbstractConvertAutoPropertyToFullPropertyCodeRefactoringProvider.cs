@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
     {
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
+            CodeGenerationOptions options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
         internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
         internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
-        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(DocumentOptionSet options, SyntaxNode fullProperty);
+        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(CodeGenerationOptions options, SyntaxNode fullProperty);
         internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -88,12 +88,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var services = document.Project.Solution.Workspace.Services;
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var (newGetAccessor, newSetAccessor) = GetNewAccessors(documentOptions, property, fieldName, generator);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(codeGenOptions, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         ? new SyntaxNode[] { newGetAccessor }
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
-            fullProperty = ConvertPropertyToExpressionBodyIfDesired(documentOptions, fullProperty);
+            fullProperty = ConvertPropertyToExpressionBodyIfDesired(codeGenOptions, fullProperty);
             var editor = new SyntaxEditor(root, services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
@@ -111,11 +112,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 DeclarationModifiers.From(propertySymbol),
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
-
-            var codeGenOptions = new CodeGenerationOptions(
-                CodeGenerationContext.Default,
-                document.DocumentState.ParseOptions,
-                documentOptions);
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
             foreach (var td in typeDeclaration)

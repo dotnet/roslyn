@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool TryConvertToExpressionBody(
             this BlockSyntax? block,
+            LanguageVersion languageVersion,
             ExpressionBodyPreference preference,
             [NotNullWhen(true)] out ExpressionSyntax? expression,
             out SyntaxToken semicolonToken)
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var firstStatement = block.Statements[0];
 
-                if (TryGetExpression(firstStatement, out expression, out semicolonToken) &&
+                if (TryGetExpression(firstStatement, languageVersion, out expression, out semicolonToken) &&
                     MatchesPreference(expression, preference))
                 {
                     // The close brace of the block may have important trivia on it (like 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (languageVersion >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
 
             if (acceptableVersion &&
-                block.TryConvertToExpressionBody(preference, out var expression, out semicolonToken))
+                block.TryConvertToExpressionBody(languageVersion, preference, out var expression, out semicolonToken))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
                 return true;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return CSharpSyntaxFacts.Instance.IsOnSingleLine(expression, fullSpan: false);
         }
 
-        private static bool TryGetExpression(StatementSyntax firstStatement, [NotNullWhen(true)] out ExpressionSyntax? expression, out SyntaxToken semicolonToken)
+        private static bool TryGetExpression(StatementSyntax firstStatement, LanguageVersion languageVersion, [NotNullWhen(true)] out ExpressionSyntax? expression, out SyntaxToken semicolonToken)
         {
             if (firstStatement is ExpressionStatementSyntax exprStatement)
             {
@@ -120,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (firstStatement is ThrowStatementSyntax throwStatement)
             {
-                var languageVersion = firstStatement.GetLanguageVersion();
                 if (languageVersion >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
                 {
                     expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);

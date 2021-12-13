@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 parameters: parameters.AddRange(capturesAsParameters));
 
             var defaultOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, root.GetLanguageVersion(), cancellationToken);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);

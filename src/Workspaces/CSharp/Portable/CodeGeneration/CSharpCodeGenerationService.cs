@@ -598,36 +598,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return DestructorGenerator.GenerateDestructorDeclaration(method, options, cancellationToken);
             }
 
-            var languageVersion = GetLanguageVersion(options);
-
             if (method.IsConstructor())
             {
-                return ConstructorGenerator.GenerateConstructorDeclaration(method, options, languageVersion, cancellationToken);
+                return ConstructorGenerator.GenerateConstructorDeclaration(method, options, cancellationToken);
             }
 
             if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, options, languageVersion, cancellationToken);
+                return OperatorGenerator.GenerateOperatorDeclaration(method, options, cancellationToken);
             }
 
             if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, options, languageVersion, cancellationToken);
+                return ConversionGenerator.GenerateConversionDeclaration(method, options, cancellationToken);
             }
 
             if (method.IsLocalFunction())
             {
-                return MethodGenerator.GenerateLocalFunctionDeclaration(method, destination, options, languageVersion, cancellationToken);
+                return MethodGenerator.GenerateLocalFunctionDeclaration(method, destination, options, cancellationToken);
             }
 
-            return MethodGenerator.GenerateMethodDeclaration(method, destination, options, languageVersion, cancellationToken);
+            return MethodGenerator.GenerateMethodDeclaration(method, destination, options, cancellationToken);
         }
 
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return PropertyGenerator.GeneratePropertyOrIndexer(
-                property, destination, options, GetLanguageVersion(options), cancellationToken);
+                property, destination, options, cancellationToken);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

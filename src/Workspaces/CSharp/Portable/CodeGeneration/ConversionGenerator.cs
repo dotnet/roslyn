@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateConversionDeclaration(method, options, destination.GetLanguageVersion(), cancellationToken);
+            var methodDeclaration = GenerateConversionDeclaration(method, options, cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -32,18 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
             CodeGenerationOptions options,
-            LanguageVersion languageVersion,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, options, languageVersion);
+            var declaration = GenerateConversionDeclarationWorker(method, options);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken)));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationOptions options,
-            LanguageVersion languageVersion)
+            CodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern;
 
@@ -67,17 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            declaration = UseExpressionBodyIfDesired(options, declaration, languageVersion);
+            declaration = UseExpressionBodyIfDesired(options, declaration);
 
             return declaration;
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration, LanguageVersion languageVersion)
+            CodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
                     declaration.Kind(), languageVersion, expressionBodyPreference,

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateOperatorDeclaration(method, options, destination.GetLanguageVersion(), cancellationToken);
+            var methodDeclaration = GenerateOperatorDeclaration(method, options, cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
             CodeGenerationOptions options,
-            LanguageVersion languageVersion,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, options);
@@ -43,19 +42,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = GenerateOperatorDeclarationWorker(method, options, languageVersion);
-            declaration = UseExpressionBodyIfDesired(options, declaration, languageVersion);
+            var declaration = GenerateOperatorDeclarationWorker(method, options);
+            declaration = UseExpressionBodyIfDesired(options, declaration);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken));
         }
 
         private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, OperatorDeclarationSyntax declaration, LanguageVersion languageVersion)
+            CodeGenerationOptions options, OperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
+
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
                     declaration.Kind(), languageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
@@ -71,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationOptions options,
-            LanguageVersion languageVersion)
+            CodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
-            operatorDecl = UseExpressionBodyIfDesired(options, operatorDecl, languageVersion);
+            operatorDecl = UseExpressionBodyIfDesired(options, operatorDecl);
             return operatorDecl;
         }
 

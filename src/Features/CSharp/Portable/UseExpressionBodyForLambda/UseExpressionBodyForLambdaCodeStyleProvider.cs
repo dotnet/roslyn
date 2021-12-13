@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => declaration.Body as ExpressionSyntax;
 
         private static bool CanOfferUseExpressionBody(
-            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration)
+            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
             if (!userPrefersExpressionBodies)
@@ -64,18 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // They don't have an expression body.  See if we could convert the block they 
             // have into one.
-            return TryConvertToExpressionBody(declaration, preference, out _, out _);
+            return TryConvertToExpressionBody(declaration, languageVersion, preference, out _, out _);
         }
 
         private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
+            LanguageVersion languageVersion,
             ExpressionBodyPreference conversionPreference,
             out ExpressionSyntax expression,
             out SyntaxToken semicolon)
         {
             var body = declaration.Body as BlockSyntax;
 
-            return body.TryConvertToExpressionBody(conversionPreference, out expression, out semicolon);
+            return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out semicolon);
         }
 
         private static bool CanOfferUseBlockBody(
@@ -132,13 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         {
             var expressionBody = GetBodyAsExpression(currentDeclaration);
             return expressionBody == null
-                ? WithExpressionBody(currentDeclaration)
+                ? WithExpressionBody(currentDeclaration, originalDeclaration.GetLanguageVersion())
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
-        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
+        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
-            if (!TryConvertToExpressionBody(declaration, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
+            if (!TryConvertToExpressionBody(declaration, languageVersion, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
             {
                 return declaration;
             }
