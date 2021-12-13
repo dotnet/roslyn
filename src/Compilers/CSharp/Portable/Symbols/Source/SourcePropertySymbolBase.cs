@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
-        private enum Flags : byte
+        protected enum Flags : byte
         {
             IsExpressionBodied = 1 << 0,
             IsAutoProperty = 1 << 1,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
-        private Flags _propertyFlags;
+        private protected Flags _propertyFlags;
         private readonly RefKind _refKind;
 
         private SymbolCompletionState _state;
@@ -718,14 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 EnsureAccessorsBinding();
-                return (_propertyFlags & Flags.IsAutoProperty) != 0;
-            }
-        }
-
-        private protected bool IsAutoPropertyWithoutAccessorBinding
-        {
-            get
-            {
                 return (_propertyFlags & Flags.IsAutoProperty) != 0;
             }
         }

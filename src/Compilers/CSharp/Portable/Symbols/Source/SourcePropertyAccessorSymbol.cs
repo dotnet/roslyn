@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_modifierErrors)
             {
-                this.CheckModifiers(locations[0], _hasBody, IsAutoPropertyAccessor || _isExpressionBodied, diagnostics);
+                this.CheckModifiers(locations[0], _hasBody || _isExpressionBodied || IsAutoPropertyAccessor, diagnostics);
             }
         }
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, BindingDiagnosticBag diagnostics)
+        private void CheckModifiers(Location location, bool hasBodyOrExpressionBodiedOrIsAutoProperty, BindingDiagnosticBag diagnostics)
         {
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (!hasBodyOrExpressionBodiedOrIsAutoProperty && !IsExtern && !IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }

@@ -7948,12 +7948,19 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         {
             var text = @"abstract class C
 {
-    public int P { get; set { } } // PROTOTYPE(semi-auto-props): Should be an error prior to semi-auto-props. ie, uncomment the Diagnostic(...) line in VerifyDiagnostics.
-    public int Q { get { return 0; } set; } // PROTOTYPE(semi-auto-props): Should be an error prior to semi-auto-props. ie, uncomment the Diagnostic(...) line in VerifyDiagnostics.
+    public int P { get; set { } }
+    public int Q { get { return 0; } set; }
     public extern object R { get; } // no error
     protected abstract object S { set; } // no error
 }
 ";
+            // IMPORTANT: There used to be CS0501 (missing body) error on P and Q properties.
+            // This has changed with semi auto properties, and it was decided (for all lang versions) to keep
+            // the new logic for determining if a property is auto property or not.
+            // See https://github.com/dotnet/roslyn/pull/57076#discussion_r753751334
+
+            // PROTOTYPE(semi-auto-props): Unassigned field warning?
+
             CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (3,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
                 //Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get"),
