@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -25,20 +26,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Empty(tree.Diagnostics);
         }
 
-        [Fact]
-        public void TestRealWorldCases()
+        [Theory, MemberData(nameof(GetRealWorldCases))]
+        public void TestRealWorldCases(string pattern, int options)
         {
-            using var stream = this.GetType().Assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions.Regex_RealWorldPatterns.json");
+            var (_, tree, _) = JustParseTree($@"@""{pattern}""", (RegexOptions)options, conversionFailureOk: false);
+            Assert.NotNull(tree);
+            Assert.Empty(tree.Diagnostics);
+        }
+
+        private static IEnumerable<object[]> GetRealWorldCases()
+        {
+            using var stream = typeof(CSharpRegexParserTests).Assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions.Regex_RealWorldPatterns.json");
             using var streamReader = new StreamReader(stream);
             using var textReader = new JsonTextReader(streamReader);
 
             foreach (var obj in JArray.Load(textReader))
             {
-                var options = (RegexOptions)obj.Value<int>("Options");
+                var options = obj.Value<int>("Options");
                 var pattern = obj.Value<string>("Pattern")!.Replace(@"""", @"""""");
-                var (_, tree, _) = JustParseTree($@"@""{pattern}""", options, conversionFailureOk: false);
-                Assert.NotNull(tree);
-                Assert.Empty(tree.Diagnostics);
+                yield return new object[] { pattern, options };
             }
         }
     }
