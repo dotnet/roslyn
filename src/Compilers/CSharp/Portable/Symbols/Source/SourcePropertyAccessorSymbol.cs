@@ -181,8 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(info, location);
             }
-
-            this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
         }
 
 #nullable enable
@@ -289,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_modifierErrors)
             {
-                this.CheckModifiers(locations[0], _hasBody || _isExpressionBodied, IsAutoPropertyAccessor, diagnostics);
+                this.CheckModifiers(locations[0], _hasBody, IsAutoPropertyAccessor || || _isExpressionBodied, diagnostics);
             }
         }
 
