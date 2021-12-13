@@ -213,4 +213,7 @@
   <data name="FeatureName_CompilationAvailable" xml:space="preserve">
     <value>Project semantics availability</value>
   </data>
+  <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+  </data>
 </root>

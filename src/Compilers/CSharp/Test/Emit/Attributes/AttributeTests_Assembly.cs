@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var neutral = CreateCompilationWithMscorlib40(
 @"
-public class neutral
+public class @neutral
 {}
 ", options: TestOptions.ReleaseDll, assemblyName: "neutral");
 
@@ -333,7 +333,7 @@ public class neutral
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""de"")]
 
-public class de
+public class @de
 {}
 ", options: TestOptions.ReleaseDll, assemblyName: "de");
 
@@ -343,7 +343,7 @@ public class de
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-us"")]
 
-public class en_us
+public class @en_us
 {}
 ", options: TestOptions.ReleaseDll, assemblyName: "en_us");
 
@@ -439,7 +439,7 @@ public class en_US
 
             compilation = CreateCompilationWithMscorlib40(
 @"
-public class neutral
+public class @neutral
 {
     void M(de x)
     {}

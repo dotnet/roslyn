@@ -72,16 +72,16 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (16,55): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
                 // (17,64): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
                 // (19,58): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
                 // (20,46): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
                 //         Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
             );
         }
 
@@ -120,6 +120,7 @@ class C
 {
     static int M1(int[] arr) => arr[^1];
     static char M2(string s) => s[^1];
+    static int M3(int[] arr, int i) => arr[^i];
 }
 ";
             var verifier = CompileAndVerifyWithIndexAndRange(src);
@@ -151,6 +152,20 @@ class C
   IL_0008:  sub
   IL_0009:  callvirt   ""char string.this[int].get""
   IL_000e:  ret
+}
+");
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldarg.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  ret
 }
 ");
         }
@@ -249,7 +264,6 @@ struct S
             _array[index] = value;
         }
     }
-
 }
 class C
 {
@@ -260,7 +274,6 @@ class C
         var s = new S(array);
         s[^1] += 5;
         Console.WriteLine(array[1]);
-
     }
 }
 ";
@@ -313,6 +326,47 @@ Set 2
         }
 
         [Fact]
+        public void PatternIndexCompoundOperator_InReadonlyMethod()
+        {
+            var src = @"
+public struct S
+{
+    public readonly int[] _array;
+    public int _counter;
+
+    public S(int[] a)
+    {
+        _array = a;
+        _counter = 0;
+    }
+    public int Length
+    {
+        get => throw null;
+    }
+    public int this[int index]
+    {
+        get => throw null;
+        set => throw null;
+    }
+
+    readonly void M()
+    {
+        this[^1] += 5;
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics(
+                // (24,9): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         this[^1] += 5;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(24, 9),
+                // (24,9): error CS1604: Cannot assign to 'this[^1]' because it is read-only
+                //         this[^1] += 5;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this[^1]").WithArguments("this[^1]").WithLocation(24, 9)
+                );
+        }
+
+        [Fact]
         [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternRangeCompoundOperator()
         {
@@ -352,7 +406,6 @@ class C
         var s = new S(array);
         s[1..] += 5;
         Console.WriteLine(array[1]);
-
     }
 }
 ";
@@ -435,7 +488,6 @@ struct S
             _array[index] = value;
         }
     }
-
 }
 class C
 {
@@ -1580,44 +1632,117 @@ class C
     public static void Main()
     {
         var s = ""abcdef"";
-        Console.WriteLine(s[new Index(1, false)]);
+        int i = 1;
+        Console.WriteLine(s[new Index(i, false)]);
         Console.WriteLine(s[(Index)2]);
         Console.WriteLine(s[^1]);
+        Console.WriteLine(s[new Index(3, false)]);
+        Console.WriteLine(s[new Index(2, true)]);
+        i = 6;
+        Console.WriteLine(s[new Index(i, true)]);
+        Console.WriteLine(s[new Index(value: 2, fromEnd: false)]);
+        Console.WriteLine(s[new Index(fromEnd: true, value: 3)]);
+        Console.WriteLine(s[new Index(3, false) {}]);
     }
 }", expectedOutput: @"b
 c
-f");
+f
+d
+e
+a
+c
+d
+d");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       70 (0x46)
+  // Code size      219 (0xdb)
   .maxstack  4
-  .locals init (string V_0,
-                System.Index V_1)
+  .locals init (int V_0, //i
+                string V_1,
+                System.Index V_2)
   IL_0000:  ldstr      ""abcdef""
-  IL_0005:  dup
+  IL_0005:  ldc.i4.1
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  ldc.i4.0
-  IL_000a:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  ldloc.0
-  IL_0013:  callvirt   ""int string.Length.get""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  callvirt   ""char string.this[int].get""
-  IL_0022:  call       ""void System.Console.WriteLine(char)""
-  IL_0027:  dup
-  IL_0028:  ldc.i4.2
-  IL_0029:  callvirt   ""char string.this[int].get""
-  IL_002e:  call       ""void System.Console.WriteLine(char)""
-  IL_0033:  dup
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  ldc.i4.1
-  IL_003a:  sub
-  IL_003b:  callvirt   ""char string.this[int].get""
-  IL_0040:  call       ""void System.Console.WriteLine(char)""
-  IL_0045:  ret
+  IL_0007:  dup
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0011:  stloc.2
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   ""int string.Length.get""
+  IL_001a:  call       ""int System.Index.GetOffset(int)""
+  IL_001f:  callvirt   ""char string.this[int].get""
+  IL_0024:  call       ""void System.Console.WriteLine(char)""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.2
+  IL_002b:  callvirt   ""char string.this[int].get""
+  IL_0030:  call       ""void System.Console.WriteLine(char)""
+  IL_0035:  dup
+  IL_0036:  dup
+  IL_0037:  callvirt   ""int string.Length.get""
+  IL_003c:  ldc.i4.1
+  IL_003d:  sub
+  IL_003e:  callvirt   ""char string.this[int].get""
+  IL_0043:  call       ""void System.Console.WriteLine(char)""
+  IL_0048:  dup
+  IL_0049:  ldc.i4.3
+  IL_004a:  callvirt   ""char string.this[int].get""
+  IL_004f:  call       ""void System.Console.WriteLine(char)""
+  IL_0054:  dup
+  IL_0055:  dup
+  IL_0056:  callvirt   ""int string.Length.get""
+  IL_005b:  ldc.i4.2
+  IL_005c:  sub
+  IL_005d:  callvirt   ""char string.this[int].get""
+  IL_0062:  call       ""void System.Console.WriteLine(char)""
+  IL_0067:  ldc.i4.6
+  IL_0068:  stloc.0
+  IL_0069:  dup
+  IL_006a:  stloc.1
+  IL_006b:  ldloc.1
+  IL_006c:  ldloc.0
+  IL_006d:  ldc.i4.1
+  IL_006e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0073:  stloc.2
+  IL_0074:  ldloca.s   V_2
+  IL_0076:  ldloc.1
+  IL_0077:  callvirt   ""int string.Length.get""
+  IL_007c:  call       ""int System.Index.GetOffset(int)""
+  IL_0081:  callvirt   ""char string.this[int].get""
+  IL_0086:  call       ""void System.Console.WriteLine(char)""
+  IL_008b:  dup
+  IL_008c:  ldc.i4.2
+  IL_008d:  callvirt   ""char string.this[int].get""
+  IL_0092:  call       ""void System.Console.WriteLine(char)""
+  IL_0097:  dup
+  IL_0098:  stloc.1
+  IL_0099:  ldloc.1
+  IL_009a:  ldc.i4.3
+  IL_009b:  ldc.i4.1
+  IL_009c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00a1:  stloc.2
+  IL_00a2:  ldloca.s   V_2
+  IL_00a4:  ldloc.1
+  IL_00a5:  callvirt   ""int string.Length.get""
+  IL_00aa:  call       ""int System.Index.GetOffset(int)""
+  IL_00af:  callvirt   ""char string.this[int].get""
+  IL_00b4:  call       ""void System.Console.WriteLine(char)""
+  IL_00b9:  stloc.1
+  IL_00ba:  ldloc.1
+  IL_00bb:  ldc.i4.3
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  newobj     ""System.Index..ctor(int, bool)""
+  IL_00c2:  stloc.2
+  IL_00c3:  ldloca.s   V_2
+  IL_00c5:  ldloc.1
+  IL_00c6:  callvirt   ""int string.Length.get""
+  IL_00cb:  call       ""int System.Index.GetOffset(int)""
+  IL_00d0:  callvirt   ""char string.this[int].get""
+  IL_00d5:  call       ""void System.Console.WriteLine(char)""
+  IL_00da:  ret
 }
 ");
         }
@@ -1767,7 +1892,8 @@ class C
 
     public static void M(int[] array)
     {
-        Console.WriteLine(array[new Index(1, false)]);
+        bool fromEnd = false;
+        Console.WriteLine(array[new Index(1, fromEnd)]);
         Console.WriteLine(array[^1]);
     }
 }", TestOptions.ReleaseExe);
@@ -1775,33 +1901,36 @@ class C
 11");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  3
-  .locals init (int[] V_0,
-                System.Index V_1)
-  IL_0000:  ldarg.0
+  .locals init (bool V_0, //fromEnd
+                int[] V_1,
+                System.Index V_2)
+  IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  ldc.i4.0
-  IL_0005:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  ldloc.0
-  IL_000e:  ldlen
-  IL_000f:  conv.i4
-  IL_0010:  call       ""int System.Index.GetOffset(int)""
-  IL_0015:  ldelem.i4
-  IL_0016:  call       ""void System.Console.WriteLine(int)""
-  IL_001b:  ldarg.0
-  IL_001c:  dup
-  IL_001d:  ldlen
-  IL_001e:  conv.i4
-  IL_001f:  ldc.i4.1
-  IL_0020:  sub
-  IL_0021:  ldelem.i4
-  IL_0022:  call       ""void System.Console.WriteLine(int)""
-  IL_0027:  ret
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldloc.0
+  IL_0007:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.1
+  IL_0010:  ldlen
+  IL_0011:  conv.i4
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  ldelem.i4
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldarg.0
+  IL_001e:  dup
+  IL_001f:  ldlen
+  IL_0020:  conv.i4
+  IL_0021:  ldc.i4.1
+  IL_0022:  sub
+  IL_0023:  ldelem.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
 }");
         }
 
@@ -2979,7 +3108,6 @@ partial class Program
 }", options: TestOptions.ReleaseExe), expectedOutput: "YES");
         }
 
-
         private const string PrintIndexesAndRangesCode = @"
 partial class Program
 {
@@ -3251,6 +3379,208 @@ Get GetIdx1 GetIdx4 Length Slice 1, 2
 Get GetIdx3 GetIdx2 Length Slice 1, 2
 Get GetIdx3 GetIdx2 Length Slice 1, 2
 ");
+        }
+
+        [Fact, WorkItem(57745, "https://github.com/dotnet/roslyn/issues/57745")]
+        public void ObsoleteRangeType()
+        {
+            var source = @"
+_ = new C()[..];
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+}
+
+namespace System
+{
+    [Obsolete]
+    public readonly struct Range
+    {
+        public Index Start { get; }
+
+        public Index End { get; }
+
+        public Range(Index start, Index end) => throw null;
+
+        public static Range StartAt(Index start) => throw null;
+
+        public static Range EndAt(Index end) => throw null;
+
+        public static Range All => throw null;
+    }
+}
+";
+            // Note: we currently don't report Obsolete diagnostic on either Index or Range
+            // Tracked by https://github.com/dotnet/roslyn/issues/57745
+            var comp = CreateCompilation(new[] { source, TestSources.Index });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplicitIndexerAccessAsLValue()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = new object();
+M(o1)[^1] = null; // 1
+M(o1)[..] = null; // 2
+
+_ = M(o1)[^1].ToString();
+_ = M(o1)[..].ToString();
+
+object o2 = null; // 3
+M(o2)[^1] = null;
+M(o2)[..] = null;
+
+_ = M(o2)[^1].ToString(); // 4
+_ = M(o2)[..].ToString(); // 5
+
+static C<T> M<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public ref T this[int i] => throw null!;
+    public ref T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics(
+                // (5,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // M(o1)[^1] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 13),
+                // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // M(o1)[..] = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13),
+                // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o2 = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 13),
+                // (15,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = M(o2)[^1].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(o2)[^1]").WithLocation(15, 5),
+                // (16,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = M(o2)[..].ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(o2)[..]").WithLocation(16, 5)
+                );
+        }
+
+        [Fact]
+        public void NullableIndexerArgument()
+        {
+            var source = @"
+#nullable enable
+var c = new C();
+
+object o1 = null;
+_ = c[M1(o1.ToString())];
+
+object o2 = null;
+_ = c[M2(o2.ToString())];
+
+static System.Index M1(object? o) => throw null!;
+static System.Range M2(object? o) => throw null!;
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics(
+                // (5,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o1 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 13),
+                // (6,10): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M1(o1.ToString())];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(6, 10),
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // object o2 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13),
+                // (9,10): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M2(o2.ToString())];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2").WithLocation(9, 10)
+                );
+        }
+
+        [Fact]
+        public void SemanticModelOnReceiver()
+        {
+            var source = @"
+var c = new C();
+
+_ = c[^1];
+_ = c[..];
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var receivers = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Select(e => e.Expression).ToArray();
+            Assert.Equal(2, receivers.Length);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            Assert.Equal("c", receivers[0].ToString());
+            Assert.Equal("C", model.GetTypeInfo(receivers[0]).Type.ToTestDisplayString());
+
+            Assert.Equal("c", receivers[1].ToString());
+            Assert.Equal("C", model.GetTypeInfo(receivers[1]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Nullable_OrderOfEvaluation()
+        {
+            var source = @"
+#nullable enable
+C? c = null;
+_ = (c = new C())[M1(c.ToString())];
+
+c = null;
+_ = (c = new C())[M2(c.ToString())];
+
+c = null;
+_ = c[M1((c = new C()).ToString())]; // 1
+
+string? s = null;
+_ = (s = string.Empty)[M1(s.ToString())];
+
+s = null;
+_ = (s = string.Empty)[M2(s.ToString())];
+
+int[]? a = null;
+_ = (a = new[] { 1 })[M1(a.ToString())];
+
+a = null;
+_ = (a = new[] { 1 })[M2(a.ToString())];
+
+static System.Index M1(object? o) => throw null!;
+static System.Range M2(object? o) => throw null!;
+
+class C
+{
+    public int Length => 0;
+    public int this[int i] => throw null!;
+    public int Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // (10,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = c[M1((c = new C()).ToString())]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 5)
+                );
         }
     }
 }

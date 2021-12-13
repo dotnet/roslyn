@@ -308,9 +308,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
+
+            // check for System.Array.[Length|LongLength] on a single dimensional array,
+            // we have a special node for such cases.
+            Debug.Assert(!(receiverOpt is { Type: ArrayTypeSymbol { IsSZArray: true } } &&
+                           (ReferenceEquals(property, Compilation.GetSpecialTypeMember(CodeAnalysis.SpecialMember.System_Array__Length)) ||
+                            ReferenceEquals(property, Compilation.GetSpecialTypeMember(CodeAnalysis.SpecialMember.System_Array__LongLength)))), "Use BoundArrayLength instead?");
+
             var accessor = property.GetOwnOrInheritedGetMethod();
             Debug.Assert(accessor is not null);
             return Call(receiverOpt, accessor);
+        }
+
+        public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
+        {
+            Debug.Assert((receiverOpt is null) == property.IsStatic);
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor, arg0);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)

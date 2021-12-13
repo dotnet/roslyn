@@ -2249,6 +2249,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+        public override IOperation VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
         private static bool IsConditional(IBinaryOperation operation)
         {
             switch (operation.OperatorKind)
@@ -7379,6 +7390,32 @@ oneMoreTime:
             return new DeclarationPatternOperation(
                 operation.MatchedType,
                 operation.MatchesNull,
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitSlicePattern(ISlicePatternOperation operation, int? argument)
+        {
+            return new SlicePatternOperation(
+                operation.SliceSymbol,
+                (IPatternOperation?)Visit(operation.Pattern),
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitListPattern(IListPatternOperation operation, int? argument)
+        {
+            return new ListPatternOperation(
+                operation.LengthSymbol,
+                operation.IndexerSymbol,
+                operation.Patterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
                 operation.DeclaredSymbol,
                 operation.InputType,
                 operation.NarrowedType,

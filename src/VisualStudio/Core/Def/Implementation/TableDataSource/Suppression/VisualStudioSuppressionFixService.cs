@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,12 +15,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
@@ -44,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IWpfTableControl _tableControl;
+        private readonly IWpfTableControl? _tableControl;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
@@ -77,22 +74,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _editHandlerService = editHandlerService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _vsHierarchyItemManager = vsHierarchyItemManager;
-            _fixMultipleOccurencesService = workspace.Services.GetService<IFixMultipleOccurrencesService>();
-            _projectMap = workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+            _fixMultipleOccurencesService = workspace.Services.GetRequiredService<IFixMultipleOccurrencesService>();
+            _projectMap = workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
 
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
             _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
         }
 
-        public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
+        public bool AddSuppressions(IVsHierarchy? projectHierarchy)
         {
             if (_tableControl == null)
             {
                 return false;
             }
 
-            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
 
             // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
             // in source only for compiler diagnostics.
@@ -105,41 +102,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
         }
 
-        public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
+        public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy? projectHierarchy)
         {
             if (_tableControl == null)
             {
                 return false;
             }
 
-            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
             return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
-        public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt)
+        public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy? projectHierarchy)
         {
             if (_tableControl == null)
             {
                 return false;
             }
 
-            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchyOpt);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
             return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
         }
 
-        private static Func<Project, bool> GetShouldFixInProjectDelegate(IVsHierarchyItemManager vsHierarchyItemManager, IHierarchyItemToProjectIdMap projectMap, IVsHierarchy projectHierarchyOpt)
+        private static Func<Project, bool> GetShouldFixInProjectDelegate(IVsHierarchyItemManager vsHierarchyItemManager, IHierarchyItemToProjectIdMap projectMap, IVsHierarchy? projectHierarchy)
         {
-            ProjectId projectIdToMatch = null;
-            if (projectHierarchyOpt != null)
+            ProjectId? projectIdToMatch = null;
+            if (projectHierarchy != null)
             {
-                var projectHierarchyItem = vsHierarchyItemManager.GetHierarchyItem(projectHierarchyOpt, VSConstants.VSITEMID_ROOT);
+                var projectHierarchyItem = vsHierarchyItemManager.GetHierarchyItem(projectHierarchy, VSConstants.VSITEMID_ROOT);
                 if (projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out var projectId))
                 {
                     projectIdToMatch = projectId;
                 }
             }
 
-            return p => projectHierarchyOpt == null || p.Id == projectIdToMatch;
+            return p => projectHierarchy == null || p.Id == projectIdToMatch;
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
@@ -177,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         var document = project.GetDocument(documentId);
                         if (document != null)
                         {
-                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             foreach (var diagnostic in group)
                             {
@@ -197,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private static string GetWaitDialogMessage(bool isAddSuppression)
             => isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
 
-        private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
+        private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
             void computeDiagnosticsToFix(IUIThreadOperationContext context)
@@ -232,13 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
         }
 
-        private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private bool ApplySuppressionFix(IEnumerable<DiagnosticData>? diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
             _ = ApplySuppressionFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
             return true;
         }
 
-        private async Task ApplySuppressionFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private async Task ApplySuppressionFixAsync(IEnumerable<DiagnosticData>? diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
         {
             try
             {
@@ -380,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
                     _ = Task.Run(() =>
                     {
-                        var reanalyzeDocuments = diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
+                        var reanalyzeDocuments = diagnosticsToFix.Select(d => d.DocumentId).WhereNotNull().Distinct();
                         _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
                     });
                 }
@@ -445,7 +442,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static ImmutableDictionary<Document, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)
         {
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Builder builder = null;
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Builder? builder = null;
             foreach (var (oldDocument, diagnostics) in documentDiagnosticsToFixMap)
             {
                 if (oldDocument.Project.Language != language)
@@ -464,7 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static ImmutableDictionary<Project, ImmutableArray<Diagnostic>> GetProjectDiagnosticsMappedToNewSolution(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectDiagnosticsToFixMap, Solution newSolution, string language)
         {
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Builder projectDiagsBuilder = null;
+            ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Builder? projectDiagsBuilder = null;
             foreach (var (oldProject, diagnostics) in projectDiagnosticsToFixMap)
             {
                 if (oldProject.Language != language)
@@ -481,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return projectDiagsBuilder != null ? projectDiagsBuilder.ToImmutable() : ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
         }
 
-        private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
+        private static CodeFixProvider? GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
             // Fetch the suppression fixer to apply the fix.
             return codeFixService.GetSuppressionFixer(language, diagnostics.Select(d => d.Id));
@@ -492,6 +489,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(IsDocumentDiagnostic))
             {
+                RoslynDebug.AssertNotNull(diagnosticData.DocumentId);
+
                 if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
                     diagnosticsPerDocument = new List<DiagnosticData>();
@@ -507,7 +506,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            var latestDocumentDiagnosticsMapOpt = filterStaleDiagnostics ? new Dictionary<DocumentId, ImmutableHashSet<DiagnosticData>>() : null;
+            var latestDocumentDiagnosticsMap = filterStaleDiagnostics ? new Dictionary<DocumentId, ImmutableHashSet<DiagnosticData>>() : null;
             foreach (var group in builder.GroupBy(kvp => kvp.Key.ProjectId))
             {
                 var projectId = group.Key;
@@ -519,14 +518,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 if (filterStaleDiagnostics)
                 {
+                    RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
+
                     var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
                     var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
                         .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
-                    latestDocumentDiagnosticsMapOpt.Clear();
-                    foreach (var kvp in latestProjectDiagnostics.Where(d => d.DocumentId != null).GroupBy(d => d.DocumentId))
+                    latestDocumentDiagnosticsMap.Clear();
+                    foreach (var kvp in latestProjectDiagnostics.Where(d => d.DocumentId != null).GroupBy(d => d.DocumentId!))
                     {
-                        latestDocumentDiagnosticsMapOpt.Add(kvp.Key, kvp.ToImmutableHashSet());
+                        latestDocumentDiagnosticsMap.Add(kvp.Key, kvp.ToImmutableHashSet());
                     }
                 }
 
@@ -541,7 +542,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     IEnumerable<DiagnosticData> documentDiagnosticsToFix;
                     if (filterStaleDiagnostics)
                     {
-                        if (!latestDocumentDiagnosticsMapOpt.TryGetValue(document.Id, out var latestDocumentDiagnostics))
+                        RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
+
+                        if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                         {
                             // Ignore stale diagnostics in error list.
                             latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
@@ -574,6 +577,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
             foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
             {
+                RoslynDebug.AssertNotNull(diagnosticData.ProjectId);
+
                 if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
                     diagnosticsPerProject = new List<DiagnosticData>();
@@ -589,7 +594,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-            var latestDiagnosticsToFixOpt = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
+            var latestDiagnosticsToFix = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
             foreach (var (projectId, diagnostics) in builder)
             {
                 var project = _workspace.CurrentSolution.GetProject(projectId);
@@ -599,12 +604,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 IEnumerable<DiagnosticData> projectDiagnosticsToFix;
                 if (filterStaleDiagnostics)
                 {
+                    RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
+
                     var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
                     var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
                         .ConfigureAwait(false));
 
-                    latestDiagnosticsToFixOpt.Clear();
-                    latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(IsProjectDiagnostic));
+                    latestDiagnosticsToFix.Clear();
+                    latestDiagnosticsToFix.AddRange(latestDiagnosticsFromDiagnosticService.Where(IsProjectDiagnostic));
 
                     // Filter out stale diagnostics in error list.
                     projectDiagnosticsToFix = diagnostics.Where(d => latestDiagnosticsFromDiagnosticService.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));

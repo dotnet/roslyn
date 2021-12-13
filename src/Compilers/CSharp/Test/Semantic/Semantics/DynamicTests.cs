@@ -3453,7 +3453,7 @@ class C
 
 class D
 {
-    class dynamic { }
+    class @dynamic { }
 
     dynamic M()
     {

@@ -2985,7 +2985,7 @@ record struct C
         public void CS0574ERR_BadDestructorName()
         {
             var test = @"
-public record struct iii
+public record struct @iii
 {
     ~iiii(){}
 }

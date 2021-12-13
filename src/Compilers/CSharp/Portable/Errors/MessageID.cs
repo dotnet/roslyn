@@ -235,10 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
+
         IDS_FeatureGenericAttributes = MessageBase + 12812,
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
-        IDS_ParameterNullChecking = MessageBase + 12814,
+        IDS_FeatureListPattern = MessageBase + 12814,
+        IDS_ParameterNullChecking = MessageBase + 12815,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -345,14 +347,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // C# 10 preview features
-                case MessageID.IDS_ParameterNullChecking:
-                    return LanguageVersion.Preview;
+                // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
+                case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_ParameterNullChecking: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
@@ -487,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
                 case MessageID.IDS_FeatureUsingStatic:
-                case MessageID.IDS_FeatureInterpolatedStrings:
+                case MessageID.IDS_FeatureInterpolatedStrings: // semantic check
                 case MessageID.IDS_AwaitInCatchAndFinally:
                 case MessageID.IDS_FeatureReadonlyAutoImplementedProperties:
                     return LanguageVersion.CSharp6;

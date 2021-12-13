@@ -48,11 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => _navigationBucket != null && _navigationBucket.CanNavigateTo();
 
-            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
                 Contract.ThrowIfNull(_navigationBucket);
-                return _navigationBucket.NavigateToAsync(isPreview, cancellationToken);
+                return _navigationBucket.NavigateToAsync(isPreview, shouldActivate, cancellationToken);
             }
         }
     }
