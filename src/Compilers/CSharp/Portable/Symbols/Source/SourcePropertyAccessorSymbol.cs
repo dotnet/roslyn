@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_modifierErrors)
             {
-                this.CheckModifiers(locations[0], _hasBody, IsAutoPropertyAccessor || || _isExpressionBodied, diagnostics);
+                this.CheckModifiers(locations[0], _hasBody, IsAutoPropertyAccessor || _isExpressionBodied, diagnostics);
             }
         }
 
