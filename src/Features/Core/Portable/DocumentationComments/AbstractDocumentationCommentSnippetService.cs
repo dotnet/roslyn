@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            var lines = GetDocumentationCommentLines(token, text, options, out _);
             if (lines == null)
             {
                 return null;
