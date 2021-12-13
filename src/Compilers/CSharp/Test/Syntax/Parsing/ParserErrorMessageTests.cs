@@ -4354,6 +4354,28 @@ class Program
         }
 
         [Fact]
+        public void CS1525ERR_InvalidExprTerm_Location()
+        {
+            var test = @"
+public class Repro_Cs1525
+{
+    public void Method()
+    {
+        var v = 42;
+        >>;
+    }
+}
+";
+            ParseAndValidate(test,
+                    // (7,9): error CS1525: Invalid expression term '>'
+                    //         var v = 42;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(">").WithLocation(7, 9),
+                    // (7,11): error CS1525: Invalid expression term ';'
+                    //         >>;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 11));
+        }
+
+        [Fact]
         public void CS1526ERR_BadNewExpr()
         {
             var test = @"
