@@ -965,8 +965,7 @@ void M1<TResult>(Func<object?[], TResult>? f) { }
             var lambdas = operation.Descendants().OfType<AnonymousFunctionOperation>().
                 Select(op => op.Symbol.GetSymbol<LambdaSymbol>()).ToImmutableArray();
             Assert.Equal(2, lambdas.Length);
-            var syntaxRefs = lambdas.SelectAsArray(l => l.SyntaxRef);
-            Assert.Equal(syntaxRefs[0].Span, syntaxRefs[1].Span);
+            Assert.Equal(lambdas[0].SyntaxRef.Span, lambdas[1].SyntaxRef.Span);
             Assert.NotEqual(lambdas[0], lambdas[1]);
         }
 
