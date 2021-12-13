@@ -375,6 +375,10 @@ class X
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
+                        case ErrorCode.WRN_LowerCaseTypeName:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
+                            Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.

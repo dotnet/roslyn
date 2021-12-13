@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         internal static bool CanOfferUseFileScoped(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
+            => CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer, ((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion);
+
+        internal static bool CanOfferUseFileScoped(
+            OptionSet optionSet,
+            CompilationUnitSyntax root,
+            BaseNamespaceDeclarationSyntax declaration,
+            bool forAnalyzer,
+            LanguageVersion version)
         {
             if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
                 return false;
@@ -55,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
-            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp10)
+            if (version < LanguageVersion.CSharp10)
                 return false;
 
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);

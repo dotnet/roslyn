@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis
                 SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
 
+            public GeneratorDriver? GeneratorDriver => _underlyingTracker.GeneratorDriver;
+
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
                 if (_compilationWithReplacement == null)

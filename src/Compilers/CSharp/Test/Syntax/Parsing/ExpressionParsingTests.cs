@@ -3915,6 +3915,67 @@ select t";
             EOF();
         }
 
+        [Fact]
+        public void InterpolatedStringExpressionSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
+        [Fact]
+        public void InterpolatedStringExpressionWithFormatClauseSurroundedByCurlyBraces()
+        {
+            UsingExpression("$\"{{{12:X}}}\"");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "12");
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken, "X");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+        }
+
         [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
         public void ConditionalExpressionInInterpolation()
         {

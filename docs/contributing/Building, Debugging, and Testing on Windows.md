@@ -20,7 +20,7 @@ The minimal required version of .NET Framework is 4.7.2.
     - Ensure Visual Studio is on Version "17.0" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 6.0 RC 2 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-rc.2-windows-x64-installer)
+1. [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -169,12 +169,12 @@ under `AppData`, not from `Program File`).
 
 ### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
 
-1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs`, which should be sufficient to build all C# code, installing any prerequisites if prompted to)
+1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs+libs.tests`, which should be sufficient to build all C# code, installing any prerequisites if prompted to, and perhaps `git clean -xdf` and `build.cmd -restore` initially - see [runtime repo documentation](https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md) for specific prerequisites and build instructions)
 2. `build.cmd -pack` on your `roslyn` repo
 3. in `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset` delete the version of the toolset that you just packed so that the new one will get put into the cache
 4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) then build again
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
-    - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
+    - add `<UsingToolMicrosoftNetCompilers>true</UsingToolMicrosoftNetCompilers>` and `<MicrosoftNetCompilersToolsetVersion>4.1.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
 ### Testing with extra IOperation validation
 

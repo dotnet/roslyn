@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsAsync(
+        public ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             int position,
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.Remote
                             .WhereNotNull().ToImmutableArray();
 
                     return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, hideAdvancedMembers, isRemote: true, cancellationToken).ConfigureAwait(false);
                 }
 
-                return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
+                return null;
             }, cancellationToken);
         }
 

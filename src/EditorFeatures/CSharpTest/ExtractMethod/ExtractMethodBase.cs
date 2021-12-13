@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 result.SucceededWithSuggestion ||
                 (allowBestEffort && result.Status.HasBestEffort()));
 
-            var doc = result.Document;
+            var (doc, _) = await result.GetFormattedDocumentAsync(CancellationToken.None);
             return doc == null
                 ? null
                 : await doc.GetSyntaxRootAsync();
