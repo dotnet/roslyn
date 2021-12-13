@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty.ContainingType == null)
@@ -450,15 +451,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     {
                         if (fieldOrProperty is IPropertySymbol property)
                         {
-                            return CodeGenerator.AddPropertyDeclaration(
-                                currentTypeDecl, property, services,
+                            return codeGenerator.AddProperty(
+                                currentTypeDecl, property,
                                 GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
-                            return CodeGenerator.AddFieldDeclaration(
-                                currentTypeDecl, field, services,
+                            return codeGenerator.AddField(
+                                currentTypeDecl, field,
                                 GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
                                 cancellationToken);
                         }

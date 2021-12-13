@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
+                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
                 var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 var codeGenerationOptions = new CodeGenerationOptions(
@@ -161,10 +162,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ParseOptions: rootWithCoreMembers.SyntaxTree.Options,
                     Options: documentOptions);
 
-                var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
+                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    document.Project.Solution.Workspace.Services,
                     codeGenerationOptions,
                     cancellationToken);
 

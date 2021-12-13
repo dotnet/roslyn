@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,120 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static ICodeGenerationService GetCodeGenerationService(HostWorkspaceServices services, string language)
             => services.GetLanguageServices(language).GetRequiredService<ICodeGenerationService>();
-
-        /// <summary>
-        /// Returns a newly created event declaration node from the provided event.
-        /// </summary>
-        public static SyntaxNode CreateEventDeclaration(IEventSymbol @event, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, @event.Language).CreateEventDeclaration(@event, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Returns a newly created field declaration node from the provided field.
-        /// </summary>
-        public static SyntaxNode CreateFieldDeclaration(IFieldSymbol field, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, field.Language).CreateFieldDeclaration(field, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Returns a newly created method declaration node from the provided method.
-        /// </summary>
-        public static SyntaxNode? CreateMethodDeclaration(IMethodSymbol method, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, method.Language).CreateMethodDeclaration(method, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Returns a newly created property declaration node from the provided property.
-        /// </summary>
-        public static SyntaxNode CreatePropertyDeclaration(IPropertySymbol property, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, property.Language).CreatePropertyDeclaration(property, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Returns a newly created named type declaration node from the provided named type.
-        /// </summary>
-        public static SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, namedType.Language).CreateNamedTypeDeclaration(namedType, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Returns a newly created namespace declaration node from the provided namespace.
-        /// </summary>
-        public static SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, HostWorkspaceServices services, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => GetCodeGenerationService(services, @namespace.Language).CreateNamespaceDeclaration(@namespace, destination, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with an event declaration of the same signature as the specified symbol added to it.
-        /// </summary>
-        public static TDeclarationNode AddEventDeclaration<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddEvent(destination, @event, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with a field declaration of the same signature as the specified symbol added to it.
-        /// </summary>
-        public static TDeclarationNode AddFieldDeclaration<TDeclarationNode>(TDeclarationNode destination, IFieldSymbol field, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddField(destination, field, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with a method declaration of the same signature as the specified symbol added to it.
-        /// </summary>
-        public static TDeclarationNode AddMethodDeclaration<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddMethod(destination, method, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with a property declaration of the same signature as the specified symbol added to it.
-        /// </summary>
-        public static TDeclarationNode AddPropertyDeclaration<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddProperty(destination, property, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with a named type declaration of the same signature as the specified symbol added to it.
-        /// </summary>
-        public static TDeclarationNode AddNamedTypeDeclaration<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddNamedType(destination, namedType, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with multiple member declarations of the same signatures as the specified symbols added to it.
-        /// </summary>
-        public static TDeclarationNode AddMemberDeclarations<TDeclarationNode>(TDeclarationNode destination, IEnumerable<ISymbol> members, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddMembers(destination, members, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with one or more parameter declarations of the same signature as the specified symbols added to it.
-        /// </summary>
-        public static TDeclarationNode AddParameterDeclarations<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<IParameterSymbol> parameters, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destinationMember.Language).AddParameters(destinationMember, parameters, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with the specified attributes added to it.
-        /// </summary>
-        public static TDeclarationNode AddAttributes<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, IEnumerable<AttributeData> attributes, SyntaxToken? target, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).AddAttributes(destination, attributes, target, options, cancellationToken);
-
-        /// <summary>
-        /// Removes the specified attribute node from the given declaration node.
-        /// </summary>
-        public static TDeclarationNode RemoveAttribute<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, AttributeData attributeToRemove, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).RemoveAttribute(destination, attributeToRemove, options, cancellationToken);
-
-        /// <summary>
-        /// Removes the specified attribute node from the given declaration node.
-        /// </summary>
-        public static TDeclarationNode RemoveAttribute<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, SyntaxNode attributeToRemove, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).RemoveAttribute(destination, attributeToRemove, options, cancellationToken);
-
-        public static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, IEnumerable<SyntaxToken> newModifiers, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).UpdateDeclarationModifiers(destination, newModifiers, options, cancellationToken);
-
-        public static TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, Accessibility newAccessibility, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).UpdateDeclarationAccessibility(destination, newAccessibility, options, cancellationToken);
-
-        public static TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).UpdateDeclarationType(destination, newType, options, cancellationToken);
-
-        public static TDeclarationNode UpdateDeclarationMembers<TDeclarationNode>(TDeclarationNode destination, HostWorkspaceServices services, IList<ISymbol> newMembers, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destination.Language).UpdateDeclarationMembers(destination, newMembers, options, cancellationToken);
-
-        /// <summary>
-        /// Create a new declaration node with one or more statements added to its body.
-        /// </summary>
-        public static TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destinationMember, IEnumerable<SyntaxNode> statements, HostWorkspaceServices services, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => GetCodeGenerationService(services, destinationMember.Language).AddStatements(destinationMember, statements, options, cancellationToken);
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional event of the same signature as the specified event symbol.

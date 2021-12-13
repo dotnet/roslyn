@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
             var generator = SyntaxGenerator.GetGenerator(document);
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var services = document.Project.Solution.Workspace.Services;
 
             var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 if (property.Ancestors().Contains(block))
                 {
                     editor.ReplaceNode(block, (currentTypeDecl, _)
-                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, services, codeGenOptions, cancellationToken)
+                        => codeGenerator.AddField(currentTypeDecl, newField, codeGenOptions, cancellationToken)
                         .WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }

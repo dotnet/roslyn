@@ -54,10 +54,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
                 var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, services, options, cancellationToken);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), services, options, cancellationToken)
+                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, options, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), options, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;

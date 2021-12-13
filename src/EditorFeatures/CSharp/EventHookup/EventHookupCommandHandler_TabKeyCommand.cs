@@ -237,13 +237,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var container = (SyntaxNode)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
-            var services = document.Project.Solution.Workspace.Services;
+            var codeGenerator = document.Document.GetRequiredLanguageService<ICodeGenerationService>();
+
             var codeGenOptions = new CodeGenerationOptions(
                 new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()),
                 root.SyntaxTree.Options,
                 documentOptions);
 
-            var newContainer = CodeGenerator.AddMethodDeclaration(container, generatedMethodSymbol, services, codeGenOptions, cancellationToken);
+            var newContainer = codeGenerator.AddMethod(container, generatedMethodSymbol, codeGenOptions, cancellationToken);
 
             return root.ReplaceNode(container, newContainer);
         }
