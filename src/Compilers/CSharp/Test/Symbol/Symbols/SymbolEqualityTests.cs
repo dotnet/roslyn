@@ -940,7 +940,32 @@ void M1<TResult>(Func<object?[], TResult>? f) { }
 
             var p2 = semanticModel2.GetDeclaredSymbol(lambdaSyntax.Parameter);
             VerifyEquality(p1, p2, expectedIncludeNullability: true);
+        }
 
+        [Fact]
+        [WorkItem(58226, "https://github.com/dotnet/roslyn/issues/58226")]
+        public void LambdaSymbol_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var q = from i in new int[] { 4, 5 } where /*pos*/
+    }
+}";
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var syntaxNode = syntaxTree.GetRoot().DescendantNodes().
+                OfType<QueryExpressionSyntax>().Single();
+            var operation = model.GetOperation(syntaxNode);
+            var lambdas = operation.Descendants().OfType<AnonymousFunctionOperation>().
+                Select(op => op.Symbol.GetSymbol<LambdaSymbol>()).ToImmutableArray();
+            Assert.Equal(2, lambdas.Length);
+            var syntaxRefs = lambdas.SelectAsArray(l => l.SyntaxRef);
+            Assert.Equal(syntaxRefs[0].Span, syntaxRefs[1].Span);
+            Assert.NotEqual(lambdas[0], lambdas[1]);
         }
 
         private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedIncludeNullability)
