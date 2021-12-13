@@ -1,6 +1,7 @@
 # Roslyn integration test pipeline for validating against branch builds of VS.
 
 trigger: none # Manual trigger for now
+pr: none # Manual trigger for now
 
 resources:
   pipelines:
