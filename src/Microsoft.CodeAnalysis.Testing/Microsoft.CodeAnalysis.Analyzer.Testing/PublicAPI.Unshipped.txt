@@ -69,6 +69,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(Microsoft.CodeA
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(string id, Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.HasLocation.get -> bool
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Id.get -> string
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.IsSuppressed.get -> bool?
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Message.get -> string
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageArguments.get -> object[]
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageFormat.get -> Microsoft.CodeAnalysis.LocalizableString
@@ -77,6 +78,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.Severity.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Spans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.DiagnosticLocation>
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithArguments(params object[] arguments) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithDefaultPath(string path) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithIsSuppressed(bool? isSuppressed) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLineOffset(int offset) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
