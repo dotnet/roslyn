@@ -20,7 +20,7 @@ Instructions for manually recording with PerfView:
 
 This performance trace performs well for gathering general information during an interval of 100 seconds or more, depending on resource usage during the interval.
 
-    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc,.NETTasks:0:0 -ThreadTime -NoV2Rundown -NoNGenRundown
+    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc -ThreadTime -NoV2Rundown -NoNGenRundown
 
 ## CPU Only
 
@@ -28,7 +28,7 @@ This performance trace gathers CPU usage information only. It supports longer tr
 
 ⚠️ This performance trace is unable to gather information about hangs or UI delays. It should only be used in cases where the General Purpose command failed to produce the desired result.
 
-    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc,.NETTasks:0:0 -NoV2Rundown -NoNGenRundown
+    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc -NoV2Rundown -NoNGenRundown
 
 ## GC Only
 
