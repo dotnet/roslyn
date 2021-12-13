@@ -96,6 +96,7 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LineP
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
 Microsoft.CodeAnalysis.OperationKind.FunctionPointerInvocation = 120 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ImplicitIndexerReference = 123 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation!>
 Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation.Target.get -> Microsoft.CodeAnalysis.IOperation!
@@ -105,6 +106,11 @@ Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAppendInvalid = 118 -> Mi
 Microsoft.CodeAnalysis.OperationKind.InterpolatedStringAppendLiteral = 116 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InterpolatedStringHandlerArgumentPlaceholder = 119 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InterpolatedStringHandlerCreation = 114 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation
+Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation.Argument.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation.IndexerSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation.Instance.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation.LengthSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Left.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation.Right.get -> Microsoft.CodeAnalysis.IOperation!
@@ -195,11 +201,13 @@ virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(strin
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFunctionPointerInvocation(Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitImplicitIndexerReference(Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFunctionPointerInvocation(Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringAddition(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringAppend(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringHandlerArgumentPlaceholder(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStringHandlerCreation(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitImplicitIndexerReference(Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringAddition(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAdditionOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringAppend(Microsoft.CodeAnalysis.Operations.IInterpolatedStringAppendOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringHandlerArgumentPlaceholder(Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerArgumentPlaceholderOperation! operation, TArgument argument) -> TResult?
