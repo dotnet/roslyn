@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasInitializer,
-            ref bool isAutoProperty,
+            bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
             RefKind refKind,
@@ -718,6 +718,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 EnsureAccessorsBinding();
+                return (_propertyFlags & Flags.IsAutoProperty) != 0;
+            }
+        }
+
+        private protected bool IsAutoPropertyWithoutAccessorBinding
+        {
+            get
+            {
                 return (_propertyFlags & Flags.IsAutoProperty) != 0;
             }
         }

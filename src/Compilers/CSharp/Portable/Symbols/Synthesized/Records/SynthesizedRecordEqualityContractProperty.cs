@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string PropertyName = "EqualityContract";
 
         public SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, BindingDiagnosticBag diagnostics)
-            : this(containingType, isAutoProperty: false, diagnostics)
-        {
-        }
-
-        private SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, bool isAutoProperty, BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
@@ -36,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
                 },
                 hasInitializer: false,
-                isAutoProperty: ref isAutoProperty,
+                isAutoProperty: false,
                 isExpressionBodied: false,
                 isInitOnly: false,
                 RefKind.None,

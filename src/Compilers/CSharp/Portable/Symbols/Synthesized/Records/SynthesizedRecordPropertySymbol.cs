@@ -18,17 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSymbol backingParameter,
             bool isOverride,
             BindingDiagnosticBag diagnostics)
-            : this(containingType, syntax, backingParameter, isOverride, isAutoProperty: true, diagnostics)
-        {
-        }
-
-        private SynthesizedRecordPropertySymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            CSharpSyntaxNode syntax,
-            ParameterSymbol backingParameter,
-            bool isOverride,
-            bool isAutoProperty,
-            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: syntax,
@@ -39,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt: null,
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
-                isAutoProperty: ref isAutoProperty,
+                isAutoProperty: true,
                 isExpressionBodied: false,
                 isInitOnly: ShouldUseInit(containingType),
                 RefKind.None,

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
-                isAutoProperty: ref isAutoProperty,
+                isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 syntax.Type.GetRefKind(),
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics)
         {
-            if (isAutoProperty)
+            if (IsAutoPropertyWithoutAccessorBinding)
             {
                 // These features are C# 3 and C# 6 features.
                 // Accessor binding is only important for semi auto property which is C# 11 feature. It's:
