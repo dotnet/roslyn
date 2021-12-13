@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -21,12 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly ImmutableArray<Symbol> _members;
 
-            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTemplateSignature signature, Location location)
-                : base(manager, location)
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTypeDescriptor typeDescr)
+                : base(manager, typeDescr.Location)
             {
-                Signature = signature;
+                // AnonymousTypeOrDelegateComparer requires an actual location.
+                Debug.Assert(SmallestLocation != null);
+                Debug.Assert(SmallestLocation != Location.None);
 
-                int typeParameterCount = signature.TypeParameterCount;
+                int typeParameterCount = typeDescr.TypeParameterCount;
                 TypeMap typeMap;
                 if (typeParameterCount == 0)
                 {
@@ -46,25 +47,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
-                var invokeMethod = createInvokeMethod(this, signature.ParametersAndReturn, typeMap);
+                var invokeMethod = createInvokeMethod(this, typeDescr.Fields, typeMap);
                 _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(
                     AnonymousDelegateTemplateSymbol containingType,
-                    ImmutableArray<AnonymousDelegateParameterOrReturn> parametersAndReturn,
+                    ImmutableArray<AnonymousTypeField> fields,
                     TypeMap typeMap)
                 {
-                    var parameterCount = parametersAndReturn.Length - 1;
+                    var parameterCount = fields.Length - 1;
                     var parameterTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(parameterCount);
                     var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        var parameterOrReturn = parametersAndReturn[i];
+                        var parameterOrReturn = fields[i];
                         parameterTypes.Add(typeMap.SubstituteType(parameterOrReturn.Type));
                         parameterRefKinds.Add(parameterOrReturn.RefKind);
                     }
 
-                    var returnParameter = parametersAndReturn[^1];
+                    var returnParameter = fields[^1];
                     var returnType = typeMap.SubstituteType(returnParameter.Type);
                     var returnRefKind = returnParameter.RefKind;
 
@@ -75,11 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal AnonymousDelegateTemplateSignature Signature { get; }
-
-            internal override AnonymousTypeKey GetAnonymousTypeKey() => throw new NotImplementedException(); // PROTOTYPE: Remove.
-
-            // PROTOTYPE:
+            // AnonymousTypeOrDelegateComparer should not be calling this property for delegate
+            // types since AnonymousTypeOrDelegateComparer is only used during emit and we
+            // should only be emitting delegate types inferred from distinct locations in source.
             internal override string TypeDescriptorKey => throw new System.NotImplementedException();
 
             public override TypeKind TypeKind => TypeKind.Delegate;

@@ -502,17 +502,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
 
-        internal virtual ImmutableArray<AnonymousTypeManager.AnonymousDelegateTemplateSignature> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray<AnonymousTypeManager.AnonymousDelegateTemplateSignature>.Empty;
-        }
-
-        internal virtual int GetNextAnonymousTypeIndex(bool fromDelegates)
+        internal virtual int GetNextAnonymousTypeIndex()
         {
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out string name, out int index)
+        internal virtual bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 

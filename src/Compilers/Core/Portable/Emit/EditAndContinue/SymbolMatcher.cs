@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,9 +16,6 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.ITypeReference? MapReference(Cci.ITypeReference reference);
         public abstract Cci.IDefinition? MapDefinition(Cci.IDefinition definition);
         public abstract Cci.INamespace? MapNamespace(Cci.INamespace @namespace);
-        public abstract IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> MapAnonymousDelegates(
-            Compilation targetCompilation,
-            IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> anonymousDelegates);
 
         public ISymbolInternal? MapDefinitionOrNamespace(ISymbolInternal symbol)
         {
@@ -66,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
                 synthesizedDelegates: MapSynthesizedDelegates(baseline.SynthesizedDelegates),
-                anonymousDelegates: MapAnonymousDelegates(targetCompilation, baseline.AnonymousDelegates),
+                anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
                 synthesizedMembers: mappedSynthesizedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider,
@@ -110,6 +106,20 @@ namespace Microsoft.CodeAnalysis.Emit
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousTypeMap)
+            {
+                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
+                RoslynDebug.Assert(type != null);
+                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+            }
+
+            return result;
+        }
+
+        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegates(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        {
+            var result = new Dictionary<string, AnonymousTypeValue>();
+
+            foreach (var (key, value) in anonymousDelegates)
             {
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
                 RoslynDebug.Assert(type != null);

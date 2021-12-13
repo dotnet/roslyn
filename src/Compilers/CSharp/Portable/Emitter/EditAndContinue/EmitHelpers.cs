@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -82,25 +83,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                // Map the definitions from the previous compilation to the current compilation.
-                // This must be done after compiling above since synthesized definitions
-                // (generated when compiling method bodies) may be required.
-                var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
+                if (!ContainsAnonymousDelegates(definitionMap, baseline.AnonymousDelegates, moduleBeingBuilt.GetAnonymousDelegates()))
+                {
+                    diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
+                }
+                else
+                {
+                    // Map the definitions from the previous compilation to the current compilation.
+                    // This must be done after compiling above since synthesized definitions
+                    // (generated when compiling method bodies) may be required.
+                    var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
 
-                newBaseline = compilation.SerializeToDeltaStreams(
-                    moduleBeingBuilt,
-                    mappedBaseline,
-                    definitionMap,
-                    changes,
-                    metadataStream,
-                    ilStream,
-                    pdbStream,
-                    updatedMethods,
-                    changedTypes,
-                    diagnostics,
-                    testData?.SymWriterFactory,
-                    emitOptions.PdbFilePath,
-                    cancellationToken);
+                    newBaseline = compilation.SerializeToDeltaStreams(
+                        moduleBeingBuilt,
+                        mappedBaseline,
+                        definitionMap,
+                        changes,
+                        metadataStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        changedTypes,
+                        diagnostics,
+                        testData?.SymWriterFactory,
+                        emitOptions.PdbFilePath,
+                        cancellationToken);
+                }
             }
 
             return new EmitDifferenceResult(
@@ -109,6 +117,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 baseline: newBaseline,
                 updatedMethods: updatedMethods.ToImmutableAndFree(),
                 changedTypes: changedTypes.ToImmutableAndFree());
+        }
+
+        private static bool ContainsAnonymousDelegates(
+            CSharpDefinitionMap definitionMap,
+            IReadOnlyDictionary<string, AnonymousTypeValue> previousDictionary,
+            IReadOnlyDictionary<string, AnonymousTypeValue> currentDictionary)
+        {
+            if (previousDictionary.Count == 0)
+            {
+                return true;
+            }
+
+            if (previousDictionary.Count > currentDictionary.Count)
+            {
+                return false;
+            }
+
+            var currentTypes = getTypes(currentDictionary).ToDictionary(t => getName(t));
+            var previousTypes = getTypes(previousDictionary);
+            foreach (var previousType in previousTypes)
+            {
+                if (!currentTypes.TryGetValue(getName(previousType), out var currentType) ||
+                    definitionMap.MapDefinition(currentType) is null)
+                {
+                    return false;
+                }
+            }
+            return true;
+
+            static IEnumerable<Cci.ITypeDefinition> getTypes(IReadOnlyDictionary<string, AnonymousTypeValue> dictionary) => dictionary.Values.Select(v => v.Type);
+            static string? getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name;
         }
 
         /// <summary>
@@ -174,47 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 compilation,
                 moduleBeingBuilt,
                 mappedSynthesizedMembers);
-        }
-
-        internal static IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> MapAnonymousDelegateTypesToCompilation(
-            CSharpCompilation compilation,
-            PEDeltaAssemblyBuilder moduleBeingBuilt)
-        {
-            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
-
-            var previousAnonymousDelegates = previousGeneration.AnonymousDelegates;
-
-            if (previousGeneration.Ordinal == 0)
-            {
-                // Initial generation, nothing to map. (Since the initial generation
-                // is always loaded from metadata in the context of the current
-                // compilation, there's no separate mapping step.)
-                return previousAnonymousDelegates;
-            }
-
-            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
-            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
-
-            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-
-            var synthesizedDelegates = moduleBeingBuilt.GetSynthesizedDelegates();
-            var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-
-            var matcher = new CSharpSymbolMatcher(
-                // PROTOTYPE: Not including anonymous types from module being built because NameAndIndex haven't been calculated yet.
-                anonymousTypeMap: SpecializedCollections.EmptyReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>(),
-                anonymousDelegateMap: SpecializedCollections.EmptyReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue>(),
-                synthesizedDelegates,
-                sourceAssembly,
-                sourceContext,
-                compilation.SourceAssembly,
-                otherContext,
-                currentSynthesizedMembers);
-
-            return matcher.MapAnonymousDelegates(compilation, previousAnonymousDelegates);
         }
     }
 }

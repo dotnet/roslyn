@@ -2721,7 +2721,7 @@ class Program
         }
 
         [Fact]
-        public void SystemIntPtr_Missing()
+        public void SystemIntPtr_Missing_01()
         {
             var sourceA =
 @"namespace System
@@ -2754,6 +2754,42 @@ class Program
                 // (6,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
                 //         d = (ref int i) => i;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(ref int i) => i").WithArguments("System.IntPtr").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void SystemIntPtr_Missing_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public abstract class Delegate { }
+    public abstract class MulticastDelegate : Delegate { }
+}";
+            var sourceB =
+@"class Program
+{
+    static unsafe void Main()
+    {
+        System.Delegate d;
+        d = (int* p) => p;
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.IntPtr").WithLocation(1, 1),
+                // (6,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //         d = (int* p) => p;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int* p) => p").WithArguments("System.IntPtr").WithLocation(6, 13));
         }
 
         [Fact]
@@ -9107,10 +9143,6 @@ unsafe class C<T>
 ");
         }
 
-        // PROTOTYPE: Test type parameters where one depends on the other (in constraints).
-        // PROTOTYPE: Test different number of type parameters that aren't used in the signature.
-        // PROTOTYPE: Test same number of type parameters that may or may not be used in the signature, with same or different constraints.
-
         [Fact]
         public void SynthesizedDelegateTypes_32()
         {
@@ -9197,6 +9229,173 @@ struct S<U>
 <>f__AnonymousDelegate1`2[System.Int32,System.String]
 (3, System.Int32, System.String)
 <>f__AnonymousDelegate1`2[System.String,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_34()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(A<int>.B<string>.M1<object>());
+        Report(A<int>.M2());
+        Report(A<int>.M3<string>());
+        Report(A<int>.M4<string, object>());
+        Report(A<string>.B<object>.M1<int>());
+        Report(A<string>.M2());
+        Report(A<string>.M3<object>());
+        Report(A<string>.M4<object, int>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct A<T>
+{
+    internal class B<U>
+    {
+        internal unsafe static Delegate M1<V>()
+        {
+            var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U), typeof(V))); };
+            d.Invoke((int*)1);
+            return d;
+        }
+    }
+    internal unsafe static Delegate M2()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T))); };
+        d.Invoke((int*)2);
+        return d;
+    }
+    internal unsafe static Delegate M3<U>()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); };
+        d.Invoke((int*)3);
+        return d;
+    }
+    internal unsafe static Delegate M4<U, V>()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U), typeof(V))); };
+        d.Invoke((int*)4);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String, System.Object)
+<>f__AnonymousDelegate0`3[System.Int32,System.String,System.Object]
+(2, System.Int32)
+<>f__AnonymousDelegate1`1[System.Int32]
+(3, System.Int32, System.String)
+<>f__AnonymousDelegate2`2[System.Int32,System.String]
+(4, System.Int32, System.String, System.Object)
+<>f__AnonymousDelegate0`3[System.Int32,System.String,System.Object]
+(1, System.String, System.Object, System.Int32)
+<>f__AnonymousDelegate0`3[System.String,System.Object,System.Int32]
+(2, System.String)
+<>f__AnonymousDelegate1`1[System.String]
+(3, System.String, System.Object)
+<>f__AnonymousDelegate2`2[System.String,System.Object]
+(4, System.String, System.Object, System.Int32)
+<>f__AnonymousDelegate0`3[System.String,System.Object,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Constraints_01()
+        {
+            var source =
+@"using System;
+class A
+{
+    internal void F<T>(T? t) where T : struct
+    {
+        Console.WriteLine((typeof(T), t.HasValue ? t.Value.ToString() : ""<null>""));
+    }
+}
+struct S
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A();
+        Report(M(a, 1));
+        Report(M(a, (short)2));
+        Report(M(a, new S()));
+    }
+    static void Report(Delegate d)
+    {
+        Console.WriteLine(d.GetType());
+    }
+    unsafe static Delegate M<T, U>(T t, U u)
+        where T : A
+        where U : struct
+    {
+        var d = void (int* p, T t, U? u) =>
+        {
+            t.F(u);
+        };
+        d.Invoke((int*)0, t, u);
+        d.Invoke((int*)1, t, default(U?));
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(System.Int32, 1)
+(System.Int32, <null>)
+<>f__AnonymousDelegate0`2[A,System.Int32]
+(System.Int16, 2)
+(System.Int16, <null>)
+<>f__AnonymousDelegate0`2[A,System.Int16]
+(S, S)
+(S, <null>)
+<>f__AnonymousDelegate0`2[A,S]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Constraints_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(M1(new object(), string.Empty));
+        Report(M1(new object(), 1));
+        Report(M2(2, new object()));
+        Report(M2((short)3, (long)4));
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+    unsafe static Delegate M1<T, U>(T t, U u)
+        where T : class
+        where U : T
+    {
+        var d = void (int* x, T y, U z) => { Console.WriteLine(((int)x, y.GetType(), z.GetType())); };
+        d.Invoke((int*)1, t, u);
+        return d;
+    }
+    unsafe static Delegate M2<T, U>(T t, U u)
+        where T : struct
+    {
+        var d = void (int* x, T y, U z) => { Console.WriteLine(((int)x, y.GetType(), z.GetType())); };
+        d.Invoke((int*)2, t, u);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Object, System.String)
+<>f__AnonymousDelegate0`2[System.Object,System.String]
+(1, System.Object, System.Int32)
+<>f__AnonymousDelegate0`2[System.Object,System.Int32]
+(2, System.Int32, System.Object)
+<>f__AnonymousDelegate0`2[System.Int32,System.Object]
+(2, System.Int16, System.Int64)
+<>f__AnonymousDelegate0`2[System.Int16,System.Int64]
 ");
         }
 

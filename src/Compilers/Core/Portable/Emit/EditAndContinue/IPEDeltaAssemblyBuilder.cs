@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Emit
         void OnCreatedIndices(DiagnosticBag diagnostics);
         IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap();
         IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> GetSynthesizedDelegates();
-        IReadOnlyDictionary<AnonymousDelegateKey, AnonymousTypeValue> GetAnonymousDelegates();
+        IReadOnlyDictionary<string, AnonymousTypeValue> GetAnonymousDelegates();
     }
 }

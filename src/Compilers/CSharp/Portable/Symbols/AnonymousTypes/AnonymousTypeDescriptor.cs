@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var field in fields)
             {
                 key.Builder.Append('|');
-                key.Builder.Append(getName(field)); // PROTOTYPE: Ignoring field.RefKind.
+                key.Builder.Append(getName(field));
             }
             return key.ToStringAndFree();
         }
@@ -91,10 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            // PROTOTYPE: This is not sufficient to differentiate synthesized delegates with parameter or return types
-            // that cannot be used as type arguments since parameters are unnamed. It is however sufficient to
-            // differentiate synthesized delegates where all parameter and return types are valid type arguments,
-            // since all of those are constructed from a single generic delegate type.
             return this.Key.GetHashCode();
         }
 
