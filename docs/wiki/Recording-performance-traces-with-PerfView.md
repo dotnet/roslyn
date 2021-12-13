@@ -10,7 +10,7 @@ In some scenarios, users may wish to collect performance traces using the PerfVi
 
 Instructions for manually recording with PerfView:
 
-1. Download [PerfView](http://www.microsoft.com/en-us/download/details.aspx?id=28567) and save it to a temporary directory
+1. Download [PerfView](https://github.com/Microsoft/perfview/blob/main/documentation/Downloading.md) and save it to a temporary directory
 1. If using one of the predefined command lines below, review the section to identify the best time to start and stop measuring for the problem at hand and type of recording
 1. Create the directory **C:\temp** if it doesn't exist (or change the following instructions to use a different directory)
 1. From an administrative command prompt, start a PerfView collection using one of the command line sequences from defined below
