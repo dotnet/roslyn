@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNulla
                 return solution;
             };
 
+        private static readonly Func<Solution, ProjectId, Solution> s_enableNullableInFixedSolutionFromDisableKeyword =
+            s_enableNullableInFixedSolutionFromRestoreKeyword;
+
         [Theory]
         [InlineData("$$#nullable enable")]
         [InlineData("#$$nullable enable")]
@@ -712,16 +715,103 @@ class Example4
         [InlineData("#nullable $$disable")]
         [InlineData("#nullable dis$$able")]
         [InlineData("#nullable disable$$")]
-        public async Task DisabledOnNullableDisable(string directive)
+        public async Task EnabledOnNullableDisable(string directive)
         {
-            var code = $@"
+            var code1 = $@"
 {directive}
+
+class Example
+{{
+  string value;
+}}
+
+#nullable restore
+";
+            var code2 = @"
+class Example2
+{
+  string value;
+}
+";
+            var code3 = @"
+class Example3
+{
+#nullable enable
+  string? value;
+#nullable restore
+}
+";
+            var code4 = @"
+#nullable disable
+
+class Example4
+{
+  string value;
+}
+";
+
+            var fixedDirective = directive.Replace("$$", "");
+
+            var fixedCode1 = $@"
+{fixedDirective}
+
+class Example
+{{
+  string value;
+}}
+
+#nullable disable
+";
+            var fixedCode2 = @"
+#nullable disable
+
+class Example2
+{
+  string value;
+}
+";
+            var fixedCode3 = @"
+#nullable disable
+
+class Example3
+{
+#nullable restore
+  string? value;
+#nullable disable
+}
+";
+            var fixedCode4 = @"
+#nullable disable
+
+class Example4
+{
+  string value;
+}
 ";
 
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = code,
+                TestState =
+                {
+                    Sources =
+                    {
+                        code1,
+                        code2,
+                        code3,
+                        code4,
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedCode1,
+                        fixedCode2,
+                        fixedCode3,
+                        fixedCode4,
+                    },
+                },
+                SolutionTransforms = { s_enableNullableInFixedSolutionFromDisableKeyword },
             }.RunAsync();
         }
     }
