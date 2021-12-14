@@ -277,7 +277,6 @@ class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (8,22): error CS1003: Syntax error, ',' expected
                     //     void M2(__arglist!!)
-                    // PROTOTYPE(BangBang): Perhaps have the error target both !s.
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
         }
 
@@ -744,7 +743,7 @@ class C
             compilation.VerifyDiagnostics(
                     // (5,26): warning CS8721: Nullable value type 'T?' is null-checked and will throw if null.
                     //     static void M2<T>(T? t!! = default) where T : struct { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(5, 26),
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t").WithArguments("T?").WithLocation(5, 26),
                     // (6,25): warning CS8719: Parameter 't' is null-checked but is null by default.
                     //     static void M3<T>(T t!! = default) where T : class { }
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "t").WithArguments("t").WithLocation(6, 25));
@@ -764,7 +763,7 @@ class C
             compilation.VerifyDiagnostics(
                     // (4,24): error CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //     static void M(int? i!!) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "i").WithArguments("int?").WithLocation(4, 24));
         }
 
         [Fact]
@@ -794,7 +793,7 @@ class B3 : A<int?>
                     Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35),
                     // (16,35): warning CS8721: Nullable value type 'U' is null-checked and will throw if null.
                     //     internal override void F<U>(U u!! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "u").WithArguments("U").WithLocation(16, 35));
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "u").WithArguments("U").WithLocation(16, 35));
         }
 
         [Fact]
@@ -913,7 +912,7 @@ class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (7,21): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //         void M(int? x!!) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(7, 21));
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "x").WithArguments("int?").WithLocation(7, 21));
         }
 
         [Fact]
@@ -1006,6 +1005,54 @@ class Program
                     // (7,47): error CS8652: The feature 'parameter null-checking' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         Func<string, string, string> func = (x!!, y) => x;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "!!").WithArguments("parameter null-checking").WithLocation(7, 47));
+        }
+
+        [Fact]
+        public void TestNullCheckedParameterUpdatesFlowState()
+        {
+            var source =
+@"
+#nullable enable
+
+class Program
+{
+    string M(string? s!!) // 1
+    {
+        return s;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //     string M(string? s!!) // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string?").WithLocation(6, 22));
+        }
+
+        [Theory]
+        [InlineData("!!")]
+        [InlineData("")]
+        public void TestNullCheckedParameterDoesNotAffectNullableVarianceChecks(string nullCheckAnnotation)
+        {
+            var source =
+@"
+#nullable enable
+
+class Base
+{
+    #pragma warning disable 8995 // WRN_NullCheckingOnNullableType
+    public virtual void M(string? s" + nullCheckAnnotation + @") { }
+}
+
+class Derived : Base
+{
+    public override void M(string s) { } // 1
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,26): warning CS8765: Nullability of type of parameter 's' doesn't match overridden member (possibly because of nullability attributes).
+                //     public override void M(string s) { } // 1
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("s").WithLocation(12, 26)
+            );
         }
     }
 }
