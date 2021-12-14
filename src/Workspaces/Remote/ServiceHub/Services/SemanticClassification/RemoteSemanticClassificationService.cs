@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (isFullyLoaded)
                 {
-                    // WOnce full loaded, there's no need for us to keep around any of the data we cached in-memory
+                    // Once full loaded, there's no need for us to keep around any of the data we cached in-memory
                     // during the time the solution was loading.
                     lock (_cachedData)
                         _cachedData.Clear();
