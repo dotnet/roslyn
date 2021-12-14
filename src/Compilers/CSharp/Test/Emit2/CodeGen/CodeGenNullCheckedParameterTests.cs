@@ -1882,7 +1882,7 @@ class Derived : Base
     public void M1(string x) { }
     public void M2(string x!!) { }
 }";
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.NetCoreApp);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Base.M1", @"
@@ -1934,7 +1934,7 @@ class Derived : Base
     public void M1(string x!!) { }
     void Base.M2(string x!!) { }
 }";
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerify(source);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Derived.M1", @"
@@ -1987,7 +1987,7 @@ catch (ArgumentNullException)
 record Record(string Prop1!!, string Prop2!!);
 record struct RecordStruct(string Prop1!!, string Prop2!!);
 ";
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "1234");
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, verify: Verification.Skipped, expectedOutput: "1234");
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Record..ctor(string, string)", @"
