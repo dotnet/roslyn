@@ -58,13 +58,14 @@ internal sealed partial class DelegateCacheRewriter
     private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
         Debug.Assert(_factory.ModuleBuilderOpt is { });
+        Debug.Assert(_factory.CurrentFunction is { });
 
         var typeCompilationState = _factory.CompilationState;
         var generation = _factory.ModuleBuilderOpt.CurrentGenerationOrdinal;
 
         DelegateCacheContainer? container;
 
-        if (AConcreteContainerIsEnough(delegateType, targetMethod))
+        if (CanUseConcreteCacheContainer(delegateType, targetMethod))
         {
             container = typeCompilationState.ConcreteDelegateCacheContainer;
 
@@ -90,7 +91,7 @@ internal sealed partial class DelegateCacheRewriter
                 return containersStack.Peek().CacheContainer;
             }
 
-            container = new(_factory.CurrentFunction ?? _topLevelMethod, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
+            container = new(_factory.CurrentFunction, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
             containersStack.Push((localFunctionOrdinal, container));
         }
 
@@ -99,16 +100,18 @@ internal sealed partial class DelegateCacheRewriter
         return container;
     }
 
-    private bool AConcreteContainerIsEnough(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    private bool CanUseConcreteCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
     {
         // Possible places for type parameters that can act as type arguments to construct the delegateType or targetMethod:
         //   1. containing types
-        //   2. current method
+        //   2. top level method
         //   3. local functions
-        // Since our containers are created within the same enclosing type, we can ignore type parameters from it.
+        // Since our containers are created within the same enclosing types, we can ignore type parameters from them.
+
+        Debug.Assert(_factory.CurrentFunction is { });
 
         // Obviously,
-        if (_factory is { CurrentFunction: null, TopLevelMethod.Arity: 0 })
+        if (_topLevelMethod.Arity == 0 && (object)_factory.CurrentFunction == _topLevelMethod)
         {
             return true;
         }
@@ -116,8 +119,6 @@ internal sealed partial class DelegateCacheRewriter
         var methodTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            methodTypeParameters.AddAll(_topLevelMethod.TypeParameters);
-
             for (Symbol? s = _factory.CurrentFunction; s is MethodSymbol m; s = s.ContainingSymbol)
             {
                 methodTypeParameters.AddAll(m.TypeParameters);
@@ -126,6 +127,26 @@ internal sealed partial class DelegateCacheRewriter
             if (methodTypeParameters.Count == 0)
             {
                 return true;
+            }
+
+            if (targetMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                // Local functions can reference type parameters from their enclosing methods!
+                //
+                // For example:
+                //   void Test<T>()
+                //   {
+                //       var t = Target<int>;
+                //       static object Target<V>() => default(T);
+                //   }
+                //
+                // Therefore, unless no method type parameters for the target local function to use,
+                // we cannot safely use a concrete cache container without some deep analysis.
+
+                // And because we've just found that
+                Debug.Assert(methodTypeParameters.Count != 0);
+
+                return false;
             }
 
             var checker = TypeParameterUsageChecker.Instance;

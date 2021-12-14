@@ -4021,6 +4021,104 @@ class C
     }
 
     [Fact]
+    public void TopLevelStatement_Lambda_Local_LocalFunctions_MethodScoped0()
+    {
+        var source = @"
+using System;
+
+Action y = () =>
+{
+    void Test() { /* Test method ordinals in generated names */ }
+    Test();
+};
+Action x = () =>
+{
+    void Test<T>(T t)
+    {
+        Func<T, dynamic> f = Target<T>;
+        f(t);
+
+        static dynamic Target<G>(G g) => 0;
+    }
+
+    Test(0);
+};
+
+x();
+y();
+";
+        CompileAndVerify(source).VerifyIL("Program.<<Main>$>g__Test|0_3<T>", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T, dynamic> Program.<Test>O__0_1<T>.<0>__Target""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""dynamic Program.<<Main>$>g__Target|0_4<T, T>(T)""
+  IL_0010:  newobj     ""System.Func<T, dynamic>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<T, dynamic> Program.<Test>O__0_1<T>.<0>__Target""
+  IL_001b:  ldarg.0
+  IL_001c:  callvirt   ""dynamic System.Func<T, dynamic>.Invoke(T)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+    }
+
+    [Fact]
+    public void TopLevelStatement_Lambda_Local_LocalFunctions_MethodScoped1()
+    {
+        var source = @"
+var y = () =>
+{
+    void Test() { /* Test method ordinals in generated names */ }
+    Test();
+};
+var x = () =>
+{
+    void Test<T>(T t)
+    {
+        var f = Target<int>;
+        f(0);
+
+        static dynamic Target<G>(G g)
+        {
+            T f = default;
+            return f;
+        }
+    }
+
+    Test(false);
+};
+
+x();
+y();
+";
+        CompileAndVerify(source).VerifyIL("Program.<<Main>$>g__Test|0_3<T>", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<int, dynamic> Program.<Test>O__0_1<T>.<0>__Target""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""dynamic Program.<<Main>$>g__Target|0_4<T, int>(int)""
+  IL_0010:  newobj     ""System.Func<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<int, dynamic> Program.<Test>O__0_1<T>.<0>__Target""
+  IL_001b:  ldc.i4.0
+  IL_001c:  callvirt   ""dynamic System.Func<int, dynamic>.Invoke(int)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+    }
+
+    [Fact]
     public void TestConditionalOperatorMethodGroup()
     {
         var source = @"
