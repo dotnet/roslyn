@@ -455,7 +455,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
                     : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
 
-
                 var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, codeGenOptions, cancellationToken);
                 Contract.ThrowIfNull(newMethodDeclaration);
                 return newMethodDeclaration;
