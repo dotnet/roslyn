@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferences = await CodeGenerationPreferences.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out var newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }
@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var options = new CodeGenerationOptions(
                     new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation()),
-                    root.SyntaxTree.Options,
-                    documentOptions);
+                    preferences);
 
                 return codeGenService.AddStatements(
                     root,

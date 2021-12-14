@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -157,8 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var documentWithNameAndAnnotationsAdded = AddMethodNameAndAnnotationsToSolution(document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken);
             var semanticDocument = SemanticDocument.CreateAsync(documentWithNameAndAnnotationsAdded, cancellationToken).WaitAndGetResult(cancellationToken);
-            var documentOptions = semanticDocument.Document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, documentOptions, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
+            var preferences = CSharpCodeGenerationPreferences.FromDocumentAsync(semanticDocument.Document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, preferences, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
             if (updatedRoot == null)
             {
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private static SyntaxNode AddGeneratedHandlerMethodToSolution(
             SemanticDocument document,
-            OptionSet documentOptions,
+            CSharpCodeGenerationPreferences preferences,
             string eventHandlerMethodName,
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
@@ -241,8 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var codeGenOptions = new CodeGenerationOptions(
                 new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()),
-                root.SyntaxTree.Options,
-                documentOptions);
+                preferences);
 
             var newContainer = codeGenerator.AddMethod(container, generatedMethodSymbol, codeGenOptions, cancellationToken);
 

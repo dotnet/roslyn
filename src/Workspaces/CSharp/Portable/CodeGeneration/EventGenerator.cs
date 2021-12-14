@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddEventTo(
             CompilationUnitSyntax destination,
             IEventSymbol @event,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool> availableIndices,
             CancellationToken cancellationToken)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddEventTo(
             TypeDeclarationSyntax destination,
             IEventSymbol @event,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MemberDeclarationSyntax GenerateEventDeclaration(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
+            IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(@event, options);
             if (reusableSyntax != null)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
         {
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(@event,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MemberDeclarationSyntax GenerateEventDeclarationWorker(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorListSyntax GenerateAccessorList(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
         {
             var accessors = new List<AccessorDeclarationSyntax?>
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol? accessor,
             SyntaxKind kind,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var hasBody = options.Context.GenerateMethodBodies && HasAccessorBodies(@event, destination, accessor);
             return accessor == null
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 

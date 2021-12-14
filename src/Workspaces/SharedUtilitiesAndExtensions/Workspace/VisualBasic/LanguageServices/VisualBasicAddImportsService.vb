@@ -6,17 +6,12 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
     <ExportLanguageService(GetType(IAddImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -63,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Protected Overrides Function PlaceImportsInsideNamespaces(options As OptionSet) As Boolean
+        Protected Overrides Function PlaceImportsInsideNamespaces(preferences As CodeGenerationPreferences) As Boolean
             ' Visual Basic doesn't support imports inside namespaces
             Return False
         End Function

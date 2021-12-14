@@ -29,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 new CodeGenerationContext(
                     generateDefaultAccessibility: generateDefaultAccessibility,
                     generateMethodBodies: generateMethodBodies),
-                ParseOptions: containerNode.SyntaxTree.Options,
-                Options: options ?? Workspace.Options);
+                CodeGenerationService.GetPreferences(containerNode.SyntaxTree.Options, options ?? Workspace.Options));
         }
 
         protected SyntaxNode CreateConstructorDeclaration(SyntaxNode containerNode, string typeName, EnvDTE.vsCMAccess access)

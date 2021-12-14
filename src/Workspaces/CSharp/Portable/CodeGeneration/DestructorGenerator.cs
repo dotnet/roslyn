@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddDestructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol destructor,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
-            IMethodSymbol destructor, CodeGenerationOptions options, CancellationToken cancellationToken)
+            IMethodSymbol destructor, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
             if (reusableSyntax != null)

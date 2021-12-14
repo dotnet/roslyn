@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
             ArrayBuilder<SyntaxToken> tokens,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
             if (!options.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
             TSyntaxNode node,
             ISymbol symbol,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         /// Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
         /// Note: the returned syntax node might be modified, which means its parent information might be missing.
         /// </summary>
-        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options) where T : SyntaxNode
+        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationOptions options) where T : SyntaxNode
         {
             Contract.ThrowIfNull(symbol);
 

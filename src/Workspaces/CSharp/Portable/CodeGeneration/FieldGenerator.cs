@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddFieldTo(
             CompilationUnitSyntax destination,
             IFieldSymbol field,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddFieldTo(
             TypeDeclarationSyntax destination,
             IFieldSymbol field,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static FieldDeclarationSyntax GenerateFieldDeclaration(
-            IFieldSymbol field, CodeGenerationOptions options, CancellationToken cancellationToken)
+            IFieldSymbol field, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<FieldDeclarationSyntax>(field, options);
             if (reusableSyntax != null)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 

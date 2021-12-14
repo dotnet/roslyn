@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static ParameterListSyntax GenerateParameterList(
             ImmutableArray<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             return GenerateParameterList((IEnumerable<IParameterSymbol>)parameterDefinitions, isExplicit, options);
         }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static ParameterListSyntax GenerateParameterList(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var parameters = GetParameters(parameterDefinitions, isExplicit, options);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
             ImmutableArray<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             return GenerateBracketedParameterList((IList<IParameterSymbol>)parameterDefinitions, isExplicit, options);
         }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             // Bracketed parameter lists come from indexers.  Those don't have type parameters, so we
             // could never have a typeParameterMapping.
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ImmutableArray<ParameterSyntax> GetParameters(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var result = ArrayBuilder<ParameterSyntax>.GetInstance();
             var seenOptional = false;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result.ToImmutableAndFree();
         }
 
-        internal static ParameterSyntax GetParameter(IParameterSymbol p, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
+        internal static ParameterSyntax GetParameter(IParameterSymbol p, CSharpCodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(p, options);
             if (reusableSyntax != null)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options)
+            IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationOptions options)
         {
             if (isExplicit)
             {

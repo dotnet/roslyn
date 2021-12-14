@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
             IMethodSymbol constructor,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, ConstructorDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, ConstructorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
                     declaration.Kind(), CSharpCodeGenerationService.GetLanguageVersion(options), expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.Block(statements);
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 

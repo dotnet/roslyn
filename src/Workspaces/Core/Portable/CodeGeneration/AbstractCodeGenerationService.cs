@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             _symbolDeclarationService = symbolDeclarationService;
         }
+
+        public abstract CodeGenerationPreferences GetPreferences(ParseOptions parseOptions, OptionSet documentOptions);
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
             => WithAnnotations(AddEvent(destination, @event, options, GetAvailableInsertionIndices(destination, cancellationToken), cancellationToken), options);
@@ -179,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var destinationTree = destinationDeclaration.SyntaxTree;
             var oldDocument = solution.GetRequiredDocument(destinationTree);
-            var documentOptions = await oldDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = new CodeGenerationOptions(context, destinationTree.Options, documentOptions);
+            var options = await CodeGenerationOptions.FromDocumentAsync(context, oldDocument, cancellationToken).ConfigureAwait(false);
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var root = await destinationTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

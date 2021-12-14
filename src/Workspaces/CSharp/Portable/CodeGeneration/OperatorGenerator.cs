@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddOperatorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, options);
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, OperatorDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, OperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
 

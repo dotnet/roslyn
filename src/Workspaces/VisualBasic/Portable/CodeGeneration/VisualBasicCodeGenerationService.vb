@@ -9,18 +9,24 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+
     Friend Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService
 
         Public Sub New(provider As HostLanguageServices)
             MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
         End Sub
+
+        Public Overrides Function GetPreferences(parseOptions As ParseOptions, documentOptions As OptionSet) As CodeGenerationPreferences
+            Return New VisualBasicCodeGenerationPreferences(documentOptions)
+        End Function
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
             Return VisualBasicCodeGenerationHelpers.GetDestination(containerNode)

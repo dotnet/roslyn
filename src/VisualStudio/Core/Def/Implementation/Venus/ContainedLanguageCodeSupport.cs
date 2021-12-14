@@ -219,8 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var options = new CodeGenerationOptions(
                 new CodeGenerationContext(autoInsertionLocation: false),
-                targetSyntaxTree.Options,
-                documentOptions);
+                codeGenerationService.GetPreferences(targetSyntaxTree.Options, documentOptions));
 
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);

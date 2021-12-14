@@ -109,8 +109,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         new CodeGenerationContext(
                             generateDefaultAccessibility: false,
                             generateMethodBodies: true),
-                        ParseOptions: destination.SyntaxTree.Options,
-                        Options: Options);
+                        codeGenerationService.GetPreferences(destination.SyntaxTree.Options, Options));
 
                     var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, options, cancellationToken);
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, options, cancellationToken);
@@ -127,8 +126,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             afterThisLocation: previousMemberNode.GetLocation(),
                             generateDefaultAccessibility: true,
                             generateMethodBodies: true),
-                        ParseOptions: destination.SyntaxTree.Options,
-                        Options: Options);
+                        codeGenerationService.GetPreferences(destination.SyntaxTree.Options, Options));
 
                     newContainer = codeGenerationService.AddMethod(destination, result.Data, options, cancellationToken);
                 }

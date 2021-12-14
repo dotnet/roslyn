@@ -6,11 +6,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal interface ICodeGenerationService : ILanguageService
     {
+        CodeGenerationPreferences GetPreferences(ParseOptions parseOptions, OptionSet documentOptions);
+
         /// <summary>
         /// Returns a newly created event declaration node from the provided event.
         /// </summary>

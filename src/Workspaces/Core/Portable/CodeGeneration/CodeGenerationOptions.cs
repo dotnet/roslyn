@@ -6,28 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    /// <summary>
-    /// Document-specific options for controlling the code produced by the <see cref="CodeGenerator"/>.
-    /// </summary>
     internal readonly record struct CodeGenerationOptions(
         CodeGenerationContext Context,
-        ParseOptions ParseOptions,
-        OptionSet Options)
+        CodeGenerationPreferences Preferences)
     {
         public static async ValueTask<CodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
-        {
-            var parseOptions = document.DocumentState.ParseOptions;
-            Contract.ThrowIfNull(parseOptions);
-
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new CodeGenerationOptions(context, parseOptions, documentOptions);
-        }
+            => new(context, await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>

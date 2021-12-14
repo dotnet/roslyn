@@ -51,13 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             CodeGenerationOptions options, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
+            var csharpOptions = (CSharpCodeGenerationOptions)options;
+
             // C# might have trivia with the accessors that needs to be preserved.  
             // so we will update the existing accessors instead of creating new ones
             var accessorListSyntax = ((PropertyDeclarationSyntax)property).AccessorList;
             var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(options, getAccessor, getAccessorStatement);
+            var newGetter = GetUpdatedAccessor(csharpOptions, getAccessor, getAccessorStatement);
 
             SyntaxNode newSetter = null;
             if (setAccessor != null)
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(options, setAccessor, setAccessorStatement);
+                newSetter = GetUpdatedAccessor(csharpOptions, setAccessor, setAccessorStatement);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -77,22 +79,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
                                                                  a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
-        private static SyntaxNode GetUpdatedAccessor(CodeGenerationOptions options,
+        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationOptions options,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
 
-            var preference = GetAccessorExpressionBodyPreference(options);
+            var preference = GetAccessorExpressionBodyPreference(options.Preferences);
             if (preference == ExpressionBodyPreference.Never)
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             }
 
-            var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
-
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                    accessorDeclarationSyntax.Kind(), languageVersion, preference,
+                    accessorDeclarationSyntax.Kind(), options.Preferences.LanguageVersion, preference,
                     out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
 
-            var preference = GetPropertyExpressionBodyPreference(options);
+            var preference = GetPropertyExpressionBodyPreference((CSharpCodeGenerationPreferences)options.Preferences);
             if (preference == ExpressionBodyPreference.Never)
             {
                 return propertyDeclaration.WithSemicolonToken(default);
@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(CodeGenerationOptions options)
-            => options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(CSharpCodeGenerationPreferences preferences)
+            => preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
-        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(CodeGenerationOptions options)
-            => options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(CSharpCodeGenerationPreferences preferences)
+            => preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
         internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;

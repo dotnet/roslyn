@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConversionTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateConversionDeclarationWorker(method, options);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern;
 
@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
                 var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(

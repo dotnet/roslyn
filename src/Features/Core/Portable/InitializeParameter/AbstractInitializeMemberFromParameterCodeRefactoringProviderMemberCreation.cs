@@ -426,8 +426,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
+            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -453,14 +453,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return codeGenerator.AddProperty(
                                 currentTypeDecl, property,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
+                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, preferences, cancellationToken),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
                                 currentTypeDecl, field,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, root.SyntaxTree.Options, documentOptions, cancellationToken),
+                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, preferences, cancellationToken),
                                 cancellationToken);
                         }
                         else
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private static CodeGenerationOptions GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatement,
-            SyntaxNode typeDeclaration, ParseOptions parseOptions, OptionSet options, CancellationToken cancellationToken)
+            SyntaxNode typeDeclaration, CodeGenerationPreferences preferences, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
@@ -509,19 +509,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation()), parseOptions, options);
+                            return new CodeGenerationOptions(new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation()), preferences);
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation()), parseOptions, options);
+                            return new CodeGenerationOptions(new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation()), preferences);
                         }
                     }
                 }
             }
 
-            return new CodeGenerationOptions(CodeGenerationContext.Default, parseOptions, options);
+            return new CodeGenerationOptions(CodeGenerationContext.Default, preferences);
         }
 
         private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)

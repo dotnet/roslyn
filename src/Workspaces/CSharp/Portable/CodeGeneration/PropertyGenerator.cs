@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddPropertyTo(
             CompilationUnitSyntax destination,
             IPropertySymbol property,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddPropertyTo(
             TypeDeclarationSyntax destination,
             IPropertySymbol property,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static MemberDeclarationSyntax GeneratePropertyOrIndexer(
             IPropertySymbol property,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(property, options);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static MemberDeclarationSyntax GenerateIndexerDeclaration(
             IPropertySymbol property,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination,
-           CodeGenerationOptions options)
+           CSharpCodeGenerationOptions options)
         {
             var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, PropertyDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, PropertyDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
                 if (declaration.Initializer == null)
                 {
                     var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static IndexerDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, IndexerDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, IndexerDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
                 var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (TryGetExpressionBody(
@@ -219,11 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorDeclarationSyntax UseExpressionBodyIfDesired(
-            CodeGenerationOptions options, AccessorDeclarationSyntax declaration)
+            CSharpCodeGenerationOptions options, AccessorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
                 var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorListSyntax? GenerateAccessorList(
             IPropertySymbol property, CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var setAccessorKind = property.SetMethod?.IsInitOnly == true ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration;
             var accessors = new[]
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol? accessor,
             SyntaxKind kind,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var hasBody = options.Context.GenerateMethodBodies && HasAccessorBodies(property, destination, accessor);
             return accessor == null
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol accessor,
             SyntaxKind kind,
             bool hasBody,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var declaration = SyntaxFactory.AccessorDeclaration(kind)
                                            .WithModifiers(GenerateAccessorModifiers(property, accessor, options))
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateAccessorModifiers(
             IPropertySymbol property,
             IMethodSymbol accessor,
-            CodeGenerationOptions options)
+            CSharpCodeGenerationOptions options)
         {
             var modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxTokenList GenerateModifiers(
-            IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IPropertySymbol property, CodeGenerationDestination destination, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
