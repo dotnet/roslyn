@@ -49,17 +49,14 @@ namespace Microsoft.CodeAnalysis.Classification
         [DataMember(Order = 1)]
         public List<int>? ClassificationTriples;
 
-        internal static SerializableClassifiedSpans? Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
+        internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
             using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
             return Dehydrate(classifiedSpans, classificationTypeToId);
         }
 
-        private static SerializableClassifiedSpans? Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
+        private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
         {
-            if (classifiedSpans.IsDefault)
-                return null;
-
             var classificationTypes = new List<string>();
             var classificationTriples = new List<int>(capacity: classifiedSpans.Length * 3);
 
