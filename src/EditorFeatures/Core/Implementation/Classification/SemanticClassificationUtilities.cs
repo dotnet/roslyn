@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -148,8 +147,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-                    await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, isRazorDoc: false, cancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSemanticClassificationsAsync(
+                        document,
+                        snapshotSpan.Span.ToTextSpan(),
+                        ClassificationOptions.From(document.Project),
+                        classifiedSpans,
+                        cancellationToken).ConfigureAwait(false);
 
                     foreach (var span in classifiedSpans)
                         context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));

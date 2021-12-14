@@ -9302,6 +9302,127 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
+        public void TestConditionalCapture13()
+        {
+            Test(@"""(?(0)a|b|c|d)""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ConditionalCaptureGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OpenParenToken>(</OpenParenToken>
+        <NumberToken value=""0"">0</NumberToken>
+        <CloseParenToken>)</CloseParenToken>
+        <Alternation>
+          <Alternation>
+            <Alternation>
+              <Sequence>
+                <Text>
+                  <TextToken>a</TextToken>
+                </Text>
+              </Sequence>
+              <BarToken>|</BarToken>
+              <Sequence>
+                <Text>
+                  <TextToken>b</TextToken>
+                </Text>
+              </Sequence>
+            </Alternation>
+            <BarToken>|</BarToken>
+            <Sequence>
+              <Text>
+                <TextToken>c</TextToken>
+              </Text>
+            </Sequence>
+          </Alternation>
+          <BarToken>|</BarToken>
+          <Sequence>
+            <Text>
+              <TextToken>d</TextToken>
+            </Text>
+          </Sequence>
+        </Alternation>
+        <CloseParenToken>)</CloseParenToken>
+      </ConditionalCaptureGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{FeaturesResources.Too_many_bars_in_conditional_grouping}"" Span=""[17..18)"" Text=""|"" />
+    <Diagnostic Message=""{FeaturesResources.Too_many_bars_in_conditional_grouping}"" Span=""[19..20)"" Text=""|"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..22)"" Text=""(?(0)a|b|c|d)"" />
+  </Captures>
+</Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact]
+        public void TestConditionalCapture14()
+        {
+            Test(@"""(?(0)a|b|c|d|e)""", $@"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <ConditionalCaptureGrouping>
+        <OpenParenToken>(</OpenParenToken>
+        <QuestionToken>?</QuestionToken>
+        <OpenParenToken>(</OpenParenToken>
+        <NumberToken value=""0"">0</NumberToken>
+        <CloseParenToken>)</CloseParenToken>
+        <Alternation>
+          <Alternation>
+            <Alternation>
+              <Alternation>
+                <Sequence>
+                  <Text>
+                    <TextToken>a</TextToken>
+                  </Text>
+                </Sequence>
+                <BarToken>|</BarToken>
+                <Sequence>
+                  <Text>
+                    <TextToken>b</TextToken>
+                  </Text>
+                </Sequence>
+              </Alternation>
+              <BarToken>|</BarToken>
+              <Sequence>
+                <Text>
+                  <TextToken>c</TextToken>
+                </Text>
+              </Sequence>
+            </Alternation>
+            <BarToken>|</BarToken>
+            <Sequence>
+              <Text>
+                <TextToken>d</TextToken>
+              </Text>
+            </Sequence>
+          </Alternation>
+          <BarToken>|</BarToken>
+          <Sequence>
+            <Text>
+              <TextToken>e</TextToken>
+            </Text>
+          </Sequence>
+        </Alternation>
+        <CloseParenToken>)</CloseParenToken>
+      </ConditionalCaptureGrouping>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""{FeaturesResources.Too_many_bars_in_conditional_grouping}"" Span=""[17..18)"" Text=""|"" />
+    <Diagnostic Message=""{FeaturesResources.Too_many_bars_in_conditional_grouping}"" Span=""[19..20)"" Text=""|"" />
+    <Diagnostic Message=""{FeaturesResources.Too_many_bars_in_conditional_grouping}"" Span=""[21..22)"" Text=""|"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[9..24)"" Text=""(?(0)a|b|c|d|e)"" />
+  </Captures>
+</Tree>", RegexOptions.IgnorePatternWhitespace);
+        }
+
+        [Fact]
         public void TestNamedConditionalCapture1()
         {
             Test(@"""(?(a))""", @"<Tree>

@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should eventually cache the LSP version of the document instead of the workspace version:
             // https://github.com/dotnet/roslyn/issues/58233
-            await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
+            await client.TryInvokeAsync<IRemoteSemanticClassificationService>(
                 document.Project,
-                (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.GetCachedSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }
