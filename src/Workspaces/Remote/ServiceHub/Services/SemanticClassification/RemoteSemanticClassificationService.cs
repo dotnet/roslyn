@@ -48,11 +48,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     _workQueue.AddWork(document);
                 }
 
-                var result = SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
-                Contract.ThrowIfNull(result);
-                return result;
+                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
             }, cancellationToken);
         }
-
     }
 }
