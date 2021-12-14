@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
+        /// <summary>
+        /// Queue where we place documents we want to compute and cache full semantic classifications for.  Note: the
+        /// same document may appear multiple times inside of this queue (for different versions of the document).
+        /// However, we'll only process the last version of any document added.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<Document> _workQueue;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -55,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _workQueue = new AsyncBatchingWorkQueue<Document>(
                 TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
                 CacheSemanticClassificationsAsync,
+                EqualityComparer<Document>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
                 _cancellationTokenSource.Token);
         }
