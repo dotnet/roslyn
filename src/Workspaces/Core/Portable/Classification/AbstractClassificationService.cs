@@ -45,39 +45,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-
-            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-            // fully loaded.
-            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
-            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
-
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 // We have an oop connection.  If we're not fully loaded, see if we can retrieve a previously cached set
                 // of classifications from the server.
-                if (!isFullyLoaded)
-                {
-                    var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
-                        document, cancellationToken).ConfigureAwait(false);
-                    var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
-
-                    var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
-                       document.Project,
-                       (service, solutionInfo, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, database, cancellationToken),
-                       cancellationToken).ConfigureAwait(false);
-
-                    // if the remote call fails do nothing (error has already been reported)
-                    if (cachedSpans.HasValue && cachedSpans.Value != null)
-                    {
-                        cachedSpans.Value.Rehydrate(result);
-                        return;
-                    }
-                }
+                var isFullyLoaded = IsFullyLoaded(document, cancellationToken);
+                if (await TryGetCachedClassificationsAsync(document, textSpan, result, client, isFullyLoaded, cancellationToken).ConfigureAwait(false))
+                    return;
 
                 // Call the project overload.  Semantic classification only needs the current project's information
                 // to classify properly.
@@ -89,12 +64,51 @@ namespace Microsoft.CodeAnalysis.Classification
                 // if the remote call fails do nothing (error has already been reported)
                 if (classifiedSpans.HasValue)
                     classifiedSpans.Value.Rehydrate(result);
-
-                return;
             }
+            else
+            {
+                await AddSemanticClassificationsInCurrentProcessAsync(
+                    document, textSpan, options, result, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
-            await AddSemanticClassificationsInCurrentProcessAsync(
-                document, textSpan, options, result, cancellationToken).ConfigureAwait(false);
+        private static bool IsFullyLoaded(Document document, CancellationToken cancellationToken)
+        {
+            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+
+            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+            // fully loaded.
+            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
+            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+            return isFullyLoaded;
+        }
+
+        private static async Task<bool> TryGetCachedClassificationsAsync(
+            Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result,
+            RemoteHostClient client, bool isFullyLoaded, CancellationToken cancellationToken)
+        {
+            // Only try to get cached classifications if we're not fully loaded yet.
+            if (isFullyLoaded)
+                return false;
+
+            var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
+                document, cancellationToken).ConfigureAwait(false);
+            var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
+
+            var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
+               document.Project,
+               (service, solutionInfo, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, database, cancellationToken),
+               cancellationToken).ConfigureAwait(false);
+
+            // if the remote call fails do nothing (error has already been reported)
+            if (!cachedSpans.HasValue || cachedSpans.Value == null)
+                return false;
+
+            cachedSpans.Value.Rehydrate(result);
+            return true;
         }
 
         public static async Task AddSemanticClassificationsInCurrentProcessAsync(
