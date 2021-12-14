@@ -34,7 +34,7 @@ var product = new Product
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg" ),
-    Dependencies = ImmutableArray.Create( Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings ),
+    Dependencies = ImmutableArray.Create( Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings, Dependencies.Roslyn ),
     SupportedProperties = ImmutableDictionary.Create<string, string>().Add( "TestAll", "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." ),
     KeepEditorConfig = true,
 };
