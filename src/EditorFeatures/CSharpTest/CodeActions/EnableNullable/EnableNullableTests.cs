@@ -36,6 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNulla
                 return solution;
             };
 
+        private static readonly Func<Solution, ProjectId, Solution> s_enableNullableInFixedSolutionFromRestoreKeyword =
+            (solution, projectId) =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var document = project.Documents.First();
+
+                // Only the input solution contains '#nullable restore' or '#nullable  restore' in the first document
+                if (!Regex.IsMatch(document.GetTextSynchronously(CancellationToken.None).ToString(), "#nullable  ?restore"))
+                {
+                    var compilationOptions = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
+                }
+
+                return solution;
+            };
+
         [Theory]
         [InlineData("$$#nullable enable")]
         [InlineData("#$$nullable enable")]
@@ -579,6 +595,111 @@ class Example
                 ExpectedDiagnostics = { expected },
                 FixedCode = code,
                 LanguageVersion = languageVersion,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("$$#nullable restore")]
+        [InlineData("#$$nullable restore")]
+        [InlineData("#null$$able restore")]
+        [InlineData("#nullable$$ restore")]
+        [InlineData("#nullable $$ restore")]
+        [InlineData("#nullable $$restore")]
+        [InlineData("#nullable res$$tore")]
+        [InlineData("#nullable restore$$")]
+        public async Task EnabledOnNullableRestore(string directive)
+        {
+            var code1 = $@"
+{directive}
+
+class Example
+{{
+  string value;
+}}
+";
+            var code2 = @"
+class Example2
+{
+  string value;
+}
+";
+            var code3 = @"
+class Example3
+{
+#nullable enable
+  string? value;
+#nullable restore
+}
+";
+            var code4 = @"
+#nullable disable
+
+class Example4
+{
+  string value;
+}
+";
+
+            var fixedDirective = directive.Replace("$$", "").Replace("restore", "disable");
+
+            var fixedCode1 = $@"
+{fixedDirective}
+
+class Example
+{{
+  string value;
+}}
+";
+            var fixedCode2 = @"
+#nullable disable
+
+class Example2
+{
+  string value;
+}
+";
+            var fixedCode3 = @"
+#nullable disable
+
+class Example3
+{
+#nullable restore
+  string? value;
+#nullable disable
+}
+";
+            var fixedCode4 = @"
+#nullable disable
+
+class Example4
+{
+  string value;
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code1,
+                        code2,
+                        code3,
+                        code4,
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedCode1,
+                        fixedCode2,
+                        fixedCode3,
+                        fixedCode4,
+                    },
+                },
+                SolutionTransforms = { s_enableNullableInFixedSolutionFromRestoreKeyword },
             }.RunAsync();
         }
 
