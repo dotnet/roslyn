@@ -1818,6 +1818,7 @@ class C
         {
             var source =
 @"
+#nullable enable
 class Base
 {
     public virtual void M1(string x!!) { }
@@ -1865,10 +1866,11 @@ class Derived : Base
         }
 
         [Fact]
-        public void Implementation_NullCheckedDifference()
+        public void Implementation_NullCheckedDifference1()
         {
             var source =
 @"
+#nullable enable
 interface Base
 {
     public void M1(string x!!) { }
@@ -1905,6 +1907,46 @@ class Derived : Base
   IL_0000:  ret
 }");
             verifier.VerifyIL("Derived.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void Implementation_NullCheckedDifference2()
+        {
+            var source =
+@"
+#nullable enable
+interface Base
+{
+    void M1(string x);
+    void M2(string x);
+}
+
+class Derived : Base
+{
+    public void M1(string x!!) { }
+    void Base.M2(string x!!) { }
+}";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Derived.M1", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Derived.Base.M2", @"
 {
   // Code size       12 (0xc)
   .maxstack  2

@@ -1049,10 +1049,57 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "x").WithArguments("int?").WithLocation(6, 16));
         }
 
-        [Theory]
-        [InlineData("!!")]
-        [InlineData("")]
-        public void TestNullCheckedParameterDoesNotAffectNullableVarianceChecks(string nullCheckAnnotation)
+        [Fact]
+        public void TestNullCheckedParameterUpdatesFlowState3()
+        {
+            var source =
+@"
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    void M1(string? s1, string? s2!!) // 1
+    {
+        s1.ToString(); // 2
+        s2.ToString();
+    }
+
+    static void M2<T>(T x1, T y1!!)
+    {
+        x1.ToString(); // 3
+        y1.ToString();
+    }
+    static void M3<T>([AllowNull] T x2, [AllowNull] T y2!!)
+    {
+        x2.ToString(); // 4
+        y2.ToString();
+    }
+    static void M4<T>([DisallowNull] T x3, [DisallowNull] T y3!!)
+    {
+        x3.ToString();
+        y3.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,33): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //     void M1(string? s1, string? s2!!) // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s2").WithArguments("string?").WithLocation(8, 33),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         s1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s1").WithLocation(10, 9),
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                //         x1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(16, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         x2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 9));
+        }
+
+        [Fact]
+        public void TestNullCheckedParameterDoesNotAffectNullableVarianceChecks()
         {
             var source =
 @"
@@ -1060,19 +1107,26 @@ class Program
 
 class Base
 {
-    #pragma warning disable 8995 // WRN_NullCheckingOnNullableType
-    public virtual void M(string? s" + nullCheckAnnotation + @") { }
+    public virtual void M1(string? s) { }
+    public virtual void M2(string? s!!) { } // 1
 }
 
 class Derived : Base
 {
-    public override void M(string s) { } // 1
+    public override void M1(string s) { } // 2
+    public override void M2(string s) { } // 3
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (7,36): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //     public virtual void M2(string? s!!) { } // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string?").WithLocation(7, 36),
                 // (12,26): warning CS8765: Nullability of type of parameter 's' doesn't match overridden member (possibly because of nullability attributes).
-                //     public override void M(string s) { } // 1
-                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("s").WithLocation(12, 26)
+                //     public override void M1(string s) { } // 2
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("s").WithLocation(12, 26),
+                // (13,26): warning CS8765: Nullability of type of parameter 's' doesn't match overridden member (possibly because of nullability attributes).
+                //     public override void M2(string s) { } // 3
+                Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("s").WithLocation(13, 26)
             );
         }
     }
