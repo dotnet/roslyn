@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             ClassificationOptions options,
+            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                 await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                    document, span, options, temp, cancellationToken).ConfigureAwait(false);
+                    document, span, options, isFullyLoaded, temp, cancellationToken).ConfigureAwait(false);
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
             }, cancellationToken);
