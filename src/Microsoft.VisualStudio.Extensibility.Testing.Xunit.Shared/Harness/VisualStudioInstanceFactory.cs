@@ -446,5 +446,11 @@ namespace Xunit.Harness
 
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;
         }
+
+        // The life of this object is managed explicitly
+        public override object? InitializeLifetimeService()
+        {
+            return null;
+        }
     }
 }

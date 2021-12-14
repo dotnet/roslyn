@@ -47,9 +47,9 @@ namespace Xunit.Harness
             GC.SuppressFinalize(this);
         }
 
+        // The life of this object is managed explicitly
         public override object? InitializeLifetimeService()
         {
-            // This object can live forever
             return null;
         }
 
