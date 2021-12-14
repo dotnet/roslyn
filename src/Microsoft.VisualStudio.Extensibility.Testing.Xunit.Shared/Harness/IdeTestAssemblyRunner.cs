@@ -36,8 +36,10 @@ namespace Xunit.Harness
             {
                 foreach (var testCasesByTargetVersion in testCases.GroupBy(GetVisualStudioVersionForTestCase))
                 {
+                    using var marshalledObjects = new MarshalledObjects();
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
                     {
+                        marshalledObjects.Add(visualStudioInstanceFactory);
                         var summary = await RunTestCollectionForVersionAsync(visualStudioInstanceFactory, testCasesByTargetVersion.Key.Item1, testCasesByTargetVersion.Key.Item2, completedTestCaseIds, messageBus, testCollection, testCasesByTargetVersion, cancellationTokenSource);
                         result.Aggregate(summary.Item1);
                         testAssemblyFinishedMessages.Add(summary.Item2);
@@ -162,7 +164,9 @@ namespace Xunit.Harness
         {
             // These tests just run in the current process, but we still need to hook the assembly and collection events
             // to work correctly in mixed-testing scenarios.
+            using var marshalledObjects = new MarshalledObjects();
             var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase), completedTestCaseIds, cancellationTokenSource.Token);
+            marshalledObjects.Add(executionMessageSinkFilter);
             using (var runner = new XunitTestAssemblyRunner(TestAssembly, testCases, DiagnosticMessageSink, executionMessageSinkFilter, ExecutionOptions))
             {
                 var runSummary = await runner.RunAsync();
@@ -176,12 +180,15 @@ namespace Xunit.Harness
             {
                 Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
+                using var marshalledObjects = new MarshalledObjects();
+
                 IpcMessageSink? executionMessageSinkFilter = null;
 
                 try
                 {
                     var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
                     executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
+                    marshalledObjects.Add(executionMessageSinkFilter);
 
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
@@ -189,7 +196,12 @@ namespace Xunit.Harness
                     {
                         using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
                         {
-                            var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
+                            marshalledObjects.Add(runner);
+
+                            var ipcMessageBus = new IpcMessageBus(messageBus);
+                            marshalledObjects.Add(ipcMessageBus);
+
+                            var result = runner.RunTestCollection(ipcMessageBus, testCollection, testCases.ToArray());
                             var runSummary = new RunSummary
                             {
                                 Total = result.Item1,
@@ -351,6 +363,12 @@ namespace Xunit.Harness
 
                 return _messageSink.OnMessage(message);
             }
+
+            // The life of this object is managed explicitly
+            public override object? InitializeLifetimeService()
+            {
+                return null;
+            }
         }
 
         private class IpcMessageBus : MarshalByRefObject, IMessageBus
@@ -365,6 +383,9 @@ namespace Xunit.Harness
             public void Dispose() => _messageBus.Dispose();
 
             public bool QueueMessage(IMessageSinkMessage message) => _messageBus.QueueMessage(message);
+
+            // The life of this object is managed explicitly
+            public override object? InitializeLifetimeService() => null;
         }
 
         private class IpcTestAssembly : LongLivedMarshalByRefObject, ITestAssembly

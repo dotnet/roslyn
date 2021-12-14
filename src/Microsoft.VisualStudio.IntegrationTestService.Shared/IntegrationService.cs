@@ -75,5 +75,11 @@ namespace Microsoft.VisualStudio.IntegrationTestService
 
             return objectUri;
         }
+
+        // Ensure in-process components live forever
+        public override object? InitializeLifetimeService()
+        {
+            return null;
+        }
     }
 }

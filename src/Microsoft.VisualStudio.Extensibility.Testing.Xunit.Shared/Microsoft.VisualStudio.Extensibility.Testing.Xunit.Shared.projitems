@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFrameworkExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\InProcessIdeTestAssemblyRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\IntegrationHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\MarshalledObjects.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilterSafeHandle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\NativeMethods.cs" />
