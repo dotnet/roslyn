@@ -1914,5 +1914,79 @@ class Derived : Base
   IL_000b:  ret
 }");
         }
+
+        [Fact]
+        public void RecordPrimaryConstructor()
+        {
+            var source =
+@"
+using System;
+
+Console.Write(new Record(""1"", ""0"").Prop1);
+try
+{
+    new Record(null, ""a"");
+}
+catch (ArgumentNullException)
+{
+    Console.Write(2);
+}
+
+Console.Write(new RecordStruct(""3"", ""0"").Prop1);
+try
+{
+    new RecordStruct(""b"", null);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(4);
+}
+
+record Record(string Prop1!!, string Prop2!!);
+record struct RecordStruct(string Prop1!!, string Prop2!!);
+";
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "1234");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Record..ctor(string, string)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""Prop1""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.2
+  IL_000c:  ldstr      ""Prop2""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  stfld      ""string Record.<Prop1>k__BackingField""
+  IL_001d:  ldarg.0
+  IL_001e:  ldarg.2
+  IL_001f:  stfld      ""string Record.<Prop2>k__BackingField""
+  IL_0024:  ldarg.0
+  IL_0025:  call       ""object..ctor()""
+  IL_002a:  ret
+}");
+
+            verifier.VerifyIL("RecordStruct..ctor(string, string)", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""Prop1""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.2
+  IL_000c:  ldstr      ""Prop2""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  stfld      ""string RecordStruct.<Prop1>k__BackingField""
+  IL_001d:  ldarg.0
+  IL_001e:  ldarg.2
+  IL_001f:  stfld      ""string RecordStruct.<Prop2>k__BackingField""
+  IL_0024:  ret
+}");
+        }
     }
 }
