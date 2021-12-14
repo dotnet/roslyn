@@ -7935,7 +7935,6 @@ class Box
         [Fact]
         public void TestAnonymousDelegateNullChecking()
         {
-            // https://github.com/dotnet/roslyn/issues/58323
             UsingTree(@"
 delegate void Del(int x!!);
 Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
