@@ -1008,7 +1008,7 @@ class Program
         }
 
         [Fact]
-        public void TestNullCheckedParameterUpdatesFlowState()
+        public void TestNullCheckedParameterUpdatesFlowState1()
         {
             var source =
 @"
@@ -1026,6 +1026,27 @@ class Program
                 // (6,22): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
                 //     string M(string? s!!) // 1
                 Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string?").WithLocation(6, 22));
+        }
+
+        [Fact]
+        public void TestNullCheckedParameterUpdatesFlowState2()
+        {
+            var source =
+@"
+#nullable enable
+
+class Program
+{
+    int M(int? x!!) // 1
+    {
+        return x.Value;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,16): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //     int M(int? x!!) // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "x").WithArguments("int?").WithLocation(6, 16));
         }
 
         [Theory]
