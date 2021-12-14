@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Classification
             if (client != null)
             {
                 // We have an oop connection.  If we're not fully loaded, see if we can retrieve a previously cached set
-                // of classifications from the server.
+                // of classifications from the server.  Note: this must be a separate call (instead of being part of
+                // service.GetSemanticClassificationsAsync below) as we want to try to read in the cached
+                // classifications without doing any syncing to the OOP process.
                 var isFullyLoaded = IsFullyLoaded(document, cancellationToken);
                 if (await TryGetCachedClassificationsAsync(document, textSpan, result, client, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                     return;
