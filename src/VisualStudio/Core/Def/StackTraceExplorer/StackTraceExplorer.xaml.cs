@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -31,8 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public void OnPaste()
         {
-            _viewModel.OnPaste();
+            var text = Clipboard.GetText();
+            _viewModel.OnPaste_CallOnUIThread(text);
         }
+
+        public Task OnAnalysisResultAsync(StackTraceAnalysisResult result, CancellationToken cancellationToken)
+            => _viewModel.SetStackTraceResultAsync(result, cancellationToken);
 
         private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

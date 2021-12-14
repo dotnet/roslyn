@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,31 +25,26 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     /// </summary>
     internal partial class StackTraceExplorerRoot : UserControl
     {
-        private readonly StackTraceExplorerRootViewModel _viewModel;
+        public readonly StackTraceExplorerRootViewModel ViewModel;
 
         public StackTraceExplorerRoot(StackTraceExplorerRootViewModel viewModel)
         {
-            DataContext = _viewModel = viewModel;
+            DataContext = ViewModel = viewModel;
 
             InitializeComponent();
             DataObject.AddPastingHandler(this, OnPaste);
         }
 
-        private void CommandBinding_OnPaste(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
-            => OnPaste();
+        private void CommandBinding_OnPaste(object sender, ExecutedRoutedEventArgs e)
+            => ViewModel.DoPasteAsync(default).Start();
 
         internal void OnClear()
         {
-            _viewModel.SelectedTab?.Content.OnClear();
+            ViewModel.SelectedTab?.Content.OnClear();
         }
 
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
-            => OnPaste();
-
-        public void OnPaste()
-        {
-            _viewModel.OnPaste();
-        }
+            => ViewModel.DoPasteAsync(default).Start();
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
