@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal abstract class AbstractClassificationService : IClassificationService
+    internal abstract partial class AbstractClassificationService : IClassificationService
     {
         public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             if (!isFullyLoaded)
             {
-
                 // If we're not fully loaded try to read from the cache instead so that classifications appear up to
                 // date. New code will not be semantically classified, but will eventually when the project fully loads.
                 if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, result, cancellationToken).ConfigureAwait(false))
@@ -111,44 +110,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var span in reassignedVariableSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
             }
-        }
-
-        private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
-            Document document,
-            TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> classifiedSpans,
-            CancellationToken cancellationToken)
-        {
-            var semanticCacheService = document.Project.Solution.Workspace.Services.GetService<ISemanticClassificationCacheService>();
-            if (semanticCacheService == null)
-                return false;
-
-            var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (result.IsDefault)
-                return false;
-
-            classifiedSpans.AddRange(result);
-            return true;
-        }
-
-        private static async Task AddSemanticClassificationsToCacheAsync(Document document, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                // We don't do anything if we fail to get the external process.  That's the case when something has gone
-                // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
-                // to bog down the VS process with the work to semantically classify files.
-                return;
-            }
-
-            // Call the project overload.  We don't need to sync the full solution just to classify this document.
-            await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
-                document.Project,
-                (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

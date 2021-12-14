@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfNull(document);
 
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-                await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
+                var classificationService = (AbstractClassificationService)document.GetRequiredLanguageService<IClassificationService>();
+                await classificationService.AddSemanticClassificationsInCurrentProcessAsync(
                     document, span, options, isFullyLoaded, temp, cancellationToken).ConfigureAwait(false);
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
