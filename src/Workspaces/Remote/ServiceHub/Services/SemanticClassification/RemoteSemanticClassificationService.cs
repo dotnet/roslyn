@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
+        public ValueTask<SerializableClassifiedSpans?> GetSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             TextSpan span,
@@ -48,6 +49,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
             }, cancellationToken);
+        }
+
+        public ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, StorageDatabase database, CancellationToken cancellationToken)
+        {
+
         }
     }
 }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return true;
         }
 
-        private void AddSemanticClassificationsToCache(Document document, CancellationToken cancellationToken)
+        private void AddSemanticClassificationsToCache(Document document)
         {
             // We only get called to cache classifications once we're fully loaded.  At that point there's no need
             // for us to keep around any of the data we cached in-memory during the time the solution was loading.

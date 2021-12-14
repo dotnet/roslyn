@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -57,6 +58,26 @@ namespace Microsoft.CodeAnalysis.Classification
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
+                // We have an oop connection.  If we're not fully loaded, see if we can retrieve a previously cached set
+                // of classifications from the server.
+                if (!isFullyLoaded)
+                {
+                    var (documentKey, checksum) = await GetDocumentKeyAndChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+                    var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
+
+                    var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
+                       document.Project,
+                       (service, solutionInfo, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, database, cancellationToken),
+                       cancellationToken).ConfigureAwait(false);
+
+                    // if the remote call fails do nothing (error has already been reported)
+                    if (cachedSpans.HasValue && cachedSpans.Value != null)
+                    {
+                        cachedSpans.Value.Rehydrate(result);
+                        return;
+                    }
+                }
+
                 // Call the project overload.  Semantic classification only needs the current project's information
                 // to classify properly.
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
@@ -67,31 +88,21 @@ namespace Microsoft.CodeAnalysis.Classification
                 // if the remote call fails do nothing (error has already been reported)
                 if (classifiedSpans.HasValue)
                     classifiedSpans.Value.Rehydrate(result);
+
+                return;
             }
-            else
-            {
-                await AddSemanticClassificationsInCurrentProcessAsync(
-                    document, textSpan, options, isFullyLoaded, result, cancellationToken).ConfigureAwait(false);
-            }
+
+            await AddSemanticClassificationsInCurrentProcessAsync(
+                document, textSpan, options, isFullyLoaded, result, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task AddSemanticClassificationsInCurrentProcessAsync(
+        public async Task AddSemanticClassificationsInCurrentProcessAsync(
             Document document, TextSpan textSpan, ClassificationOptions options, bool isFullyLoaded, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (!isFullyLoaded)
-            {
-                // If we're not fully loaded try to read from the cache instead so that classifications appear up to
-                // date. New code will not be semantically classified, but will eventually when the project fully loads.
-                if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, result, cancellationToken).ConfigureAwait(false))
-                    return;
-            }
-            else
-            {
-                // If we are fully loaded, instead kick off work to our OOP server to classify and cache the entire
-                // document.  This way we can load classifications from that cache in future runs during the time that
-                // we're not fully loaded.
-                await AddSemanticClassificationsToCacheAsync(document, cancellationToken).ConfigureAwait(false);
-            }
+            // If we are fully loaded, kick off work to classify the entire doc and and cache that result. This way we
+            // can load classifications from that cache in future runs during the time that we're not fully loaded.
+            if (isFullyLoaded)
+                AddSemanticClassificationsToCache(document);
 
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
             var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
