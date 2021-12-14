@@ -176,14 +176,17 @@ namespace Xunit.Harness
             {
                 Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
+                IpcMessageSink? executionMessageSinkFilter = null;
+
                 try
                 {
+                    var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
+                    executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
+
                     // Install a COM message filter to handle retry operations when the first attempt fails
                     using (var messageFilter = new MessageFilter())
                     using (var visualStudioContext = await visualStudioInstanceFactory.GetNewOrUsedInstanceAsync(GetVersion(visualStudioVersion), rootSuffix, GetExtensionFiles(testCases), ImmutableHashSet.Create<string>()).ConfigureAwait(true))
                     {
-                        var knownTestCasesByUniqueId = testCases.ToDictionary<IXunitTestCase, string, ITestCase>(testCase => testCase.UniqueID, testCase => testCase);
-                        var executionMessageSinkFilter = new IpcMessageSink(ExecutionMessageSink, knownTestCasesByUniqueId, completedTestCaseIds, cancellationTokenSource.Token);
                         using (var runner = visualStudioContext.Instance.TestInvoker.CreateTestAssemblyRunner(new IpcTestAssembly(TestAssembly), testCases.ToArray(), new IpcMessageSink(DiagnosticMessageSink, knownTestCasesByUniqueId, new HashSet<string>(), cancellationTokenSource.Token), executionMessageSinkFilter, ExecutionOptions))
                         {
                             var result = runner.RunTestCollection(new IpcMessageBus(messageBus), testCollection, testCases.ToArray());
@@ -201,6 +204,10 @@ namespace Xunit.Harness
                 }
                 catch (Exception e)
                 {
+                    // Since this exception occurred in the harness communication, we can't assume it was logged by the
+                    // in-process data collection service. We need to log it separately here.
+                    DataCollectionService.CaptureFailureState(executionMessageSinkFilter?.CurrentTestCase ?? "Unknown", e);
+
                     var previousException = WpfTestSharedData.Instance.Exception;
                     try
                     {
@@ -287,6 +294,12 @@ namespace Xunit.Harness
                 _cancellationToken = cancellationToken;
             }
 
+            public string? CurrentTestCase
+            {
+                get;
+                private set;
+            }
+
             public ITestAssemblyFinished? TestAssemblyFinished
             {
                 get;
@@ -320,8 +333,14 @@ namespace Xunit.Harness
                     TestAssemblyFinished = new TestAssemblyFinished(testCases.ToArray(), testAssemblyFinished.TestAssembly, testAssemblyFinished.ExecutionTime, testAssemblyFinished.TestsRun, testAssemblyFinished.TestsFailed, testAssemblyFinished.TestsSkipped);
                     return !_cancellationToken.IsCancellationRequested;
                 }
+                else if (message is ITestCaseStarting testCaseStarting)
+                {
+                    CurrentTestCase = DataCollectionService.GetTestName(testCaseStarting.TestCase);
+                    return _messageSink.OnMessage(message);
+                }
                 else if (message is ITestCaseFinished testCaseFinished)
                 {
+                    CurrentTestCase = null;
                     _completedTestCaseIds.Add(testCaseFinished.TestCase.UniqueID);
                     return !_cancellationToken.IsCancellationRequested;
                 }

@@ -4,6 +4,7 @@
 namespace Xunit.Harness
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
@@ -30,12 +31,17 @@ namespace Xunit.Harness
                     return "Unknown";
                 }
 
-                var testMethod = CurrentTest.TestCase.TestMethod.Method;
-                var testClass = testMethod.Type.Name;
-                var lastDot = testClass.LastIndexOf('.');
-                testClass = testClass.Substring(lastDot + 1);
-                return $"{testClass}.{testMethod.Name}";
+                return GetTestName(CurrentTest.TestCase);
             }
+        }
+
+        public static string GetTestName(ITestCase testCase)
+        {
+            var testMethod = testCase.TestMethod.Method;
+            var testClass = testMethod.Type.Name;
+            var lastDot = testClass.LastIndexOf('.');
+            testClass = testClass.Substring(lastDot + 1);
+            return $"{testClass}.{testMethod.Name}";
         }
 
         public static void InstallFirstChanceExceptionHandler()
@@ -114,13 +120,15 @@ namespace Xunit.Harness
                 Directory.CreateDirectory(logDir);
 
                 File.WriteAllText(CreateLogFileName(logDir, timestamp, testName, errorId, logId: string.Empty, "log"), ex.ToString());
-
-                ActivityLogCollector.TryWriteActivityLogToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "Activity", "xml"));
+                ScreenshotService.TakeScreenshot(CreateLogFileName(logDir, timestamp, testName, errorId, string.Empty, $"png"));
                 EventLogCollector.TryWriteDotNetEntriesToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "DotNet", "log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "Watson", "log"));
-                IdeStateCollector.TryWriteIdeStateToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "IDE", "log"));
 
-                ScreenshotService.TakeScreenshot(CreateLogFileName(logDir, timestamp, testName, errorId, string.Empty, $"png"));
+                if (Process.GetCurrentProcess().ProcessName == "devenv")
+                {
+                    ActivityLogCollector.TryWriteActivityLogToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "Activity", "xml"));
+                    IdeStateCollector.TryWriteIdeStateToFile(CreateLogFileName(logDir, timestamp, testName, errorId, "IDE", "log"));
+                }
             }
             finally
             {
