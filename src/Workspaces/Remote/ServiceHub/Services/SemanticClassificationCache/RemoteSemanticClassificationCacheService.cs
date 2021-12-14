@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,11 +28,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             protected override IRemoteSemanticClassificationCacheService CreateService(in ServiceConstructionArguments arguments)
                 => new RemoteSemanticClassificationCacheService(arguments);
-        }
-
-        public RemoteSemanticClassificationCacheService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
         }
 
         /// <summary>
@@ -54,6 +53,25 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
+        private readonly AsyncBatchingWorkQueue<Document> _workQueue;
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+        public RemoteSemanticClassificationCacheService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
+            _workQueue = new AsyncBatchingWorkQueue<Document>(
+                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
+                CacheSemanticClassificationsAsync,
+                AsynchronousOperationListenerProvider.NullListener,
+                _cancellationTokenSource.Token);
+        }
+
+        public override void Dispose()
+        {
+            _cancellationTokenSource.Cancel();
+            base.Dispose();
+        }
+
         public ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
@@ -69,8 +87,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
 
-                await CacheSemanticClassificationsAsync(document, cancellationToken).ConfigureAwait(false);
+                // Enqueue this work into our work queue and immediately return to the caller.  They should not wait on
+                // us to finish this work which we will complete at some point in the future.
+                _workQueue.AddWork(document);
             }, cancellationToken);
+        }
+
+        private static async ValueTask CacheSemanticClassificationsAsync(
+            ImmutableArray<Document> documents, CancellationToken cancellationToken)
+        {
+            // Group all the requests by document (as we may have gotten many requests for the same document). Then,
+            // only process the last document from each group (we don't need to bother stale versions of a particular
+            // document).
+            var groups = documents.GroupBy(d => d.Id);
+            var tasks = groups.Select(g => Task.Run(() => CacheSemanticClassificationsAsync(g.Last(), cancellationToken), cancellationToken));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task CacheSemanticClassificationsAsync(Document document, CancellationToken cancellationToken)

@@ -78,10 +78,21 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task AddSemanticClassificationsInCurrentProcessAsync(
             Document document, TextSpan textSpan, ClassificationOptions options, bool isFullyLoaded, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
-            // New code will not be semantically classified, but will eventually when the project fully loads.
-            if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, isFullyLoaded, result, cancellationToken).ConfigureAwait(false))
-                return;
+            if (!isFullyLoaded)
+            {
+
+                // If we're not fully loaded try to read from the cache instead so that classifications appear up to
+                // date. New code will not be semantically classified, but will eventually when the project fully loads.
+                if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, result, cancellationToken).ConfigureAwait(false))
+                    return;
+            }
+            else
+            {
+                // If we are fully loaded, instead kick off work to our OOP server to classify and cache the entire
+                // document.  This way we can load classifications from that cache in future runs during the time that
+                // we're not fully loaded.
+                await AddSemanticClassificationsToCacheAsync(document, cancellationToken).ConfigureAwait(false);
+            }
 
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
             var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
@@ -105,14 +116,9 @@ namespace Microsoft.CodeAnalysis.Classification
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
             Document document,
             TextSpan textSpan,
-            bool isFullyLoaded,
             ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
-            // Don't use the cache if we're fully loaded.  We should just compute values normally.
-            if (isFullyLoaded)
-                return false;
-
             var semanticCacheService = document.Project.Solution.Workspace.Services.GetService<ISemanticClassificationCacheService>();
             if (semanticCacheService == null)
                 return false;
@@ -124,6 +130,25 @@ namespace Microsoft.CodeAnalysis.Classification
 
             classifiedSpans.AddRange(result);
             return true;
+        }
+
+        private static async Task AddSemanticClassificationsToCacheAsync(Document document, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                // We don't do anything if we fail to get the external process.  That's the case when something has gone
+                // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
+                // to bog down the VS process with the work to semantically classify files.
+                return;
+            }
+
+            // Call the project overload.  We don't need to sync the full solution just to classify this document.
+            await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
+                document.Project,
+                (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

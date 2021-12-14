@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     internal interface IRemoteSemanticClassificationCacheService
     {
+        /// <remarks>
+        /// Note: this operates in a fire-and-forget fashion.  The request is sent tot he server, but will processed at
+        /// some time in the future.  Further requests to classify the same document will cause queued requests that
+        /// haven't been run to be abandoned.
+        /// </remarks>
         ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
