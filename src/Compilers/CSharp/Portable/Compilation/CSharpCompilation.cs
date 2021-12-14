@@ -1590,9 +1590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
 
-                if ((object)symbol == null)
+                if (symbol is null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,
