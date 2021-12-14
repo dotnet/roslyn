@@ -30,10 +30,9 @@ class C
     static void Target() { Console.WriteLine(""FAIL""); }
     static void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        Action<ModuleSymbol> containerValidator = module =>
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        static void containerValidator(ModuleSymbol module)
+            => Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
+
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
@@ -54,10 +53,10 @@ class C
     void Target() { Console.WriteLine(""FAIL""); }
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
@@ -82,10 +81,10 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
@@ -110,10 +109,10 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
     }
 
@@ -133,10 +132,10 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -156,10 +155,10 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -174,10 +173,10 @@ class C
     static void Target() { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -197,10 +196,10 @@ struct C
     }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -1739,7 +1738,7 @@ class E<V>
     public static N Target<N>() { Console.WriteLine(""PASS""); return default(N); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var testClass = module.GlobalNamespace.GetTypeMember("D");
             var container = testClass.GetTypeMember("<Test>O__1");
@@ -1751,7 +1750,7 @@ class E<V>
             var m = typeParameters[0];
             Assert.Equal(1, m.ConstraintTypes().Length);
             Assert.Equal(testClass.TypeParameters[0], m.ConstraintTypes()[0]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D<T>.Test<M>", @"
 {
   // Code size       34 (0x22)
@@ -1799,7 +1798,7 @@ class E<V>
     public static N Target<N>() { Console.WriteLine(""PASS""); return default(N); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var globalNs = module.GlobalNamespace;
             var mainClass = globalNs.GetTypeMember("C");
@@ -1812,7 +1811,7 @@ class E<V>
             var m = typeParameters[0];
             Assert.Equal(1, m.ConstraintTypes().Length);
             Assert.Equal(mainClass, m.ConstraintTypes()[0]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
 {
   // Code size       34 (0x22)
@@ -1858,7 +1857,7 @@ class E
     public static N Target<N>() { Console.WriteLine(""PASS""); return default(N); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D.<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -1869,7 +1868,7 @@ class E
             var m = typeParameters[0];
             Assert.NotNull(m); Debug.Assert(m is { });
             Assert.True(m.IsValueType);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
 {
   // Code size       34 (0x22)
@@ -2515,7 +2514,7 @@ class D
     public static void Target<V>() { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -2534,7 +2533,7 @@ class D
             Assert.Equal("System", fieldType.ContainingNamespace.Name);
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2550,7 +2549,7 @@ class C<T>
     static V Target<V>() { return default(V); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -2570,7 +2569,7 @@ class C<T>
             Assert.Equal("Func", fieldType.Name);
             Assert.Equal(1, fieldType.Arity);
             Assert.Equal(module.GlobalNamespace.GetTypeMember("C").TypeParameters[0], fieldType.TypeArguments()[0]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2587,7 +2586,7 @@ class C<T, V>
     static T Target() { return default(T); }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -2602,7 +2601,7 @@ class C<T, V>
 
             var fieldType = field.Type as NamedTypeSymbol;
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2624,7 +2623,7 @@ class D
     public static void Target<B>() { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__0");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -2643,7 +2642,7 @@ class D
             Assert.Equal("System", fieldType.ContainingNamespace.Name);
             Assert.Equal("Action", fieldType.Name);
             Assert.Equal(0, fieldType.Arity);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2665,7 +2664,7 @@ class D<B>
     public static B Target<H>(H h) => default(B);
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var testClass = module.GlobalNamespace.GetTypeMember("C");
             var container = testClass.GetTypeMember("<Test>O__0");
@@ -2687,7 +2686,7 @@ class D<B>
             Assert.Equal(2, fieldType.Arity);
             Assert.Equal(testClass.TypeParameters[0], fieldType.TypeArguments()[0]);
             Assert.Equal(container.TypeParameters[0], fieldType.TypeArguments()[1]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2711,7 +2710,7 @@ static class D
     public static B Target<B>(this int num) => default(B);
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__2");
             Assert.NotNull(container); Debug.Assert(container is { });
@@ -2728,7 +2727,7 @@ static class D
             Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
             Assert.True(fieldType.IsDelegateType());
             Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2798,7 +2797,7 @@ static class E
     public static void Target5<N>(this N n) { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var A = module.GlobalNamespace.GetTypeMember("A");
             var B = A.GetTypeMember("B");
@@ -2897,7 +2896,7 @@ static class E
             Assert.Equal("Action", fieldType6.Name);
             Assert.Equal(1, fieldType6.Arity);
             Assert.Equal(V, fieldType6.TypeArguments()[0]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -2929,7 +2928,7 @@ static class E
     public static void Target3<V>(this C c) { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var testClass = module.GlobalNamespace.GetTypeMember("C");
             var container = testClass.GetTypeMember("<Test>O__0");
@@ -2987,7 +2986,7 @@ static class E
             Assert.Equal("Action", fieldType3.Name);
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(testClass, fieldType3.TypeArguments()[0]);
-        };
+        }
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
 
@@ -3019,7 +3018,7 @@ static class E
     public static void Target3<T>(this C c) { }
 }
 ";
-        Action<ModuleSymbol> containerValidator = module =>
+        static void containerValidator(ModuleSymbol module)
         {
             var testClass = module.GlobalNamespace.GetTypeMember("E");
             var container = testClass.GetTypeMember("<Test>O__0");
@@ -3078,7 +3077,7 @@ static class E
             Assert.Equal("Action", fieldType3.Name);
             Assert.Equal(1, fieldType3.Arity);
             Assert.Equal(C, fieldType3.TypeArguments()[0]);
-        };
+        }
 
         CompileAndVerify(source, symbolValidator: containerValidator);
     }
