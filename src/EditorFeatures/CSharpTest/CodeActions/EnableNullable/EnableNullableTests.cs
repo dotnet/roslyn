@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNulla
                 var project = solution.GetRequiredProject(projectId);
                 var document = project.Documents.First();
 
-                // Only the input solution contains '#nullable enable'
-                if (!document.GetTextSynchronously(CancellationToken.None).ToString().Contains("#nullable enable"))
+                // Only the input solution contains '#nullable enable' or '#nullable  enable' in the first document
+                if (!Regex.IsMatch(document.GetTextSynchronously(CancellationToken.None).ToString(), "#nullable  ?enable"))
                 {
                     var compilationOptions = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
@@ -35,16 +36,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNulla
                 return solution;
             };
 
-        [Fact]
-        public async Task EnabledOnNullableEnable()
+        [Theory]
+        [InlineData("$$#nullable enable")]
+        [InlineData("#$$nullable enable")]
+        [InlineData("#null$$able enable")]
+        [InlineData("#nullable$$ enable")]
+        [InlineData("#nullable $$ enable")]
+        [InlineData("#nullable $$enable")]
+        [InlineData("#nullable ena$$ble")]
+        [InlineData("#nullable enable$$")]
+        public async Task EnabledOnNullableEnable(string directive)
         {
-            var code1 = @"
-#nullable enable$$
+            var code1 = $@"
+{directive}
 
 class Example
-{
+{{
   string? value;
-}
+}}
 ";
             var code2 = @"
 class Example2
@@ -573,11 +582,19 @@ class Example
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task DisabledOnNullableDisable()
+        [Theory]
+        [InlineData("$$#nullable disable")]
+        [InlineData("#$$nullable disable")]
+        [InlineData("#null$$able disable")]
+        [InlineData("#nullable$$ disable")]
+        [InlineData("#nullable $$ disable")]
+        [InlineData("#nullable $$disable")]
+        [InlineData("#nullable dis$$able")]
+        [InlineData("#nullable disable$$")]
+        public async Task DisabledOnNullableDisable(string directive)
         {
-            var code = @"
-#nullable disable$$
+            var code = $@"
+{directive}
 ";
 
             await new VerifyCS.Test
