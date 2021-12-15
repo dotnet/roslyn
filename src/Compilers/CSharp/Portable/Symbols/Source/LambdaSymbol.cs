@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
+        private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
         private TypeWithAnnotations _returnType;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
+            _syntax = unboundLambda.Syntax;
             if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
             {
                 _refKind = refKind;
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<Location>(Syntax.Location);
+                return ImmutableArray.Create<Location>(_syntax.Location);
             }
         }
 
@@ -229,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return Syntax switch
+                return _syntax switch
                 {
                     AnonymousMethodExpressionSyntax syntax => syntax.DelegateKeyword.GetLocation(),
                     LambdaExpressionSyntax syntax => syntax.ArrowToken.GetLocation(),
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool HasExplicitReturnType => Syntax is ParenthesizedLambdaExpressionSyntax { ReturnType: not null };
+        private bool HasExplicitReturnType => _syntax is ParenthesizedLambdaExpressionSyntax { ReturnType: not null };
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -263,15 +265,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal SyntaxNode Syntax => syntaxReferenceOpt.GetSyntax();
-
         internal override Binder SignatureBinder => _binder;
 
         internal override Binder ParameterBinder => new WithLambdaParametersBinder(this, _binder);
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return Syntax is LambdaExpressionSyntax lambdaSyntax ?
+            return _syntax is LambdaExpressionSyntax lambdaSyntax ?
                 OneOrMany.Create(lambdaSyntax.AttributeLists) :
                 default;
         }
@@ -369,22 +369,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             return symbol is LambdaSymbol lambda
-                && areEqual(lambda.syntaxReferenceOpt, syntaxReferenceOpt)
+                && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
                 && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
-
-            static bool areEqual(SyntaxReference a, SyntaxReference b)
-            {
-                return (object)a.SyntaxTree == b.SyntaxTree && a.Span == b.Span;
-            }
         }
 
         public override int GetHashCode()
         {
-            return syntaxReferenceOpt.GetHashCode();
+            return _syntax.GetHashCode();
         }
 
         public override bool IsImplicitlyDeclared
