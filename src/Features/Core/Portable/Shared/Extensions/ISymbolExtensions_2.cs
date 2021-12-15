@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol switch
             {
                 IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken)?.GetParameterText(parameter.Name),
-                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameterText(typeParam.Name),
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol!.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken)?.GetTypeParameterText(typeParam.Name),
                 IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).SummaryText,
                 IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
                 _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
@@ -195,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static DocumentationComment? GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(parameter.ContainingSymbol is not null);
             var containingSymbol = parameter.ContainingSymbol;
             if (containingSymbol.ContainingSymbol.IsDelegateType() && containingSymbol is IMethodSymbol methodSymbol)
             {

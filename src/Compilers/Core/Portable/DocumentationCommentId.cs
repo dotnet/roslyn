@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                     _builder = builder;
                 }
 
-                private ReferenceGenerator GetReferenceGenerator(ISymbol typeParameterContext)
+                private ReferenceGenerator GetReferenceGenerator(ISymbol? typeParameterContext)
                 {
                     if (_referenceGenerator == null || _referenceGenerator.TypeParameterContext != typeParameterContext)
                     {
@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis
 
             private static readonly ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
 
-            private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol typeParameterContext, List<ParameterInfo> parameters)
+            private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol? typeParameterContext, List<ParameterInfo> parameters)
             {
                 System.Diagnostics.Debug.Assert(typeParameterContext != null);
 

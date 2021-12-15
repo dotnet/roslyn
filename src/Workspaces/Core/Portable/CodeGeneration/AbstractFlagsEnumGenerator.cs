@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
@@ -47,10 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     var type = ctor.ContainingType;
                     if (!ctor.Parameters.Any() && type.Name == "FlagsAttribute")
                     {
+                        RoslynDebug.Assert(type.ContainingSymbol is not null);
                         var containingSymbol = type.ContainingSymbol;
                         if (containingSymbol.Kind == SymbolKind.Namespace &&
                             containingSymbol.Name == "System" &&
-                            ((INamespaceSymbol)containingSymbol.ContainingSymbol).IsGlobalNamespace)
+                            ((INamespaceSymbol?)containingSymbol.ContainingSymbol)?.IsGlobalNamespace == true)
                         {
                             return true;
                         }

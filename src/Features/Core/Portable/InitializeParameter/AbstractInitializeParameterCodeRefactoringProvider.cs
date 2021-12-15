@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            RoslynDebug.Assert(parameter.ContainingSymbol is not null);
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             if (methodSymbol.IsAbstract ||
                 methodSymbol.IsExtern ||

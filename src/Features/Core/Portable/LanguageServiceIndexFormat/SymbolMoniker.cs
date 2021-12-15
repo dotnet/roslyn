@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 {
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 
             if (symbol.Kind == SymbolKind.Parameter)
             {
+                RoslynDebug.Assert(symbol.ContainingSymbol is not null);
                 symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
             }
             else

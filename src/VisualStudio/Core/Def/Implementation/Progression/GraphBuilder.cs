@@ -370,15 +370,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var methodSymbol = (IMethodSymbol)symbol;
                     if (methodSymbol.MethodKind == MethodKind.Constructor)
                     {
-                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetConstructorLabel(methodSymbol.ContainingSymbol.Name);
+                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetConstructorLabel(methodSymbol.ContainingSymbol!.Name);
                     }
                     else if (methodSymbol.MethodKind == MethodKind.StaticConstructor)
                     {
-                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetStaticConstructorLabel(methodSymbol.ContainingSymbol.Name);
+                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetStaticConstructorLabel(methodSymbol.ContainingSymbol!.Name);
                     }
                     else if (methodSymbol.MethodKind == MethodKind.Destructor)
                     {
-                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetFinalizerLabel(methodSymbol.ContainingSymbol.Name);
+                        node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetFinalizerLabel(methodSymbol.ContainingSymbol!.Name);
                     }
                     else
                     {

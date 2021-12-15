@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 case SymbolKind.Parameter:
                     // Parameters are only as visible as their containing symbol
+                    RoslynDebug.Assert(symbol.ContainingSymbol is not null);
                     return GetResultantVisibility(symbol.ContainingSymbol);
 
                 case SymbolKind.TypeParameter:
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         // symbol stays at the level we've gotten so far.
                 }
 
-                symbol = symbol.ContainingSymbol;
+                symbol = symbol.ContainingSymbol!;
             }
 
             return visibility;

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     if (symbol is IParameterSymbol &&
                         symbol.ContainingSymbol.IsAnonymousFunction() &&
                         SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(parameter.ContainingSymbol, symbol.ContainingSymbol, syntaxFacts.IsCaseSensitive) &&
-                        ParameterNamesMatch(syntaxFacts, (IMethodSymbol)parameter.ContainingSymbol, (IMethodSymbol)symbol.ContainingSymbol))
+                        ParameterNamesMatch(syntaxFacts, (IMethodSymbol)parameter.ContainingSymbol!, (IMethodSymbol)symbol.ContainingSymbol))
                     {
                         var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).First();
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;

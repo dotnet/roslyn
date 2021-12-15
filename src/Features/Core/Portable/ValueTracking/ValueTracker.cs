@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             var containingSymbol = parameterSymbol.ContainingSymbol;
             var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
-                containingSymbol,
+                containingSymbol!,
                 collector.Solution,
                 findReferenceProgressCollector,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);

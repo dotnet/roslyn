@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (symbol.IsImplicitlyDeclared &&
                 symbol.Kind != SymbolKind.Local &&
                 !(symbol.Kind == SymbolKind.Parameter &&
-                  symbol.ContainingSymbol.Kind == SymbolKind.Method &&
+                  symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
                   symbol.ContainingType != null &&
                   symbol.ContainingType.IsDelegateType() &&
                   symbol.ContainingType.AssociatedSymbol != null))

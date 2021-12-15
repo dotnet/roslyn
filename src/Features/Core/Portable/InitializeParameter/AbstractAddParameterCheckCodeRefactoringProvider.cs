@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
 
                 // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more commonly used in this regard according to telemetry and UX testing.
+                RoslynDebug.Assert(parameter.ContainingSymbol is not null);
                 if (parameter.Type.SpecialType == SpecialType.System_String)
                 {
                     document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
@@ -438,6 +439,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return null;
             }
 
+            RoslynDebug.Assert(parameter.ContainingSymbol is not null);
             var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
             var parameterIndex = methodSymbol.Parameters.IndexOf(parameter);
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 if (result != null)
                     return result;
 
-                symbol = symbol.ContainingSymbol;
+                symbol = symbol.ContainingSymbol!;
             }
 
             return null;

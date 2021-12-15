@@ -374,19 +374,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
             }
 
-            symbol = symbol.ContainingSymbol;
-            if (symbol != null)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.NetModule:
-                    case SymbolKind.Assembly:
-                        // These symbols are never part of the changes collection.
-                        return null;
-                }
-            }
-
-            return symbol;
+            return symbol.ContainingSymbol is { Kind: SymbolKind.NetModule or SymbolKind.Assembly }
+                ? null
+                : symbol.ContainingSymbol;
         }
     }
 }

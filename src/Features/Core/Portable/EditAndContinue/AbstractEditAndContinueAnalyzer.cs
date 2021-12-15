@@ -3750,6 +3750,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private static void AddParameterUpdateSemanticEdit(ArrayBuilder<SemanticEditInfo> semanticEdits, IParameterSymbol newParameterSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(newParameterSymbol.ContainingSymbol is not null);
             var newContainingSymbol = newParameterSymbol.ContainingSymbol;
             semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, SymbolKey.Create(newContainingSymbol, cancellationToken), syntaxMap, syntaxMapTree: null, partialType: null));
 
@@ -4985,7 +4986,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Note that in VB implicit value parameter in property setter doesn't have a location.
             // In C# its location is the location of the setter.
             // See https://github.com/dotnet/roslyn/issues/14273
-            return local.Locations.FirstOrDefault()?.SourceSpan ?? local.ContainingSymbol.Locations.First().SourceSpan;
+            return local.Locations.FirstOrDefault()?.SourceSpan ?? local.ContainingSymbol!.Locations.First().SourceSpan;
         }
 
         private static (SyntaxNode? Node, int Ordinal) GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
@@ -5379,7 +5380,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var member = localOrParameter.ContainingSymbol;
 
                 // lambda parameters and C# constructor parameters are lifted to their own scope:
-                if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member))
+                if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member!))
                 {
                     var result = localOrParameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
                     Debug.Assert(IsLambda(result));
