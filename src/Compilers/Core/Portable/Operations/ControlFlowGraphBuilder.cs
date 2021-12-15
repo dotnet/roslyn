@@ -2065,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
                 // have unexpected affects on consumers. So we limit the spilling to those indexes before the last interpolated string
                 // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
-                // referenced a specific declaration expression in the argument list, but we think that the complexity in implementing
+                // referenced a specific declaration expression in the argument list, but we think that the difficulty in implementing
                 // this check is more complexity than this scenario needs.
                 var argument = arguments[i].Value switch
                 {
