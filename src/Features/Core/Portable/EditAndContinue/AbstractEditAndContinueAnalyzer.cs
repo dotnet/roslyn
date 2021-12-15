@@ -5377,10 +5377,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (localOrParameter.Kind == SymbolKind.Parameter)
             {
-                var member = localOrParameter.ContainingSymbol;
+                var member = localOrParameter.ContainingSymbol!;
 
                 // lambda parameters and C# constructor parameters are lifted to their own scope:
-                if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member!))
+                if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member))
                 {
                     var result = localOrParameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
                     Debug.Assert(IsLambda(result));
