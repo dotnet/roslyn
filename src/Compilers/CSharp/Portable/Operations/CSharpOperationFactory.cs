@@ -970,9 +970,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
             {
-                // https://github.com/dotnet/roslyn/issues/54505 Support interpolation handlers in conversions
                 Debug.Assert(!forceOperandImplicitLiteral);
-                Debug.Assert(boundOperand is BoundInterpolatedString { InterpolationData: not null } or BoundBinaryOperator { InterpolatedStringHandlerData: not null });
+                Debug.Assert(!boundOperand.GetInterpolatedStringHandlerData().IsDefault);
                 return CreateInterpolatedStringHandler(boundConversion);
             }
 
@@ -2210,13 +2209,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(conversion.Conversion.IsInterpolatedStringHandler);
 
-            InterpolatedStringHandlerData interpolationData = conversion.Operand switch
-            {
-                BoundInterpolatedString { InterpolationData: { } data } => data,
-                BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data,
-                _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
-            };
-
+            InterpolatedStringHandlerData interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
             var construction = Create(interpolationData.Construction);
             var content = createContent(conversion.Operand);
             var isImplicit = conversion.WasCompilerGenerated || !conversion.ExplicitCastInCode;
