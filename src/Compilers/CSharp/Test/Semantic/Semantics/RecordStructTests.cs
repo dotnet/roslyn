@@ -10780,10 +10780,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,27): error CS8982: A 'this' initializer for a 'record struct' constructor cannot call the default parameterless constructor.
+                // (3,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
-                // (7,27): error CS8982: A 'this' initializer for a 'record struct' constructor cannot call the default parameterless constructor.
+                // (7,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
         }
@@ -10805,10 +10805,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,27): error CS8982: A 'this' initializer for a 'record struct' constructor cannot call the default parameterless constructor.
+                // (4,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
-                // (9,27): error CS8982: A 'this' initializer for a 'record struct' constructor cannot call the default parameterless constructor.
+                // (9,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
         }
