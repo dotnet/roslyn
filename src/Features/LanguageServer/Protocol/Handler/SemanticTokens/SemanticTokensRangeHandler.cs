@@ -6,10 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -48,10 +45,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
-            // If we're fully loaded, cache the document's tokens for faster solution open perf
-            // next time around.
-            await CacheSemanticTokensAsync(context.Document, cancellationToken).ConfigureAwait(false);
-
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
@@ -61,31 +54,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 context.Document.IsRazorDocument(), cancellationToken).ConfigureAwait(false);
 
             return new RoslynSemanticTokens { Data = tokensData, IsFinalized = isFinalized };
-        }
-
-        private static async Task CacheSemanticTokensAsync(Document document, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-            if (client is null)
-            {
-                return;
-            }
-
-            var statusService = solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            if (!isFullyLoaded)
-            {
-                return;
-            }
-
-            // TO-DO: We should eventually cache the LSP version of the document instead of the workspace version:
-            // https://github.com/dotnet/roslyn/issues/58233
-            await client.TryInvokeAsync<IRemoteSemanticClassificationService>(
-                document.Project,
-                (service, solutionInfo, cancellationToken) => service.GetCachedSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
         }
     }
 }

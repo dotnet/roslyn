@@ -171,18 +171,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
 
-            // Case 1 - C# and VB documents:
-            //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
-            //     classifications.
-            // Case 2 - Generated Razor documents:
+            // Case 1 - Generated Razor documents:
             //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
             //     syntactic and semantic classifications.
+            // Case 2 - C# and VB documents:
+            //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
+            //     classifications.
             //
             // Ideally, Razor will eventually run the classifier on their end so we can get rid of this special
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
-            // Until then, the `AddSemanticClassificationsAsync` call below is special-cased to deal with both scenarios.
-            await SemanticClassificationCacheUtilities.AddSemanticClassificationsAsync(
-                document, textSpan, classificationService, classifiedSpans, isRazorDoc, cancellationToken).ConfigureAwait(false);
+            if (isRazorDoc)
+            {
+                var spans = await ClassifierHelper.GetClassifiedSpansAsync(
+                    document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                classifiedSpans.AddRange(spans);
+            }
+            else
+            {
+                var options = ClassificationOptions.From(document.Project);
+                await classificationService.AddSemanticClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);

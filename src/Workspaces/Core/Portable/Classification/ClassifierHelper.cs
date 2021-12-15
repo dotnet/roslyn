@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Classification
         /// fails.
         /// </summary>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+            Document document,
+            TextSpan span,
+            CancellationToken cancellationToken,
+            bool removeAdditiveSpans = true,
+            bool fillInClassifiedSpanGaps = true)
         {
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
@@ -49,10 +53,13 @@ namespace Microsoft.CodeAnalysis.Classification
             // provide additional information about the true classification. We will remove
             // additive ClassifiedSpans until we have support for additive classifications
             // in classified spans. https://github.com/dotnet/roslyn/issues/32770
-            RemoveAdditiveSpans(syntaxSpans);
-            RemoveAdditiveSpans(semanticSpans);
+            if (removeAdditiveSpans)
+            {
+                RemoveAdditiveSpans(syntaxSpans);
+                RemoveAdditiveSpans(semanticSpans);
+            }
 
-            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span, fillInClassifiedSpanGaps);
             return classifiedSpans;
         }
 
@@ -67,7 +74,10 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-            ArrayBuilder<ClassifiedSpan> syntaxSpans, ArrayBuilder<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
+            ArrayBuilder<ClassifiedSpan> syntaxSpans,
+            ArrayBuilder<ClassifiedSpan> semanticSpans,
+            TextSpan widenedSpan,
+            bool fillInClassifiedSpanGaps)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -92,13 +102,21 @@ namespace Microsoft.CodeAnalysis.Classification
 
             // The classification service will only produce classifications for
             // things it knows about.  i.e. there will be gaps in what it produces.
-            // Fill in those gaps so we have *all* parts of the span 
+            // By default, fill in those gaps so we have *all* parts of the span 
             // classified properly.
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
 
-            FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
-            FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+            if (fillInClassifiedSpanGaps)
+            {
+                FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+                FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+            }
+            else
+            {
+                filledInSyntaxSpans = syntaxSpans;
+                filledInSemanticSpans = semanticSpans;
+            }
 
             // Now merge the lists together, taking all the results from syntaxParts
             // unless they were overridden by results in semanticParts.
@@ -169,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // Take all the syntax parts.  However, if any have been overridden by a 
             // semantic part, then choose that one.
 
-            var finalParts = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var finalParts);
             var lastReplacementIndex = 0;
             for (int i = 0, n = syntaxParts.Count; i < n; i++)
             {
@@ -177,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 // See if we can find a semantic part to replace this syntax part.
                 var replacementIndex = semanticParts.FindIndex(
-                    lastReplacementIndex, t => t.TextSpan == syntaxPartAndSpan.TextSpan);
+                    lastReplacementIndex, t => t.TextSpan.OverlapsWith(syntaxPartAndSpan.TextSpan));
 
                 // Take the semantic part if it's just 'text'.  We want to keep it if
                 // the semantic classifier actually produced an interesting result 
@@ -189,6 +207,12 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (replacementIndex >= 0)
                 {
+                    // There may be multiple semantic parts corresponding to a single
+                    // syntactic part, so we might need to go through a syntactic part
+                    // multiple times to verify. For example, this is the case with
+                    // verbatim string literals containing escape characters.
+                    i--;
+
                     // If we found a semantic replacement, update the lastIndex.
                     // That way we can start searching from that point instead 
                     // of checking all the elements each time.
@@ -196,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
             }
 
-            return finalParts.ToImmutableAndFree();
+            return finalParts.ToImmutable();
         }
 
         private static bool IsClassifiedAsText(ClassifiedSpan partAndSpan)
