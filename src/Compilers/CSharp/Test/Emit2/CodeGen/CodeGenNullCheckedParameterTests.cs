@@ -1322,6 +1322,44 @@ class C
         }
 
         [Fact]
+        public void TestNullCheckedAsyncIterator()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    async IAsyncEnumerable<char> GetChars(string s!!, Task t)
+    {
+        foreach (var c in s)
+        {
+            await t;
+            yield return c;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview));
+            compilation.VerifyIL("C.GetChars", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
+  IL_0007:  ldarg.1
+  IL_0008:  ldstr      ""s""
+  IL_000d:  call       ""ThrowIfNull""
+  IL_0012:  dup
+  IL_0013:  ldarg.1
+  IL_0014:  stfld      ""string C.<GetChars>d__0.<>3__s""
+  IL_0019:  dup
+  IL_001a:  ldarg.2
+  IL_001b:  stfld      ""System.Threading.Tasks.Task C.<GetChars>d__0.<>3__t""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
         public void TestNullCheckedIteratorInLocalFunction()
         {
             var source = @"
@@ -1595,9 +1633,9 @@ class C
 }";
             var verifier = CompileAndVerify(source);
             verifier.VerifyDiagnostics(
-                // (4,25): warning CS8995: Nullable value type 'T?' is null-checked and will throw if null.
+                // (4,25): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
                 //     public void M<T>(T? t!!) where T : struct
-                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "t").WithArguments("T?").WithLocation(4, 25));
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t").WithArguments("T?").WithLocation(4, 25));
             verifier.VerifyIL("C.M<T>", @"
 {
   // Code size       21 (0x15)
@@ -1626,9 +1664,9 @@ class C
 }";
             var verifier = CompileAndVerify(source);
             verifier.VerifyDiagnostics(
-                // (4,24): warning CS8995: Nullable value type 'int?' is null-checked and will throw if null.
+                // (4,24): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
                 //     public void M(int? i!!) // 1
-                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "i").WithArguments("int?").WithLocation(4, 24));
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "i").WithArguments("int?").WithLocation(4, 24));
             verifier.VerifyIL("C.M(int?)", @"
 {
   // Code size       21 (0x15)
@@ -1737,6 +1775,260 @@ class C
 }");
             verifier.VerifyMissing("ThrowIfNull");
             verifier.VerifyMissing("Throw");
+        }
+
+        [Fact]
+        public void UserDefinedConversion()
+        {
+            var source = @"
+class C
+{
+    public static bool operator ==(C c1, C c2) => false;
+    public static bool operator !=(C c1, C c2) => false;
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+
+    public static void M(C c!!)
+    {
+        if (c == null) { System.Console.Write(1); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""c""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.0
+  IL_000c:  ldnull
+  IL_000d:  call       ""bool C.op_Equality(C, C)""
+  IL_0012:  brfalse.s  IL_001a
+  IL_0014:  ldc.i4.1
+  IL_0015:  call       ""void System.Console.Write(int)""
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void Override_NullCheckedDifference()
+        {
+            var source =
+@"
+#nullable enable
+class Base
+{
+    public virtual void M1(string x!!) { }
+    public virtual void M2(string x) { }
+}
+
+class Derived : Base
+{
+    public override void M1(string x) { }
+    public override void M2(string x!!) { }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Base.M1", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Base.M2", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("Derived.M1", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("Derived.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void Implementation_NullCheckedDifference1()
+        {
+            var source =
+@"
+#nullable enable
+interface Base
+{
+    public void M1(string x!!) { }
+    public void M2(string x) { }
+}
+
+class Derived : Base
+{
+    public void M1(string x) { }
+    public void M2(string x!!) { }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.NetCoreApp);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Base.M1", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Base.M2", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("Derived.M1", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("Derived.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void Implementation_NullCheckedDifference2()
+        {
+            var source =
+@"
+#nullable enable
+interface Base
+{
+    void M1(string x);
+    void M2(string x);
+}
+
+class Derived : Base
+{
+    public void M1(string x!!) { }
+    void Base.M2(string x!!) { }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Derived.M1", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("Derived.Base.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""x""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordPrimaryConstructor()
+        {
+            var source =
+@"
+using System;
+
+Console.Write(new Record(""1"", ""0"").Prop1);
+try
+{
+    new Record(null, ""a"");
+}
+catch (ArgumentNullException)
+{
+    Console.Write(2);
+}
+
+Console.Write(new RecordStruct(""3"", ""0"").Prop1);
+try
+{
+    new RecordStruct(""b"", null);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(4);
+}
+
+record Record(string Prop1!!, string Prop2!!);
+record struct RecordStruct(string Prop1!!, string Prop2!!);
+";
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, verify: Verification.Skipped, expectedOutput: "1234");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Record..ctor(string, string)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""Prop1""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.2
+  IL_000c:  ldstr      ""Prop2""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  stfld      ""string Record.<Prop1>k__BackingField""
+  IL_001d:  ldarg.0
+  IL_001e:  ldarg.2
+  IL_001f:  stfld      ""string Record.<Prop2>k__BackingField""
+  IL_0024:  ldarg.0
+  IL_0025:  call       ""object..ctor()""
+  IL_002a:  ret
+}");
+
+            verifier.VerifyIL("RecordStruct..ctor(string, string)", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""Prop1""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldarg.2
+  IL_000c:  ldstr      ""Prop2""
+  IL_0011:  call       ""ThrowIfNull""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  stfld      ""string RecordStruct.<Prop1>k__BackingField""
+  IL_001d:  ldarg.0
+  IL_001e:  ldarg.2
+  IL_001f:  stfld      ""string RecordStruct.<Prop2>k__BackingField""
+  IL_0024:  ret
+}");
         }
     }
 }

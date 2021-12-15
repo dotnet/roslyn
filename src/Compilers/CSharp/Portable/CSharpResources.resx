@@ -6187,11 +6187,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullCheckingOnByRefParameter" xml:space="preserve">
     <value>By-reference parameter '{0}' cannot be null-checked.</value>
   </data>
-  <data name="WRN_NullCheckingOnNullableValueType" xml:space="preserve">
-    <value>Nullable value type '{0}' is null-checked and will throw if null.</value>
+  <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
+    <value>Nullable type '{0}' is null-checked and will throw if null.</value>
   </data>
-  <data name="WRN_NullCheckingOnNullableValueType_Title" xml:space="preserve">
-    <value>Nullable value type is null-checked and will throw if null.</value>
+  <data name="WRN_NullCheckingOnNullableType_Title" xml:space="preserve">
+    <value>Nullable type is null-checked and will throw if null.</value>
   </data>
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>

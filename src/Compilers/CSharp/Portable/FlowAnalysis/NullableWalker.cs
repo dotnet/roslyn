@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             parameterType = parameter.TypeWithAnnotations;
                         }
-                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
+                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
@@ -2044,7 +2044,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // pre-condition attributes
                 // Check whether we can assign a value from overridden parameter to overriding
-                var valueState = GetParameterState(overriddenType, overriddenAnnotations);
+                var valueState = GetParameterState(
+                    overriddenType,
+                    overriddenAnnotations,
+                    // We don't consider '!!' when deciding whether 'overridden' is compatible with 'override'
+                    isNullChecked: false);
                 if (isBadAssignment(valueState, overridingType, overridingAnnotations))
                 {
                     return false;
@@ -2470,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!IsConditionalState);
                 if (slot > 0)
                 {
-                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
+                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
                     this.State[slot] = state;
                     if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
                     {
@@ -2503,8 +2507,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isNullChecked)
         {
+            if (isNullChecked)
+            {
+                return TypeWithState.Create(parameterType.Type, NullableFlowState.NotNull);
+            }
+
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
                 return TypeWithState.Create(parameterType.Type, NullableFlowState.MaybeDefault);
@@ -7977,7 +7986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameter = node.ParameterSymbol;
             int slot = GetOrCreateSlot(parameter);
             var parameterType = GetDeclaredParameterResult(parameter);
-            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations);
+            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked);
             SetResult(node, GetAdjustedResult(typeWithState, slot), parameterType);
             return null;
         }

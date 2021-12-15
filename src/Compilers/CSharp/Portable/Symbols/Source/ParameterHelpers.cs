@@ -802,16 +802,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
-            if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
+                || parameter.Type.IsNullableTypeOrTypeParameter())
             {
-                if (!parameter.Type.IsNullableTypeOrTypeParameter())
-                {
-                    diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
-                }
-                else
-                {
-                    diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableValueType, location, parameter);
-                }
+                diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
+            }
+            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+            {
+                diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
             }
         }
 

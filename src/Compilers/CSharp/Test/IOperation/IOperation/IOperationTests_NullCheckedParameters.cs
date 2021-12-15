@@ -2422,7 +2422,7 @@ class Program
             comp.VerifyDiagnostics(
                     // (4,29): warning CS8721: Nullable value type 'int?' is null-checked and will throw if null.
                     //     public void Method(int? x!!) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableValueType, "x").WithArguments("int?").WithLocation(4, 29));
+                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "x").WithArguments("int?").WithLocation(4, 29));
             var tree = comp.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             comp.VerifyOperationTree(node, expectedOperationTree: @"

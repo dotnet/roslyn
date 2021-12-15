@@ -1542,14 +1542,14 @@
         <target state="new">Parameter is null-checked but is null by default.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableValueType">
-        <source>Nullable value type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable value type '{0}' is null-checked and will throw if null.</target>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableValueType_Title">
-        <source>Nullable value type is null-checked and will throw if null.</source>
-        <target state="new">Nullable value type is null-checked and will throw if null.</target>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="new">Nullable type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
