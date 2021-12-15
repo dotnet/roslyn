@@ -4014,7 +4014,7 @@ static void Main(string[] args)
     Goo();
 }
 
-static void Goo()
+void Goo()
 {
     throw new NotImplementedException();
 }");
