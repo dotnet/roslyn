@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        // PROTOTYPE(param-nullchecking): consider whether we should adjust the set of locations where we call this
+        // https://github.com/dotnet/roslyn/issues/58335: consider whether we should adjust the set of locations where we call this
         internal static void ReportParameterNullCheckingErrors(DiagnosticBag diagnostics, ParameterSymbol parameter)
         {
             if (!parameter.IsNullChecked)
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
             Location location = parameter.Locations.FirstOrNone();
-            // PROTOTYPE(param-nullchecking): can we simplify with the other overload?
+            // https://github.com/dotnet/roslyn/issues/58335: can we simplify with the other overload?
             if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out UseSiteInfo<AssemblySymbol> useSiteInfo) is null)
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);

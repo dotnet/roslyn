@@ -2408,7 +2408,7 @@ Block[B2] - Exit
     Statements (0)");
         }
 
-        [Fact(Skip = "PROTOTYPE(param-nullchecking): MakeMemberMissing doesn't work as expected with our method of obtaining Nullable<T>.HasValue in this scenario")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58335: MakeMemberMissing doesn't work as expected with our method of obtaining Nullable<T>.HasValue in this scenario")]
         public void TestNullCheckedMethodWithMissingHasValue()
         {
             var source =
