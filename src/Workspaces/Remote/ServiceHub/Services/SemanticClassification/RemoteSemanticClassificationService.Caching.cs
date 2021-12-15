@@ -116,22 +116,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
 
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // Compute classifications for the full span. Razor documents need to cache both syntactic and semantic
-            // classifications since the client doesn't run the C# classifier in Razor LSP scenarios.
-            // Ideally, Razor will eventually run the C# syntactic classifier on their end so we can remove this
-            // special casing: https://github.com/dotnet/razor-tooling/issues/5850
-            if (document.FilePath is not null && document.FilePath.EndsWith(".g.cs"))
-            {
-                var computedSpans = await Classifier.GetClassifiedSpansAsync(document, new TextSpan(0, text.Length), cancellationToken).ConfigureAwait(false);
-                classifiedSpans.AddRange(computedSpans);
-            }
-            else
-            {
-                var options = ClassificationOptions.From(document.Project);
-                await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
-            }
+            // Compute classifications for the full span.
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var options = ClassificationOptions.From(document.Project);
+            await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
