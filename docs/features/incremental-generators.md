@@ -213,9 +213,9 @@ other additional texts unmodified).
 When this occurs the generator driver can compare the input items with the ones
 that were used previously. If they are considered to be equal then the
 transformations for those items can be skipped and the previously computed
-versions used instead.
+versions used instead. See [Comparing Items](#comparing-items) for more details.
 
-In the above diagram if `Item2` where to change we would execute the selector on
+In the above diagram if `Item2` were to change we would execute the selector on
 the modified value producing a new value for `Result2`. As `Item1`and `Item3`
 are unchanged the driver is free to skip executing the selector and just use the
 cached values of `Result1` and `Result3` from the previous execution.
@@ -808,7 +808,7 @@ In this way, only changes that are consequential flow through the pipeline, and
 duplicate work is avoided. If a generator only relies on `AdditionalTexts` then
 the driver knows there can be no work to be done when a `SyntaxTree` changes.
 
-### WithComparer
+### Comparing Items
 
 For a user provided result to be comparable across iterations, there needs to be some concept of equivalence. Rather than requiring types returned from transformations implement `IEquatable<T>`, there exists an extension method that allows the author to supply a comparer that should be used when comparing values for the given transformation:
 
