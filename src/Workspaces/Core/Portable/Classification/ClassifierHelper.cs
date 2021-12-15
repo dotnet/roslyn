@@ -50,9 +50,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 
-            // provide additional information about the true classification. We will remove
-            // additive ClassifiedSpans until we have support for additive classifications
+            // provide additional information about the true classification. By default, we will
+            // remove additive ClassifiedSpans until we have support for additive classifications
             // in classified spans. https://github.com/dotnet/roslyn/issues/32770
+            // The exception to this is LSP, which expects the additive spans.
             if (removeAdditiveSpans)
             {
                 RemoveAdditiveSpans(syntaxSpans);
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     // There may be multiple semantic parts corresponding to a single
                     // syntactic part, so we might need to go through a syntactic part
                     // multiple times to verify. For example, this is the case with
-                    // verbatim string literals containing escape characters.
+                    // verbatim string literals containing string escape characters.
                     i--;
 
                     // If we found a semantic replacement, update the lastIndex.
