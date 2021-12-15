@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                private class EnumeratorImpl : IEnumerator<IOperation>
+                private sealed class EnumeratorImpl : IEnumerator<IOperation>
                 {
                     private readonly Enumerator _enumerator;
 
