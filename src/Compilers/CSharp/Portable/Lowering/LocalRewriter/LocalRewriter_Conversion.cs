@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
                             var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _topLevelMethodOrdinal);
-                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, (NamedTypeSymbol)rewrittenType);
+                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, rewrittenType);
                         }
                         else
                         {

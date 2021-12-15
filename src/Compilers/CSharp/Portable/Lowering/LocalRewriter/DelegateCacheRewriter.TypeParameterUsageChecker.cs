@@ -127,22 +127,6 @@ partial class DelegateCacheRewriter
             return false;
         }
 
-        public override bool VisitAssembly(AssemblySymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitModule(ModuleSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitEvent(EventSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitProperty(PropertySymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitField(FieldSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitParameter(ParameterSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitLocal(LocalSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitRangeVariable(RangeVariableSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
-
-        public override bool VisitLabel(LabelSymbol symbol, HashSet<TypeParameterSymbol> typeParameters) => throw ExceptionUtilities.Unreachable;
+        public override bool DefaultVisit(Symbol symbol, HashSet<TypeParameterSymbol> argument) => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -35,7 +35,7 @@ internal sealed partial class DelegateCacheRewriter
         && compilation.IsStaticMethodGroupDelegateCacheEnabled
         ;
 
-    internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, NamedTypeSymbol delegateType)
+    internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundExpression receiver, MethodSymbol targetMethod, TypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
 
@@ -55,7 +55,7 @@ internal sealed partial class DelegateCacheRewriter
         return rewrittenNode;
     }
 
-    private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, TypeSymbol delegateType, MethodSymbol targetMethod)
     {
         Debug.Assert(_factory.ModuleBuilderOpt is { });
         Debug.Assert(_factory.CurrentFunction is { });
@@ -100,7 +100,7 @@ internal sealed partial class DelegateCacheRewriter
         return container;
     }
 
-    private bool CanUseConcreteCacheContainer(NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    private bool CanUseConcreteCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
     {
         // Possible places for type parameters that can act as type arguments to construct the delegateType or targetMethod:
         //   1. containing types

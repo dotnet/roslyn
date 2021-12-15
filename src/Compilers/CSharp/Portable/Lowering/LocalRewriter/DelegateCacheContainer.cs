@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
-    private readonly Dictionary<(NamedTypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new();
+    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new();
 
     /// <summary>Creates a type scoped concrete delegate cache container.</summary>
     internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
@@ -43,8 +43,10 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     internal override bool HasPossibleWellKnownCloneMethod() => false;
 
-    internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, NamedTypeSymbol delegateType, MethodSymbol targetMethod)
+    internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, TypeSymbol delegateType, MethodSymbol targetMethod)
     {
+        Debug.Assert(delegateType.IsDelegateType());
+
         if (_delegateFields.TryGetValue((delegateType, targetMethod), out var field))
         {
             return field;
