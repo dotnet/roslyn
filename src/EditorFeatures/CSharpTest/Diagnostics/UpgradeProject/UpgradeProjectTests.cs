@@ -1086,5 +1086,22 @@ class C
                 expected: LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
+
+        [Fact]
+        public async Task UpgradeProjectForNewLinesInInterpolations()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class Test
+{
+    void M()
+    {
+        var v = $""x{
+                    1 + 1
+                 [|}|]y"";
+    }
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }
