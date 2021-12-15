@@ -101,27 +101,25 @@ namespace Microsoft.CodeAnalysis.Classification
             AdjustSpans(syntaxSpans, widenedSpan);
             AdjustSpans(semanticSpans, widenedSpan);
 
-            // The classification service will only produce classifications for
-            // things it knows about.  i.e. there will be gaps in what it produces.
-            // By default, fill in those gaps so we have *all* parts of the span 
-            // classified properly.
-            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
-
             if (fillInClassifiedSpanGaps)
             {
+                // The classification service will only produce classifications for
+                // things it knows about.  i.e. there will be gaps in what it produces.
+                // By default, fill in those gaps so we have *all* parts of the span 
+                // classified properly.
+                using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
+                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
+
                 FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
                 FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
-            }
-            else
-            {
-                filledInSyntaxSpans = syntaxSpans;
-                filledInSemanticSpans = semanticSpans;
+
+                syntaxSpans = filledInSyntaxSpans;
+                semanticSpans = filledInSemanticSpans;
             }
 
             // Now merge the lists together, taking all the results from syntaxParts
             // unless they were overridden by results in semanticParts.
-            return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
+            return MergeParts(syntaxSpans, semanticSpans);
         }
 
         private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
