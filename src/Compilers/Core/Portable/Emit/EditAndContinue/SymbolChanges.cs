@@ -374,9 +374,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
             }
 
-            return symbol.ContainingSymbol is { Kind: SymbolKind.NetModule or SymbolKind.Assembly } containingSymbol
+            return symbol.ContainingSymbol is { Kind: SymbolKind.NetModule or SymbolKind.Assembly }
                 ? null
-                : containingSymbol;
+                : symbol.ContainingSymbol;
         }
     }
 }
