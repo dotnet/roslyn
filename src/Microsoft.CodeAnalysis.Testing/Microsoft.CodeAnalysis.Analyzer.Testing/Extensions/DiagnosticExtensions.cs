@@ -3,30 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.Testing.Extensions
 {
     internal static class DiagnosticExtensions
     {
-        private static readonly MethodInfo? IsSuppressedGetMethod = typeof(Diagnostic).GetProperty("IsSuppressed")?.GetMethod;
+        private static readonly Func<Diagnostic, bool> s_isSuppressed;
 
-        public static bool TryGetIsSuppressed(this Diagnostic diagnostic, out bool value)
+        static DiagnosticExtensions()
         {
-            value = false;
-
-            var rawValue = IsSuppressedGetMethod?.Invoke(diagnostic, null);
-
-            if (rawValue?.GetType() != typeof(bool))
+            var isSuppressedProperty = typeof(Diagnostic).GetProperty(nameof(IsSuppressed), typeof(bool));
+            if (isSuppressedProperty is { GetMethod: { } getMethod })
             {
-                return false;
+                s_isSuppressed = (Func<Diagnostic, bool>)getMethod.CreateDelegate(typeof(Func<Diagnostic, bool>), target: null);
             }
-
-            value = (bool)rawValue;
-
-            return true;
+            else
+            {
+                s_isSuppressed = diagnostic => false;
+            }
         }
+
+        public static bool IsSuppressed(this Diagnostic diagnostic)
+            => s_isSuppressed(diagnostic);
     }
 }
