@@ -1100,7 +1100,7 @@ class Test
                  [|}|]y"";
     }
 }",
-                LanguageVersion.Preview,
+                expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
