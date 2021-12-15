@@ -241,7 +241,7 @@ Block[B4] - Exit
         [Fact]
         public void TestIOp_NullCheckedIndexedProperty()
         {
-            // PROTOTYPE 
+            // https://github.com/dotnet/roslyn/issues/58320
             var source = @"
 public class C
 {
@@ -2463,7 +2463,7 @@ class Program
         [Fact]
         public void TestNoNullChecksInBlockOperation()
         {
-            // PROTOTYPE - Nullchecks currently included when only BlockSyntax is bound. Falls into VisitMethodBody instead of VisitBlock.
+            // https://github.com/dotnet/roslyn/issues/58320
             var source = @"
 public class C
 {

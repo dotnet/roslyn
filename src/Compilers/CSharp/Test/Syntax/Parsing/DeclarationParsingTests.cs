@@ -7935,7 +7935,6 @@ class Box
         [Fact]
         public void TestAnonymousDelegateNullChecking()
         {
-            // PROTOTYPE : During semantics, make sure this causes an error
             UsingTree(@"
 delegate void Del(int x!!);
 Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);

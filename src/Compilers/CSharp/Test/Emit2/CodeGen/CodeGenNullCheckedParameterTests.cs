@@ -314,10 +314,9 @@ class Box
 }", sequencePoints: "Box.op_Addition");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58322")]
         public void TestNullCheckedArgListImplementation()
         {
-            // PROTOTYPE : Will address later - issues with post-fix & binding?
             var source = @"
 class C
 {
