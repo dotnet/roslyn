@@ -1087,7 +1087,7 @@ class C
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
-        [Fact]
+        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
         public async Task UpgradeProjectForNewLinesInInterpolations()
         {
             await TestLanguageVersionUpgradedAsync(@"
