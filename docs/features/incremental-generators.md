@@ -2,7 +2,7 @@
 
 ## Summary
 
-Incremental generators are intended to be a new API that exists alongside
+Incremental generators are a new API that exists alongside
 [source generators](generators.md) to allow users to specify generation
 strategies that can be applied in a high performance way by the hosting layer.
 
@@ -42,154 +42,606 @@ public class MyGenerator : IIncrementalGenerator { ... }
 An assembly can contain a mix of diagnostic analyzers, source generators and
 incremental generators.
 
-### Initialization
-
-`IIncrementalGenerator` has an `Initialize` method that is called by the host
-(either the IDE or the command-line compiler) exactly once, regardless of the
-number of further compilations that may occur. `Initialize` passes an instance
-of `IncrementalGeneratorInitializationContext` which can be used by the
-generator to register a set of callbacks that affect how future generation
-passes will occur.
-
-Currently `IncrementalGeneratorInitializationContext` supports two callbacks:
-
-- `RegisterForPostInitialization(GeneratorPostInitializationContext)`: the same
-  callback in shape and function as supported by Source Generators today
-- `RegisterExecutionPipeline(IncrementalGeneratorPipelineContext)`: replaces Execute, described below
-
 ### Pipeline based execution
 
+`IIncrementalGenerator` has an `Initialize` method that is called by the host[^1]
+exactly once, regardless of the number of further compilations that may occur.
+
+[^1]: Such as the IDE or the command-line compiler
+
 Rather than a dedicated `Execute` method, an Incremental Generator instead
-creates an execution 'pipeline' as part of the initialization process via the
-`RegisterExecutionPipeline` method:
+defines an immutable execution pipeline as part of initialization. The
+`Initialize` method receives an instance of
+`IncrementalGeneratorInitializationContext`which is used by the generator to
+define a set of transformations:
 
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext initContext)
 {
-    initContext.RegisterExecutionPipeline(context =>
-    {
-        // build the pipeline...
-    });
+    // define the execution pipeline here via transformations of initContext
 }
 ```
 
-This pipeline is not directly executed, but instead consists of a set of steps
-that are executed on demand as the input data to the pipeline changes. Between
-each step the data produced is cached, allowing previously calculated values to
-be reused in later computations when applicable, reducing the overall
-computation required between compilations.
+These transformations are not executed directly at initialization. Instead they
+are used to form a directed graph of actions that can be executed on demand later,
+as the input data changes. Between each transformation, the data
+produced is cached, allowing previously calculated values to be re-used where
+applicable. This caching reduces the computation required for subsequent
+compilations. See [caching](#caching) for more details.
 
-### IncrementalValueSource&lt;T&gt;
+### IncrementalValue\[s\]Provider&lt;T&gt;
 
-Input data is available to the pipeline in the form of an opaque data source,
-modelled as an `IncrementalValueSource<T>` where _T_ is the type of data that
-can be accessed in the pipeline.
+Input data is available to the pipeline in the form of opaque data sources,
+either an `IncrementalValueProvider<T>` or `IncrementalValuesProvider<T>` (note
+the plural _values_) where _T_ is the type of input data that is provided.
 
-These sources are defined up front by the compiler, and can be accessed from the
-`Values` property of the `context` passed as part of the
-`RegisterExecutionPipeline` callback. Example values sources include
+An initial set of providers are created by the host, and can be accessed from the
+`IncrementalGeneratorInitializationContext` provided during initialization.
 
-- Compilation
-- AdditionalTexts
-- AnalyzerConfigOptions
-- MetadataReferences
-- ParseOptions
+The currently available providers are:
 
-Value sources have 'zero-or-more' potential values that can be produced. For
-example, the `Compilation` will always produce a single value, whereas the
-`AdditionalTexts` will produce a variable number of values, depending on how
-many additional texts where passed to the compiler.
+- CompilationProvider
+- AdditionalTextsProvider
+- AnalyzerConfigOptionsProvider
+- MetadataReferencesProvider
+- ParseOptionsProvider
 
-An execution pipeline cannot access these values directly. Instead it supplies a
-set of transforms that will be applied to the data as it changes. Transforms are
-applied through a set of extension methods:
+*Note*: there is no provider for accessing syntax nodes. This is handled
+in a slightly different way. See [SyntaxProviderFactory](#syntaxproviderfactory) for details.
+
+A value provider can be thought of as a 'box' that holds the value itself. An
+execution pipeline does not access the values in a value provider directly.
+
+```ascii
+IValueProvider<TSource>
+   ┌─────────────┐
+   |             |
+   │   TSource   │
+   |             |
+   └─────────────┘
+```
+
+Instead, the generator supplies a set of transformations that ar to be applied to the
+data contained within the provider, which in turn creates a new value provider.
+
+### Select
+
+The simplest transformation is `Select`. This maps the value in one provider
+into a new provider by applying a transform to it.
+
+```ascii
+ IValueProvider<TSource>                     IValueProvider<TResult>
+    ┌─────────────┐                            ┌─────────────┐
+    │             │  Select<TSource,TResult1>  │             │
+    │   TSource   ├───────────────────────────►│   TResult   │
+    │             │                            │             │
+    └─────────────┘                            └─────────────┘
+```
+
+Generator transformations can be thought of as being conceptually somewhat similar to
+LINQ, with the value provider taking the place of `IEnumerable<T>`.
+Transforms are created through a set of extension methods:
 
 ```csharp
 public static partial class IncrementalValueSourceExtensions
 {
     // 1 => 1 transform 
-    public static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => ...
+    public static IncrementalValueProvider<TResult> Select<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector);
+    public static IncrementalValuesProvider<TResult> Select<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, TResult> selector);
 }
 ```
 
-These extension methods allow the user to perform a series of transforms,
-conceptually somewhat similar to LINQ, over the values coming from the data
-source:
+Note how the return type of these methods are also an instance of
+`IncrementalValue[s]Provider`. This allows the generator to chain multiple
+transformations together:
+
+```ascii
+ IValueProvider<TSource>                     IValueProvider<TResult1>                 IValueProvider<TResult2>
+    ┌─────────────┐                            ┌─────────────┐                           ┌─────────────┐
+    │             │  Select<TSource,TResult1>  │             │ Select<TResult1,TResult2> │             │
+    │   TSource   ├───────────────────────────►│   TResult1  │──────────────────────────►│   TResult2  │
+    │             │                            │             │                           │             │
+    └─────────────┘                            └─────────────┘                           └─────────────┘
+```
+
+Consider the following simple example:
 
 ```csharp
 initContext.RegisterExecutionPipeline(context =>
 {
-    // get the additional text source
-    IncrementalValueSource<AdditionalText> additionalTexts = context.Sources.AdditionalTexts;
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
 
     // apply a 1-to-1 transform on each text, which represents extracting the path
-    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
+    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+
+    // transform each extracted path into something else
+    IncrementalValuesProvider<string> prefixTransform = transformed.Select(static (path, _) => "prefix_" + path);
 
 });
 ```
 
-Note that `transformed` is similarly opaque. It represents the outcome of the
-transformation being applied to the data, but cannot be accessed directly.
+Note how `transformed` and `prefixTransform` are themselves an
+`IncrementalValuesProvider`. They represent the outcome of the transformation
+that will be applied, rather than the resulting data.
 
-The transformed steps can be further transformed, and it is also valid to
-perform multiple transformations on the same input node, essentially 'splitting'
-the pipeline into multiple streams of processing.
+### Multi Valued providers
 
-```csharp
-    // apply a 1-to-1 transform on each text, extracting the path
-    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
+An `IncrementalValueProvider<T>` will always provide a single value, whereas an
+`IncrementalValuesProvider<T>` may provide zero or more values. For example the
+`CompilationProvider` will always produce a single compilation instance, whereas
+the `AdditionalTextsProvider` will produce a variable number of values,
+depending on how many additional texts where passed to the compiler.
 
-    // split the processing into two streams of derived data
-    IncrementalValueSource<string> prefixTransform = transformed.Transform(static path => "prefix_" + path);
-    IncrementalValueSource<string> postfixTransform = transformed.Transform(static path => path + "_postfixed");
+Conceptually it is simple to think about the transformation of a single item
+from an `IncrementalValueProvider<T>`: the single item has the selector function
+applied to it which produces a single value of `TResult`.
+
+For an `IncrementalValuesProvider<T>` however, this transformation is more
+subtle. The selector function is applied multiple times, one to each item in the
+values provider. The results of each transformation are then used to create the
+values for the resulting values provider:
+
+```ascii
+                                          Select<TSource, TResult>
+                                   .......................................
+                                   .                   ┌───────────┐     .
+                                   .   selector(Item1) │           │     .
+                                   . ┌────────────────►│  Result1  ├───┐ .
+                                   . │                 │           │   │ .
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
+          ┌───────────┐            . │                 ┌───────────┐   │ .        ┌────────────┐
+          │           │            . │ selector(Item2) │           │   │ .        │            │
+          │  TSource  ├──────────────┼────────────────►│  Result2  ├───┼─────────►│   TResult  │
+          │           │            . │                 │           │   │ .        │            │
+          └───────────┘            . │                 └───────────┘   │ .        └────────────┘
+            3 items                . │                 ┌───────────┐   │ .            3 items
+     [Item1, Item2, Item3]         . │ selector(Item3) │           │   │ .  [Result1, Result2, Result3]
+                                   . └────────────────►│  Result3  ├───┘ .
+                                   .                   │           │     .
+                                   .                   └───────────┘     .
+                                   .......................................
 ```
 
-### Batching
+It is this item-wise transformation that allows the caching to be particularly
+powerful in this model. Consider when the values inside
+`IncrementalValueProvider<TSource>` change. Its likely that any given change
+will only change one item at a time rather than the whole collection (for example
+a user typing in an additional text only changes the given text, leaving the
+other additional texts unmodified).
 
-In addition to the 1-to-1 transform shown above, there are also extension
-methods for producing and consuming batches of data. For instance a given
-transform may want to produce more than one value for each input, or want to
-view all the data in a single collected view in order to make cross data
-decisions.
+When this occurs the generator driver can compare the input items with the ones
+that were used previously. If they are considered to be equal then the
+transformations for those items can be skipped and the previously computed
+versions used instead.
+
+In the above diagram if `Item2` where to change we would execute the selector on
+the modified value producing a new value for `Result2`. As `Item1`and `Item3`
+are unchanged the driver is free to skip executing the selector and just use the
+cached values of `Result1` and `Result3` from the previous execution.
+
+### Select Many
+
+In addition to the 1-to-1 transform shown above, there are also transformations
+that produce batches of data. For instance a given transformation may want to
+produce multiple values for each input. There are a set of `SelectMany` methods that allow a transformation of 1 to
+many, or many to many items:
+
+**1 to many:**
 
 ``` csharp
 public static partial class IncrementalValueSourceExtensions
 {
-    // 1 => many (or none)
-    public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => ...
-
-    // many => 1
-    public static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, U> func) => ...
-
-    // many => many (or none)
-    public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => ...
+    public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector);
 }
 ```
 
-In our above example we could use `BatchTransform` to collect the individual
-file paths collected, and convert them into a single collection:
-
-``` csharp
-    // apply a 1-to-1 transform on each text, which represents extracting the path
-    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
-
-    // batch the collected file paths into a single collection
-    IncrementalValueSource<IEnumerable<string>> batched = transformed.BatchTransform(static paths => paths);
+```ascii
+                                         SelectMany<TSource, TResult>
+                                   .......................................
+                                   .                   ┌───────────┐     .
+                                   .                   │           │     .
+                                   .               ┌──►│  Result1  ├───┐ .
+                                   .               │   │           │   │ .
+ IncrementalValueProvider<TSource> .               │   └───────────┘   │ . IncrementalValuesProvider<TResult>
+          ┌───────────┐            .               │   ┌───────────┐   │ .        ┌────────────┐
+          │           │            . selector(Item)│   │           │   │ .        │            │
+          │  TSource  ├────────────────────────────┼──►│  Result2  ├───┼─────────►│   TResult  │
+          │           │            .               │   │           │   │ .        │            │
+          └───────────┘            .               │   └───────────┘   │ .        └────────────┘
+              Item                 .               │   ┌───────────┐   │ .            3 items
+                                   .               │   │           │   │ .  [Result1, Result2, Result3]
+                                   .               └──►│  Result3  ├───┘ .
+                                   .                   │           │     .
+                                   .                   └───────────┘     .
+                                   .......................................
 ```
 
-The author could have equally combined these two steps into a single operation
-that utilizes LINQ:
+**Many to many:**
 
 ``` csharp
-    // using System.Linq;
-    IncrementalValueSource<IEnumerable<string>> singleOp = additionalTexts.BatchTransform(static texts => texts.Select(text => text.Path));
+public static partial class IncrementalValueSourceExtensions
+{
+    public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, CancellationToken, IEnumerable<TResult>> selector);
+}
 ```
 
-**OPEN QUESTION** Should there be versions of
-`BatchTransform`/`BatchTransformMany` that take no transformation, and just
-perform the identity function as specified above?
+```ascii
+                                             SelectMany<TSource, TResult>
+                                   ...............................................
+                                   .                        ┌─────────┐          .
+                                   .                        │         │          .
+                                   .                  ┌────►│ Result1 ├───────┐  .
+                                   .                  │     │         │       │  .
+                                   .                  │     └─────────┘       │  .
+                                   .  selector(Item1) │                       │  .
+                                   .┌─────────────────┘     ┌─────────┐       │  .
+                                   .│                       │         │       │  .
+ IncrementalValuesProvider<TSource>.│                 ┌────►│ Result2 ├───────┤  .    IncrementalValuesProvider<TResult>
+          ┌───────────┐            .│                 │     │         │       │  .            ┌────────────┐
+          │           │            .│ selector(Item2) │     └─────────┘       │  .            │            │
+          │  TSource  ├─────────────┼─────────────────┤     ┌─────────┐       ├──────────────►│  TResult   │
+          │           │            .│                 │     │         │       │  .            │            │
+          └───────────┘            .│                 └────►│ Result3 ├───────┤  .            └────────────┘
+             3 items               .│                       │         │       │  .               7 items
+       [Item1, Item2, Item3]       .│ selector(Item3)       └─────────┘       │  .  [Result1, Result2, Result3, Result4, 
+                                   .└─────────────────┐                       │  .      Result5, Result6, Result7 ]
+                                   .                  │     ┌─────────┐       │  .
+                                   .                  │     │         │       │  .
+                                   .                  ├────►│ Result4 ├───────┤  .
+                                   .                  │     │         │       │  .
+                                   .                  │     └─────────┘       │  .
+                                   .                  │     ┌─────────┐       │  .
+                                   .                  │     │         │       │  .
+                                   .                  ├────►│ Result5 ├───────┤  .
+                                   .                  │     │         │       │  .
+                                   .                  │     └─────────┘       │  .
+                                   .                  │     ┌─────────┐       │  .
+                                   .                  │     │         │       │  .
+                                   .                  └────►│ Result6 ├───────┘  .
+                                   .                        │         │          .
+                                   .                        └─────────┘          .
+                                   ...............................................
+```
 
-### Outputting values
+For example, consider a set of additional XML files that contain multiple
+elements of the same type. The generator may want to treat each element as a
+distinct item for generation, effectively splitting a single additional file
+into multiple sub-items.
+
+``` csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // extract each element from each additional file
+    IncrementalValuesProvider<MyElementType> elements = additionalTexts.SelectMany(static (text, _) => /*transform text into an array of MyElementType*/);
+
+    // now the generator can consider the union of elements in all additional texts, without needing to consider multiple files
+    IncrementalValuesProvider<string> transformed = elements.Select(static (element, _) => /*transform the individual element*/);
+}
+```
+
+### Where
+
+Where allows the author to filter the values in a value provider by a given
+predicate. Where is actually a specific form of select many, where each input
+transforms to exactly 1 or 0 outputs. However, as it is such a common operation
+it is provided as a primitive transformation directly.
+
+``` csharp
+public static partial class IncrementalValueSourceExtensions
+{
+    public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate);
+}
+```
+
+```ascii
+                                          Select<TSource, TResult>
+                                   .......................................
+                                   .                   ┌───────────┐     .
+                                   .   predicate(Item1)│           │     .
+                                   . ┌────────────────►│   Item1   ├───┐ .
+                                   . │                 │           │   │ .
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
+          ┌───────────┐            . │                                 │ .        ┌────────────┐
+          │           │            . │ predicate(Item2)                │ .        │            │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
+          │           │            . │                                 │ .        │            │
+          └───────────┘            . │                                 │ .        └────────────┘
+             3 Items               . │                 ┌───────────┐   │ .           2 Items
+                                   . │ predicate(Item3)│           │   │ .
+                                   . └────────────────►│   Item3   ├───┘ .
+                                   .                   │           │     .
+                                   .                   └───────────┘     .
+                                   .......................................
+```
+
+An obvious use case is to filter out inputs the generator knows it isn't
+interested in. For example, the generator will likely want to filter additional
+texts on file extensions:
+
+```csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // filter additional texts by extension
+    IncrementalValuesProvider<string> xmlFiles = additionalTexts.Where(static (text, _) => text.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+}
+```
+
+### Collect
+
+When performing transformations on a value provider with multiple items, it can
+often be useful to view the items as a single collection rather than one item at
+a time. For this there is the `Collect` transformation.
+
+`Collect` transforms an `IncrementalValuesProvider<T>` to an
+`IncrementalValueProvider<ImmutableArray<T>>`. Essentially it transforms a multi-valued source
+into a single value source with an array of all the items.
+
+```csharp
+public static partial class IncrementalValueSourceExtensions
+{
+    IncrementalValueProvider<ImmutableArray<TSource>> Collect<TSource>(this IncrementalValuesProvider<TSource> source);
+}
+```
+
+```ascii
+IncrementalValuesProvider<TSource>                IncrementalValueProvider<ImmutableArray<TSource>>
+          ┌───────────┐                                  ┌─────────────────────────┐
+          │           │          Collect<TSource>        │                         │
+          │  TSource  ├─────────────────────────────────►│ ImmutableArray<TSource> │
+          │           │                                  │                         │
+          └───────────┘                                  └─────────────────────────┘
+             3 Items                                             Single Item
+
+              Item1                                         [Item1, Item2, Item3]
+              Item2
+              Item3
+```
+
+```csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // collect the additional texts into a single item
+    IncrementalValueProvider<AdditionalText[]> collected = context.AdditionalTexts.Collect();
+
+    // perform a transformation where you can access all texts at once
+    var transform = collected.Select((texts, _) => /* ... */);
+}
+
+```
+
+### Multi-path pipelines
+
+The transformations described so far are all effectively single-path operations:
+while there may be multiple items in a given provider, each transformation
+operates on a single input value provider and produce a single derived output
+provider.
+
+While sufficient for simple operations, it is often necessary to combine the
+values from multiple input providers or use the results of a transformation
+multiple times. For this there are a set of transformations that split and
+combine a single path of transformations into a multi-path pipeline.
+
+### Split
+
+It is possible to split the output of a transformations into multiple
+parallel inputs. Rather than having a dedicated transformation this can be
+achieved by simply using the same value provider as the input to multiple
+transforms.
+
+```ascii
+
+                                                     IncrementalValueProvider<TResult>
+                                                              ┌───────────┐
+                                      Select<TSource,TResult> │           │
+ IncrementalValueProvider<TSource>   ┌───────────────────────►│  TResult  │
+           ┌───────────┐             │                        │           │
+           │           │             │                        └───────────┘
+           │  TSource  ├─────────────┤
+           │           │             │
+           └───────────┘             │                    IncrementalValuesProvider<TResult2>
+                                     │                              ┌───────────┐
+                                     │ SelectMany<TSource,TResult2> │           │
+                                     └─────────────────────────────►│  TResult2 │
+                                                                    │           │
+                                                                    └───────────┘
+```
+
+Those transforms can then be used as the inputs to new single path transforms, independent of one another.
+
+For example:
+
+```csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // apply a 1-to-1 transform on each text, extracting the path
+    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+
+    // split the processing into two paths of derived data
+    IncrementalValuesProvider<string> nameTransform = transformed.Select(static (path, _) => "prefix_" + path);
+    IncrementalValuesProvider<string> extensionTransform = transformed.Select(static (path, _) => Path.ChangeExtension(path, ".new"));
+}
+```
+
+`nameTransform` and `extensionTransform` produce different values for the same
+set of additional text inputs. For example if there was an additional file
+called `file.txt` then `nameTransform` would produce the string
+`prefix_file.txt` where `extensionTransform` would produce the string
+`file.new`.
+
+When the value of the additional file changes, the subsequent values produced
+may or may not differ. For example if the name of the additional file was
+changed to `file.xml` then `nameTransform` would now produce `prefix_file.xml`
+whereas `extensionTransform` would still produce `file.new`. Any child transform
+with input from `nameTransform` would be re-run with the new value, but any
+child of `extensionTransform` would use the previously cached version as it's
+input hasn't changed.
+
+### Combine
+
+Combine is the most powerful, but also most complicated transformation. It
+allows a generator to take two input providers and create a single unified
+output provider.
+
+**Single-value to single-value**:
+
+```csharp
+public static partial class IncrementalValueSourceExtensions
+{
+    IncrementalValueProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValueProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2);
+}
+```
+
+When combining two single value providers, the resulting node is conceptually
+easy to understand: a new value provider that contains a `Tuple` of the two
+input items.
+
+```ascii
+
+IncrementalValueProvider<TSource1>
+         ┌───────────┐
+         │           │
+         │  TSource1 ├────────────────┐
+         │           │                │                                 IncrementalValueProvider<(TSource1, TSource2)>
+         └───────────┘                │
+          Single Item                 │                                          ┌────────────────────────┐
+                                      │       Combine<TSource1, TSource2>        │                        │
+            Item1                     ├─────────────────────────────────────────►│  (TSource1, TSource2)  │
+                                      │                                          │                        │
+IncrementalValueProvider<TSource2>    │                                          └────────────────────────┘
+         ┌───────────┐                │                                                   Single Item
+         │           │                │
+         │  TSource2 ├────────────────┘                                                  (Item1, Item2)
+         │           │
+         └───────────┘
+          Single Item
+
+            Item2
+
+```
+
+**Multi-value to single-value:**
+
+```csharp
+public static partial class IncrementalValueSourceExtensions
+{
+    IncrementalValuesProvider<(TLeft Left, TRight Right)> Combine<TLeft, TRight>(this IncrementalValuesProvider<TLeft> provider1, IncrementalValueProvider<TRight> provider2);
+}
+```
+
+When combining a multi value provider to a single value provider, however, the
+semantics are a little more complicated. The resulting multi-valued provider
+produces a series of tuples: the left hand side of each tuple is the value
+produced from the multi-value input, while the right hand side is always the
+same single value from the single value provider input.
+
+```ascii
+ IncrementalValuesProvider<TSource1>
+          ┌───────────┐
+          │           │
+          │  TSource1 ├────────────────┐
+          │           │                │
+          └───────────┘                │
+             3 Items                   │                                IncrementalValuesProvider<(TSource1, TSource2)>
+                                       │
+            LeftItem1                  │                                          ┌────────────────────────┐
+            LeftItem2                  │       Combine<TSource1, TSource2>        │                        │
+            LeftItem3                  ├─────────────────────────────────────────►│  (TSource1, TSource2)  │
+                                       │                                          │                        │
+                                       │                                          └────────────────────────┘
+ IncrementalValueProvider<TSource2>    │                                                  3 Items
+          ┌───────────┐                │
+          │           │                │                                            (LeftItem1, RightItem)
+          │  TSource2 ├────────────────┘                                            (LeftItem2, RightItem)
+          │           │                                                             (LeftItem3, RightItem)
+          └───────────┘
+           Single Item
+
+            RightItem
+```
+
+**Multi-value to multi-value:**
+
+As shown by the definitions above it is not possible to combine a multi-value
+source to another multi-value source. The resulting cross join would potentially
+contain a large number of values, so the operation is not provided by default.
+
+Instead, an author can call `Collect()` on one of the input multi-value providers
+to produce a single-value provider that can be combined as above.
+
+```ascii
+                                           IncrementalValuesProvider<TSource1>
+                                                  ┌───────────┐
+                                                  │           │
+                                                  │ TSource1  ├──────────────┐
+                                                  │           │              │
+                                                  └───────────┘              │
+                                                     3 Items                 │                                IncrementalValuesProvider<(TSource1, TSource2[])>
+                                                                             │
+                                                    LeftItem1                │                                          ┌────────────────────────┐
+                                                    LeftItem2                │       Combine<TSource1, TSource2[]>      │                        │
+                                                    LeftItem3                ├─────────────────────────────────────────►│  (TSource1, TSource2)  │
+                                                                             │                                          │                        │
+                                                                             │                                          └────────────────────────┘
+IncrementalValuesProvider<TSource2>     IncrementalValueProvider<TSource2[]> │                                                  3 Items
+         ┌───────────┐                           ┌────────────┐              │
+         │           │      Collect<TSource2>    │            │              │                               (LeftItem1, [RightItem1, RightItem2, RightItem3])
+         │  TSource2 ├───────────────────────────┤ TSource2[] ├──────────────┘                               (LeftItem2, [RightItem1, RightItem2, RightItem3])
+         │           │                           │            │                                              (LeftItem3, [RightItem1, RightItem2, RightItem3])
+         └───────────┘                           └────────────┘
+            3 Items                                Single Item
+
+          RightItem1                 [RightItem1, RightItem2, RightItem3]
+          RightItem2
+          RightItem3
+```
+
+With the above transformations the generator author can now take one or more
+inputs and combine them into a single source of data. For example:
+
+```csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // get the additional text provider
+    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+
+    // combine each additional text with the parse options
+    IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = context.AdditionalTextsProvider.Combine(context.ParseOptionsProvider);
+
+    // perform a transform on each text, with access to the options
+    var transformed = combined.Select((pair, _) => 
+    {
+        AdditionalText text = pair.Left;
+        ParseOptions parseOptions = pair.Right;
+
+        // do the actual transform ...
+    });
+}
+```
+
+If either of the inputs to a combine change, then subsequent transformation will
+re-run. However, the caching is considered on a pairwise basis for each output
+tuple. For instance, in the above example, if only additional text changes the
+subsequent transform will only be run for the text that changed. The other text
+and parse options pairs are skipped and their previously computed value are
+used. If the single value changes, such as the parse options in the example,
+then the transformation is executed for every tuple.
+
+### SyntaxProviderFactory
+
+## Outputting values
 
 At some point in the pipeline the author will want to actually use the
 transformed data to produce an output, such as a `SourceText`. For this purpose
@@ -244,7 +696,7 @@ methods? This can already be achieved by the author calling `BatchTransform`
 before calling `Generate...` so would just be a helper, but seems common enough
 that it could be useful.
 
-### Simple example
+## Simple example
 
 Putting together the various steps outlined above, an example incremental
 generator might look like the following:
@@ -286,79 +738,7 @@ namespace Generated
 }
 ```
 
-## Advanced Implementation
-
-### Combining and filtering
-
-While the transformation steps outlined above allow a user to create simple
-generators from a single source of data, in reality it is expected that an
-author will need a way to take multiple sources of data and combine them.
-
-There exists an extension method `Combine` that allows the author to take one
-data source and merge it with another, for example, extracting a set of types
-from the compilation and using them to generate something on a per additional
-file basis.
-
-```csharp
-public static partial class IncrementalValueSourceExtensions
-{
-    // join 1 => many ((source1[0], source2), (source1[1], source2), (source1[2], source2), ...)
-    public static IncrementalValueSource<(T source1Item, IEnumerable<U> source2Batch)> Combine<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => ...
-}
-```
-
-The second data source is batched, and the resulting step has a value type of
-`(T, IEnumerable<U>)`. That is, a tuple where each element consists of a single
-item of data from `source1` combined with the entire batch of data from
-`source2`. While this is somewhat low-level, when combined with subsequent
-transforms, it gives the author the ability to combine an arbitrary number of
-data sources into any shape they require.
-
-In the following example the author combines the additional text source with the
-compilation:
-
-```csharp
-IncrementalValueSource<(AdditionalText source1Item, IEnumerable<Compilation> source2Batch)> combined = context.Sources.AdditionalTexts.Combine(context.Sources.Compilation);
-```
-
-The type of combined is an
-`IncrementalValueSource<(AdditionalText, IEnumerable<Compilation>)>`. For each
-additional text, there is a tuple with the text, and the batched data of the
-compilation source. As the author knows that there is only ever a single
-compilation, they are free to transform the data to select the single
-compilation object:
-
-```csharp
-IncrementalValueSource<(AdditionalText, Compilation)> transformed = combined.Transform(static pair => (pair.source1Item, pair.source2Batch.Single()));
-```
-
-Similarly a cross join can be achieved by first combining two value sources,
-then batch transforming the resulting value source.
-
-```csharp
-IncrementalValueSource<(AdditionalText, MetadataReference)> combined = context.Sources.AdditionalTexts
-                                                                                      .Combine(context.Sources.MetadataReference)
-                                                                                      .TransformMany(static pair => pair.source2Batch.Select(static metadataRef => (pair.source1Item, metadataRef));
-```
-
-**OPEN QUESTION**: Combine is pretty low level, but does allow you to do
-everything needed when used in conjunction with transform. Should we provide
-some higher level extension methods that chain together combine and transform
-out of the box for common operations?
-
-While filtering can be easily enough implement by the user as a transform step,
-it seems common and useful enough that we provide an implementation directly for
-the user to consume
-
-```csharp
-static partial class IncrementalValueSourceExtensions
-{
-    // helper for filtering values
-    public static IncrementalValueSource<T> Filter<T>(this IncrementalValueSource<T> source, Func<T, bool> filter) => ...
-}
-```
-
-### Caching
+## Caching
 
 While the finer grained steps allow for some coarse control of output types via
 the generator host, the performance benefits are only really seen when the
