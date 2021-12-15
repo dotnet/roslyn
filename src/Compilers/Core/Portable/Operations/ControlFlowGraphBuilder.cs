@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
-            // PROTOTYPE(param-nullchecking): this implementation doesn't handle record primary constructors
+            // https://github.com/dotnet/roslyn/issues/58335: this implementation doesn't handle record primary constructors
             if (operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax) is IMethodSymbol method)
             {
                 VisitNullChecks(operation, method.Parameters);
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             StartVisitingStatement(operation);
 
-            // PROTOTYPE(param-nullchecking): do we need to use SemanticModel here?
+            // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
             var member = operation.SemanticModel!.GetDeclaredSymbol(operation.Syntax);
             Debug.Assert(captureIdForResult is null);
             VisitNullChecks(operation, ((IMethodSymbol)member!).Parameters);
@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (param.IsNullChecked)
                 {
-                    // PROTOTYPE(param-nullchecking): do we need to use SemanticModel here?
+                    // https://github.com/dotnet/roslyn/issues/58335: do we need to use SemanticModel here?
                     var check = GenerateNullCheckForParameter(param, operation.Syntax, ((Operation)operation).OwningSemanticModel!);
                     _currentStatement = check;
                     VisitConditional(check, captureIdForResult: null);
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation conditionOp;
             if (ITypeSymbolHelpers.IsNullableType(parameter.Type))
             {
-                // PROTOTYPE(param-nullchecking): is there a better way to get the HasValue symbol here?
+                // https://github.com/dotnet/roslyn/issues/58335: is there a better way to get the HasValue symbol here?
                 // This way doesn't work with compilation.MakeMemberMissing for testing
                 var nullableHasValueProperty = parameter.Type.GetMembers(nameof(Nullable<int>.HasValue)).FirstOrDefault() as IPropertySymbol;
                 var nullableHasValueGet = nullableHasValueProperty?.GetMethod;

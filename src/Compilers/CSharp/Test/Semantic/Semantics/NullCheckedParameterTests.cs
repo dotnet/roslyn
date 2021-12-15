@@ -280,7 +280,7 @@ class C
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
         }
 
-        [Fact(Skip = "PROTOTYPE(BangBang)")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58335")]
         public void NullCheckedArgList()
         {
             var source = @"

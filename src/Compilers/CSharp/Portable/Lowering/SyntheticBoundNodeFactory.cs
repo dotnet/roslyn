@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
-            // PROTOTYPE(param-nullchecking): consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
+            // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
             return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
         }
 
@@ -1673,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
-        // PROTOTYPE(BangBang): Re-enable annotations
+        // https://github.com/dotnet/roslyn/issues/58335: Re-enable annotations
 #nullable enable
     }
 }
