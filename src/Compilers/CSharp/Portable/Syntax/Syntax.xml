@@ -1955,6 +1955,7 @@
     </Field>
     <Field Name="StringEndToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringEndToken"/>
+      <Kind Name="InterpolatedStringEndToken"/>
       <Kind Name="InterpolatedSingleLineRawStringEndToken"/>
       <Kind Name="InterpolatedMultiLineRawStringEndToken"/>
       <PropertyComment>
