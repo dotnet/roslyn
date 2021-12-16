@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // ideally remove this and perform the attachment uniformly on all platforms.
 
                 // Database name may itself contain portions that could affect the sql statement, so use a prepared
-                // statement here.
+                // statement to prevent any accidental sql-injection.
                 using var resettableStatement = connection.GetResettableStatement($"attach database ? as ?;");
 
                 var statement = resettableStatement.Statement;
