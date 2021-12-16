@@ -87,7 +87,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
-                var emptyCallstack = exception.SetCallstackIfEmpty();
+                if (exception is AggregateException aggregateException)
+                {
+                    // We (potentially) have multiple exceptions; let's just report each of them
+                    foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                        ReportFault(innerException, severity, forceDump);
+
+                    return;
+                }
+
+                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
@@ -126,11 +135,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // See https://aka.ms/roslynnfwdocs for more details
                         return 0;
                     });
-
-                // add extra bucket parameters to bucket better in NFW
-                // we do it here so that it gets bucketted better in both
-                // watson and telemetry. 
-                faultEvent.SetExtraParameters(exception, emptyCallstack);
 
                 foreach (var session in s_telemetrySessions)
                 {
