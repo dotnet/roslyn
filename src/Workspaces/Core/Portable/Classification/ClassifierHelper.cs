@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.Classification
             AdjustSpans(syntaxSpans, widenedSpan);
             AdjustSpans(semanticSpans, widenedSpan);
 
+            if (!fillInClassifiedSpanGaps)
+            {
+                return MergeParts(syntaxSpans, semanticSpans);
+            }
+
             // The classification service will only produce classifications for
             // things it knows about.  i.e. there will be gaps in what it produces.
             // Fill in those gaps so we have *all* parts of the span 
@@ -108,16 +113,8 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
 
-            if (fillInClassifiedSpanGaps)
-            {
-                FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
-                FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
-            }
-            else
-            {
-                filledInSyntaxSpans = syntaxSpans;
-                filledInSemanticSpans = semanticSpans;
-            }
+            FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+            FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
 
             // Now merge the lists together, taking all the results from syntaxParts
             // unless they were overridden by results in semanticParts.
