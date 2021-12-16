@@ -2957,7 +2957,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <comment>External means "external source", meaning source files that are not part of the current solution</comment>
   </data>
   <data name="Could_not_find_PDB_on_disk_or_embedded" xml:space="preserve">
-    <value>Could not find portable PDB on disk, or embedded.</value>
+    <value>Could not find portable PDB on disk or embedded.</value>
   </data>
   <data name="Error_reading_PDB_0" xml:space="preserve">
     <value>Error reading PDB: '{0}'</value>

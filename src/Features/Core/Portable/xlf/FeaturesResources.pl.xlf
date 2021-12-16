@@ -471,8 +471,8 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
-        <source>Could not find portable PDB on disk, or embedded.</source>
-        <target state="new">Could not find portable PDB on disk, or embedded.</target>
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="new">Could not find portable PDB on disk or embedded.</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
