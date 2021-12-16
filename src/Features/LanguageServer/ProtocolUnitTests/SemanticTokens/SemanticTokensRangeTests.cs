@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
     public class SemanticTokensRangeTests : AbstractSemanticTokensTests
     {
         [Fact]
-        public async Task TestGetSemanticTokensRange_FullDoc()
+        public async Task TestGetSemanticTokensRange_FullDocAsync()
         {
             var markup =
 @"{|caret:|}// Comment
@@ -40,7 +40,7 @@ static class C { }
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_FullDoc_Razor()
+        public async Task TestGetSemanticTokensRange_FullDoc_RazorAsync()
         {
             // Razor docs should be returning semantic + syntactic reuslts.
             var markup =
@@ -73,7 +73,39 @@ static class C { }
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_MultiLineComment_Razor()
+        public async Task TestGetSemanticTokensRange_PartialDoc_RazorAsync()
+        {
+            // Razor docs should be returning semantic + syntactic reuslts.
+            var markup =
+@"{|caret:|}// Comment
+static class C { }
+";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
+            var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+
+            var expectedResults = new LSP.SemanticTokens
+            {
+                Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                               | Modifier
+                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                },
+            };
+
+            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            Assert.Equal(expectedResults.Data, results);
+        }
+
+        [Fact]
+        public async Task TestGetSemanticTokensRange_MultiLineComment_RazorAsync()
         {
             // Testing as a Razor doc so we get both syntactic + semantic results; otherwise the results would be empty.
             var markup =
@@ -108,7 +140,7 @@ three */ }
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_StringLiteral()
+        public async Task TestGetSemanticTokensRange_StringLiteralAsync()
         {
             var markup =
 @"{|caret:|}class C
@@ -141,7 +173,7 @@ three"";
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_StringLiteral_Razor()
+        public async Task TestGetSemanticTokensRange_StringLiteral_RazorAsync()
         {
             var markup =
 @"{|caret:|}class C
@@ -193,7 +225,7 @@ three"";
         }
 
         [Fact]
-        public async Task TestGetSemanticTokensRange_Regex_Razor()
+        public async Task TestGetSemanticTokensRange_Regex_RazorAsync()
         {
             var markup =
 @"{|caret:|}using System.Text.RegularExpressions;
