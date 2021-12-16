@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         public static void InitializeFatalErrorHandlers()
         {
             FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.HandlerIsNonFatal = true;
             FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
         }
 
