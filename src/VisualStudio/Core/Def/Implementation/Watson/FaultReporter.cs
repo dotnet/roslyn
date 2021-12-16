@@ -253,17 +253,4 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
     }
-
-    internal enum WatsonSeverity
-    {
-        /// <summary>
-        /// Indicate that this watson is informative and not urgent
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// Indicate that this watson is critical and need to be addressed soon
-        /// </summary>
-        Critical,
-    }
 }
