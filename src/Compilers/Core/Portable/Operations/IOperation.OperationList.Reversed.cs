@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
                 private sealed class EnumeratorImpl : IEnumerator<IOperation>
                 {
-                    private readonly Enumerator _enumerator;
+                    private Enumerator _enumerator;
 
                     public EnumeratorImpl(Enumerator enumerator)
                     {
