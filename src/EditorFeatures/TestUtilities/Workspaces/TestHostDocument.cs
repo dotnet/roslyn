@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -261,8 +263,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         if (!workspace.IsDocumentOpen(linkedId))
                         {
-                            // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
-                            workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                            if (testDocument.IsSourceGenerated)
+                            {
+                                var hintName = testDocument.Name;
+                                var generator = new SingleFileTestGenerator();
+                                var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
+                                var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
+                                var filePath = testDocument.FilePath ?? throw new InvalidOperationException();
+                                workspace.OnSourceGeneratedDocumentOpened(new SourceGeneratedDocumentIdentity(linkedId, hintName, generatorAssemblyName, generatorTypeName, filePath), _textBuffer.AsTextContainer());
+                            }
+                            else
+                            {
+                                // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
+                                workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                            }
                         }
                     }
                 }

@@ -428,6 +428,15 @@ namespace Microsoft.CodeAnalysis
                 _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
 
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
+
+                // Fire and forget that the workspace is changing.
+                _ = RaiseSourceGeneratedDocumentOpenedAsync(this, CurrentSolution, documentId);
+
+                static async Task RaiseSourceGeneratedDocumentOpenedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
+                {
+                    var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
+                    await workspace.RaiseSourceGeneratedDocumentOpenedEventAsync(document).ConfigureAwait(false);
+                }
             }
 
             this.RegisterText(textContainer);
@@ -441,6 +450,15 @@ namespace Microsoft.CodeAnalysis
 
                 Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
                 ClearOpenDocument(documentId);
+
+                // Fire and forget that the workspace is changing.
+                _ = RaiseSourceGeneratedDocumentClosedAsync(this, CurrentSolution, documentId);
+
+                static async Task RaiseSourceGeneratedDocumentClosedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
+                {
+                    var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
+                    await workspace.RaiseSourceGeneratedDocumentClosedEventAsync(document).ConfigureAwait(false);
+                }
             }
         }
 

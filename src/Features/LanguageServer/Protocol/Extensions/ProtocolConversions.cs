@@ -149,6 +149,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return new Uri(filePath, UriKind.Absolute);
         }
 
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(filePath, UriKind.Relative);
+        }
+
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
         {
             if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))

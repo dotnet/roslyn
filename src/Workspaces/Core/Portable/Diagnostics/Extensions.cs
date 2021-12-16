@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Location.None;
             }
 
-            var textDocument = project.GetTextDocument(dataLocation.DocumentId);
+            var textDocument = project.GetTextDocument(dataLocation.DocumentId)
+                ?? await project.GetSourceGeneratedDocumentAsync(dataLocation.DocumentId, cancellationToken).ConfigureAwait(false);
             if (textDocument == null)
             {
                 return Location.None;
@@ -422,6 +423,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
                     }
 
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
+                    }
+
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                     return bag.ToImmutableArray();
                 }
@@ -429,6 +435,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
                     foreach (var document in project.Documents)
+                    {
+                        await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
+                    }
+
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
                     {
                         await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
                     }

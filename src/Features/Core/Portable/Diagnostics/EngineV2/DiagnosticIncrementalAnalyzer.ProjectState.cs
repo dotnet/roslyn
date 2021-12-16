@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = result.Version;
                 foreach (var documentId in result.DocumentIds)
                 {
-                    var document = project.GetTextDocument(documentId);
+                    var document = project.GetTextDocument(documentId)
+                        ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                     if (document == null)
                     {
                         // it can happen with build synchronization since, in build case, 

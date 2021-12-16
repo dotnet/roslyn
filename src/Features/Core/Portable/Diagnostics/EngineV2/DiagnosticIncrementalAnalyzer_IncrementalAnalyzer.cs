@@ -535,7 +535,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
-                var document = project.GetTextDocument(documentId);
+                var document = project.GetTextDocument(documentId)
+                    ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                 if (document == null)
                 {
                     // it can happen with build synchronization since, in build case, 

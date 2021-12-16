@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (documentId != null)
                 {
                     // file doesn't exist in current solution
-                    var document = project.Solution.GetDocument(documentId);
+                    var document = project.Solution.GetDocument(documentId)
+                        ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                     if (document == null)
                     {
                         return ImmutableArray<DiagnosticData>.Empty;

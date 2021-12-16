@@ -510,8 +510,8 @@ class A
 
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
-        using var testLspServerOne = new TestLspServer(testWorkspace);
-        using var testLspServerTwo = new TestLspServer(testWorkspace);
+        using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace);
+        using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 

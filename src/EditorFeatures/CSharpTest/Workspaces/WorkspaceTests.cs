@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -780,6 +782,100 @@ class D { }
 
             Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
                                     string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
+        public async Task TestSourceGeneratedDocumentEvents()
+        {
+            var doc1Text = "public class C { }";
+            var workspaceElement = $@"<Workspace>
+  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
+    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(doc1Text)}</DocumentFromSourceGenerator>
+  </Project>
+</Workspace>";
+            using var workspace = TestWorkspace.Create(workspaceElement, composition: EditorTestCompositions.EditorFeatures);
+            var document = workspace.Documents.Single();
+
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+            using var sourceGeneratedCloseWaiter = new EventWaiter();
+            using var sourceGeneratedOpenWaiter = new EventWaiter();
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(false, $"Unexpected raising of {nameof(Workspace.DocumentOpened)}."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(false, $"Unexpected raising of {nameof(Workspace.DocumentClosed)}."));
+
+            var sourceGeneratedDocumentOpenedEventHandler = sourceGeneratedOpenWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                $"The document given to the '{nameof(Workspace.SourceGeneratedDocumentOpened)}' event handler did not have the same id as the one created for the test."));
+
+            var sourceGeneratedDocumentClosedEventHandler = sourceGeneratedCloseWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                $"The document given to the '{nameof(Workspace.SourceGeneratedDocumentClosed)}' event handler did not have the same id as the one created for the test."));
+
+            workspace.DocumentOpened += documentOpenedEventHandler;
+            workspace.DocumentClosed += documentClosedEventHandler;
+            workspace.SourceGeneratedDocumentOpened += sourceGeneratedDocumentOpenedEventHandler;
+            workspace.SourceGeneratedDocumentClosed += sourceGeneratedDocumentClosedEventHandler;
+
+            workspace.OpenSourceGeneratedDocument(document.Id);
+            var sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(document.GetOpenTextContainer());
+            Assert.Equal(document.Id, sourceGeneratedDocumentId);
+
+            workspace.CloseSourceGeneratedDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was not expected.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was not expected.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.True(sourceGeneratedOpenWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'SourceGeneratedDocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(sourceGeneratedCloseWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'SourceGeneratedDocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.SourceGeneratedDocumentOpened -= sourceGeneratedDocumentOpenedEventHandler;
+            workspace.SourceGeneratedDocumentClosed -= sourceGeneratedDocumentClosedEventHandler;
+
+            workspace.OpenSourceGeneratedDocument(document.Id);
+            workspace.CloseSourceGeneratedDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was not expected.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was not expected.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(sourceGeneratedOpenWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'SourceGeneratedDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(sourceGeneratedCloseWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'SourceGeneratedDocumentClosed' was called within {0} seconds though it was removed from the list.",
                                     shortEventTimeout.Seconds));
         }
 

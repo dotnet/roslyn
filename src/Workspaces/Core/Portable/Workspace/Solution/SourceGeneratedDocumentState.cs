@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 documentIdentity,
                 languageServices,
                 solutionServices,
-                documentServiceProvider: null,
+                documentServiceProvider: SourceGeneratedTextDocumentServiceProvider.Instance,
                 new DocumentInfo.DocumentAttributes(
                     documentIdentity.DocumentId,
                     name: documentIdentity.HintName,
@@ -88,6 +88,42 @@ namespace Microsoft.CodeAnalysis
                 parseOptions,
                 this.LanguageServices,
                 this.solutionServices);
+        }
+
+        internal sealed class SourceGeneratedTextDocumentServiceProvider : IDocumentServiceProvider
+        {
+            public static readonly SourceGeneratedTextDocumentServiceProvider Instance = new();
+
+            private SourceGeneratedTextDocumentServiceProvider()
+            {
+            }
+
+            public TService? GetService<TService>()
+                where TService : class, IDocumentService
+            {
+                // right now, it doesn't implement much services but we expect it to implements all 
+                // document services in future so that we can remove all if branches in feature code
+                // but just delegate work to default document services.
+                if (SourceGeneratedDocumentOperationService.Instance is TService documentOperationService)
+                {
+                    return documentOperationService;
+                }
+
+                if (DocumentPropertiesService.Default is TService documentPropertiesService)
+                {
+                    return documentPropertiesService;
+                }
+
+                return null;
+            }
+
+            private class SourceGeneratedDocumentOperationService : IDocumentOperationService
+            {
+                public static readonly SourceGeneratedDocumentOperationService Instance = new();
+
+                public bool CanApplyChange => false;
+                public bool SupportDiagnostics => true;
+            }
         }
     }
 }

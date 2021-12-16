@@ -100,6 +100,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Workspace)>
+        Public Sub TestSourceGeneratedDocumentOperation()
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <DocumentFromSourceGenerator>class C { }</DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
+
+                Dim subjectDocument = workspace.Documents.Single()
+                Dim openDocument = subjectDocument.GetOpenTextContainer()
+                Dim document = Assert.IsType(Of SourceGeneratedDocument)(openDocument.GetOpenDocumentInCurrentContext())
+                Dim documentServices = document.State.Services
+                Dim documentOperations = documentServices.GetService(Of IDocumentOperationService)()
+
+                Assert.False(documentOperations.CanApplyChange)
+                Assert.True(documentOperations.SupportDiagnostics)
+            End Using
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_SingleLine() As Task
             Using workspace = TestWorkspace.Create(

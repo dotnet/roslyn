@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -16,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -41,6 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
+            Assert.Equal(1, spans.Count());
+
+            var firstSpan = spans.First();
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
+        {
+            var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -350,6 +360,22 @@ class Program
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            return await GetTagSpansAsync(workspace);
+        }
+
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
+        {
+            var workspaceElement = $@"<Workspace>
+  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
+    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(content)}</DocumentFromSourceGenerator>
+  </Project>
+</Workspace>";
+            using var workspace = TestWorkspace.Create(workspaceElement, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            return await GetTagSpansAsync(workspace);
+        }
+
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        {
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
 

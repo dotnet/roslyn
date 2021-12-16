@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             workspace.DocumentOpened += OnDocumentOpened;
             workspace.DocumentClosed += OnDocumentClosed;
+            workspace.SourceGeneratedDocumentOpened += OnDocumentOpened;
+            workspace.SourceGeneratedDocumentClosed += OnDocumentClosed;
         }
 
         private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)

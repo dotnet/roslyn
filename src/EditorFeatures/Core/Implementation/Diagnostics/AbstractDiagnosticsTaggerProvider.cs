@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            var document = e.Solution.GetDocument(e.DocumentId);
+            var document = e.Solution.GetDocument(e.DocumentId)
+                ?? e.Solution.GetProject(e.DocumentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(e.DocumentId);
 
             // Open documents *should* always have their SourceText available, but we cannot guarantee
             // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's

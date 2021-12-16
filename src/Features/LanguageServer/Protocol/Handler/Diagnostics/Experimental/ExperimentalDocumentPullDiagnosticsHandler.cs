@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
@@ -70,9 +71,9 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return DocumentPullDiagnosticHandler.GetRequestedDocument(context);
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
     }
 
     protected override ImmutableArray<PreviousResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

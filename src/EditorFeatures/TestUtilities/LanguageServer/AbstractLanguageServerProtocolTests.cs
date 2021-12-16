@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
@@ -278,10 +277,10 @@ namespace Roslyn.Test.Utilities
         /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
         /// </summary>
         protected Task<TestLspServer> CreateTestLspServerAsync(string markup)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp);
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp);
 
         protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic);
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup)
             => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition));
@@ -290,14 +289,20 @@ namespace Roslyn.Test.Utilities
         /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
         /// </summary>
         protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp);
+            => CreateTestLspServerAsync(markups, Array.Empty<string>());
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName)
+        /// <summary>
+        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
+        /// </summary>
+        protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups)
+            => CreateTestLspServerAsync(markups, sourceGeneratedMarkups, LanguageNames.CSharp);
+
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName)
         {
             var workspace = languageName switch
             {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, composition: Composition),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, composition: Composition),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, sourceGeneratedMarkups, composition: Composition),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, sourceGeneratedMarkups, composition: Composition),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
@@ -310,6 +315,9 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
+                if (document.IsSourceGenerated)
+                    continue;
+
                 solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
             }
 
@@ -320,7 +328,7 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return new TestLspServer(workspace);
+            return await TestLspServer.CreateAsync(workspace);
         }
 
         protected async Task<TestLspServer> CreateXmlTestLspServerAsync(string xmlContent, string? workspaceKind = null)
@@ -331,7 +339,7 @@ namespace Roslyn.Test.Utilities
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
-            return new TestLspServer(workspace);
+            return await TestLspServer.CreateAsync(workspace);
         }
 
         /// <summary>
@@ -361,13 +369,13 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
             {
-                var document = solution.GetRequiredDocument(testDocument.Id);
-                var text = document.GetTextSynchronously(CancellationToken.None);
+                var document = await solution.GetRequiredDocumentAsync(testDocument.Id, includeSourceGenerated: true, CancellationToken.None);
+                var text = await document.GetTextAsync(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
@@ -456,10 +464,10 @@ namespace Roslyn.Test.Utilities
             private readonly RequestExecutionQueue _executionQueue;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
 
-            internal TestLspServer(TestWorkspace testWorkspace)
+            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations)
             {
                 TestWorkspace = testWorkspace;
-                _locations = GetAnnotatedLocations(testWorkspace, testWorkspace.CurrentSolution);
+                _locations = locations;
                 _requestDispatcher = CreateRequestDispatcher(testWorkspace);
                 _executionQueue = CreateRequestQueue(testWorkspace);
 
@@ -469,6 +477,12 @@ namespace Roslyn.Test.Utilities
                 // Clear any LSP solutions that were created when the workspace was initialized.
                 // This ensures that the workspace manager starts with a clean slate.
                 GetManagerAccessor().ResetLspSolutions();
+            }
+
+            public static async ValueTask<TestLspServer> CreateAsync(TestWorkspace workspace)
+            {
+                var locations = await GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution);
+                return new TestLspServer(workspace, locations);
             }
 
             public Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,

@@ -320,7 +320,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
+                var textDocument = project.GetTextDocument(documentId) ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                Debug.Assert(textDocument?.SupportsDiagnostics() == true);
             }
         }
     }
