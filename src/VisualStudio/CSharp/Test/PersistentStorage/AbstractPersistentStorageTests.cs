@@ -129,6 +129,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Null(await storage.ReadStreamAsync(document, streamName));
         }
 
+        [Theory, CombinatorialData, WorkItem(1436188, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1436188")]
+        public async Task CacheDirectoryInPathWithSingleQuote(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
+        {
+            _ = iteration;
+            using var folderRoot = new DisposableDirectory(new TempRoot());
+            var folder = folderRoot.CreateDirectory(PersistentFolderPrefix + "'" + Guid.NewGuid());
+            var solution = CreateOrOpenSolution(folder);
+
+            var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
+            var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
+
+            await using (var storage = await GetStorageAsync(solution, folder))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+                Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
+            }
+
+            await using (var storage = await GetStorageAsync(solution, folder))
+            {
+                Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
+                Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
+            }
+        }
+
         [Theory, CombinatorialData]
         public async Task PersistentService_Solution_WriteReadDifferentInstances(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
         {
@@ -911,9 +935,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Empty(exceptions);
         }
 
-        protected Solution CreateOrOpenSolution(bool nullPaths = false)
+        protected Solution CreateOrOpenSolution(TempDirectory? persistentFolder = null, bool nullPaths = false)
         {
-            var solutionFile = _persistentFolder.CreateOrOpenFile("Solution1.sln").WriteAllText("");
+            persistentFolder ??= _persistentFolder;
+            var solutionFile = persistentFolder.CreateOrOpenFile("Solution1.sln").WriteAllText("");
 
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile.Path);
 
@@ -922,12 +947,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var solution = workspace.CurrentSolution;
 
-            var projectFile = _persistentFolder.CreateOrOpenFile("Project1.csproj").WriteAllText("");
+            var projectFile = persistentFolder.CreateOrOpenFile("Project1.csproj").WriteAllText("");
             solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
                 filePath: nullPaths ? null : projectFile.Path));
             var project = solution.Projects.Single();
 
-            var documentFile = _persistentFolder.CreateOrOpenFile("Document1.cs").WriteAllText("");
+            var documentFile = persistentFolder.CreateOrOpenFile("Document1.cs").WriteAllText("");
             solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
                 filePath: nullPaths ? null : documentFile.Path));
 
@@ -939,12 +964,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         internal async Task<IChecksummedPersistentStorage> GetStorageAsync(
             Solution solution,
+            TempDirectory? persistentFolder = null,
             IPersistentStorageFaultInjector? faultInjector = null,
             bool throwOnFailure = true)
         {
             // If we handed out one for a previous test, we need to shut that down first
+            persistentFolder ??= _persistentFolder;
             _storageService?.GetTestAccessor().Shutdown();
-            var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path, throwOnFailure);
+            var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
             _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None);
