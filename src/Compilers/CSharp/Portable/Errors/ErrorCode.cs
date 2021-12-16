@@ -2023,6 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedSlicePattern = 8980,
 
         WRN_LowerCaseTypeName = 8981,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
 
         #endregion
 
