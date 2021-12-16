@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     }
 
     /// <param name="FilePath">The path to the source file on disk</param>
-    /// <param name="SourceDescription">The description of where the file came from, for the document tag</param>
+    /// <param name="SourceDescription">Localized description of where the file came from, for the document tab, eg. Source Link, Embedded, On Disk</param>
     /// <param name="Loader">The text loader to use</param>
     internal sealed record SourceFileInfo(string FilePath, string SourceDescription, TextLoader Loader);
 }

@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // The purpose of the logging is to help library authors, so we don't log things like this where something
-            // else has gone wrong.
+            // else has gone wrong, so even though if this check fails we won't be able to show the source, it's not something
+            // the user or a library author can control, so no log message.
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
                 return null;
 
