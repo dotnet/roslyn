@@ -627,6 +627,11 @@
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Mühürlü bir 'Object.ToString' içeren bir kayıttan devralma işlemi C# {0} sürümünde desteklenmiyor. Lütfen '{1}' veya üstü bir dil sürümünü kullanın.</target>
@@ -847,6 +852,11 @@
         <target state="translated">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">'new()' kısıtlaması, 'unmanaged' kısıtlamasıyla kullanılamaz</target>
@@ -887,6 +897,11 @@
         <target state="translated">Çıkış dizini belirlenemedi</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">'{0}' kayıt üyesi özel olmalıdır.</target>
@@ -915,6 +930,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}', kapsayan kayıt mühürlü olmadığından geçersiz kılmaya izin vermelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnByRefParameter">
+        <source>By-reference parameter '{0}' cannot be null-checked.</source>
+        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1377,6 +1397,11 @@
         <target state="translated">yapılar ile birlikte</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="new">parameter null-checking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' türünü içeren '{0}' bütünleştirilmiş kodu, desteklenmeyen .NET Framework'e başvuruyor.</target>
@@ -1505,6 +1530,26 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="new">Nullable type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
