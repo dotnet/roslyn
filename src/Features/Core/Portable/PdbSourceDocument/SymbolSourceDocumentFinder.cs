@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
             // get the method it belongs to.
-            var token = symbol is IParameterSymbol { ContainingSymbol.MetadataToken: { } t }
-                ? t
-                : symbol.MetadataToken;
+            var token = symbol is IParameterSymbol parameterSymbol ? parameterSymbol.ContainingSymbol!.MetadataToken : symbol.MetadataToken;
             var handle = MetadataTokens.EntityHandle(token);
 
             switch (handle.Kind)

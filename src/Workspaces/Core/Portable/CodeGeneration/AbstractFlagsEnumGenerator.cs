@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         var containingSymbol = type.ContainingSymbol;
                         if (containingSymbol.Kind == SymbolKind.Namespace &&
                             containingSymbol.Name == "System" &&
-                            ((INamespaceSymbol?)containingSymbol.ContainingSymbol)?.IsGlobalNamespace == true)
+                            ((INamespaceSymbol)containingSymbol.ContainingSymbol!).IsGlobalNamespace == true)
                         {
                             return true;
                         }
