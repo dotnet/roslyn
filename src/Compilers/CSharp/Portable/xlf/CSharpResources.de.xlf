@@ -1022,6 +1022,11 @@
         <target state="translated">Der primäre Konstruktor verursacht einen Konflikt mit dem synthetisierten Kopierkonstruktor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</source>
+        <target state="new">A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">ref-assign von "{1}" zu "{0}" ist nicht möglich, weil "{1}" einen geringeren Escapebereich als "{0}" aufweist.</target>

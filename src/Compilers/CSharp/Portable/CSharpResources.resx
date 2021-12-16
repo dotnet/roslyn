@@ -6866,6 +6866,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LambdaWithAttributesToExpressionTree" xml:space="preserve">
     <value>A lambda expression with attributes cannot be converted to an expression tree</value>
   </data>
+  <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
+    <value>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</value>
+  </data>
   <data name="WRN_CompileTimeCheckedOverflow" xml:space="preserve">
     <value>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</value>
   </data>
