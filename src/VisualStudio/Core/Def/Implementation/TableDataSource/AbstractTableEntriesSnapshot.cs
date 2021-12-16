@@ -4,8 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -28,8 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly ImmutableArray<TItem> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
-        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected AbstractTableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
+            ThreadingContext = threadingContext;
             _version = version;
             _items = items;
             _trackingPoints = trackingPoints;
@@ -53,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return _items.Length;
             }
         }
+
+        protected IThreadingContext ThreadingContext { get; }
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
@@ -169,14 +175,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
-            if (item is not { DocumentId: { } documentId })
-            {
+            if (item is null)
                 return false;
-            }
 
             var workspace = item.Workspace;
             var solution = workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
+            var documentId = item.DocumentId;
+            if (documentId is null)
+            {
+                if (item is { ProjectId: { } projectId }
+                    && solution.GetProject(projectId) is { } project)
+                {
+                    // We couldn't find a document ID when the item was created, so it may be a source generator
+                    // output.
+                    var documents = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
+                    var projectDirectory = Path.GetDirectoryName(project.FilePath);
+                    documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
+                    if (documentId is null)
+                        return false;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            var document = solution.GetDocument(documentId)
+                ?? solution.GetProject(documentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
             if (document == null)
             {
                 return false;

@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private int _lastVersion = 0;
 
-        public TableEntriesFactory(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> entriesSource)
+        public TableEntriesFactory(IThreadingContext threadingContext, AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> entriesSource)
         {
             _tableSource = tableSource;
-            _entriesSources = new AggregatedEntriesSource(_tableSource, entriesSource);
+            _entriesSources = new AggregatedEntriesSource(threadingContext, _tableSource, entriesSource);
         }
 
         public int CurrentVersionNumber
@@ -130,11 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private class AggregatedEntriesSource
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly EntriesSourceCollections _sources;
             private readonly AbstractTableDataSource<TItem, TData> _tableSource;
 
-            public AggregatedEntriesSource(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> primary)
+            public AggregatedEntriesSource(IThreadingContext threadingContext, AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> primary)
             {
+                _threadingContext = threadingContext;
                 _tableSource = tableSource;
                 _sources = new EntriesSourceCollections(primary);
             }
@@ -187,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var source = _sources.GetSources().FirstOrDefault();
                 if (source == null)
                 {
-                    return new EmptySnapshot(version);
+                    return new EmptySnapshot(_threadingContext, version);
                 }
 
                 return _tableSource.CreateSnapshot(source, version, items, trackingPoints);
@@ -195,8 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
             {
-                public EmptySnapshot(int version)
-                    : base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
+                public EmptySnapshot(IThreadingContext threadingContext, int version)
+                    : base(threadingContext, version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
                 {
                 }
 
