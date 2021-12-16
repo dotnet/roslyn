@@ -10,12 +10,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbSourceDocumentLoaderService
     {
-        Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
+        Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken);
     }
 
     /// <param name="FilePath">The path to the source file on disk</param>
     /// <param name="SourceDescription">The description of where the file came from, for the document tag</param>
-    /// <param name="SourceFileSource">Where the source file was found, for telemetry</param>
     /// <param name="Loader">The text loader to use</param>
-    internal sealed record SourceFileInfo(string FilePath, string SourceDescription, string SourceFileSource, TextLoader Loader);
+    internal sealed record SourceFileInfo(string FilePath, string SourceDescription, TextLoader Loader);
 }

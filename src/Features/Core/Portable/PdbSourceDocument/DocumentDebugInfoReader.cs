@@ -19,16 +19,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     {
         private readonly MetadataReaderProvider _pdbReaderProvider;
         private readonly PEReader _peReader;
-        private readonly string _pdbSource;
 
         private readonly MetadataReader _dllReader;
         private readonly MetadataReader _pdbReader;
 
-        public DocumentDebugInfoReader(PEReader peReader, MetadataReaderProvider pdbReaderProvider, string pdbSource)
+        public DocumentDebugInfoReader(PEReader peReader, MetadataReaderProvider pdbReaderProvider)
         {
             _peReader = peReader;
             _pdbReaderProvider = pdbReaderProvider;
-            _pdbSource = pdbSource;
 
             _dllReader = _peReader.GetMetadataReader();
             _pdbReader = _pdbReaderProvider.GetMetadataReader();
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 var embeddedTextBytes = TryGetEmbeddedTextBytes(handle);
                 var sourceLinkUrl = TryGetSourceLinkUrl(handle);
 
-                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl, _pdbSource));
+                sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl));
             }
 
             return sourceDocuments.ToImmutable();

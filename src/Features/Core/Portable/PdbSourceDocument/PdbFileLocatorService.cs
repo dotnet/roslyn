@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _sourceLinkService = sourceLinkService;
         }
 
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
@@ -45,19 +45,18 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
 
-                    string pdbSource;
                     if (pdbFilePath is null)
                     {
-                        pdbSource = "embedded";
+                        telemetry.SetPdbSource("embedded");
                         logger?.Log(FeaturesResources.Found_embedded_PDB_file);
                     }
                     else
                     {
-                        pdbSource = "ondisk";
+                        telemetry.SetPdbSource("ondisk");
                         logger?.Log(FeaturesResources.Found_PDB_file_at_0, pdbFilePath);
                     }
 
-                    result = new DocumentDebugInfoReader(peReader, pdbReaderProvider, pdbSource);
+                    result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
                 }
 
                 if (result is null)
@@ -83,7 +82,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                                 if (pdbStream is not null)
                                 {
                                     var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-                                    result = new DocumentDebugInfoReader(peReader, readerProvider, "symbolserver");
+                                    telemetry.SetPdbSource("symbolserver");
+                                    result = new DocumentDebugInfoReader(peReader, readerProvider);
                                     logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
                                 }
                                 else
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         }
                         else
                         {
-                            TelemetryHelper.Log(timeout: true, "symbolserver", sourceFileSource: null);
+                            telemetry.SetPdbSource("timeout");
                             logger?.Log(FeaturesResources.Timeout_symbol_server);
                         }
                     }

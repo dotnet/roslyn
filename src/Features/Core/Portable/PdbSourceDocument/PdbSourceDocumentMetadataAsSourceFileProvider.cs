@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (signaturesOnly)
                 return null;
 
-            using var _ = TelemetryHelper.Start(cancellationToken);
+            using var telemetry = new TelemetryMessage(cancellationToken);
 
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
             // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, _logger, cancellationToken).ConfigureAwait(false))
+            using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, telemetry, _logger, cancellationToken).ConfigureAwait(false))
             {
                 if (documentDebugInfoReader is null)
                     return null;
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, _logger, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, _logger, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
@@ -181,8 +181,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 "{0} [{1}]",
                 navigateDocument!.Name,
                 firstSourceFileInfo.SourceDescription);
-
-            TelemetryHelper.Log(timeout: false, sourceDocuments[0].PdbSource, firstSourceFileInfo.SourceFileSource);
 
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
         }
@@ -286,5 +284,5 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         }
     }
 
-    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl, string PdbSource);
+    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
 }
