@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Shell;
 
@@ -23,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private IGlobalOperationNotificationService _notificationService;
         private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
 
-        public SolutionEventMonitor(VisualStudioWorkspace workspace)
+        public SolutionEventMonitor(HostWorkspaceServices services)
         {
-            if (workspace.Services.GetService<IGlobalOperationNotificationService>() is GlobalOperationNotificationService notificationService)
+            if (services.GetService<IGlobalOperationNotificationService>() is GlobalOperationNotificationService notificationService)
             {
                 // subscribe to events only if it is normal service. if it is one from unit test or other, don't bother to subscribe
                 _notificationService = notificationService;

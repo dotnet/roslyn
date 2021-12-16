@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
@@ -151,60 +152,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-            cancellationToken.ThrowIfCancellationRequested();
-            Assumes.Present(_componentModel);
-
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            LoadOptionPersistersAsync(_componentModel, cancellationToken).Forget();
-
-            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-
             // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
             // the background thread then we will experience hangs like we see in this bug:
             // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
             // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetryService = (VisualStudioWorkspaceTelemetryService)_workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession);
+            var telemetrySession = TelemetryService.DefaultSession;
 
-            Logger.Log(FunctionId.Run_Environment,
-                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            Assumes.Present(_componentModel);
 
-            InitializeColors();
+            cancellationToken.ThrowIfCancellationRequested();
+            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
+            var services = _workspace.Services;
+
+            // Initialize ColorScheme support
+            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier.Initialize();
+
+            _solutionEventMonitor = new SolutionEventMonitor(services);
+
+            TrackBulkFileOperations(services);
+
+            RegisterEditorFactory(_componentModel.GetService<SettingsEditorFactory>());
+
+            InitializeOnBackgroundThreadAsync(services, _componentModel, telemetrySession, cancellationToken).Forget();
 
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
-
-            TrackBulkFileOperations();
-
-            var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
-            RegisterEditorFactory(settingsEditorFactory);
         }
 
-        private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+        private static async Task InitializeOnBackgroundThreadAsync(HostWorkspaceServices services, IComponentModel componentModel, TelemetrySession telemetrySession, CancellationToken cancellationToken)
         {
             var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
-            using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(LoadOptionPersistersAsync));
+            using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(InitializeOnBackgroundThreadAsync));
 
             // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
             // InitializeAsync.
             await TaskScheduler.Default;
 
-            var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+            var telemetryService = (VisualStudioWorkspaceTelemetryService)services.GetRequiredService<IWorkspaceTelemetryService>();
+            telemetryService.InitializeTelemetrySession(telemetrySession);
 
-            foreach (var provider in persisterProviders)
-            {
-                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
-            }
-        }
-
-        private void InitializeColors()
-        {
-            // Initialize ColorScheme support
-            _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-            _colorSchemeApplier.Initialize();
+            Logger.Log(FunctionId.Run_Environment,
+                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -369,32 +359,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void TrackBulkFileOperations()
+        private static void TrackBulkFileOperations(HostWorkspaceServices services)
         {
-            RoslynDebug.AssertNotNull(_workspace);
-
             // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
             // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
             // explicitly asked for.
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, 
             // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            var globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+            var globalNotificationService = services.GetRequiredService<IGlobalOperationNotificationService>();
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
             var gate = new object();
             GlobalOperationRegistration? localRegistration = null;
 
-            BulkFileOperation.End += (s, a) =>
-            {
-                StopBulkFileOperationNotification();
-            };
-
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
+            BulkFileOperation.End += (_, _) => StopBulkFileOperationNotification();
+            BulkFileOperation.Begin += (_, _) => StartBulkFileOperationNotification();
 
             void StartBulkFileOperationNotification()
             {
