@@ -1305,7 +1305,7 @@ class Class
                 {
                     context.RegisterSymbolAction(context =>
                     {
-                        if (!context.Symbol.ContainingNamespace.IsGlobalNamespace)
+                        if (!context.Symbol.ContainingNamespace!.IsGlobalNamespace)
                         {
                             var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.ContainingNamespace.Locations[0]);
                             context.ReportDiagnostic(diagnostic);

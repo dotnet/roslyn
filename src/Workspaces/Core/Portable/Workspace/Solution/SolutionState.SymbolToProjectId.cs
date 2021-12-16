@@ -72,13 +72,14 @@ namespace Microsoft.CodeAnalysis
             // Walk up the symbol so we can get to the containing namespace/assembly that will be used to map
             // back to a project.
 
-            while (symbol != null)
+            var current = symbol;
+            while (current != null)
             {
-                var result = GetProjectIdDirectly(symbol, _unrootedSymbolToProjectId);
+                var result = GetProjectIdDirectly(current, _unrootedSymbolToProjectId);
                 if (result != null)
                     return result;
 
-                symbol = symbol.ContainingSymbol!;
+                current = current.ContainingSymbol;
             }
 
             return null;

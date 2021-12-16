@@ -48,11 +48,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return SymbolVisibility.Private;
             }
 
-            while (symbol != null && symbol.Kind != SymbolKind.Namespace)
+            var current = symbol;
+            while (current != null && current.Kind != SymbolKind.Namespace)
             {
-                switch (symbol.DeclaredAccessibility)
+                switch (current.DeclaredAccessibility)
                 {
-                    // If we see anything private, then the symbol is private.
+                    // If we see anything private, then the current is private.
                     case Accessibility.NotApplicable:
                     case Accessibility.Private:
                         return SymbolVisibility.Private;
@@ -65,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         break;
 
                         // For anything else (Public, Protected, ProtectedOrInternal), the
-                        // symbol stays at the level we've gotten so far.
+                        // current stays at the level we've gotten so far.
                 }
 
-                symbol = symbol.ContainingSymbol!;
+                current = current.ContainingSymbol;
             }
 
             return visibility;
