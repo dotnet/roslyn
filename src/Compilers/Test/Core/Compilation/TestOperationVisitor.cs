@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
         {
             Assert.Equal(OperationKind.ImplicitIndexerReference, operation.Kind);
-            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.Children);
+            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.ChildOperations);
 
             Assert.NotNull(operation.LengthSymbol);
             Assert.NotNull(operation.IndexerSymbol);

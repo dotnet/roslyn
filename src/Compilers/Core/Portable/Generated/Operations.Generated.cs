@@ -10010,7 +10010,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation Argument { get; }
         public ISymbol LengthSymbol { get; }
         public ISymbol IndexerSymbol { get; }
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override int ChildOperationsCount =>
+            (Instance is null ? 0 : 1) +
+            (Argument is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when Instance != null
@@ -10019,7 +10022,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     => Argument,
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -10032,6 +10035,23 @@ namespace Microsoft.CodeAnalysis.Operations
                 case 1:
                 case 2:
                     return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Argument != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
