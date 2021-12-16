@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
-            bool isRazorDoc,
+            bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -150,26 +150,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
-            await GetClassifiedSpansForDocumentAsync(document, textSpan, classifiedSpans, isRazorDoc, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
+                document, textSpan, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
-            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
+            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans);
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
         }
 
-        private static async Task GetClassifiedSpansForDocumentAsync(
+        private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
             Document document,
             TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> classifiedSpans,
-            bool isRazorDoc,
+            bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
             // Case 1 - Generated Razor documents:
             //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
@@ -180,8 +180,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             //
             // Ideally, Razor will eventually run the classifier on their end so we can get rid of this special
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
-            if (isRazorDoc)
+            if (includeSyntacticClassifications)
             {
+                // `removeAdditiveSpans` will remove token modifiers such as 'static', which we want to include in LSP.
+                // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
+                // Therefore, we set both optional parameters to false.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
                     document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
                 classifiedSpans.AddRange(spans);
@@ -195,6 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
+            return classifiedSpans.ToArray();
         }
 
         private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
