@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             foreach (var typeArg in typeArguments)
             {
                 var type = typeArg.EnsureCSharpSymbolOrNull(nameof(typeArguments));
-                builder.Add(TypeWithAnnotations.Create(type, (typeArg?.NullableAnnotation.ToInternalAnnotation()).GetValueOrDefault()));
+                builder.Add(TypeWithAnnotations.Create(type, (typeArg?.NullableAnnotation.ToInternalAnnotation() ?? NullableAnnotation.NotAnnotated)));
             }
 
             return builder.ToImmutableAndFree();

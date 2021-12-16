@@ -171,4 +171,15 @@
   <data name="_0_items_in_cache" xml:space="preserve">
     <value>'{0}' items in cache</value>
   </data>
+  <data name="Generate_Event_Subscription" xml:space="preserve">
+    <value>Generate Event Subscription</value>
+  </data>
+  <data name="Adding_missing_usings" xml:space="preserve">
+    <value>Adding missing usings...</value>
+    <comment>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</comment>
+  </data>
+  <data name="Add_Missing_Usings_on_Paste" xml:space="preserve">
+    <value>Add Missing Usings on Paste</value>
+    <comment>"usings" is a language specific term and should not be localized</comment>
+  </data>
 </root>

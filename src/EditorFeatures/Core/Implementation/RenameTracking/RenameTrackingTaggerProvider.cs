@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -38,29 +40,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IInlineRenameService _inlineRenameService;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingTaggerProvider(
             IThreadingContext threadingContext,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IWaitIndicator waitIndicator,
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
-            _refactorNotifyServices = refactorNotifyServices;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
@@ -68,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
-            return new Tagger(stateMachine, _undoHistoryRegistry, _waitIndicator, _refactorNotifyServices) as ITagger<T>;
+            return new Tagger(stateMachine) as ITagger<T>;
         }
 
         internal static void ResetRenameTrackingState(Workspace workspace, DocumentId documentId)
@@ -132,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 return default;
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public abstract void Connect();
         public abstract void Disconnect();
 
-        public event EventHandler<TaggerEventArgs> Changed;
-        public event EventHandler UIUpdatesPaused;
-        public event EventHandler UIUpdatesResumed;
+        public event EventHandler<TaggerEventArgs>? Changed;
+        public event EventHandler? UIUpdatesPaused;
+        public event EventHandler? UIUpdatesResumed;
 
         protected virtual void RaiseChanged()
             => this.Changed?.Invoke(this, new TaggerEventArgs(_delay));

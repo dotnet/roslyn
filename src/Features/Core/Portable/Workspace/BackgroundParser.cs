@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
-        private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _stateLock = new(LockRecursionPolicy.NoRecursion);
 
-        private readonly object _parseGate = new object();
+        private readonly object _parseGate = new();
         private ImmutableDictionary<DocumentId, CancellationTokenSource> _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
 
         public bool IsStarted { get; private set; }

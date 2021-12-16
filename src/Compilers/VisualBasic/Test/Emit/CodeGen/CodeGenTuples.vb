@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -14,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -6305,7 +6305,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         <Fact>
         Public Sub MissingMemberAccessWithExtensionWithVB15()
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -6328,7 +6328,7 @@ Module Extensions
 End Module
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
@@ -6445,8 +6445,8 @@ End Module
                          </compilation>
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
-            Dim comp15 = CreateCompilationWithMscorlib40AndVBRuntime(source,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+            Dim comp15 = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
 BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
@@ -6455,7 +6455,7 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
                                           </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
-                references:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                allReferences:={ValueTupleRef, Net451.mscorlib, Net451.SystemCore, Net451.SystemRuntime, Net451.MicrosoftVisualBasic},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
                 expectedOutput:="lambda")
             verifier15_3.VerifyDiagnostics()
@@ -23180,8 +23180,18 @@ End Class"
 
                 Case TupleUnderlyingTypeValue.Distinct
                     Assert.NotEqual(type, underlyingType)
-                    Assert.False(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.NotEqual(underlyingType, type)
+
+                    Assert.True(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.True(underlyingType.Equals(type, TypeCompareKind.AllIgnoreOptions))
                     Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    Assert.False(underlyingType.Equals(type, TypeCompareKind.ConsiderEverything))
+
+                    Assert.True(DirectCast(type, Symbol).Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.True(DirectCast(underlyingType, Symbol).Equals(type, TypeCompareKind.AllIgnoreOptions))
+                    Assert.False(DirectCast(type, Symbol).Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    Assert.False(DirectCast(underlyingType, Symbol).Equals(type, TypeCompareKind.ConsiderEverything))
+
                     VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
 
                 Case Else

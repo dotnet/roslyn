@@ -32,6 +32,11 @@
         <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="translated">CodeAction '{0}' は変更されたソリューションを生成しませんでした</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">コア EditorConfig オプション</target>
@@ -99,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -191,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">名前空間とフォルダー構造の同期</target>
         <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="translated">SourceGeneratedDocument のコンテンツが変更されない可能性があります。</target>
+        <note>{locked:SourceGeneratedDocument}</note>
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
@@ -629,7 +639,7 @@
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
         <source>The position is not within the symbol's declaration</source>
-        <target state="translated">シンボルの宣言内に配置されていません。</target>
+        <target state="translated">シンボルの宣言内に配置されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_0_cannot_be_located_within_the_current_solution">
@@ -704,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
+        <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

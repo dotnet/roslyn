@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -30,6 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             SyntaxKind assignmentOpKind, ExpressionSyntax left, SyntaxToken syntaxToken, ExpressionSyntax right)
         {
             return SyntaxFactory.AssignmentExpression(assignmentOpKind, left, syntaxToken, right);
+        }
+
+        protected override ExpressionSyntax Increment(ExpressionSyntax left)
+        {
+            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, left);
+        }
+
+        protected override ExpressionSyntax Decrement(ExpressionSyntax left)
+        {
+            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostDecrementExpression, left);
         }
     }
 }

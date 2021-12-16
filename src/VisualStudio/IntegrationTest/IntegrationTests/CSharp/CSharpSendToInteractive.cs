@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -19,8 +21,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -238,7 +240,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
-            int defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
+            var defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
             VisualStudio.InteractiveWindow.SetTimeout(120000);
             VisualStudio.InteractiveWindow.WaitForReplOutput("using TestProj;");
             VisualStudio.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);

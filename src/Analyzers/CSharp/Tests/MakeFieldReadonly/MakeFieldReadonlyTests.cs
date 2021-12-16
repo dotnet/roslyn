@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
@@ -11,11 +13,17 @@ using Microsoft.CodeAnalysis.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
 {
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public MakeFieldReadonlyTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new MakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
 
@@ -1705,6 +1713,37 @@ public class Repro
 {
     private volatile object first;
     private readonly object second;
+}");
+        }
+
+        [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46785"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    private string [|_x|] = string.Empty;
+
+    public bool M()
+    {
+        ref var myVar = ref x;
+        return myVar is null;
+    }
+}");
+        }
+
+        [WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task WithThreadStaticAttribute_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    [ThreadStatic]
+    private static object [|t_obj|];
 }");
         }
     }

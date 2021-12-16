@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class TraceLogger : ILogger
     {
-        public static readonly TraceLogger Instance = new TraceLogger();
+        public static readonly TraceLogger Instance = new();
 
         private readonly Func<FunctionId, bool> _loggingChecker;
 

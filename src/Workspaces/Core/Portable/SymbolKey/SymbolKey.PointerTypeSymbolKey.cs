@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
             public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
                 => visitor.WriteSymbolKey(symbol.PointedAtType);
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var pointedAtTypeResolution = reader.ReadSymbolKey(out var pointedAtTypeFailureReason);
 

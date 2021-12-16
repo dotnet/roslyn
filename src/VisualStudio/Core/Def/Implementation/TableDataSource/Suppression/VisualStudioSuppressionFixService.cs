@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -451,18 +453,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private static ImmutableDictionary<Document, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)
         {
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Builder builder = null;
-            foreach (var kvp in documentDiagnosticsToFixMap)
+            foreach (var (oldDocument, diagnostics) in documentDiagnosticsToFixMap)
             {
-                if (kvp.Key.Project.Language != language)
-                {
+                if (oldDocument.Project.Language != language)
                     continue;
-                }
 
-                var document = newSolution.GetDocument(kvp.Key.Id);
+                var document = newSolution.GetDocument(oldDocument.Id);
                 if (document != null)
                 {
                     builder ??= ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-                    builder.Add(document, kvp.Value);
+                    builder.Add(document, diagnostics);
                 }
             }
 
@@ -472,18 +472,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private static ImmutableDictionary<Project, ImmutableArray<Diagnostic>> GetProjectDiagnosticsMappedToNewSolution(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectDiagnosticsToFixMap, Solution newSolution, string language)
         {
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Builder projectDiagsBuilder = null;
-            foreach (var kvp in projectDiagnosticsToFixMap)
+            foreach (var (oldProject, diagnostics) in projectDiagnosticsToFixMap)
             {
-                if (kvp.Key.Language != language)
-                {
+                if (oldProject.Language != language)
                     continue;
-                }
 
-                var project = newSolution.GetProject(kvp.Key.Id);
+                var project = newSolution.GetProject(oldProject.Id);
                 if (project != null)
                 {
                     projectDiagsBuilder ??= ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-                    projectDiagsBuilder.Add(project, kvp.Value);
+                    projectDiagsBuilder.Add(project, diagnostics);
                 }
             }
 
@@ -599,16 +597,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
             var latestDiagnosticsToFixOpt = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
-            foreach (var kvp in builder)
+            foreach (var (projectId, diagnostics) in builder)
             {
-                var projectId = kvp.Key;
                 var project = _workspace.CurrentSolution.GetProject(projectId);
                 if (project == null || !shouldFixInProject(project))
-                {
                     continue;
-                }
 
-                var diagnostics = kvp.Value;
                 IEnumerable<DiagnosticData> projectDiagnosticsToFix;
                 if (filterStaleDiagnostics)
                 {

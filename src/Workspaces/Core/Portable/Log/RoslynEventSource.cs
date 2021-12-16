@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed partial class RoslynEventSource : EventSource
     {
         // might not "enabled" but we always have this singleton alive
-        public static readonly RoslynEventSource Instance = new RoslynEventSource();
+        public static readonly RoslynEventSource Instance = new();
 
         private readonly bool _initialized;
         private RoslynEventSource()

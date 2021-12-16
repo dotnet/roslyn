@@ -6,6 +6,7 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Text
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Function Create(test As XElement) As CommitTestData
-            Dim workspace = TestWorkspace.Create(test)
+            Dim workspace = TestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
             Return New CommitTestData(workspace)
         End Function
 
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Buffer = workspace.Documents.Single().GetTextBuffer()
 
             ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
-            If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then
+            If Buffer.Properties.ContainsProperty(GetType(CommitBufferManager)) Then
                 Dim oldManager = Buffer.Properties.GetProperty(Of CommitBufferManager)(GetType(CommitBufferManager))
                 oldManager.RemoveReferencingView()
                 Buffer.Properties.RemoveProperty(GetType(CommitBufferManager))

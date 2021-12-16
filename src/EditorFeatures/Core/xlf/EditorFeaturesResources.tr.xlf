@@ -67,6 +67,11 @@
         <target state="translated">Tabana Git</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Satır İçi İpuçları</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Geçersiz derleme adı</target>
@@ -107,11 +112,6 @@
         <target state="translated">Noktalama İşareti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Belgenin kaldırılması desteklenmiyor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">_Dosyayı yeniden adlandır (tür, dosya adıyla eşleşmiyor)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">Sembolün _dosyasını yeniden adlandır</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Açıklamayı böl</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Kullanıcı Türleri - Arabirimler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Kullanıcı Türleri - Kayıtlar</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -419,32 +429,32 @@
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
         <source>Adding '{0}' to '{1}' with content:</source>
-        <target state="translated">{0}' şu içerik ile '{1}' üzerine ekleniyor:</target>
+        <target state="translated">'{0}' şu içerik ile '{1}' üzerine ekleniyor:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_0">
         <source>Adding project '{0}'</source>
-        <target state="translated">{0}' projesi ekleniyor</target>
+        <target state="translated">'{0}' projesi ekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_0">
         <source>Removing project '{0}'</source>
-        <target state="translated">{0}' projesi kaldırılıyor</target>
+        <target state="translated">'{0}' projesi kaldırılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_references_for_0">
         <source>Changing project references for '{0}'</source>
-        <target state="translated">{0}' için proje başvuruları değiştiriliyor</target>
+        <target state="translated">'{0}' için proje başvuruları değiştiriliyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_reference_0_to_1">
         <source>Adding reference '{0}' to '{1}'</source>
-        <target state="translated">{0}' başvurusu '{1}' üzerine ekleniyor</target>
+        <target state="translated">'{0}' başvurusu '{1}' üzerine ekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_reference_0_from_1">
         <source>Removing reference '{0}' from '{1}'</source>
-        <target state="translated">{0}' başvurusu '{1}' üzerinden kaldırılıyor</target>
+        <target state="translated">'{0}' başvurusu '{1}' üzerinden kaldırılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_reference_0_to_1">
@@ -639,7 +649,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' öğesini '{1}' olarak yeniden adlandır</target>
+        <target state="translated">'{0}' öğesini '{1}' olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1086,7 +1096,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' öğesini '{1}' olarak yeniden adlandır:</target>
+        <target state="translated">'{0}' öğesini '{1}' olarak yeniden adlandır:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1101,7 +1111,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' Öğesine Çağrılar</target>
+        <target state="translated">'{0}' Öğesine Çağrılar</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1111,7 +1121,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Calls_To_Interface_Implementation_0">
         <source>Calls To Interface Implementation '{0}'</source>
-        <target state="translated">{0}' Arayüz Uygulama Çağrıları</target>
+        <target state="translated">'{0}' Arayüz Uygulama Çağrıları</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Call_Hierarchy_Information">
@@ -1121,7 +1131,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' öğesini uygular</target>
+        <target state="translated">'{0}' öğesini uygular</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1131,7 +1141,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="References_To_Field_0">
         <source>References To Field '{0}'</source>
-        <target state="translated">{0}' Alanına Yapılan Başvurular</target>
+        <target state="translated">'{0}' Alanına Yapılan Başvurular</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Overrides">
@@ -1181,7 +1191,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
-        <target state="translated">{0}' öğesi, içeriği şu olan '{1}' öğesinden kaldırılıyor:</target>
+        <target state="translated">'{0}' öğesi, içeriği şu olan '{1}' öğesinden kaldırılıyor:</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
@@ -1192,11 +1202,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Küme Ayracı Tamamlama</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Tüm oluşumları şurada düzelt:</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

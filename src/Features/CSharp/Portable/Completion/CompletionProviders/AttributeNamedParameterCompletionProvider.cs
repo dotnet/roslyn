@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return;
                 }
-                if (!(token.Parent.Parent is AttributeSyntax attributeSyntax) || !(token.Parent is AttributeArgumentListSyntax attributeArgumentList))
+                if (token.Parent.Parent is not AttributeSyntax attributeSyntax || token.Parent is not AttributeArgumentListSyntax attributeArgumentList)
                 {
                     return;
                 }
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
 
                 var workspace = document.Project.Solution.Workspace;
-                var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
                 var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
                 var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
 
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     context.AddItems(nameColonItems);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

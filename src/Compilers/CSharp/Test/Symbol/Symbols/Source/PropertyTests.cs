@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -293,10 +295,10 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-// (4,20): error CS8034: Auto-implemented properties must have get accessors.
+// (4,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int Q { set; } = 0;
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
-// (5,20): error CS8034: Auto-implemented properties must have get accessors.
+// (5,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int R { set; }
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
@@ -1163,7 +1165,7 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
     //     B y = A.Goo; 
     Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
     // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
@@ -1171,7 +1173,7 @@ class B {
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
                 );
             // Dev10 errors:
-            // error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             // error CS0570: 'A.Goo' is not supported by the language
         }
 
@@ -2497,24 +2499,24 @@ End Class";
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.First();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
 
             var setterOverride = explicitOverrides.Last();
-            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertySetter.Name, setterOverride.ImplementedMethod.Name);
             context.Diagnostics.Verify();
         }
@@ -2535,19 +2537,19 @@ End Class";
 
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.Single();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
         }
 
@@ -2598,7 +2600,7 @@ public interface IA
     string M2();
 }";
             var refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new MetadataReference[] { MscorlibRef });
 
@@ -2690,7 +2692,7 @@ public interface IA
 }";
 
             refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new[] { MscorlibRef });
 
@@ -2889,7 +2891,7 @@ unsafe class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,30): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* property { get; } = stackalloc int[256];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[256]").WithArguments("int", "int*").WithLocation(4, 30)

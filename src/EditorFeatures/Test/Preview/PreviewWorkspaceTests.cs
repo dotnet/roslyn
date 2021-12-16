@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,7 +21,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -45,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
-            var assembly = typeof(ISolutionCrawlerService).Assembly;
-            using var previewWorkspace = new PreviewWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(assembly)));
+            var hostServices = FeaturesTestCompositions.Features.GetHostServices();
+            using var previewWorkspace = new PreviewWorkspace(hostServices);
             Assert.NotNull(previewWorkspace.CurrentSolution);
         }
 
@@ -81,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
 
             var addedSolution = previewWorkspace.CurrentSolution.Projects.First()
-                                                .AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+                                                .AddMetadataReference(TestMetadata.Net451.mscorlib)
                                                 .AddDocument("document", "").Project.Solution;
             Assert.True(previewWorkspace.TryApplyChanges(addedSolution));
             Assert.Equal(1, previewWorkspace.CurrentSolution.Projects.First().MetadataReferences.Count);
@@ -109,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var solution = previewWorkspace.CurrentSolution;
             var project = solution.AddProject("project", "project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("document", "");
+            var sourceTextContainer = SourceText.From("Text").Container;
 
             Assert.True(previewWorkspace.TryApplyChanges(document.Project.Solution));
 
-            previewWorkspace.OpenDocument(document.Id);
+            previewWorkspace.OpenDocument(document.Id, sourceTextContainer);
             Assert.Equal(1, previewWorkspace.GetOpenDocumentIds().Count());
             Assert.True(previewWorkspace.IsDocumentOpen(document.Id));
 
@@ -124,27 +121,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
-            using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+            using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
+            Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
             var persistentService = previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
 
             using var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
-            Assert.True(storage is NoOpPersistentStorage);
+            Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
         [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
-        public void TestPreviewDiagnostic()
+        public async Task TestPreviewDiagnostic()
         {
-            var diagnosticService = EditorServicesUtil.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IDiagnosticUpdateSource;
+            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
+
+            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExportedValue<IDiagnosticAnalyzerService>();
             RoslynDebug.AssertNotNull(diagnosticService);
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
-            using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+            using var previewWorkspace = new PreviewWorkspace(hostServices);
 
             var solution = previewWorkspace.CurrentSolution
                 .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
@@ -155,7 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             Assert.True(previewWorkspace.TryApplyChanges(solution));
 
-            previewWorkspace.OpenDocument(previewWorkspace.CurrentSolution.Projects.First().DocumentIds[0]);
+            var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
+
+            previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
             previewWorkspace.EnableDiagnostic();
 
             // wait 20 seconds
@@ -163,25 +164,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.Diagnostics.Length > 0);
+            Assert.True(args.GetPushDiagnostics(previewWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
         }
 
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
             using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
-            //// preview workspace and owner of the solution now share solution and its underlying text buffer
+
+            // preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
             previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
-            //// enable preview diagnostics
+            // enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
-            const string AnalzyerCount = "Analyzer Count: ";
-            Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
+            const string AnalyzerCount = "Analyzer Count: ";
+            Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
             const string SquigglesCount = "Squiggles Count: ";
             Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);
@@ -190,7 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+            // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
+            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
@@ -210,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
             using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
+            AssertEx.NotNull(diffView);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
@@ -222,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
             using var rightDisposable = rightTagger as IDisposable;
             // wait for diagnostics and taggers
-            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
+            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
 
             // check left buffer
             var leftSnapshot = leftBuffer.CurrentSnapshot;
@@ -255,14 +259,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        private void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
             var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, previewWorkspace.CurrentSolution);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
-            var compilationReference = ObjectReference.Create(compilation);
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Equal(1, result.CompilationDiagnostics.Count);

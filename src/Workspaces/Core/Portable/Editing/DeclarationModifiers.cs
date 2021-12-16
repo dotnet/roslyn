@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var field = symbol as IFieldSymbol;
                 var property = symbol as IPropertySymbol;
+                var method = symbol as IMethodSymbol;
 
                 return new DeclarationModifiers(
                     isStatic: symbol.IsStatic,
@@ -74,10 +77,11 @@ namespace Microsoft.CodeAnalysis.Editing
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
-                    isConst: field != null && field.IsConst,
+                    isConst: field?.IsConst == true,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
-                    isVolatile: field != null && field.IsVolatile,
-                    isExtern: symbol.IsExtern);
+                    isVolatile: field?.IsVolatile == true,
+                    isExtern: symbol.IsExtern,
+                    isAsync: method?.IsAsync == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.
@@ -118,53 +122,53 @@ namespace Microsoft.CodeAnalysis.Editing
         public bool IsExtern => (_modifiers & Modifiers.Extern) != 0;
 
         public DeclarationModifiers WithIsStatic(bool isStatic)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Static, isStatic));
+            => new(SetFlag(_modifiers, Modifiers.Static, isStatic));
 
         public DeclarationModifiers WithIsAbstract(bool isAbstract)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Abstract, isAbstract));
+            => new(SetFlag(_modifiers, Modifiers.Abstract, isAbstract));
 
         public DeclarationModifiers WithIsNew(bool isNew)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.New, isNew));
+            => new(SetFlag(_modifiers, Modifiers.New, isNew));
 
         public DeclarationModifiers WithIsUnsafe(bool isUnsafe)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Unsafe, isUnsafe));
+            => new(SetFlag(_modifiers, Modifiers.Unsafe, isUnsafe));
 
         public DeclarationModifiers WithIsReadOnly(bool isReadOnly)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.ReadOnly, isReadOnly));
+            => new(SetFlag(_modifiers, Modifiers.ReadOnly, isReadOnly));
 
         public DeclarationModifiers WithIsVirtual(bool isVirtual)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Virtual, isVirtual));
+            => new(SetFlag(_modifiers, Modifiers.Virtual, isVirtual));
 
         public DeclarationModifiers WithIsOverride(bool isOverride)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Override, isOverride));
+            => new(SetFlag(_modifiers, Modifiers.Override, isOverride));
 
         public DeclarationModifiers WithIsSealed(bool isSealed)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Sealed, isSealed));
+            => new(SetFlag(_modifiers, Modifiers.Sealed, isSealed));
 
         public DeclarationModifiers WithIsConst(bool isConst)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Const, isConst));
+            => new(SetFlag(_modifiers, Modifiers.Const, isConst));
 
         public DeclarationModifiers WithWithEvents(bool withEvents)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.WithEvents, withEvents));
+            => new(SetFlag(_modifiers, Modifiers.WithEvents, withEvents));
 
         public DeclarationModifiers WithPartial(bool isPartial)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Partial, isPartial));
+            => new(SetFlag(_modifiers, Modifiers.Partial, isPartial));
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         public DeclarationModifiers WithAsync(bool isAsync)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Async, isAsync));
+            => new(SetFlag(_modifiers, Modifiers.Async, isAsync));
 
         public DeclarationModifiers WithIsWriteOnly(bool isWriteOnly)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.WriteOnly, isWriteOnly));
+            => new(SetFlag(_modifiers, Modifiers.WriteOnly, isWriteOnly));
 
         public DeclarationModifiers WithIsRef(bool isRef)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Ref, isRef));
+            => new(SetFlag(_modifiers, Modifiers.Ref, isRef));
 
         public DeclarationModifiers WithIsVolatile(bool isVolatile)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Volatile, isVolatile));
+            => new(SetFlag(_modifiers, Modifiers.Volatile, isVolatile));
 
         public DeclarationModifiers WithIsExtern(bool isExtern)
-            => new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Extern, isExtern));
+            => new(SetFlag(_modifiers, Modifiers.Extern, isExtern));
 
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
             => isSet ? (existing | modifier) : (existing & ~modifier);
@@ -195,34 +199,34 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static DeclarationModifiers None => default;
 
-        public static DeclarationModifiers Static => new DeclarationModifiers(Modifiers.Static);
-        public static DeclarationModifiers Abstract => new DeclarationModifiers(Modifiers.Abstract);
-        public static DeclarationModifiers New => new DeclarationModifiers(Modifiers.New);
-        public static DeclarationModifiers Unsafe => new DeclarationModifiers(Modifiers.Unsafe);
-        public static DeclarationModifiers ReadOnly => new DeclarationModifiers(Modifiers.ReadOnly);
-        public static DeclarationModifiers Virtual => new DeclarationModifiers(Modifiers.Virtual);
-        public static DeclarationModifiers Override => new DeclarationModifiers(Modifiers.Override);
-        public static DeclarationModifiers Sealed => new DeclarationModifiers(Modifiers.Sealed);
-        public static DeclarationModifiers Const => new DeclarationModifiers(Modifiers.Const);
-        public static DeclarationModifiers WithEvents => new DeclarationModifiers(Modifiers.WithEvents);
-        public static DeclarationModifiers Partial => new DeclarationModifiers(Modifiers.Partial);
-        public static DeclarationModifiers Async => new DeclarationModifiers(Modifiers.Async);
-        public static DeclarationModifiers WriteOnly => new DeclarationModifiers(Modifiers.WriteOnly);
-        public static DeclarationModifiers Ref => new DeclarationModifiers(Modifiers.Ref);
-        public static DeclarationModifiers Volatile => new DeclarationModifiers(Modifiers.Volatile);
-        public static DeclarationModifiers Extern => new DeclarationModifiers(Modifiers.Extern);
+        public static DeclarationModifiers Static => new(Modifiers.Static);
+        public static DeclarationModifiers Abstract => new(Modifiers.Abstract);
+        public static DeclarationModifiers New => new(Modifiers.New);
+        public static DeclarationModifiers Unsafe => new(Modifiers.Unsafe);
+        public static DeclarationModifiers ReadOnly => new(Modifiers.ReadOnly);
+        public static DeclarationModifiers Virtual => new(Modifiers.Virtual);
+        public static DeclarationModifiers Override => new(Modifiers.Override);
+        public static DeclarationModifiers Sealed => new(Modifiers.Sealed);
+        public static DeclarationModifiers Const => new(Modifiers.Const);
+        public static DeclarationModifiers WithEvents => new(Modifiers.WithEvents);
+        public static DeclarationModifiers Partial => new(Modifiers.Partial);
+        public static DeclarationModifiers Async => new(Modifiers.Async);
+        public static DeclarationModifiers WriteOnly => new(Modifiers.WriteOnly);
+        public static DeclarationModifiers Ref => new(Modifiers.Ref);
+        public static DeclarationModifiers Volatile => new(Modifiers.Volatile);
+        public static DeclarationModifiers Extern => new(Modifiers.Extern);
 
         public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
-            => new DeclarationModifiers(left._modifiers | right._modifiers);
+            => new(left._modifiers | right._modifiers);
 
         public static DeclarationModifiers operator &(DeclarationModifiers left, DeclarationModifiers right)
-            => new DeclarationModifiers(left._modifiers & right._modifiers);
+            => new(left._modifiers & right._modifiers);
 
         public static DeclarationModifiers operator +(DeclarationModifiers left, DeclarationModifiers right)
-            => new DeclarationModifiers(left._modifiers | right._modifiers);
+            => new(left._modifiers | right._modifiers);
 
         public static DeclarationModifiers operator -(DeclarationModifiers left, DeclarationModifiers right)
-            => new DeclarationModifiers(left._modifiers & ~right._modifiers);
+            => new(left._modifiers & ~right._modifiers);
 
         public bool Equals(DeclarationModifiers modifiers)
             => _modifiers == modifiers._modifiers;

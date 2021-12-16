@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -6842,7 +6844,7 @@ interface I
 
             // lambdas are ok as they are emitted to a nested type
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
+                targetFrameworks: new[] { TargetFramework.NetCoreApp },
                 expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),

@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -28,32 +27,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
-    [Export(typeof(IVisualStudioTodoCommentsService))]
     [Export(typeof(IVsTypeScriptTodoCommentService))]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject,
-          IVisualStudioTodoCommentsService,
           ITodoCommentsListener,
           ITodoListProvider,
-          IVsTypeScriptTodoCommentService
+          IVsTypeScriptTodoCommentService,
+          IEventListener<object>,
+          IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
+            = new();
 
         /// <summary>
-        /// Our connections to the remote OOP server. Created on demand when we startup and then
+        /// Remote service connection. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection? _connection;
+        private RemoteServiceConnection<IRemoteTodoCommentsDiscoveryService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
         private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource
-            = new TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>>();
+            = new();
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -69,30 +69,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
-        void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)
-            => _ = StartAsync(cancellationToken);
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
+        }
 
-        private async Task StartAsync(CancellationToken cancellationToken)
+        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        {
+            if (workspace is VisualStudioWorkspace)
+                _ = StartAsync();
+        }
+
+        private async Task StartAsync()
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await StartWorkerAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 // Cancellation is normal (during VS closing).  Just ignore.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
             }
         }
 
-        private async Task StartWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartWorkerAsync()
         {
+            var cancellationToken = ThreadingContext.DisposalToken;
+
             _workQueueSource.SetResult(
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
@@ -101,23 +111,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                ComputeTodoCommentsInCurrentProcess(cancellationToken);
                 return;
+            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteTodoCommentsService,
-                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
-            await _connection.RunRemoteAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            // If the call fails an error has already been reported and there is nothing more to do.
+            _ = await _lazyConnection.TryInvokeAsync(
+                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
+        {
+            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
+
+            registrationService.AddAnalyzerProvider(
+                analyzerProvider,
+                new IncrementalAnalyzerProviderMetadata(
+                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
+                    highPriorityForActiveFile: false,
+                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private Task ProcessTodoCommentInfosAsync(
@@ -186,20 +209,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 : ImmutableArray<TodoCommentData>.Empty;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(
-            Workspace workspace, CancellationToken cancellationToken)
-        {
-            // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
-            return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
-        }
-
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
-            var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-            workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            try
+            {
+                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
+                workQueue.AddWork(new DocumentAndComments(documentId, infos));
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            {
+                // report NFW before returning back to the remote process
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
@@ -210,9 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // TS doesn't have syntax trees, so just explicitly pass along null when converting the data.
-            foreach (var comment in todoComments)
-                converted.Add(comment.CreateSerializableData(document, text, tree: null));
+            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);

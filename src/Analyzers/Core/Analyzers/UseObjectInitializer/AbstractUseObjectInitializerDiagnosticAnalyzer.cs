@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -35,6 +32,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseObjectInitializer,
                    CodeStyleOptions2.PreferObjectInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -49,6 +47,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+
+        protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
+            {
+                return;
+            }
+
+            if (!IsValidContainingStatement(containingStatement))
             {
                 return;
             }
@@ -120,24 +125,25 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             {
                 var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
+                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
 
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));
 
-                RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
-
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: ImmutableArray.Create(
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
+                }
+                else
+                {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            match.Initializer.FullSpan.End,
-                            match.Statement.Span.End)),
-                        additionalLocations: locations));
+                        Descriptor, location1, additionalLocations: locations));
                 }
             }
         }

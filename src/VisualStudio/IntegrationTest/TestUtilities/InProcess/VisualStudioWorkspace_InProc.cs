@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
@@ -130,7 +133,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 WaitForProjectSystem(timeout);
             }
 
-            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+            GetWaitingService().WaitForAllAsyncOperations(_visualStudioWorkspace, timeout, featureNames);
+        }
+
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+        {
+            try
+            {
+                WaitForAllAsyncOperations(timeout, featureNames);
+            }
+            catch (Exception e)
+            {
+                var listenerProvider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                {
+                    messageBuilder.AppendLine().Append($"  {token}");
+                }
+
+                Environment.FailFast("Terminating test process due to unrecoverable timeout.", new TimeoutException(messageBuilder.ToString(), e));
+            }
         }
 
         private static void WaitForProjectSystem(TimeSpan timeout)
@@ -145,7 +167,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var roslynPackageGuid = RoslynPackageId;
             var vsShell = GetGlobalService<SVsShell, IVsShell>();
 
-            var hresult = vsShell.LoadPackage(ref roslynPackageGuid, out var roslynPackage);
+            var hresult = vsShell.LoadPackage(ref roslynPackageGuid, out _);
             Marshal.ThrowExceptionForHR(hresult);
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
             private readonly object _gate;
@@ -134,7 +132,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _documentAndProjectWorkerProcessor.AsyncProcessorTask,
                         _semanticChangeProcessor.AsyncProcessorTask);
 
-                    shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    try
+                    {
+                        shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    }
+                    catch (AggregateException ex)
+                    {
+                        ex.Handle(e => e is OperationCanceledException);
+                    }
 
                     if (!shutdownTask.IsCompleted)
                     {
@@ -662,27 +667,42 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await EnqueueWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(continueOnCapturedContext: false);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> workers)
+            internal TestAccessor GetTestAccessor()
             {
-                var solution = _registration.CurrentSolution;
-                var list = new List<WorkItem>();
-
-                foreach (var project in solution.Projects)
-                {
-                    foreach (var document in project.Documents)
-                    {
-                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
-                    }
-                }
-
-                _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly(workers, list);
+                return new TestAccessor(this);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly()
-                => _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+            internal readonly struct TestAccessor
+            {
+                private readonly WorkCoordinator _workCoordinator;
+
+                internal TestAccessor(WorkCoordinator workCoordinator)
+                {
+                    _workCoordinator = workCoordinator;
+                }
+
+                internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
+                {
+                    var solution = _workCoordinator._registration.CurrentSolution;
+                    var list = new List<WorkItem>();
+
+                    foreach (var project in solution.Projects)
+                    {
+                        foreach (var document in project.Documents)
+                        {
+                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                        }
+                    }
+
+                    _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion(workers, list);
+                }
+
+                internal void WaitUntilCompletion()
+                    => _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion();
+            }
         }
 
-        private readonly struct ReanalyzeScope
+        internal readonly struct ReanalyzeScope
         {
             private readonly SolutionId? _solutionId;
             private readonly ISet<object>? _projectOrDocumentIds;
@@ -742,6 +762,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(project.Language);
                             }
+
                             break;
                         case DocumentId documentId:
                             var document = solution.GetDocument(documentId);
@@ -749,6 +770,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(document.Project.Language);
                             }
+
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
@@ -788,6 +810,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 count += project.DocumentIds.Count;
                             }
+
                             break;
                         case DocumentId documentId:
                             count++;
@@ -833,6 +856,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                         yield return document;
                                     }
                                 }
+
                                 break;
                             }
                         case DocumentId documentId:
@@ -842,6 +866,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     yield return document;
                                 }
+
                                 break;
                             }
                     }

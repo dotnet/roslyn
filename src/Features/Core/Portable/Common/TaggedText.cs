@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -16,33 +19,39 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
+    [DataContract]
     public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
         /// </summary>
+        [DataMember(Order = 0)]
         public string Tag { get; }
 
         /// <summary>
         /// The actual text to be displayed.
         /// </summary>
+        [DataMember(Order = 1)]
         public string Text { get; }
 
         /// <summary>
         /// Gets the style(s) to apply to the text.
         /// </summary>
+        [DataMember(Order = 2)]
         internal TaggedTextStyle Style { get; }
 
         /// <summary>
         /// Gets the navigation target for the text, or <see langword="null"/> if the text does not have a navigation
         /// target.
         /// </summary>
+        [DataMember(Order = 3)]
         internal string NavigationTarget { get; }
 
         /// <summary>
         /// Gets the navigation hint for the text, or <see langword="null"/> if the text does not have a navigation
         /// hint.
         /// </summary>
+        [DataMember(Order = 4)]
         internal string NavigationHint { get; }
 
         /// <summary>
@@ -216,6 +225,14 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.AnonymousTypeIndicator:
                 case TextTags.Text:
                     return ClassificationTypeNames.Text;
+
+                case TextTags.Record:
+                    return ClassificationTypeNames.RecordClassName;
+
+                case TextTags.ContainerStart:
+                case TextTags.ContainerEnd:
+                    // These tags are not visible so classify them as whitespace
+                    return ClassificationTypeNames.WhiteSpace;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(taggedTextTag);

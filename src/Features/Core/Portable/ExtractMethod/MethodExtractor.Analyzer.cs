@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = (IParameterSymbol)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
+                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
                 var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
 
                 var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
                     IDictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -384,22 +384,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return analysis.EndPointIsReachable;
             }
 
-            private IList<VariableInfo> MarkVariableInfoToUseAsReturnValueIfPossible(IList<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> MarkVariableInfoToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
             {
-                var variableToUseAsReturnValueIndex = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo);
-                if (variableToUseAsReturnValueIndex >= 0)
-                {
-                    variableInfo[variableToUseAsReturnValueIndex] = VariableInfo.CreateReturnValue(variableInfo[variableToUseAsReturnValueIndex]);
-                }
+                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo);
+                if (index < 0)
+                    return variableInfo;
 
-                return variableInfo;
+                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
             }
 
-            private IList<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
             {
-                var list = new List<VariableInfo>(variableInfo);
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfo.Count, out var list);
+                list.AddRange(variableInfo);
+
                 VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
-                return list;
+                return list.ToImmutable();
             }
 
             /// <param name="bestEffort">When false, variables whose data flow is not understood

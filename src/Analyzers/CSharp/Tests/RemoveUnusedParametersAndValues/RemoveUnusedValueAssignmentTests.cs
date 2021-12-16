@@ -6,22 +6,29 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedValuesCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+        CSharpRemoveUnusedValuesCodeFixProvider>;
+
     public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
+        public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
@@ -34,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()
@@ -111,6 +118,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
     {
         int x = 2;
         return x;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
+                },
+            }.RunAsync();
+        }
+
+        [WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(UnusedValuePreference.DiscardVariable)]
+        [InlineData(UnusedValuePreference.UnusedLocalVariable)]
+        public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
+        {
+            var source =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+        #endregion
+
+        int? {|IDE0059:x|} = null;
+        int y = value + value;
+        
+        x = y;
+        System.Console.WriteLine(x);
+    }
+}";
+            var fixedSource =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+
+        #endregion
+        int y = value + value;
+
+        int? x = y;
+        System.Console.WriteLine(x);
     }
 }";
 
@@ -2420,13 +2474,43 @@ $@"class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case int [|x|]:
+                x = 1;
+                break;
+        };
+    }
+}",
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case int:
+                int x = 1;
+                break;
+        };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -2495,7 +2579,7 @@ $@"class C
             {
                 TestCode = source,
                 FixedState = { Sources = { fixedSource }, MarkupHandling = MarkupMode.Allow },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeFixTestBehaviors = testBehaviors,
                 NumberOfIncrementalIterations = iterations,
                 NumberOfFixAllIterations = iterations,
@@ -2642,7 +2726,7 @@ $@"class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -2698,7 +2782,7 @@ $@"class C
                 TestCode = source,
                 FixedState = { Sources = { fixedSource }, MarkupHandling = MarkupMode.Allow },
                 BatchFixedCode = batchFixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeFixTestBehaviors = testBehaviors,
                 Options =
                 {
@@ -2745,7 +2829,7 @@ $@"class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -2826,7 +2910,7 @@ $@"class C
                 TestCode = source,
                 FixedState = { Sources = { fixedSource }, MarkupHandling = MarkupMode.Allow },
                 BatchFixedCode = batchFixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeFixTestBehaviors = testBehaviors,
                 Options =
                 {
@@ -2900,7 +2984,7 @@ $@"class C
     {{
         return false;
     }}
-}}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersionExtensions.CSharp9));
+}}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
         [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
@@ -2979,7 +3063,7 @@ $@"class C
             {
                 TestCode = source,
                 FixedState = { Sources = { fixedSource }, MarkupHandling = MarkupMode.Allow },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeFixTestBehaviors = testBehaviors,
                 Options =
                 {
@@ -4918,7 +5002,7 @@ $@"class C
                 break;
         }}
     }}
-}}", optionName);
+}}", optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -5955,7 +6039,7 @@ $@"class C
                       while(i++ < 10)",
                          "x = 2;")]
         public async Task Loops_Overwritten_InSomeControlFlowPaths(
-            string loopHeader, string loopBody, string loopFooter = null)
+            string loopHeader, string loopBody, string? loopFooter = null)
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
 $@"class C
@@ -7684,14 +7768,14 @@ class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -7765,7 +7849,7 @@ class C
             {
                 TestCode = source,
                 FixedState = { Sources = { fixedSource }, MarkupHandling = MarkupMode.Allow },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeFixTestBehaviors = testBehaviors,
                 NumberOfIncrementalIterations = iterations,
                 NumberOfFixAllIterations = iterations,
@@ -8131,7 +8215,7 @@ class C : IDisposable
         using var [|x|] = new C();
     }
 }", options: PreferDiscard,
-    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -8153,7 +8237,7 @@ class C : IDisposable
         using var [|x|] = new C() { P = 1 };
     }
 }", options: PreferDiscard,
-    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -8310,7 +8394,7 @@ public class Test
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestDiagnosticMissingAsync(
 @"class C
@@ -8394,7 +8478,7 @@ public class Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
@@ -8406,7 +8490,7 @@ public class Test
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -8431,7 +8515,7 @@ public class Test
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [CombinatorialData]
         public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             await TestDiagnosticMissingAsync(
 @"class C
@@ -8506,7 +8590,7 @@ public class Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 Options =
                 {
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
@@ -8652,6 +8736,57 @@ class C
 }
 ";
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+        }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
+        {
+            var source = @"
+using System;
+namespace ConsoleApp
+{
+	public static class ConsoleApp
+    {
+		public static void Main(string[] args)
+        {
+            {|FixAllInDocument:Foo(() => { Bar(); return true; })|};
+        }
+
+        public static bool Foo(Func<bool> func)
+        {
+            return func. Invoke();
+        }
+
+        public static bool Bar()
+        {
+            return true;
+        }
+	}
+}";
+            var expected = @"
+using System;
+namespace ConsoleApp
+{
+	public static class ConsoleApp
+    {
+		public static void Main(string[] args)
+        {
+            _ = Foo(() => { _ = Bar(); return true; });
+        }
+
+        public static bool Foo(Func<bool> func)
+        {
+            return func. Invoke();
+        }
+
+        public static bool Bar()
+        {
+            return true;
+        }
+	}
+}";
+            await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
         }
     }
 }

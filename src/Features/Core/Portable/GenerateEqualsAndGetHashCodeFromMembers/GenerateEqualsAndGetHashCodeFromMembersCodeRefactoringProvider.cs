@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -22,6 +21,7 @@ using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
+                        RoslynDebug.AssertNotNull(typeDeclaration);
 
                         return await CreateActionsAsync(
                             document, typeDeclaration, info.ContainingType, info.SelectedMembers,

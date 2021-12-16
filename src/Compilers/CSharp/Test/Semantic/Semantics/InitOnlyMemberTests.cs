@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
 
         // https://github.com/dotnet/roslyn/issues/44685
-        // test allowed from 'with' expression
         // test dynamic scenario
         // test whether reflection use property despite modreq?
         // test behavior of old compiler with modreq. For example VB
@@ -37,10 +37,10 @@ public class C
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (4,35): error CS8652: The feature 'init-only setters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public string Property { get; init; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("init-only setters").WithLocation(4, 35)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "init").WithArguments("init-only setters", "9.0").WithLocation(4, 35)
                 );
 
             var property = (PropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
@@ -49,6 +49,309 @@ public class C
             IPropertySymbol publicProperty = property.GetPublicSymbol();
             Assert.False(publicProperty.GetMethod.IsInitOnly);
             Assert.True(publicProperty.SetMethod.IsInitOnly);
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInObjectInitializer(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M()
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 23),
+                // (6,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 48)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInNestedObjectInitializer(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+public class Container
+{
+    public C contained;
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,45): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(6, 45),
+                // (6,70): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 70)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInWithExpression(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public record C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        _ = c with { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(6, 15),
+                // (6,22): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 22),
+                // (6,47): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 47)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInAssignment(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public record C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        c.Property = string.Empty;
+        c.Property2 = string.Empty;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         c.Property = string.Empty;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(6, 9),
+                // (7,9): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         c.Property2 = string.Empty;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.Property2").WithArguments("C.Property2").WithLocation(7, 9)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInAttribute(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class TestAttribute : System.Attribute
+{
+    public int Property { get; init; }
+    public int Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+[Test(Property = 42, Property2 = 43)]
+class C
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property = 42").WithArguments("init-only setters", "9.0").WithLocation(2, 7),
+                // (2,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(2, 22)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (2,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithinSameCompilation()
+        {
+            string source = @"
+class C
+{
+    string Property { get; init; }
+    string Property2 { get; }
+
+    void M(C c)
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (4,28): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     string Property { get; init; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "init").WithArguments("init-only setters", "9.0").WithLocation(4, 28),
+                // (9,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(9, 48)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithinSameCompilation_InAttribute()
+        {
+            string source = @"
+public class TestAttribute : System.Attribute
+{
+    public int Property { get; init; }
+    public int Property2 { get; }
+}
+
+[Test(Property = 42, Property2 = 43)]
+class C
+{
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     public int Property { get; init; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "init").WithArguments("init-only setters", "9.0").WithLocation(4, 32),
+                // (8,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(8, 22)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionFromCompilationReference()
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8, assemblyName: "lib");
+
+            string source = @"
+public class D
+{
+    void M()
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { lib.ToMetadataReference() }, assemblyName: "comp");
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 23),
+                // (6,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 48)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithDynamicArgument(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+    public C(int i) { }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(dynamic d)
+    {
+        _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,24): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 24),
+                // (6,49): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 49)
+                );
         }
 
         [Fact]
@@ -60,8 +363,8 @@ public class C
     public string Property { get; init set; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,40): error CS8180: { or ; or => expected
                 //     public string Property { get; init set; }
                 Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(4, 40),
@@ -82,8 +385,8 @@ public class C
     public string Property3 { init => throw null; init => throw null; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,49): error CS1007: Property accessor already defined
                 //     public string Property { set => throw null; init => throw null; }
                 Diagnostic(ErrorCode.ERR_DuplicateAccessor, "init").WithLocation(4, 49),
@@ -146,8 +449,8 @@ public class Derived : C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (5,23): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
                 //     public C() : this(Property = null) // 1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(5, 23),
@@ -187,8 +490,8 @@ public class Other
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -239,8 +542,8 @@ public class Derived : C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -268,8 +571,8 @@ public class C
     public string Property { protected init { throw null; } }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,19): error CS0276: 'C.Property': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     public string Property { protected init { throw null; } }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "Property").WithArguments("C.Property").WithLocation(4, 19)
@@ -297,8 +600,8 @@ public class Derived : C<string>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (10,9): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(10, 9)
@@ -328,8 +631,8 @@ public class CWithoutInit : I<string> // 1
     public string Property { get; set; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (10,29): error CS8804: 'CWithoutInit' does not implement interface member 'I<string>.Property.init'. 'CWithoutInit.Property.set' cannot implement 'I<string>.Property.init'.
                 // public class CWithoutInit : I<string> // 1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I<string>").WithArguments("CWithoutInit", "I<string>.Property.init", "CWithoutInit.Property.set").WithLocation(10, 29)
@@ -381,8 +684,8 @@ public class Derived : C<string>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (12,13): error CS8802: Init-only property or indexer 'C<string>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<string>.Property").WithLocation(12, 13),
@@ -438,8 +741,8 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (10,13): error CS8802: Init-only property or indexer 'C<T>.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //             Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C<T>.Property").WithLocation(10, 13),
@@ -464,8 +767,8 @@ public class C
     public string Property { get => throw null; init { } }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,49): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                 //     public string Property { get => throw null; init { } }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 49)
@@ -563,8 +866,8 @@ class Derived2 : Derived
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -638,8 +941,8 @@ class Other
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
@@ -664,7 +967,7 @@ class Other
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "clone set 42");
         }
@@ -696,7 +999,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Main 42 43");
         }
@@ -738,14 +1041,14 @@ public class D
     }
 }
 ";
-            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             var comp = CreateCompilation(new[] { source, main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
 
-            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
         }
 
@@ -774,9 +1077,9 @@ public class D
     }
 }
 ";
-            var libComp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             var comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "Main 42");
         }
 
@@ -822,14 +1125,14 @@ public class D
     }
 }
 ";
-            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { parent, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             var comp = CreateCompilation(new[] { source, main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
 
-            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            libComp = CreateCompilation(new[] { parent, source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp = CreateCompilation(new[] { main }, references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "Main set:42 get:42");
         }
 
@@ -842,8 +1145,8 @@ public class C
     public static string Property { get; init; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,42): error CS8806: The 'init' accessor is not valid on static members
                 //     public static string Property { get; init; }
                 Diagnostic(ErrorCode.ERR_BadInitAccessor, "init").WithLocation(4, 42)
@@ -905,8 +1208,8 @@ public class Caller
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (9,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(9, 9),
@@ -944,8 +1247,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,10): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         (Property, (Property, Property)) = (null, (null, null)); // 1, 2, 3
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 10),
@@ -974,8 +1277,8 @@ public class C
     void M2(out string s) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,16): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         M2(out Property); // 1
                 Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithArguments("C.Property").WithLocation(8, 16)
@@ -1001,8 +1304,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property += 42; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
@@ -1028,8 +1331,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property |= true; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
@@ -1055,8 +1358,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property ??= null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
@@ -1082,8 +1385,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         Property++; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9)
@@ -1102,8 +1405,8 @@ public class C
     ref int Property4 { init => throw null; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,13): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref int Property1 { get; init; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithArguments("C.Property1").WithLocation(4, 13),
@@ -1132,7 +1435,7 @@ public class C
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
@@ -1213,7 +1516,7 @@ public class C
     public string Property { get; init; }
 }
 ";
-            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             libComp.VerifyDiagnostics();
 
             string source = @"
@@ -1309,9 +1612,9 @@ class Derived2 : Derived
 ";
             var comp = CreateCompilation(source,
                 references: new[] { emitImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (8,9): error CS8802: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -1357,6 +1660,62 @@ class Derived2 : Derived
                 );
         }
 
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_ReferenceConversion()
+        {
+            string source = @"
+var x = new DerivedType() { SomethingElse = 42 };
+System.Console.Write(x.SomethingElse);
+
+public interface ISomething { int Property { get; init; } }
+public record BaseType : ISomething { int ISomething.Property { get; init; } }
+
+public record DerivedType : BaseType
+{
+    public int SomethingElse
+    {
+        get => ((ISomething)this).Property;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS8852: Init-only property or indexer 'ISomething.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         init => ((ISomething)this).Property = value;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "((ISomething)this).Property").WithArguments("ISomething.Property").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_BoxingConversion()
+        {
+            string source = @"
+var x = new Type() { SomethingElse = 42 };
+
+public interface ISomething { int Property { get; init; } }
+
+public struct Type : ISomething
+{
+    int ISomething.Property { get; init; }
+
+    public int SomethingElse
+    {
+        get => throw null;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8852: Init-only property or indexer 'ISomething.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         init => ((ISomething)this).Property = value;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "((ISomething)this).Property").WithArguments("ISomething.Property").WithLocation(13, 17)
+                );
+        }
+
         [Fact]
         public void OverridingInitOnlyProperty()
         {
@@ -1398,8 +1757,8 @@ public class DerivedDerivedWithoutInit : DerivedGetterOnly
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (13,28): error CS8803: 'DerivedWithoutInit.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { get; set; } // 1
                 Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithoutInit.Property", "Base.Property").WithLocation(13, 28),
@@ -1422,7 +1781,7 @@ public class Base
 {
     public virtual string Property { get; init; }
 }";
-            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             libComp.VerifyDiagnostics();
 
             string source = @"
@@ -1447,9 +1806,9 @@ public class DerivedGetterOnly : Base
     public override string Property { get => null; }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (8,28): error CS8803: 'DerivedWithoutInit.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { get; set; } // 1
                 Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithoutInit.Property", "Base.Property").WithLocation(8, 28),
@@ -1500,8 +1859,8 @@ public class DerivedDerivedWithoutInit : DerivedGetterOnly
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (9,28): error CS8803: 'DerivedWithInit.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { get; init; } // 1
                 Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInit.Property", "Base.Property").WithLocation(9, 28),
@@ -1540,8 +1899,8 @@ public class DerivedWithoutInitSetterOnly : Base
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,44): error CS0546: 'DerivedWithInit.Property.init': cannot override because 'Base.Property' does not have an overridable set accessor
                 //     public override string Property { get; init; } // 1
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "init").WithArguments("DerivedWithInit.Property.init", "Base.Property").WithLocation(8, 44),
@@ -1583,8 +1942,8 @@ public class DerivedWithoutInitGetterOnly : Base
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,28): error CS8803: 'DerivedWithInit.Property' must match by init-only of overridden member 'Base.Property'
                 //     public override string Property { get; init; } // 1, 2
                 Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("DerivedWithInit.Property", "Base.Property").WithLocation(8, 28),
@@ -1629,8 +1988,8 @@ public class DerivedWithoutInitGetterOnly : I // 3
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (10,35): error CS8804: 'DerivedWithoutInit' does not implement interface member 'I.Property.init'. 'DerivedWithoutInit.Property.set' cannot implement 'I.Property.init'.
                 // public class DerivedWithoutInit : I // 1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithoutInit", "I.Property.init", "DerivedWithoutInit.Property.set").WithLocation(10, 35),
@@ -1668,8 +2027,8 @@ public class DerivedWithoutInitGetterOnly : I // 3
     public string Property { get => null; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (6,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInit : I // 1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.init").WithLocation(6, 32),
@@ -1699,7 +2058,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1720,8 +2079,8 @@ public class DerivedWithNew : Base
     public new string Property { init { } }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,19): warning CS0108: 'Derived.Property' hides inherited member 'Base.Property'. Use the new keyword if hiding was intended.
                 //     public string Property { init { } } // 1
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("Derived.Property", "Base.Property").WithLocation(8, 19)
@@ -1738,8 +2097,8 @@ public interface I
 {
     string Property { set; }
 }";
-            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            libComp.VerifyDiagnostics();
+            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            libComp.VerifyEmitDiagnostics();
 
             string source = @"
 public class DerivedWithInit : I // 1
@@ -1759,9 +2118,9 @@ public class DerivedWithoutInitGetterOnly : I // 3
     public string Property { get => null; }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (2,32): error CS8804: 'DerivedWithInit' does not implement interface member 'I.Property.set'. 'DerivedWithInit.Property.init' cannot implement 'I.Property.set'.
                 // public class DerivedWithInit : I // 1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("DerivedWithInit", "I.Property.set", "DerivedWithInit.Property.init").WithLocation(2, 32),
@@ -1791,8 +2150,8 @@ public class DerivedWithInitAndGetter : I
     string I.Property { get; init; } // 2, 3
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,25): error CS8805: Accessors 'DerivedWithInit.I.Property.init' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { init { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInit.I.Property.init", "I.Property.set").WithLocation(8, 25),
@@ -1826,8 +2185,8 @@ public class DerivedWithInitAndGetter : I
     string I.Property { get; init; } // 2
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (8,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.init' should both be init-only or neither
                 //     string I.Property { set { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.init").WithLocation(8, 25),
@@ -1847,7 +2206,7 @@ public interface I
 {
     string Property { init; }
 }";
-            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             libComp.VerifyDiagnostics();
 
             string source = @"
@@ -1864,9 +2223,9 @@ public class DerivedGetterOnly : I // 2
     string I.Property { get => null; } // 3, 4
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (4,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.init' should both be init-only or neither
                 //     string I.Property { set { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.init").WithLocation(4, 25),
@@ -1917,11 +2276,11 @@ public interface IWithInitWithExplicitImplementation : I1, I2
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
-                parseOptions: TestOptions.RegularPreview);
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (12,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
                 //     string Property { set; } // 1
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("IWithoutInit.Property", "I1.Property").WithLocation(12, 12),
@@ -2009,11 +2368,11 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
-                parseOptions: TestOptions.RegularPreview);
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (13,12): warning CS0108: 'IWithoutInit.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
                 //     string Property { set; } // 1
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("IWithoutInit.Property", "I1.Property").WithLocation(13, 12),
@@ -2050,8 +2409,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,32): error CS0065: 'C.Event': event property must have both add and remove accessors
                 //     public event System.Action Event
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "Event").WithArguments("C.Event").WithLocation(4, 32),
@@ -2080,7 +2439,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var eventSymbol = comp.GlobalNamespace.GetMember<EventSymbol>("C.Event");
@@ -2100,7 +2459,7 @@ public class C
     ~C() { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var constructor = comp.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
@@ -2122,7 +2481,7 @@ public class C
     public static bool operator +(C c1, C c2) => throw null;
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var conversion = comp.GlobalNamespace.GetMember<SourceUserDefinedConversionSymbol>("C.op_Implicit");
@@ -2146,7 +2505,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -2168,12 +2527,12 @@ public record C(int i)
     void M() { }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
             AssertEx.SetEqual(new[] {
-                "C C.<>Clone()",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 i)",
@@ -2182,10 +2541,14 @@ public record C(int i)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
+                "System.Boolean C.Equals(C? other)",
+                "C..ctor(C original)",
                 "void C.Deconstruct(out System.Int32 i)",
                 }, cMembers.ToTestDisplayStrings());
 
@@ -2239,8 +2602,8 @@ public class D
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (14,9): error CS8802: Init-only property or indexer 'C.this[int]' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         this[43] = null; // 1
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "this[43]").WithArguments("C.this[int]").WithLocation(14, 9),
@@ -2308,27 +2671,27 @@ public class Derived : C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(11, 9),
-                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 23),
-                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(25, 13),
-                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(30, 13),
-                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(38, 9),
-                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(42, 9),
-                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 7
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(48, 13)
                 );
@@ -2366,11 +2729,79 @@ public class C
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+                options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             // [ : C::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp, expectedOutput: "42 43",
                 verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+        }
+
+        [Fact]
+        public void ReadonlyFields_TypesDifferingNullability()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write(C1<int>.F1.content);
+        System.Console.Write("" "");
+        System.Console.Write(C2<int>.F1.content);
+    }
+}
+
+public struct Container
+{
+    public int content;
+}
+
+class C1<T>
+{
+    public static readonly Container F1;
+
+    static C1()
+    {
+        C1<T>.F1.content = 2;
+    }
+}
+
+#nullable enable
+
+class C2<T>
+{
+    public static readonly Container F1;
+
+    static C2()
+    {
+        C2<T>.F1.content = 3;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "2 3", verify: Verification.Skipped);
+
+            // PEVerify bug
+            // [ : C::Main][mdToken=0x6000004][offset 0x00000001] Cannot change initonly field outside its .ctor.
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldsflda    ""Container C1<int>.F1""
+  IL_0006:  ldfld      ""int Container.content""
+  IL_000b:  call       ""void System.Console.Write(int)""
+  IL_0010:  nop
+  IL_0011:  ldstr      "" ""
+  IL_0016:  call       ""void System.Console.Write(string)""
+  IL_001b:  nop
+  IL_001c:  ldsflda    ""Container C2<int>.F1""
+  IL_0021:  ldfld      ""int Container.content""
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+");
         }
 
         [Fact]
@@ -2383,7 +2814,7 @@ public class C
     public static readonly int field2 = (field = 42);
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -2436,30 +2867,30 @@ public class Caller
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (9,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         c.field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(9, 9),
-                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             c.field = null; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(16, 13),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         c.field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(24, 9),
-                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             c.field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(31, 13),
-                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(40, 13),
-                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //                 (c.field = null)  // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(41, 18)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
         public void ReadonlyFieldsMembers()
         {
             string source = @"
@@ -2517,8 +2948,8 @@ public class Derived : C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (15,9): error CS1648: Members of readonly field 'C.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         field.content = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "field.content").WithArguments("C.field").WithLocation(15, 9),
@@ -2540,6 +2971,73 @@ public class Derived : C
                 );
         }
 
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
+        public void ReadonlyFieldsMembers_Evaluation()
+        {
+            string source = @"
+public struct Container
+{
+    public int content;
+}
+
+public class C
+{
+    public readonly Container field;
+
+    public int InitOnlyProperty1
+    {
+        init
+        {
+            field.content = value;
+            System.Console.Write(""RAN "");
+        }
+    }
+
+    public static void Main()
+    {
+        var c = new C() { InitOnlyProperty1 = 42 };
+        System.Console.Write(c.field.content);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN 42", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact, WorkItem(45657, "https://github.com/dotnet/roslyn/issues/45657")]
+        public void ReadonlyFieldsMembers_Static()
+        {
+            string source = @"
+public struct Container
+{
+    public int content;
+}
+
+public static class C
+{
+    public static readonly Container field;
+
+    public static int InitOnlyProperty1
+    {
+        init
+        {
+            field.content = value;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8856: The 'init' accessor is not valid on static members
+                //         init
+                Diagnostic(ErrorCode.ERR_BadInitAccessor, "init").WithLocation(13, 9),
+                // (15,13): error CS1650: Fields of static readonly field 'C.field' cannot be assigned to (except in a static constructor or a variable initializer)
+                //             field.content = value;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "field.content").WithArguments("C.field").WithLocation(15, 13)
+                );
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -2551,7 +3049,7 @@ public class C
     public readonly string field;
 }
 ";
-            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var libComp = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
             string source = @"
 public class Derived : C
@@ -2579,21 +3077,21 @@ public class Derived : C
 ";
             var comp = CreateCompilation(source,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
-                parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+                parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(6, 9),
-                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(7, 23),
-                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 9),
-                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         _ = new C() { field = null }; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(13, 23),
-                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
+                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(20, 13)
                 );
@@ -2674,9 +3172,9 @@ public class C
         init { P1 = 1; } => P1 = 1;
     }
 }
-", IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+", IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         init { P1 = 1; } => P1 = 1;
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "init { P1 = 1; } => P1 = 1;").WithLocation(7, 9)
@@ -2750,8 +3248,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,36): error CS0570: 'C.Property.set' is not supported by the language
                 //     public override int Property { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("C.Property.set").WithLocation(4, 36),
@@ -2841,8 +3339,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,25): error CS0569: 'Derived.Property': cannot override 'C.Property' because it is not supported by the language
                 //     public override int Property { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
@@ -2959,8 +3457,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived.this[int]", "C.this[int]").WithLocation(4, 25),
@@ -3055,8 +3553,8 @@ public class Derived2 : C
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,39): error CS0570: 'C.this[int].set' is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("C.this[int].set").WithLocation(4, 39),
@@ -3116,14 +3614,73 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (6,11): error CS0570: 'C.M()' is not supported by the language
                 //         C.M();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("C.M()").WithLocation(6, 11)
                 );
 
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
+            Assert.False(method.IsInitOnly);
+            Assert.False(method.GetPublicSymbol().IsInitOnly);
+            Assert.True(method.HasUseSiteError);
+            Assert.True(method.HasUnsupportedMetadata);
+        }
+
+        [Fact]
+        public void ModReqOnStaticSet()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig newslot specialname
+            static void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    } 
+
+    .property instance int32 P()
+    {
+      .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_P(int32)
+    } 
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M2()
+    {
+        C.P = 2;
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0570: 'C.P.set' is not supported by the language
+                //         C.P = 2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "P").WithArguments("C.P.set").WithLocation(6, 11)
+                );
+
+            var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.set_P");
             Assert.False(method.IsInitOnly);
             Assert.False(method.GetPublicSymbol().IsInitOnly);
             Assert.True(method.HasUseSiteError);
@@ -3166,8 +3723,8 @@ public class Derived : C
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,26): error CS0115: 'Derived.M()': no suitable method found to override
                 //     public override void M() { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Derived.M()").WithLocation(4, 26)
@@ -3234,8 +3791,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (7,11): error CS0570: 'C.set_Property(ref int)' is not supported by the language
                 //         c.set_Property(i); // 1
                 Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref int)").WithLocation(7, 11),
@@ -3312,8 +3869,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
                 //         _ = c.get_Property(); // 1
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
@@ -3400,8 +3957,8 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
                 //         _ = c.get_Property(); // 1
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
@@ -3483,8 +4040,8 @@ public class Derived : C
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (4,36): error CS0570: 'C.Property.get' is not supported by the language
                 //     public override int Property { get { throw null; } }
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("C.Property.get").WithLocation(4, 36)
@@ -3530,8 +4087,8 @@ public class D : C
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
                 // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
                 //         Property = null; // 1
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(7, 9),
@@ -3564,9 +4121,9 @@ public class C
         void local() { }
     }
 }
-", IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+", IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3622,19 +4179,433 @@ class Program
 ";
 
             var comp1 = CreateCompilation(new[] { source0, source1, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+                targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             // PEVerify: [ : S::set_Property] Cannot change initonly field outside its .ctor.
             CompileAndVerify(comp1, expectedOutput: "42",
                 verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
             var comp1Ref = new[] { comp1.ToMetadataReference() };
 
             var comp7 = CreateCompilation(source2, references: comp1Ref,
-                targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+                targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp7, expectedOutput: "43");
 
             var property = comp7.GetMember<PropertySymbol>("S.Property");
             var setter = (RetargetingMethodSymbol)property.SetMethod;
             Assert.True(setter.IsInitOnly);
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_AutoProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    public int I { get; init; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyStruct_ManualProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public readonly struct S
+{
+    private readonly int i;
+    public int I { get => i; init => i = value; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_AutoProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    public readonly int I { get; init; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyProperty_ManualProp()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I = 1 };
+System.Console.Write(s.I);
+
+public struct S
+{
+    private readonly int i;
+    public readonly int I { get => i; init => i = value; }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: "1");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I.init""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""readonly int S.I.get""
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_AutoProp()
+        {
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
+public struct S
+{
+    public int I { get; readonly init; }
+}
+" });
+
+            comp.VerifyDiagnostics(
+                // (4,34): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.I' readonly instead.
+                //     public int I { get; readonly init; }
+                Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init", isSuppressed: false).WithArguments("S.I").WithLocation(4, 34)
+            );
+
+            var s = ((Compilation)comp).GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+            Assert.True(((Symbols.PublicModel.PropertySymbol)i).GetSymbol<PropertySymbol>().SetMethod.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ManualProp()
+        {
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, @"
+public struct S
+{
+    public int I { get => 1; readonly init { } }
+}
+" });
+
+            comp.VerifyDiagnostics(
+                // (4,39): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.I' readonly instead.
+                //     public int I { get => 1; readonly init { } }
+                Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init", isSuppressed: false).WithArguments("S.I").WithLocation(4, 39)
+            );
+
+            var s = ((Compilation)comp).GetTypeByMetadataName("S");
+            var i = s.GetMember<IPropertySymbol>("I");
+            Assert.False(i.SetMethod.IsReadOnly);
+            Assert.True(((Symbols.PublicModel.PropertySymbol)i).GetSymbol<PropertySymbol>().SetMethod.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        [WorkItem(47612, "https://github.com/dotnet/roslyn/issues/47612")]
+        public void InitOnlyOnReadonlyInit_ReassignsSelf()
+        {
+            var verifier = CompileAndVerify(new[] { IsExternalInitTypeDefinition, @"
+var s = new S { I1 = 1, I2 = 2 };
+System.Console.WriteLine($""I1 is {s.I1}"");
+
+public readonly struct S
+{
+    private readonly int i;
+    public readonly int I1 { get => i; init => i = value; }
+    public int I2
+    { 
+        get => throw null;
+        init
+        {
+            System.Console.WriteLine($""I1 was {I1}"");
+            this = default;
+        }
+    }
+}
+" }, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails, expectedOutput: @"I1 was 1
+I1 is 0");
+
+            var s = verifier.Compilation.GetTypeByMetadataName("S");
+            var i1 = s.GetMember<IPropertySymbol>("I1");
+            Assert.False(i1.SetMethod.IsReadOnly);
+            var i2 = s.GetMember<IPropertySymbol>("I2");
+            Assert.False(i2.SetMethod.IsReadOnly);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""void S.I1.init""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""void S.I2.init""
+  IL_0018:  ldloc.1
+  IL_0019:  stloc.0
+  IL_001a:  ldstr      ""I1 is {0}""
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""int S.I1.get""
+  IL_0026:  box        ""int""
+  IL_002b:  call       ""string string.Format(string, object)""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_NewT()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M<T>(Person person) where T : Container, new()
+    {
+        Container c = new T()
+        {
+            Person = { FirstName = ""c"" }
+        };
+    }
+}
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source });
+            comp.VerifyEmitDiagnostics(
+                // (10,24): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingGenericType()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+var c = new Container<Person>(person)
+{
+    PropertyT = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container<T>(T PropertyT) where T : Person;
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,19): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     PropertyT = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNew()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = new Person(""j"", ""p"") { FirstName = ""c"" }
+};
+
+Console.Write(c.Person.FirstName);
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "c", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNewNoPia()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58277"")]
+[CoClass(typeof(ClassITest28))]
+public interface ITest28
+{
+    int Property { get; init; }
+}
+
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public abstract class ClassITest28 //: ITest28
+{
+    public ClassITest28(int x) { }
+}
+";
+
+            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+
+            CompileAndVerify(piaCompilation);
+
+            string source = @"
+class UsePia
+{
+    public ITest28 Property2 { get; init; }
+
+    public static void Main()
+    {
+        var x1 = new ITest28() { Property = 42 };
+        var x2 = new UsePia() { Property2 = { Property = 43 } };
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+                new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+                options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (9,47): error CS8852: Init-only property or indexer 'ITest28.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         var x2 = new UsePia() { Property2 = { Property = 43 } };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("ITest28.Property").WithLocation(9, 47)
+                );
         }
     }
 }

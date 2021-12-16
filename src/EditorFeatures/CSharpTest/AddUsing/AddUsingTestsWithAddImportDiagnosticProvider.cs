@@ -2,39 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddUsingTestsWithAddImportDiagnosticProvider(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
-        private Task TestAsync(
-             string initialMarkup,
-             string expected,
-             bool systemSpecialCase,
-             int index = 0)
-        {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new OptionsCollection(LanguageNames.CSharp)
-                {
-                    { GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase }
-                });
-        }
-
         [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestIncompleteLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -58,7 +53,7 @@ class C
         }
 
         [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestIncompleteLambda2()
         {
             await TestInRegularAndScriptAsync(
@@ -83,7 +78,7 @@ class C
 
         [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -111,7 +106,7 @@ class Program
         }
 
         [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestUnknownIdentifierGenericName()
         {
             await TestInRegularAndScriptAsync(
@@ -128,7 +123,7 @@ class C
         }
 
         [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
         {
             await TestInRegularAndScriptAsync(
@@ -144,7 +139,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestOutsideOfMethodWithMalformedGenericParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -162,7 +157,7 @@ class Program
         }
 
         [WorkItem(752640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestUnknownIdentifierWithSyntaxError()
         {
             await TestInRegularAndScriptAsync(
@@ -179,7 +174,7 @@ class C
         }
 
         [WorkItem(855748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestGenericNameWithBrackets()
         {
             await TestInRegularAndScriptAsync(
@@ -220,7 +215,7 @@ class Class
         }
 
         [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMalformedGenericParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -245,7 +240,7 @@ class Class
         }
 
         [WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestIncompleteMemberWithAsyncTaskReturnType()
         {
             await TestInRegularAndScriptAsync(
@@ -289,7 +284,7 @@ namespace ConsoleApp282
         }
 
         [WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact]
         public async Task TestMissingDiagnosticForNameOf()
         {
             await TestDiagnosticMissingAsync(

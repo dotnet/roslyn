@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// Annotation used so that we can track the top-most node we want to format after
             /// performing all our edits.
             /// </summary>
-            private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_toFormatAnnotation = new();
 
             protected readonly TWrapper Wrapper;
 
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// The contents of the documents we've created code-actions for.  This is used so that
             /// we can prevent creating multiple code actions that produce the same results.
             /// </summary>
-            private readonly List<SyntaxNode> _seenDocumentRoots = new List<SyntaxNode>();
+            private readonly List<SyntaxNode> _seenDocumentRoots = new();
 
             public AbstractCodeActionComputer(
                 TWrapper service,

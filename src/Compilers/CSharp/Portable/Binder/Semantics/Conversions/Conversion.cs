@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeconstructMethodInfo = deconstructMethodInfoOpt;
             }
 
-            readonly internal DeconstructMethodInfo DeconstructMethodInfo;
+            internal readonly DeconstructMethodInfo DeconstructMethodInfo;
         }
 
         private Conversion(
@@ -316,6 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(ConversionKind.SwitchExpression, innerConversions);
         }
 
+        internal static Conversion MakeConditionalExpression(ImmutableArray<Conversion> innerConversions)
+        {
+            return new Conversion(ConversionKind.ConditionalExpression, innerConversions);
+        }
+
         internal ConversionKind Kind
         {
             get
@@ -546,6 +549,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.SwitchExpression;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit conditional expression conversion.
+        /// </summary>
+        public bool IsConditionalExpression
+        {
+            get
+            {
+                return Kind == ConversionKind.ConditionalExpression;
             }
         }
 
@@ -1034,9 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
         }
 
-        readonly internal BoundExpression Invocation;
-        readonly internal BoundDeconstructValuePlaceholder InputPlaceholder;
-        readonly internal ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
+        internal readonly BoundExpression Invocation;
+        internal readonly BoundDeconstructValuePlaceholder InputPlaceholder;
+        internal readonly ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
         internal bool IsDefault => Invocation is null;
     }
 }

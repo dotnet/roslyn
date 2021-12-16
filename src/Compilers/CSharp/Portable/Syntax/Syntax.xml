@@ -237,18 +237,29 @@
         <summary>SyntaxToken representing the asterisk.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="CallingConvention" Type="SyntaxToken" Optional="true">
+    <Field Name="CallingConvention" Type="FunctionPointerCallingConventionSyntax" Optional="true">
       <PropertyComment>
-        <summary>SyntaxToken representing the optional calling convention.</summary>
+        <summary>Node representing the optional calling convention.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="ParameterList" Type="FunctionPointerParameterListSyntax">
+      <PropertyComment>
+        <summary>List of the parameter types and return type of the function pointer.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="FunctionPointerParameterListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Function pointer parameter list syntax.</summary>
+    </TypeComment>
+    <Kind Name="FunctionPointerParameterList"/>
     <Field Name="LessThanToken" Type="SyntaxToken">
       <Kind Name="LessThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the less than token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" MinCount="1">
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;FunctionPointerParameterSyntax&gt;" MinCount="1">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
       </PropertyComment>
@@ -257,6 +268,59 @@
       <Kind Name="GreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the greater than token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="FunctionPointerCallingConventionSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Function pointer calling convention syntax.</summary>
+    </TypeComment>
+    <Kind Name="FunctionPointerCallingConvention"/>
+    <Field Name="ManagedOrUnmanagedKeyword" Type="SyntaxToken">
+      <Kind Name="ManagedKeyword"/>
+      <Kind Name="UnmanagedKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="UnmanagedCallingConventionList" Type="FunctionPointerUnmanagedCallingConventionListSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="FunctionPointerUnmanagedCallingConventionListSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Function pointer calling convention syntax.</summary>
+    </TypeComment>
+    <Kind Name="FunctionPointerUnmanagedCallingConventionList"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CallingConventions" Type="SeparatedSyntaxList&lt;FunctionPointerUnmanagedCallingConventionSyntax&gt;" MinCount="1">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close bracket.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="FunctionPointerUnmanagedCallingConventionSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Individual function pointer unmanaged calling convention.</summary>
+    </TypeComment>
+    <Kind Name="FunctionPointerUnmanagedCallingConvention"/>
+    <Field Name="Name" Type="SyntaxToken">
+      <Kind Name="IdentifierToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the calling convention identifier.</summary>
       </PropertyComment>
     </Field>
   </Node>
@@ -1261,12 +1325,7 @@
     <TypeComment>
       <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
     </TypeComment>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
     <Choice>
       <Field Name="Block" Type="BlockSyntax">
         <PropertyComment>
@@ -1288,12 +1347,7 @@
   </AbstractNode>
   <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="AnonymousMethodExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="DelegateKeyword" Type="SyntaxToken">
       <Kind Name="DelegateKeyword"/>
       <PropertyComment>
@@ -1342,12 +1396,7 @@
   </AbstractNode>
   <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="SimpleLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Parameter" Type="ParameterSyntax">
       <Kind Name="Parameter"/>
       <PropertyComment>
@@ -1395,12 +1444,7 @@
   </Node>
   <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="AsyncKeyword"/>
-      <PropertyComment>
-        <summary>Gets the "async" token.</summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
@@ -3516,7 +3560,7 @@
   </Node>
   <Node Name="ClassOrStructConstraintSyntax" Base="TypeParameterConstraintSyntax">
     <TypeComment>
-      <summary>Base type for class or struct constraint syntax.</summary>
+      <summary>Class or struct constraint syntax.</summary>
     </TypeComment>
     <Kind Name="ClassConstraint"/>
     <Kind Name="StructConstraint"/>
@@ -3543,6 +3587,18 @@
       <PropertyComment>
         <summary>Gets the type syntax.</summary>
       </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="DefaultConstraintSyntax" Base="TypeParameterConstraintSyntax">
+    <TypeComment>
+      <summary>Default constraint syntax.</summary>
+    </TypeComment>
+    <Kind Name="DefaultConstraint"/>
+    <Field Name="DefaultKeyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the "default" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="DefaultKeyword"/>
     </Field>
   </Node>
   <AbstractNode Name="BaseFieldDeclarationSyntax" Base="MemberDeclarationSyntax">
@@ -4027,11 +4083,10 @@
       <Kind Name="CloseBracketToken"/>
     </Field>
   </Node>
-  <Node Name="ParameterSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="BaseParameterSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
-      <summary>Parameter syntax.</summary>
+      <summary>Base parameter syntax.</summary>
     </TypeComment>
-    <Kind Name="Parameter"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
@@ -4043,6 +4098,23 @@
       </PropertyComment>
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+  </AbstractNode>
+  <Node Name="ParameterSyntax" Base="BaseParameterSyntax">
+    <TypeComment>
+      <summary>Parameter syntax.</summary>
+    </TypeComment>
+    <Kind Name="Parameter"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
@@ -4051,6 +4123,23 @@
       <Kind Name="ArgListKeyword"/>
     </Field>
     <Field Name="Default" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="FunctionPointerParameterSyntax" Base="BaseParameterSyntax">
+    <TypeComment>
+      <summary>Parameter syntax.</summary>
+    </TypeComment>
+    <Kind Name="FunctionPointerParameter"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="false" Override="true"/>
   </Node>
   <Node Name="IncompleteMemberSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="IncompleteMember"/>n

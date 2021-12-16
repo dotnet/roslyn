@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class DirectiveSyntaxEqualityComparer : IEqualityComparer<DirectiveTriviaSyntax>
         {
-            public static readonly DirectiveSyntaxEqualityComparer Instance = new DirectiveSyntaxEqualityComparer();
+            public static readonly DirectiveSyntaxEqualityComparer Instance = new();
 
             private DirectiveSyntaxEqualityComparer()
             {

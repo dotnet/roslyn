@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,18 +81,19 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Diagnoseinformationen für geschlossene Dateien anzeigen;
-Reguläre Ausdrücke farbig hervorheben; 
-Zugehörige Komponenten unter dem Cursor markieren; 
+        <target state="translated">Inlinehinweise anzeigen;
+Diagnoseinformationen für geschlossene Dateien anzeigen;
+Reguläre Ausdrücke farbig hervorheben;
+Zugehörige Komponenten unter dem Cursor markieren;
 Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
 Editor-Funktionsanalyse in externem Prozess ausführen ;
 Navigation zu dekompilierten Quellen aktivieren;
-using-Direktiven;
-Systemanweisungen beim Sortieren von using-Direktiven an erster Stelle platzieren;
-Gruppen von using-Direktiven trennen;
-using-Direktiven für Typen in Verweisassemblys vorschlagen;
-using-Direktiven für Typen in NuGet-Paketen vorschlagen;
+using-Anweisungen;
+Systemanweisungen beim Sortieren von using-Anweisungen an erster Stelle platzieren;
+Gruppen von using-Anweisungen trennen;
+using-Anweisungen für Typen in Verweisassemblys vorschlagen;
+using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
 Hervorhebung;
 Verweise auf Symbol unter Cursor hervorheben;
 Verwandte Schlüsselbegriffe unter Cursor anzeigen;
@@ -101,25 +103,25 @@ Zeilentrennzeichen in Prozeduren anzeigen;
 Gliederung für Konstrukte auf Deklarationsebene anzeigen;
 Gliederung für Konstrukte auf Codeebene anzeigen;
 Gliederung für Kommentare und Präprozessorregionen anzeigen;
-#regions beim Reduzieren auf Definitionen zuklappen;
+Regionen beim Reduzieren auf Definitionen zuklappen;
 Ausblenden;
-Nicht verwendete using-Direktiven ausblenden;
+Nicht verwendete using-Anweisungen ausblenden;
 Unerreichbaren Code ausblenden;
-Führungslinien für Blockstruktur;
+Führungslinien für Struktur blockieren;
 Führungslinien für Konstrukte auf Deklarationsebene anzeigen;
 Führungslinien für Konstrukte auf Codeebene anzeigen;
 Editor-Hilfe;
-XML-Dokumentationskommentare für /// eingeben;
+XML-Dokumentationskommentare für /// generieren;
 Beim Schreiben von Kommentaren (/* */) * am Beginn neuer Zeilen einfügen;
 Vorschau für Nachverfolgung beim Umbenennen anzeigen;
 Zeichenfolgenliterale bei Eingabe teilen;
 Ungültige Platzhalter in string.Format-Aufrufen melden;
 Methode extrahieren;
-ref oder out nicht auf benutzerdefinierte Struktur legen;
-Schnittstelle oder abstrakte Klasse implementieren;
-Eingefügte Eigenschaften, Ereignisse und Methoden hier ablegen;
-bei anderen Membern derselben Art;
-am Ende;
+ref oder out nicht in benutzerdefinierte Struktur platzieren;
+Schnittstellen- oder abstrakte Klasse implementieren;
+Eigenschaften, Ereignisse und Methoden beim Einfügen;
+bei anderen Membern derselben Art platzieren;
+am Ende platzieren;
 Beim Generieren von Eigenschaften;
 ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
@@ -138,7 +140,7 @@ Automatically format on paste;</source>
         <target state="translated">Automatisch während der Eingabe formatieren;
 Anweisung bei Semikolon automatisch formatieren;
 Block bei schließender geschweifter Klammer automatisch formatieren;
-Bei Verwendung der EINGABETASTE automatisch formatieren
+Bei Verwendung der EINGABETASTE automatisch formatieren;
 Beim Einfügen automatisch formatieren;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>

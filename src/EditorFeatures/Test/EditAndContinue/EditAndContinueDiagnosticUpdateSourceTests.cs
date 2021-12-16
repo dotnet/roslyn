@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -26,9 +25,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var updates = new List<string>();
 
-            source.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs e)
-                => updates.Add($"{e.Kind} p={e.ProjectId} d={e.DocumentId}: {string.Join(",", e.Diagnostics.Select(d => d.Id.ToString()))}");
-
             var srcC1 = "class C1 {}";
             var srcC2 = "class C2 {}";
             var srcD1 = "class D1 {}";
@@ -39,6 +35,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var docD2 = new TestHostDocument(srcD2, displayName: "DocD2");
 
             var workspace = new TestWorkspace();
+
+            source.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs e) =>
+            {
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                updates.Add($"{e.Kind} p={e.ProjectId} d={e.DocumentId}: {string.Join(",", diagnostics.Select(d => d.Id.ToString()))}");
+            };
+
             var projC = new TestHostProject(workspace, "ProjC");
             projC.AddDocument(docC1);
             projC.AddDocument(docC2);

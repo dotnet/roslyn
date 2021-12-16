@@ -2,17 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -23,13 +26,14 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
@@ -40,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
+        protected abstract SyntaxGenerator SyntaxGenerator { get; }
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -89,25 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-                var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
-                textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
-
-                if (_encoding)
-                {
-                    if (textBuffer is IVsUserData userData)
-                    {
-                        // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
-                        var hresult = userData.SetData(
-                            VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
-                            (uint)__PROMPTONLOADFLAGS.codepagePrompt);
-
-                        if (ErrorHandler.Failed(hresult))
-                        {
-                            return hresult;
-                        }
-                    }
-                }
+                textBuffer = (IVsTextBuffer)GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid);
+                Contract.ThrowIfNull(textBuffer, $"Failed to get document data for {pszMkDocument}");
             }
 
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
@@ -143,6 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                     catch
                     {
+                        // Only dispose the designer loader on failure to create a designer.
+                        // The IVSMDDesignerService.CreateDesigner() method in VS passes it into the DesignSurface that gets created
+                        // and is used to perform the actual load (and reloads -- which happen during normal designer operation).
+                        // http://index/?leftProject=Microsoft.VisualStudio.Design&leftSymbol=n8p1tszkfyz7&file=DesignerActivationService.cs&line=629
                         designerLoader.Dispose();
                         throw;
                     }
@@ -171,7 +164,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+            var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
+            var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+            var textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
+
+            if (_encoding)
+            {
+                if (textBuffer is IVsUserData userData)
+                {
+                    // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
+                    var hresult = userData.SetData(
+                        VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
+                        (uint)__PROMPTONLOADFLAGS.codepagePrompt);
+
+                    Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
+
+            return textBuffer;
+        }
+
+        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+        {
+            // There is no scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+        {
+            // It is not possible to get this information without initializing the designer.
+            // There is no other scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+        {
+            return "Form".Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
         {
             const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
             const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
@@ -251,6 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
+        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
+            => Formatter.OrganizeImportsAsync(document, cancellationToken);
+
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
@@ -287,10 +325,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            Contract.ThrowIfNull(rootToFormat);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
-            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
-            var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
+            // Apply file header preferences
+            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
+            if (!string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
+                {
+                    var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
+                    var newLineTrivia = SyntaxGenerator.EndOfLine(newLineText);
+                    return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
+                        SyntaxGenerator.SyntaxFacts,
+                        FileHeaderHelper,
+                        newLineTrivia,
+                        addedDocument,
+                        cancellationToken);
+                });
+
+                addedDocument = addedDocument.WithSyntaxRoot(documentWithFileHeader);
+                rootToFormat = documentWithFileHeader;
+            }
+
+            // Organize using directives
+            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
+            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).AsTask());
+
+            // Format document
+            var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
+            var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
             var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;

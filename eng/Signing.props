@@ -31,7 +31,11 @@
     <FileSignInfo Include="SQLitePCLRaw.batteries_v2.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.batteries_green.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.provider.e_sqlite3.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="MessagePack.Annotations.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="MessagePack.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Nerdbank.FullDuplexStream.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Nerdbank.Streams.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
   </ItemGroup>
 </Project>

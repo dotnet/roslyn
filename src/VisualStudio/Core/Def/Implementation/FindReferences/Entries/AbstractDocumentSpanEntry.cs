@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _mappedSpanResult = mappedSpanResult;
             }
 
-            protected override object GetValueWorker(string keyName)
+            protected override object? GetValueWorker(string keyName)
                 => keyName switch
                 {
                     StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,

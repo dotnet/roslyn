@@ -29,7 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "Verification"
 
+#Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45894
         Friend Shared Sub ResolveAndVerifySymbolList(newSymbols As IEnumerable(Of ISymbol), newCompilation As Compilation, originalSymbols As IEnumerable(Of ISymbol), originalCompilation As Compilation)
+#Enable Warning IDE0060 ' Remove unused parameter
 
             Dim newlist = newSymbols.OrderBy(Function(s) s.Name).ToList()
             Dim origlist = originalSymbols.OrderBy(Function(s) s.Name).ToList()
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.IgnoreCase)
 
-            AssertSymbolsIdsEqual(symbol1, symbol2, compilation2, comparison)
+            AssertSymbolsIdsEqual(symbol1, symbol2, comparison)
 
             Dim resolvedSymbol = ResolveSymbol(symbol1, compilation2, comparison)
             Assert.NotNull(resolvedSymbol)
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Return symInfo.Symbol
         End Function
 
-        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
+        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
 
             Dim sid1 = SymbolKey.Create(symbol1, CancellationToken.None)
             Dim sid2 = SymbolKey.Create(symbol2, CancellationToken.None)
@@ -220,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
     End Class
 
     Friend Class LocalSymbolDumper
-        Private _comp As VisualBasicCompilation
+        Private ReadOnly _comp As VisualBasicCompilation
         Public Sub New(comp As VisualBasicCompilation)
             Me._comp = comp
         End Sub
@@ -269,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         End Sub
 
-        Private Sub GetLocalAndType(df As DataFlowAnalysis, list As List(Of ISymbol))
+        Private Shared Sub GetLocalAndType(df As DataFlowAnalysis, list As List(Of ISymbol))
             ' add local symbols to list
             For Each v As ISymbol In df.VariablesDeclared
                 list.Add(v)
@@ -280,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Next
         End Sub
 
-        Private Sub GetLabelSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetLabelSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
             Dim labels = body.DescendantNodes().OfType(Of LabelStatementSyntax)()
             For Each lb As LabelStatementSyntax In labels
                 Dim sym = model.GetDeclaredSymbol(lb)
@@ -290,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             ' VB has not SwitchLabel; it's CaseStatement
         End Sub
 
-        Private Sub GetAnonymousTypeAndFuncSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetAnonymousTypeAndFuncSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
 
             Dim exprs As IEnumerable(Of ExpressionSyntax), tmp As IEnumerable(Of ExpressionSyntax)
             exprs = body.DescendantNodes().OfType(Of AnonymousObjectCreationExpressionSyntax)()
@@ -304,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Next
         End Sub
 
-        Private Sub GetAnonymousExprSymbols(expr As ExpressionSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetAnonymousExprSymbols(expr As ExpressionSyntax, model As SemanticModel, list As List(Of ISymbol))
 
             Dim kind = expr.Kind
             If kind <> SyntaxKind.AnonymousObjectCreationExpression AndAlso

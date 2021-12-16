@@ -2,18 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -90,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTemp = _factory.StoreToTemp(loweredLeft, out tempAssignment);
 
             // T.false(temp)
-            var falseOperatorCall = BoundCall.Synthesized(syntax, null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
+            var falseOperatorCall = BoundCall.Synthesized(syntax, receiverOpt: null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
 
             // T.&(temp, y)
             var andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, node.LogicalOperator);
@@ -536,7 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-
         //array length produces native uint, so the node typically implies a conversion to int32/int64.  
         //Sometimes the conversion is not necessary - i.e. when we just check for 0
         //This helper removes unnecessary implied conversion from ArrayLength node.
@@ -708,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(leftTruthOperator != null);
-            return BoundCall.Synthesized(syntax, null, leftTruthOperator, loweredLeft);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, leftTruthOperator, loweredLeft);
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(
@@ -729,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, nothing special here.
             Debug.Assert(method is { });
             Debug.Assert(TypeSymbol.Equals(method.ReturnType, type, TypeCompareKind.ConsiderEverything2));
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression? TrivialLiftedComparisonOperatorOptimizations(
@@ -1214,7 +1207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
-                null,
                 unliftedOp);
         }
 
@@ -1510,7 +1502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
-                null,
                 MakeBooleanConstant(syntax, value.GetValueOrDefault()));
         }
 
@@ -1862,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteDelegateOperation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
@@ -1888,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
                 ? new BoundBinaryOperator(syntax, operatorKind, null, method, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
-                : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+                : (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
                 call;
@@ -1923,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)

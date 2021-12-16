@@ -127,10 +127,12 @@
     <value>Invert if</value>
   </data>
   <data name="Add_await" xml:space="preserve">
-    <value>Add await</value>
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
-    <value>Add await and ConfigureAwait(false)</value>
+  <data name="Add_await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add 'await' and 'ConfigureAwait(false)'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -618,5 +620,14 @@
   <data name="Remove_in_keyword" xml:space="preserve">
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Apply_file_header_preferences" xml:space="preserve">
+    <value>Apply file header preferences</value>
+  </data>
+  <data name="Change_to_as_expression" xml:space="preserve">
+    <value>Change to 'as' expression</value>
+  </data>
+  <data name="Change_to_cast" xml:space="preserve">
+    <value>Change to cast</value>
   </data>
 </root>

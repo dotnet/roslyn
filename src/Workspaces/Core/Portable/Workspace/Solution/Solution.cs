@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -181,21 +179,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    if (this.ContainsDocument(documentId))
-                    {
-                        return documentId;
-                    }
-                }
-            }
-
-            return null;
+            return State.GetDocumentState(syntaxTree, projectId)?.Id;
         }
 
         /// <summary>
@@ -237,6 +221,20 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var project = GetProject(documentId.ProjectId);
+
+            if (project == null)
+            {
+                return new(result: null);
+            }
+            else
+            {
+                return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
+            }
+        }
+
         /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
@@ -247,20 +245,20 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentState = State.GetDocumentState(syntaxTree, projectId);
+
+                if (documentState is SourceGeneratedDocumentState)
                 {
-                    // does this solution even have the document?
-                    var document = this.GetDocument(docId);
-                    if (document != null)
-                    {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                        {
-                            return document;
-                        }
-                    }
+                    // We have the underlying state, but we need to get the wrapper SourceGeneratedDocument object. The wrapping is maintained by
+                    // the Project object, so we'll now fetch the project and ask it to get the SourceGeneratedDocument wrapper. Under the covers this
+                    // implicity may call to fetch the SourceGeneratedDocumentState a second time but that's not expensive.
+                    var generatedDocument = this.GetRequiredProject(documentState.Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentState.Id);
+                    Contract.ThrowIfNull(generatedDocument, "The call to GetDocumentState found a SourceGeneratedDocumentState, so we should have found it now.");
+                    return generatedDocument;
+                }
+                else if (documentState is DocumentState)
+                {
+                    return GetDocument(documentState.Id)!;
                 }
             }
 
@@ -470,24 +468,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newState = _state.WithProjectParseOptions(projectId, options);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
-        }
-
-        /// <summary>
-        /// Update a project as a result of option changes.
-        /// 
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal Solution WithProjectOptionsChanged(ProjectId projectId)
-        {
-            var newState = _state.WithProjectOptionsChanged(projectId);
             if (newState == _state)
             {
                 return this;
@@ -1792,7 +1772,7 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-        private void CheckContainsProject([NotNull] ProjectId? projectId)
+        private void CheckContainsProject(ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -1805,7 +1785,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1831,7 +1811,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAdditionalDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAdditionalDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1857,7 +1837,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAnalyzerConfigDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAnalyzerConfigDocument(DocumentId documentId)
         {
             if (documentId == null)
             {

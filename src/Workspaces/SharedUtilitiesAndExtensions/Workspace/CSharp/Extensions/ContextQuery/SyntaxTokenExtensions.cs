@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                            parent.IsKind(SyntaxKind.FixedStatement);
 
                 case SyntaxKind.ElseKeyword:
-                    return true;
+                    return token.Parent.IsKind(SyntaxKind.ElseClause);
 
                 case SyntaxKind.CloseBracketToken:
                     if (token.Parent.IsKind(SyntaxKind.AttributeList))
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpr))
                 {
                     var expr = parenExpr.Expression;
 
@@ -332,17 +333,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // ! |
-            if (targetToken.Parent is PrefixUnaryExpressionSyntax)
+            if (targetToken.Parent is PrefixUnaryExpressionSyntax prefix)
             {
-                var prefix = targetToken.Parent as PrefixUnaryExpressionSyntax;
                 return prefix.OperatorToken == targetToken;
             }
 
             // a &&
             // a ||
-            if (targetToken.Parent is BinaryExpressionSyntax)
+            if (targetToken.Parent is BinaryExpressionSyntax binary)
             {
-                var binary = targetToken.Parent as BinaryExpressionSyntax;
                 return binary.OperatorToken == targetToken;
             }
 
@@ -446,8 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Goo(bar: |
             if (targetToken.Kind() == SyntaxKind.ColonToken &&
                 targetToken.Parent.IsKind(SyntaxKind.NameColon) &&
-                targetToken.Parent.IsParentKind(SyntaxKind.Argument) &&
-                targetToken.Parent.Parent.IsParentKind(SyntaxKind.ArgumentList))
+                targetToken.Parent.Parent.IsKind(SyntaxKind.Argument) &&
+                targetToken.Parent.Parent.Parent.IsKind(SyntaxKind.ArgumentList))
             {
                 var owner = targetToken.Parent.Parent.Parent.Parent;
                 if (owner.IsKind(SyntaxKind.InvocationExpression) ||
@@ -603,13 +602,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        private static bool IsGenericInterfaceOrDelegateTypeParameterList(SyntaxNode node)
+        private static bool IsGenericInterfaceOrDelegateTypeParameterList([NotNullWhen(true)] SyntaxNode? node)
         {
             if (node.IsKind(SyntaxKind.TypeParameterList))
             {
-                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax typeDecl))
+                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax? typeDecl))
                     return typeDecl.TypeParameterList == node;
-                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDecl))
+                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl))
                     return delegateDecl.TypeParameterList == node;
             }
 
@@ -627,20 +626,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // delegate X D<A,|
             // delegate X D<[Bar]|
             if (targetToken.Kind() == SyntaxKind.LessThanToken &&
-                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
+                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
             {
                 return true;
             }
 
             if (targetToken.Kind() == SyntaxKind.CommaToken &&
-                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
+                IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
             {
                 return true;
             }
 
             if (targetToken.Kind() == SyntaxKind.CloseBracketToken &&
                 targetToken.Parent.IsKind(SyntaxKind.AttributeList) &&
-                targetToken.Parent.IsParentKind(SyntaxKind.TypeParameter) &&
+                targetToken.Parent.Parent.IsKind(SyntaxKind.TypeParameter) &&
                 IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent.Parent.Parent))
             {
                 return true;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +22,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="cancellationToken">A cancellation token.</param>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
             => semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
+
+        public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static ISymbol GetRequiredEnclosingSymbol(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetEnclosingSymbol(position, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
 
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol

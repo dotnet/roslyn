@@ -12,6 +12,16 @@
         <target state="translated">Un nom de langage doit être spécifié pour cette option.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly contenant le type '{0}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Les changements doivent se situer dans les limites de SourceText</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Aucun changement de la version d'une référence d'assembly n'est autorisé durant le débogage : '{0}' a changé la version en '{1}'.</target>
@@ -37,6 +47,11 @@
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
         <target state="translated">Le hintName du fichier source ajouté doit être unique dans un générateur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Le fichier supplémentaire n'appartient pas au 'CompilationWithAnalyzers' sous-jacent.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -108,6 +123,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">Un seul {0} peut être inscrit par générateur.</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="translated">Le SourceText fourni doit avoir un encodage explicite défini.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -552,6 +572,16 @@
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
         <target state="translated">Nom de culture non valide : '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">Le nom de section de configuration '{0}' de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée. La section a été déclarée dans le fichier '{1}'</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">Le nom de section de configuration de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

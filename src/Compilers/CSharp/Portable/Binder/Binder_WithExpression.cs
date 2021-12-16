@@ -1,8 +1,6 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
@@ -38,47 +34,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.CloneMethodName,
-                    arity: 0,
-                    ConsList<TypeSymbol>.Empty,
-                    LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
-                    this,
-                    diagnose: false,
-                    ref useSiteDiagnostics);
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
-                if (lookupResult.IsMultiViable)
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType is TypeParameterSymbol typeParameter ? typeParameter.EffectiveBaseClass(ref useSiteDiagnostics) : receiverType, ref useSiteDiagnostics);
+                if (cloneMethod is null)
                 {
-                    foreach (var symbol in lookupResult.Symbols)
-                    {
-                        if (symbol is MethodSymbol { ParameterCount: 0 } m)
-                        {
-                            cloneMethod = m;
-                            break;
-                        }
-                    }
-                }
-
-                lookupResult.Clear();
-
-                if (cloneMethod is null ||
-                    !receiverType.IsEqualToOrDerivedFrom(
-                        cloneMethod.ReturnType,
-                        TypeCompareKind.ConsiderEverything,
-                        ref useSiteDiagnostics))
-                {
-                    useSiteDiagnostics = null;
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
+                else if (cloneMethod.GetUseSiteDiagnostic() is DiagnosticInfo info)
+                {
+                    (useSiteDiagnostics ??= new HashSet<DiagnosticInfo>()).Add(info);
+                }
+
+                diagnostics.Add(syntax.Expression, useSiteDiagnostics);
             }
 
             var initializer = BindInitializerExpression(
                 syntax.Initializer,
                 receiverType,
                 syntax.Expression,
+                isForNewInstance: true,
                 diagnostics);
 
             // N.B. Since we only don't parse nested initializers in syntax there should be no extra

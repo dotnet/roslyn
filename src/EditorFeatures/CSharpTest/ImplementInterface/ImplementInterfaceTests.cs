@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
@@ -23,7 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
     {
         private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        public ImplementInterfaceTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
         private OptionsCollection AllOptionsOff
@@ -110,7 +116,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AllOptionsOff);
@@ -118,7 +124,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AllOptionsOn);
@@ -126,7 +132,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AccessorOptionsOn);
@@ -345,7 +351,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod_Explicitly()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -375,7 +381,7 @@ class Class : IInterface
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInProperty()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -412,7 +418,7 @@ class Class : IInterface
 " + s_tupleElementNamesAttribute);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInEvent()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -7001,7 +7007,7 @@ class Issue2785<T> : IList<object>
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task LongTuple()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -8659,6 +8665,278 @@ class C : [|I|]
         throw new System.NotImplementedException();
     }
 }", index: 1);
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColon()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|];
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithBracesAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] { } // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+} // hello
+");
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementOnRecord_WithSemiColonAndTrivia()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|]; // hello
+",
+@"
+interface I
+{
+    void M1();
+}
+
+record C : [|I|] // hello
+{
+    public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithValueType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<int>|]
+{
+}
+",
+@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<int>
+{
+    public void Bar(int x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithValueType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<int>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<int>
+{
+    public void Bar(int? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
         }
     }
 }

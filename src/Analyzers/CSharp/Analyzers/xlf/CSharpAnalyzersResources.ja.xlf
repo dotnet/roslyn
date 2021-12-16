@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">{0}' ステートメントに波かっこを追加します。</target>
+        <target state="translated">'{0}' ステートメントに波かっこを追加します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -25,6 +25,11 @@
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
         <target state="translated">デリゲート呼び出しを簡略化できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">ディスカードは削除できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">不要な抑制演算子を削除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">不要なディスカードを削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -202,6 +212,11 @@
         <target state="translated">ローカル関数を使用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">'new(...)' を使用する</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">パターン マッチングを使用します</target>
@@ -249,7 +264,7 @@
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="translated">{0} を簡略化できます。</target>
+        <target state="translated">{0} を簡略化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
@@ -260,6 +275,16 @@
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">'if' ステートメントは簡素化できます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">'new' 式を単純化できます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">'typeof' を 'nameof' に変換できます</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

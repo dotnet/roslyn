@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-        private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();
+        private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _otherAnnotation = new();
 
         protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
@@ -120,7 +122,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // CodeGenerationOptions containing before and after
-            var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
+            var options = new CodeGenerationOptions(
+                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)),
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 
-        internal virtual CompletionItemRules GetRules()
+        protected static CompletionItemRules GetRules()
             => s_defaultRules;
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

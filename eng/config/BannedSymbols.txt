@@ -1,0 +1,1 @@
+T:Microsoft.VisualStudio.Shell.Interop.IComWrapper; Use Microsoft.VisualStudio.LanguageServices.Implementation.Interop.IComWrapperFixed instead

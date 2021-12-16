@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As Cci.IFieldReference Implements Cci.ISpecializedFieldReference.UnspecializedVersion
             Get
                 Debug.Assert(_underlyingField.OriginalDefinition Is _underlyingField.OriginalDefinition.OriginalDefinition)
-                Return _underlyingField.OriginalDefinition
+                Return _underlyingField.OriginalDefinition.GetCciAdapter()
             End Get
         End Property
 
@@ -70,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Sub AssociateWithMetadataWriter(metadataWriter As Cci.MetadataWriter) Implements Cci.IContextualNamedEntity.AssociateWithMetadataWriter
-            DirectCast(_underlyingField, Cci.IContextualNamedEntity).AssociateWithMetadataWriter(metadataWriter)
+            DirectCast(_underlyingField, SynthesizedStaticLocalBackingField).AssociateWithMetadataWriter(metadataWriter)
         End Sub
 
         Private ReadOnly Property IsContextualNamedEntity As Boolean Implements Cci.IFieldReference.IsContextualNamedEntity
             Get
-                Return _underlyingField.IFieldReferenceIsContextualNamedEntity
+                Return _underlyingField.IsContextualNamedEntity
             End Get
         End Property
     End Class

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
     [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
@@ -39,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -59,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
-                if (typeSyntax is IdentifierNameSyntax &&
-                    ((IdentifierNameSyntax)typeSyntax).Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
                 {
                     return false;
                 }

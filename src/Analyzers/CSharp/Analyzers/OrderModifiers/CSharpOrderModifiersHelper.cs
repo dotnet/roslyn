@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.OrderModifiers;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
     internal class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
     {
-        public static readonly CSharpOrderModifiersHelper Instance = new CSharpOrderModifiersHelper();
+        public static readonly CSharpOrderModifiersHelper Instance = new();
 
         private CSharpOrderModifiersHelper()
         {

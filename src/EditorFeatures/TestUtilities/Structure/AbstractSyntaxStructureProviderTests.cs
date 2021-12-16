@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
         protected virtual OptionSet UpdateOptions(OptionSet options)
             => options.WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
@@ -71,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             }
         }
 
-        protected RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected static RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
             => new RegionData(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
-        protected RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        protected static RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
             => new RegionData(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         private static BlockSpan CreateBlockSpan(

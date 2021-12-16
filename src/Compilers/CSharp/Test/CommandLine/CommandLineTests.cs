@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,6 +25,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -33,12 +36,13 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP3_1
+#if NETCOREAPP
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP3_1
+#if NETCOREAPP
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
@@ -237,20 +241,21 @@ my_option2 = my_val2");
 
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
-            AssertEx.SetEqual(new[] {
-                KeyValuePairUtil.Create("cs0169", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress)
-            }, tree.DiagnosticOptions);
+            var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", CancellationToken.None, out var severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", CancellationToken.None, out severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
 
-            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-            var options = provider.GetOptions(tree);
+            var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = analyzerOptions.GetOptions(tree);
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option", out string val));
             Assert.Equal("my_val", val);
             Assert.False(options.TryGetValue("my_option2", out _));
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
 
-            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            options = analyzerOptions.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option2", out val));
             Assert.Equal("my_val2", val);
@@ -486,7 +491,7 @@ d.cs
                 Diagnostic(ErrorCode.ERR_NoOutputDirectory).WithLocation(1, 1)
                 );
         }
-#nullable restore
+#nullable disable
 
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void NoSdkPath()
@@ -1531,6 +1536,8 @@ class C
         [InlineData("7.3", LanguageVersion.CSharp7_3)]
         [InlineData("8", LanguageVersion.CSharp8)]
         [InlineData("8.0", LanguageVersion.CSharp8)]
+        [InlineData("9", LanguageVersion.CSharp9)]
+        [InlineData("9.0", LanguageVersion.CSharp9)]
         [InlineData("preview", LanguageVersion.Preview)]
         public void LangVersion_CanParseCorrectVersions(string value, LanguageVersion expectedVersion)
         {
@@ -1652,7 +1659,6 @@ class C
         {
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
-            // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
@@ -1706,10 +1712,11 @@ class C
             InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
-            InlineData(LanguageVersion.Preview, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Default),
+            InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
@@ -2469,6 +2476,24 @@ print Goodbye, World";
             {
                 symReader?.Dispose();
             }
+        }
+
+        private static void ValidateWrittenSources(Dictionary<string, Dictionary<string, string>> expectedFilesMap, Encoding encoding = null)
+        {
+            foreach ((var dirPath, var fileMap) in expectedFilesMap.ToArray())
+            {
+                foreach (var file in Directory.GetFiles(dirPath))
+                {
+                    var name = Path.GetFileName(file);
+                    var content = File.ReadAllText(file, encoding ?? Encoding.UTF8);
+
+                    Assert.Equal(fileMap[name], content);
+                    Assert.True(fileMap.Remove(name));
+                }
+                Assert.Empty(fileMap);
+                Assert.True(expectedFilesMap.Remove(dirPath));
+            }
+            Assert.Empty(expectedFilesMap);
         }
 
         [Fact]
@@ -4057,19 +4082,23 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Invalid SARIF version.
-            const string InvalidSarifVersion = @"C:\MyFolder\MyBinary.xml,version=42";
-            parsedArgs = DefaultParse(new[] { $"/errorlog:{InvalidSarifVersion}", "a.cs" }, baseDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,version=42' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]'.
-                Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(InvalidSarifVersion, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
-            Assert.Null(parsedArgs.ErrorLogOptions);
-            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
+            string[] invalidSarifVersions = new string[] { @"C:\MyFolder\MyBinary.xml,version=1.0.0", @"C:\MyFolder\MyBinary.xml,version=2.1.0", @"C:\MyFolder\MyBinary.xml,version=42" };
+
+            foreach (string invalidSarifVersion in invalidSarifVersions)
+            {
+                parsedArgs = DefaultParse(new[] { $"/errorlog:{invalidSarifVersion}", "a.cs" }, baseDirectory);
+                parsedArgs.Errors.Verify(
+                    // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,version=42' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|2|2.1}]'.
+                    Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(invalidSarifVersion, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
+                Assert.Null(parsedArgs.ErrorLogOptions);
+                Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
+            }
 
             // Invalid errorlog qualifier.
             const string InvalidErrorLogQualifier = @"C:\MyFolder\MyBinary.xml,invalid=42";
             parsedArgs = DefaultParse(new[] { $"/errorlog:{InvalidErrorLogQualifier}", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,invalid=42' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]'.
+                // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,invalid=42' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|2|2.1}]'.
                 Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(InvalidErrorLogQualifier, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
             Assert.Null(parsedArgs.ErrorLogOptions);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -4078,7 +4107,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             const string TooManyErrorLogQualifiers = @"C:\MyFolder\MyBinary.xml,version=2,version=2";
             parsedArgs = DefaultParse(new[] { $"/errorlog:{TooManyErrorLogQualifiers}", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,version=2,version=2' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]'.
+                // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,version=2,version=2' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|2|2.1}]'.
                 Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(TooManyErrorLogQualifiers, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
             Assert.Null(parsedArgs.ErrorLogOptions);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -4129,8 +4158,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -5178,23 +5207,19 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new string[] { "/w:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
+                // error CS1900: Warning level must be zero or greater
                 Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
 
             parsedArgs = DefaultParse(new string[] { "/w:5", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new string[] { "/warn:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
+                // error CS1900: Warning level must be zero or greater
                 Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
 
             parsedArgs = DefaultParse(new string[] { "/warn:5", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1900: Warning level must be in the range 0-4
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
+            parsedArgs.Errors.Verify();
 
             // Previous versions of the compiler used to report a warning (CS1691)
             // whenever an unrecognized warning code was supplied via /nowarn or /warnaserror.
@@ -6100,7 +6125,7 @@ public class CS1698_a {}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib).Path;
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -6127,8 +6152,8 @@ public class CS1698_a {}
                     return;
                 }
 
-                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in 
-                // the username. 
+                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in
+                // the username.
                 // https://github.com/dotnet/roslyn/issues/28836
                 if (StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP"))
                 {
@@ -7211,7 +7236,6 @@ public class C
 a.cs(1,7): error CS1001: Identifier expected
 a.cs(1,7): error CS1514: { expected
 a.cs(1,7): error CS1513: } expected
-a.cs(1,7): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
 a.cs(1,7): error CS8803: Top-level statements must precede namespace and type declarations.
 a.cs(1,7): error CS1525: Invalid expression term '??'
 a.cs(1,9): error CS1525: Invalid expression term '{'
@@ -8508,8 +8532,8 @@ class Program3
         /// When the output file is open with <see cref="FileShare.Read"/> | <see cref="FileShare.Delete"/>
         /// the compiler should delete the file to unblock build while allowing the reader to continue
         /// reading the previous snapshot of the file content.
-        /// 
-        /// On Windows we can read the original data directly from the stream without creating a memory map. 
+        ///
+        /// On Windows we can read the original data directly from the stream without creating a memory map.
         /// </summary>
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void FileShareDeleteCompatibility_Windows()
@@ -9132,6 +9156,66 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersParse()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/SKIPANALYZERS+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersSemantics(bool skipAnalyzers)
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var skipAnalyzersFlag = "/skipanalyzers" + (skipAnalyzers ? "+" : "-");
+            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (skipAnalyzers)
+            {
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.DoesNotContain(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
         public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
         {
@@ -9628,6 +9712,48 @@ public class Program
             };
         }
 
+        // See also NullableContextTests.NullableAnalysisFlags_01().
+        [Fact]
+        public void NullableAnalysisFlags()
+        {
+            string source =
+@"class Program
+{
+#nullable enable
+    static object F1() => null;
+#nullable disable
+    static object F2() => null;
+}";
+
+            string filePath = Temp.CreateFile().WriteAllText(source).Path;
+            string fileName = Path.GetFileName(filePath);
+
+            string[] expectedWarningsAll = new[] { fileName + "(4,27): warning CS8603: Possible null reference return." };
+            string[] expectedWarningsNone = Array.Empty<string>();
+
+            AssertEx.Equal(expectedWarningsAll, compileAndRun(featureOpt: null));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=always"));
+            AssertEx.Equal(expectedWarningsNone, compileAndRun("/features:run-nullable-analysis=never"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=ALWAYS")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=NEVER")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=true")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=false")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=unknown")); // unrecognized value ignored
+
+            CleanupAllGeneratedFiles(filePath);
+
+            string[] compileAndRun(string featureOpt)
+            {
+                var args = new[] { "/target:library", "/preferreduilang:en", "/nologo", filePath };
+                if (featureOpt != null) args = args.Concat(featureOpt).ToArray();
+                var compiler = CreateCSharpCompiler(null, WorkingDirectory, args);
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+                int exitCode = compiler.Run(outWriter);
+                return outWriter.ToString().Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            };
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -9646,6 +9772,7 @@ public class Program
                                            int expectedInfoCount = 0,
                                            int expectedWarningCount = 0,
                                            int expectedErrorCount = 0,
+                                           int? expectedExitCode = null,
                                            bool errorlog = false,
                                            IEnumerable<ISourceGenerator> generators = null,
                                            params DiagnosticAnalyzer[] analyzers)
@@ -9674,7 +9801,7 @@ public class Program
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
 
-            var expectedExitCode = expectedErrorCount > 0 ? 1 : 0;
+            expectedExitCode ??= expectedErrorCount > 0 ? 1 : 0;
             Assert.True(
                 expectedExitCode == exitCode,
                 string.Format("Expected exit code to be '{0}' was '{1}'.{2} Output:{3}{4}",
@@ -9998,7 +10125,7 @@ public class Program
             var file = dir.CreateFile(name);
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount, errorlog);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount, null, errorlog);
             CleanupAllGeneratedFiles(file.Path);
             return output;
         }
@@ -10659,6 +10786,12 @@ class C {
             parsedArgs.Errors.Verify();
             Assert.Equal(KeyValuePairUtil.Create("a =,b" + s, "1,= 2" + s), parsedArgs.PathMap[0]);
             Assert.Equal(KeyValuePairUtil.Create("x =,y" + s, "3 4" + s), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new[] { @"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", @"a\b.cs", @"a\b\c.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\a\b\", "/_3/"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\a\", "/_2/"), parsedArgs.PathMap[1]);
+            Assert.Equal(KeyValuePairUtil.Create(@"C:\temp\", "/_1/"), parsedArgs.PathMap[2]);
         }
 
         [Theory]
@@ -11104,12 +11237,13 @@ class C
 
 #if NET472
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
-        public void LoadingAnalyzerNetStandard13()
+        public void LoadinganalyzerNetStandard13()
         {
             var analyzerFileName = "AnalyzerNS13.dll";
             var srcFileName = "src.cs";
 
             var analyzerDir = Temp.CreateDirectory();
+
             var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
@@ -11126,6 +11260,7 @@ System.NotImplementedException: 28
             Assert.Equal(0, result.ExitCode);
         }
 #endif
+
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
@@ -12131,13 +12266,14 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
 
-            var expectedErrorCode = analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
+            var expectedErrorCode = !noWarn && analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
             Assert.Equal(expectedErrorCode, exitCode);
 
             // NOTE: Info diagnostics are only logged on command line when /errorlog is specified. See https://github.com/dotnet/roslyn/issues/42166 for details.
-            if (analyzerConfigSeverity == ReportDiagnostic.Error ||
+            if (!noWarn &&
+                (analyzerConfigSeverity == ReportDiagnostic.Error ||
                 analyzerConfigSeverity == ReportDiagnostic.Warn ||
-                (analyzerConfigSeverity == ReportDiagnostic.Info && errorlog))
+                (analyzerConfigSeverity == ReportDiagnostic.Info && errorlog)))
             {
                 var prefix = analyzerConfigSeverity == ReportDiagnostic.Error ? "error" : analyzerConfigSeverity == ReportDiagnostic.Warn ? "warning" : "info";
                 Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
@@ -12228,6 +12364,108 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
+        [CombinatorialData, Theory]
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        {
+            // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
+            // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
+            //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
+            //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
+            var analyzerShouldBeSkipped = !isEnabledByDefault ||
+                defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+
+            // Verify '/warnaserror-:DiagnosticId' behavior.
+            var args = new[] { "/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
+            Assert.Equal(expectedExitCode, exitCode);
+
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                var prefix = defaultSeverity == DiagnosticSeverity.Warning ? "warning" : "error";
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output);
+            }
+        }
+
+        [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
+        [Theory]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
+        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
+            bool warnAsErrorMinus,
+            DiagnosticSeverity defaultSeverity,
+            DiagnosticSeverity? severityInConfigFile,
+            DiagnosticSeverity expectedEffectiveSeverity)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: false);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var additionalFlags = new[] { "/warnaserror+" };
+
+            if (severityInConfigFile.HasValue)
+            {
+                var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
+            }
+
+            if (warnAsErrorMinus)
+            {
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray();
+            }
+
+            int expectedWarningCount = 0, expectedErrorCount = 0;
+            switch (expectedEffectiveSeverity)
+            {
+                case DiagnosticSeverity.Warning:
+                    expectedWarningCount = 1;
+                    break;
+
+                case DiagnosticSeverity.Error:
+                    expectedErrorCount = 1;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity);
+            }
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedWarningCount,
+                expectedErrorCount: expectedErrorCount,
+                additionalFlags: additionalFlags,
+                analyzers: new[] { analyzer });
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12240,10 +12478,60 @@ class C
             var generatedSource = "public class D { }";
             var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
-            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, $"generatedSource.cs"), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void TestSourceGeneratorsWithAnalyzers(bool includeCurrentAssemblyAsAnalyzerReference, bool skipAnalyzers)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            // 'skipAnalyzers' should have no impact on source generator execution, but should prevent analyzer execution.
+            var skipAnalyzersFlag = "/skipAnalyzers" + (skipAnalyzers ? "+" : "-");
+
+            // Verify analyzers were executed only if both the following conditions were satisfied:
+            //  1. Current assembly was added as an analyzer reference, i.e. "includeCurrentAssemblyAsAnalyzerReference = true" and
+            //  2. We did not explicitly request skipping analyzers, i.e. "skipAnalyzers = false".
+            var expectedAnalyzerExecution = includeCurrentAssemblyAsAnalyzerReference && !skipAnalyzers;
+
+            // 'WarningDiagnosticAnalyzer' generates a warning for each named type.
+            // We expect two warnings for this test: type "C" defined in source and the source generator defined type.
+            // Additionally, we also have an analyzer that generates "warning CS8032: An instance of analyzer cannot be created"
+            var expectedWarningCount = expectedAnalyzerExecution ? 3 : 0;
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
+                expectedWarningCount: expectedWarningCount,
+                additionalFlags: new[] { "/debug:embedded", "/out:embed.exe", skipAnalyzersFlag },
+                generators: new[] { generator });
+
+            // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, "generatedSource.cs"), generatedSource } }, dir, true);
+
+            if (expectedAnalyzerExecution)
+            {
+                Assert.Contains("warning Warning01", output, StringComparison.Ordinal);
+                Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Empty(output);
+            }
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12265,19 +12553,318 @@ class C
             var generator = new SingleFileTestGenerator(source1, source1Name);
             var generator2 = new SingleFileTestGenerator2(source2, source2Name);
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
-            var generator1Prefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
-            var generator2Prefix = $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}";
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
 
             ValidateEmbeddedSources_Portable(new Dictionary<string, string>
             {
-                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator1Prefix}_{source1Name}", source1},
-                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator2Prefix}_{source2Name}", source2},
+                { Path.Combine(dir.Path, generator1Prefix, source1Name), source1},
+                { Path.Combine(dir.Path, generator2Prefix, source2Name), source2},
             }, dir, true);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_WriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_OverwriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource1 = "class D { } class E { }";
+            var generator1 = new SingleFileTestGenerator(generatedSource1, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+
+            var generatedSource2 = "public class D { }";
+            var generator2 = new SingleFileTestGenerator(generatedSource2, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator2 }, analyzers: null);
+
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        public void SourceGenerators_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generator = new SingleFileTestGenerator(source1, source1Name);
+            var generator2 = new SingleFileTestGenerator2(source2, source2Name);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
+
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
+                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [ConditionalFact(typeof(DesktopClrOnly))]  //CoreCLR doesn't support SxS loading
+        [WorkItem(47990, "https://github.com/dotnet/roslyn/issues/47990")]
+        public void SourceGenerators_SxS_AssemblyLoading()
+        {
+            // compile the generators
+            var dir = Temp.CreateDirectory();
+            var snk = Temp.CreateFile("TestKeyPair_", ".snk", dir.Path).WriteAllBytes(TestResources.General.snKey);
+            var src = dir.CreateFile("generator.cs");
+            var virtualSnProvider = new DesktopStrongNameProvider(ImmutableArray.Create(dir.Path));
+
+            string createGenerator(string version)
+            {
+                var generatorSource = $@"
+using Microsoft.CodeAnalysis;
+[assembly:System.Reflection.AssemblyVersion(""{version}"")]
+
+[Generator]
+public class TestGenerator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ context.AddSource(""generatedSource.cs"", ""//from version {version}""); }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var path = Path.Combine(dir.Path, Guid.NewGuid().ToString() + ".dll");
+
+                var comp = CreateEmptyCompilation(source: generatorSource,
+                                             references: TargetFrameworkUtil.NetStandard20References.Add(MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly)),
+                                             options: TestOptions.DebugDll.WithCryptoKeyFile(Path.GetFileName(snk.Path)).WithStrongNameProvider(virtualSnProvider),
+                                             assemblyName: "generator");
+                comp.VerifyDiagnostics();
+                comp.Emit(path);
+                return path;
+            }
+
+            var gen1 = createGenerator("1.0.0.0");
+            var gen2 = createGenerator("2.0.0.0");
+
+            var generatedDir = dir.CreateDirectory("generated");
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/analyzer:" + gen1, "/analyzer:" + gen2 }.ToArray());
+
+            // This is wrong! Both generators are writing the same file out, over the top of each other
+            // See https://github.com/dotnet/roslyn/issues/47990
+            ValidateWrittenSources(new()
+            {
+                //  { Path.Combine(generatedDir.Path,  "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 1.0.0.0" } } },
+                { Path.Combine(generatedDir.Path, "generator", "TestGenerator"), new() { { "generatedSource.cs", "//from version 2.0.0.0" } } }
+            });
+        }
+
+        [Fact]
+        public void SourceGenerators_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            ValidateWrittenSources(new() { { generatedDir.Path, new() } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_Error_When_GeneratedDir_NotExist()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedDirPath = Path.Combine(dir.Path, "noexist");
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+            Assert.Contains("CS0016:", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_GeneratedDir_Has_Spaces()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated files");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ParseGeneratedFilesOut()
+        {
+            string root = PathUtilities.IsUnixLikePlatform ? "/" : "c:\\";
+            string baseDirectory = Path.Combine(root, "abc", "def");
+
+            var parsedArgs = DefaultParse(new[] { @"/generatedfilesout:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:"));
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:\"\""));
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:outdir", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""outdir""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:out dir", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""out dir""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            var absPath = Path.Combine(root, "outdir");
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:{absPath}", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:""{absPath}""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            absPath = Path.Combine(root, "generated files");
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:{absPath}", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:""{absPath}""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+        }
+
+        [Fact]
+        public void SourceGenerators_Error_When_NoDirectoryArgumentGiven()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:", "/langversion:preview", "/out:embed.exe" });
+            Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_ReportedWrittenFiles_To_TouchedFilesLogger()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
+            Assert.Equal(2, touchedFiles.Length);
+
+            string[] writtenText = File.ReadAllLines(Path.Combine(dir.Path, "touched.write"));
+            Assert.Equal(2, writtenText.Length);
+            Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -12295,7 +12882,7 @@ key = value");
 
             var generator = new SingleFileTestGenerator("public class D {}", "generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
         }
 
         [Fact]
@@ -12358,7 +12945,6 @@ key7 = value7");
             });
 
             var args = new[] {
-                "/langversion:preview",
                 "/analyzerconfig:" + analyzerConfig1.Path,
                 "/analyzerconfig:" + analyzerConfig2.Path,
                 "/analyzerconfig:" + analyzerConfig3.Path,
@@ -12397,7 +12983,7 @@ key7 = value7");
             Assert.False(classOptions.TryGetValue("key6", out _));
             Assert.False(classOptions.TryGetValue("key7", out _));
 
-            // get the options for generated class D 
+            // get the options for generated class D
             var generatedOptions = provider.GetOptions(cmd.Compilation.SyntaxTrees.Last());
             Assert.True(generatedOptions.TryGetValue("key1", out keyValue));
             Assert.Equal("value1", keyValue);
@@ -12408,6 +12994,18 @@ key7 = value7");
             Assert.False(generatedOptions.TryGetValue("key5", out _));
             Assert.False(generatedOptions.TryGetValue("key6", out _));
             Assert.False(generatedOptions.TryGetValue("key7", out _));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SourceGeneratorsRunRegardlessOfLanguageVersion(LanguageVersion version)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
+            var generator = new CallbackGenerator(i => { }, e => throw null);
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
+            Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -12498,11 +13096,13 @@ class C
             var analyzerConfigFile = dir.CreateFile(".globalconfig");
             var analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = abc");
 
             var analyzerConfigFile2 = dir.CreateFile(".globalconfig2");
             var analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -12515,12 +13115,14 @@ option1 = def");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
-[file.cs]
+global_level = 100
+[/file.cs]
 option1 = abc");
 
             analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
-[file.cs]
+global_level = 100
+[/file.cs]
 option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -12528,7 +13130,7 @@ option1 = def");
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
+            Assert.Contains("'/file.cs'", output, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -12593,12 +13195,355 @@ key3 = value3");
             Assert.True(options.TryGetValue("key3", out val));
             Assert.Equal("value3", val);
         }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.CS0164.severity = warning;
+");
+            var none = Array.Empty<TempFile>();
+            var globalOnly = new[] { globalConfig };
+            var globalAndSpecific = new[] { globalConfig, analyzerConfig };
+
+            // by default a warning, which can be suppressed via cmdline
+            verify(configs: none, expectedWarnings: 1);
+            verify(configs: none, noWarn: "CS0164", expectedWarnings: 0);
+
+            // the global analyzer config ups the warning to an error, but the cmdline setting overrides it
+            verify(configs: globalOnly, expectedErrors: 1);
+            verify(configs: globalOnly, noWarn: "CS0164", expectedWarnings: 0);
+            verify(configs: globalOnly, noWarn: "164", expectedWarnings: 0); // cmdline can be shortened, but still works
+
+            // the editor config downgrades the error back to warning, but the cmdline setting overrides it
+            verify(configs: globalAndSpecific, expectedWarnings: 1);
+            verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 0);
+
+
+            void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
+                => VerifyOutput(dir, src,
+                                expectedErrorCount: expectedErrors,
+                                expectedWarningCount: expectedWarnings,
+                                includeCurrentAssemblyAsAnalyzerReference: false,
+                                analyzers: null,
+                                additionalFlags: configs.SelectAsArray(c => "/analyzerconfig:" + c.Path)
+                                                         .Add("/noWarn:" + noWarn).ToArray());
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = none;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(bool useGlobalConfig)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var additionalFlags = new[] { "/warnaserror+" };
+            if (useGlobalConfig)
+            {
+                var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = warning;
+");
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" + globalConfig.Path).ToArray();
+            }
+            else
+            {
+                string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""15.0"">
+  <Rules AnalyzerId=""Compiler"" RuleNamespace=""Compiler"">
+    <Rule Id=""CS0164"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+";
+                _ = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource);
+                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray();
+            }
+
+            VerifyOutput(dir, src, additionalFlags: additionalFlags, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSectionsDoNotOverrideCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+
+[{PathUtilities.NormalizeWithForwardSlash(src.Path)}]
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigCanSetDiagnosticWithNoLocation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.Warning01.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+        }
+
+        [Theory, CombinatorialData]
+        public void TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+
+            var source = "class C { }";
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            var additionalText = "Additional Text";
+            var additionalFile = srcDirectory.CreateFile("b.txt");
+            additionalFile.WriteAllText(additionalText);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + additionalFile.Path },
+                analyzers: analyzer);
+            Assert.Contains("b.txt(1,3): warning ID0001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
+
+        [Theory]
+        // "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        // "/warnaserror:CS0169" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror:CS0169", /*expectError*/true, /*expectWarning*/false)]
+        // "/nowarn" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/nowarn:CS0169", /*expectError*/false, /*expectWarning*/false)]
+        // Neither "/nowarn" nor "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
+        {
+            var src = @"
+class C
+{
+    int _f;     // CS0169: unused field
+}";
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, diagnosticId: "CS0169", analyzerConfigSeverity, additionalArg, expectError, expectWarning);
+        }
+
+        [Theory]
+        // "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
+        // "/warnaserror:DiagnosticId" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/warnaserror:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/true, /*expectWarning*/false)]
+        // "/nowarn" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/"error", "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, "/nowarn:" + CompilationAnalyzerWithSeverity.DiagnosticId, /*expectError*/false, /*expectWarning*/false)]
+        // Neither "/nowarn" nor "/warnaserror" tests
+        [InlineData(/*analyzerConfigSeverity*/"warning", /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [InlineData(/*analyzerConfigSeverity*/"error", /*additionalArg*/null, /*expectError*/true, /*expectWarning*/false)]
+        [InlineData(/*analyzerConfigSeverity*/null, /*additionalArg*/null, /*expectError*/false, /*expectWarning*/true)]
+        [WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")]
+        public void TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(string analyzerConfigSeverity, string additionalArg, bool expectError, bool expectWarning)
+        {
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var src = @"class C { }";
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, CompilationAnalyzerWithSeverity.DiagnosticId, analyzerConfigSeverity, additionalArg, expectError, expectWarning, analyzer);
+        }
+
+        private void TestCompilationOptionsOverrideAnalyzerConfigCore(
+            string source,
+            string diagnosticId,
+            string analyzerConfigSeverity,
+            string additionalArg,
+            bool expectError,
+            bool expectWarning,
+            params DiagnosticAnalyzer[] analyzers)
+        {
+            Assert.True(!expectError || !expectWarning);
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(source);
+
+            var additionalArgs = Array.Empty<string>();
+            if (analyzerConfigSeverity != null)
+            {
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
+
+                additionalArgs = additionalArgs.Append("/analyzerconfig:" + analyzerConfig.Path).ToArray();
+            }
+
+            if (!string.IsNullOrEmpty(additionalArg))
+            {
+                additionalArgs = additionalArgs.Append(additionalArg);
+            }
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                                        additionalArgs,
+                                        expectedErrorCount: expectError ? 1 : 0,
+                                        expectedWarningCount: expectWarning ? 1 : 0,
+                                        analyzers: analyzers);
+            if (expectError)
+            {
+                Assert.Contains($"error {diagnosticId}", output);
+            }
+            else if (expectWarning)
+            {
+                Assert.Contains($"warning {diagnosticId}", output);
+            }
+            else
+            {
+                Assert.DoesNotContain(diagnosticId, output);
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
+        public void TestGeneratorsCantTargetNetFramework()
+        {
+            var directory = Temp.CreateDirectory();
+            var src = directory.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+
+            // core
+            var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
+
+            // netstandard
+            var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
+
+            // no target
+            var ntGenerator = emitGenerator(targetFramework: null);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + ntGenerator });
+
+            // framework
+            var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
+            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8850", output); // ref's net fx
+            Assert.Contains("CS8033", output); // no analyzers in assembly
+
+            // framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8033", output);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
+
+            string emitGenerator(string targetFramework)
+            {
+                string targetFrameworkAttributeText = targetFramework is object
+                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
+                                                        : string.Empty;
+
+                string generatorSource = $@"
+using Microsoft.CodeAnalysis;
+
+{targetFrameworkAttributeText}
+
+[Generator]
+public class Generator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var directory = Temp.CreateDirectory();
+
+                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+
+                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
+                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                compilation.VerifyDiagnostics();
+                var result = compilation.Emit(generatorPath);
+                Assert.True(result.Success);
+
+                return generatorPath;
+            }
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal abstract class CompilationStartedAnalyzer : DiagnosticAnalyzer
     {
-        public override abstract ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public abstract override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
         public abstract void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context);
 
         public override void Initialize(AnalysisContext context)

@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     <[UseExportProvider]>
     Public Class CaseCorrectionServiceTests
-        Private Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
+        Private Shared Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
             If (interProject) Then
                 Await TestAsync(input, expected.NormalizedValue)
             Else
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             End If
         End Function
 
-        Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
+        Private Shared Async Function TestAsync(input As String, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Assert.Equal(expected, actual)
         End Function
 
-        Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
+        Private Shared Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using

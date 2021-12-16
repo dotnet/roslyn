@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -272,6 +274,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: false) ?? false;
+
         #endregion
 
         protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)

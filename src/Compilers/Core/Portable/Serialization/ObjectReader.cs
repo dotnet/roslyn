@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +37,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001010;
+        internal const byte VersionByte2 = 0b00001011;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -101,6 +103,42 @@ namespace Roslyn.Utilities
                 stream.ReadByte() != VersionByte2)
             {
                 return null;
+            }
+
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
+        /// of the data in the stream to exactly match the current format version.
+        /// Should only be used to read data written by the same version of Roslyn.
+        /// </summary>
+        public static ObjectReader GetReader(
+            Stream stream,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
+        {
+            var b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte1)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte2)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
             }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);
@@ -243,10 +281,30 @@ namespace Roslyn.Utilities
                 case EncodingKind.Array_2:
                 case EncodingKind.Array_3:
                     return ReadArray(kind);
+
+                case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
+                case EncodingKind.EncodingUTF8: return s_encodingUTF8;
+                case EncodingKind.EncodingUTF8_BOM: return Encoding.UTF8;
+                case EncodingKind.EncodingUTF32_BE: return s_encodingUTF32_BE;
+                case EncodingKind.EncodingUTF32_BE_BOM: return s_encodingUTF32_BE_BOM;
+                case EncodingKind.EncodingUTF32_LE: return s_encodingUTF32_LE;
+                case EncodingKind.EncodingUTF32_LE_BOM: return Encoding.UTF32;
+                case EncodingKind.EncodingUnicode_BE: return s_encodingUnicode_BE;
+                case EncodingKind.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
+                case EncodingKind.EncodingUnicode_LE: return s_encodingUnicode_LE;
+                case EncodingKind.EncodingUnicode_LE_BOM: return Encoding.Unicode;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+
+        private static readonly Encoding s_encodingUTF8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding s_encodingUTF32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUTF32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
+        private static readonly Encoding s_encodingUTF32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
 
         /// <summary>
         /// A reference-id to object map, that can share base data efficiently.
@@ -257,13 +315,13 @@ namespace Roslyn.Utilities
             private readonly List<T> _values;
 
             private static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+                = new(() => new List<T>(20));
 
             private ReaderReferenceMap(List<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {

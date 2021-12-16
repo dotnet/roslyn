@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger(symbol.Ordinal);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var methodIndex = reader.ReadInteger();
                 var ordinal = reader.ReadInteger();

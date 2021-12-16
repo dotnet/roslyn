@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview, targetFramework: targetFramework ?? TargetFramework.Standard);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Standard);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
@@ -153,7 +150,7 @@ unsafe class C
     void M()
     {
         delegate*<void> ptr1 = null;
-        delegate* cdecl<void> ptr2 = null;
+        delegate* unmanaged[Cdecl]<void> ptr2 = null;
         delegate*<string> ptr3 = null;
         delegate*<C, int> ptr4 = null;
     }
@@ -164,7 +161,7 @@ unsafe class C
   // Code size       13 (0xd)
   .maxstack  1
   .locals init (delegate*<void> V_0, //ptr1
-                delegate*<void> V_1, //ptr2
+                delegate* unmanaged[Cdecl]<void> V_1, //ptr2
                 delegate*<string> V_2, //ptr3
                 delegate*<C, int> V_3) //ptr4
   IL_0000:  ldc.i4.0
@@ -614,8 +611,8 @@ IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.
             Assert.Equal(expectedConversionKind, conversion.Kind);
 
             var typeInfo = model.GetTypeInfo(initializer);
-            Assert.Equal(expectedOriginalType, typeInfo.Type!.ToTestDisplayString());
-            Assert.Equal(expectedConvertedType, typeInfo.ConvertedType!.ToTestDisplayString());
+            AssertEx.Equal(expectedOriginalType, typeInfo.Type!.ToTestDisplayString());
+            AssertEx.Equal(expectedConvertedType, typeInfo.ConvertedType!.ToTestDisplayString());
             var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
             Assert.Equal(conversion, classifiedConversion);
 
@@ -663,6 +660,69 @@ IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void*, System.Int32*>) (Syntax: 'param1')
+");
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerValid_UnmanagedConventionOrder()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate* unmanaged[Stdcall, Thiscall]<void> param1)
+    {
+        delegate* unmanaged[Stdcall, Thiscall]<void> ptr1 = param1;
+        delegate* unmanaged[Thiscall, Stdcall]<void> ptr2 = param1;
+        delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> ptr3 = param1;
+    }
+}");
+
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var variableDeclaratorSyntaxes = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(3, variableDeclaratorSyntaxes.Length);
+
+            VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[0],
+                expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
+      IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[1],
+                expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, variableDeclaratorSyntaxes[2],
+                expectedConversionKind: ConversionKind.Identity, expectedImplicit: true,
+                expectedOriginalType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)> ptr3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr3 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall, Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>) (Syntax: 'param1')
 ");
         }
 
@@ -968,41 +1028,63 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Object> ptr3) (OperationK
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    void M(delegate*<void> param1)
+    void M(delegate*<void> param1, delegate* unmanaged[Thiscall, Stdcall]<void> param2)
     {
-        delegate* cdecl<void> ptr1 = param1;
-        delegate* thiscall<void> ptr2 = param1;
-        delegate* stdcall<void> ptr3 = param1;
+        delegate* unmanaged[Cdecl]<void> ptr1 = param1;
+        delegate* unmanaged[Thiscall]<void> ptr2 = param1;
+        delegate* unmanaged[Stdcall]<void> ptr3 = param1;
+        delegate* unmanaged[Thiscall]<void> ptr4 = param2;
+        delegate* unmanaged[Stdcall]<void> ptr5 = param2;
+        delegate* unmanaged[Thiscall, Cdecl]<void> ptr6 = param2;
+        delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
+        delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
     }
 }");
 
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+
             comp.VerifyDiagnostics(
-                // (6,38): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* cdecl<void> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(6, 38),
-                // (7,41): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* thiscall<void> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(7, 41),
-                // (8,40): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* stdcall<void> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 40)
+                // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Cdecl]<void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Cdecl]<void>").WithLocation(6, 49),
+                // (7,52): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Thiscall]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Thiscall]<void> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Thiscall]<void>").WithLocation(7, 52),
+                // (8,51): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Stdcall]<void> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate* unmanaged[Stdcall]<void>").WithLocation(8, 51),
+                // (9,52): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Thiscall]<void> ptr4 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall]<void>").WithLocation(9, 52),
+                // (10,51): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Stdcall]<void> ptr5 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Stdcall]<void>").WithLocation(10, 51),
+                // (11,59): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall, Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Thiscall, Cdecl]<void> ptr6 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall, Cdecl]<void>").WithLocation(11, 59),
+                // (12,58): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Cdecl, Stdcall]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Cdecl, Stdcall]<void>").WithLocation(12, 58),
+                // (13,68): error CS0266: Cannot implicitly convert type 'delegate* unmanaged[Thiscall, Stdcall]<void>' to 'delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate* unmanaged[Thiscall, Stdcall]<void>", "delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void>").WithLocation(13, 68)
             );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-            Assert.Equal(3, decls.Length);
+            Assert.Equal(8, decls.Length);
 
             VerifyDeclarationConversion(comp, model, decls[0],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Cdecl]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Cdecl]<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Cdecl]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
@@ -1011,12 +1093,12 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKin
             VerifyDeclarationConversion(comp, model, decls[1],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall]<System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
@@ -1025,15 +1107,85 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr2) (OperationKin
             VerifyDeclarationConversion(comp, model, decls[2],
                 expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
                 expectedOriginalType: "delegate*<System.Void>",
-                expectedConvertedType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall]<System.Void>",
                 expectedOperationTree: @"
-IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall]<System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
           IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[3],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall]<System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall]<System.Void> ptr4) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr4 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[4],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Stdcall]<System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Stdcall]<System.Void> ptr5) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr5 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Stdcall]<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[5],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr6) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr6 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[6],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)> ptr7) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr7 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Cdecl, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[7],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>",
+                expectedConvertedType: "delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)> ptr8) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr8 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate* unmanaged[Thiscall, Stdcall, Cdecl]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>, IsInvalid) (Syntax: 'param2')
 ");
         }
 
@@ -1202,15 +1354,91 @@ unsafe class C
         delegate*<string, void> p1 = null;
         delegate*<object, void> p2 = null;
         M1(p1, p2);
+
+        delegate*<int*, void> p3 = null;
+        delegate*<void*, void> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T, void>, delegate*<T, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M1(p1, p2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T, void>, delegate*<T, void>)").WithLocation(9, 9)
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T, void>, delegate*<T, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T, void>, delegate*<T, void>)").WithLocation(13, 9)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<System.String, System.Void> param1, delegate*<System.String, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantParameterSubstitutions_UpperBounds_Parameter()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T, void>, void> param1, delegate*<delegate*<T, void>, void> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string, void>, void> p1 = null;
+        delegate*<delegate*<object, void>, void> p2 = null;
+        M1(p1, p2);
+
+        delegate*<delegate*<int*, void>, void> p3 = null;
+        delegate*<delegate*<void*, void>, void> p4 = null;
+        M1(p3, p4);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T, void>, void>, delegate*<delegate*<T, void>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T, void>, void>, delegate*<delegate*<T, void>, void>)").WithLocation(13, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object, System.Void>, System.Void> param1, delegate*<delegate*<System.Object, System.Void>, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantParameterSubstitutions_UpperBounds_Return()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T>, void> param1, delegate*<delegate*<T>, void> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string>, void> p1 = null;
+        delegate*<delegate*<object>, void> p2 = null;
+        M1(p1, p2);
+
+        delegate*<delegate*<int*>, void> p3 = null;
+        delegate*<delegate*<void*>, void> p4 = null;
+        M1(p3, p4);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T>, void>, delegate*<delegate*<T>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T>, void>, delegate*<delegate*<T>, void>)").WithLocation(13, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String>, System.Void> param1, delegate*<delegate*<System.String>, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -1286,15 +1514,91 @@ unsafe class C
         delegate*<string> p1 = null;
         delegate*<object> p2 = null;
         M1(p1, p2);
+
+        delegate*<int*> p3 = null;
+        delegate*<void*> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M1(p1, p2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(9, 9)
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(13, 9)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<System.Object> param1, delegate*<System.Object> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantReturnSubstitutions_LowerBounds_Parameter()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T, void>> param1, delegate*<delegate*<T, void>> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string, void>> p1 = null;
+        delegate*<delegate*<object, void>> p2 = null;
+        M1(p1, p2);
+
+        delegate*<delegate*<int*, void>> p3 = null;
+        delegate*<delegate*<void*, void>> p4 = null;
+        M1(p3, p4);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T, void>>, delegate*<delegate*<T, void>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T, void>>, delegate*<delegate*<T, void>>)").WithLocation(13, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String, System.Void>> param1, delegate*<delegate*<System.String, System.Void>> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantReturnSubstitutions_LowerBounds_Return()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T>> param1, delegate*<delegate*<T>> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string>> p1 = null;
+        delegate*<delegate*<object>> p2 = null;
+        M1(p1, p2);
+
+        delegate*<delegate*<int*>> p3 = null;
+        delegate*<delegate*<void*>> p4 = null;
+        M1(p3, p4);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T>>, delegate*<delegate*<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T>>, delegate*<delegate*<T>>)").WithLocation(13, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object>> param1, delegate*<delegate*<System.Object>> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -1394,7 +1698,7 @@ unsafe class D : C<delegate*<void>>
         SubstitutedStatic(ptr1);
         delegate*<object, void> ptr2 = null;
         delegate*<int, void> ptr3 = null;
-        delegate* cdecl<string, void> ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void> ptr4 = null;
         SubstitutedStatic2(ptr1, ptr1);
         SubstitutedStatic2(ptr1, ptr2);
         SubstitutedStatic2(ptr1, ptr3);
@@ -1403,7 +1707,7 @@ unsafe class D : C<delegate*<void>>
         delegate*<object> ptr5 = null;
         delegate*<string> ptr6 = null;
         delegate*<int> ptr7 = null;
-        delegate* cdecl<object> ptr8 = null;
+        delegate* unmanaged[Cdecl]<object> ptr8 = null;
         SubstitutedStatic2(ptr5, ptr5);
         SubstitutedStatic2(ptr5, ptr6);
         SubstitutedStatic2(ptr5, ptr7);
@@ -1411,7 +1715,6 @@ unsafe class D : C<delegate*<void>>
     }
 }");
 
-            // Some of these errors should become CS0306 after variant conversions are implemented, tracked by https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
                 // (3,14): error CS0306: The type 'delegate*<void>' may not be used as a type argument
                 // unsafe class D : C<delegate*<void>>
@@ -1459,7 +1762,7 @@ unsafe class D : C<delegate*<void>>
                                       .OfType<InvocationExpressionSyntax>()
                                       .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1499,7 +1802,6 @@ unsafe class C
     }
 }");
 
-            // These should all work: https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         SubstitutedStatic2(ptr1, ptr2);
@@ -1521,7 +1823,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1546,7 +1848,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         SubstitutedStatic2(ptr1, ptr2);
         SubstitutedStatic2(ptr1, ptr3);
         SubstitutedStatic2(ptr1, ptr4);
@@ -1554,7 +1856,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         SubstitutedStatic2(ptr5, ptr6);
         SubstitutedStatic2(ptr5, ptr7);
         SubstitutedStatic2(ptr5, ptr8);
@@ -1594,7 +1896,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1620,7 +1922,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         var arr1 = new[] { ptr1, ptr2 };
         var arr2 = new[] { ptr1, ptr3 };
         var arr3 = new[] { ptr1, ptr4 };
@@ -1628,7 +1930,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         var arr4 = new[] { ptr5, ptr6 };
         var arr5 = new[] { ptr5, ptr7 };
         var arr6 = new[] { ptr5, ptr8 };
@@ -1688,7 +1990,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         _ = b ? ptr1 : ptr2;
         _ = b ? ptr1 : ptr3;
         _ = b ? ptr1 : ptr4;
@@ -1696,7 +1998,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         _ = b ? ptr5 : ptr6;
         _ = b ? ptr5 : ptr7;
         _ = b ? ptr5 : ptr8;
@@ -1710,18 +2012,18 @@ unsafe class C
                 // (11,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate*<int, void>[]'
                 //         _ = b ? ptr1 : ptr3;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string, void>[]", "delegate*<int, void>[]").WithLocation(11, 13),
-                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate*<string, void>[]'
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate* unmanaged[Cdecl]<string, void>[]'
                 //         _ = b ? ptr1 : ptr4;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate*<string, void>[]").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate* unmanaged[Cdecl]<string, void>[]").WithLocation(12, 13),
                 // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
                 //         _ = b ? ptr5 : ptr6;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
                 // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
                 //         _ = b ? ptr5 : ptr7;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
-                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate* unmanaged[Cdecl]<string>[]'
                 //         _ = b ? ptr5 : ptr8;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate* unmanaged[Cdecl]<string>[]").WithLocation(20, 13)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -1915,6 +2217,399 @@ unsafe class C
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInParameter()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    Test(0, &converter);
+
+    static string converter(int v) => string.Empty;
+    static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(int)""
+  IL_0007:  call       ""void <Program>$.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInParameter_ImplicitReferenceConversionOnParameter()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    Test(string.Empty, &converter);
+
+    static string converter(object o) => string.Empty;
+    static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldsfld     ""string string.Empty""
+  IL_0005:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(object)""
+  IL_000b:  call       ""void <Program>$.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInReturn()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    Test(0, &converter);
+
+    static int converter(string v) => 0;
+    static void Test<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            // It might seem like this should have the same behavior as FunctionPointerInferenceInParameter. However, this is not how method group resolution works.
+            // We don't look at return types when resolving a method group, which means that we can't use T2 to narrow down the candidates. We therefore can't
+            // find any information about T1, and resolution fails. FunctionPointerInferenceInParameter, on the other hand, has a bound for T1: int. That bound
+            // is then used as an input to method group resolution, and we can narrow down to string converter(int v). The return type of that method can then be
+            // used as a bound to infer T2.
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0411: The type arguments for method 'Test<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(0, &converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(4, 5),
+                // (7,17): warning CS8321: The local function 'Test' is declared but never used
+                //     static void Test<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(7, 17)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ThroughMethodGroup()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    Test1(string.Empty, converter);
+    Test2(0, converter);
+    Test1<string, int>(string.Empty, converter);
+    Test2<string, int>(0, converter);
+
+    static int converter(string v) => 0;
+    static void Test1<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+    static void Test2<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0411: The type arguments for method 'Test1<T1, T2>(T1, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(string.Empty, converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(T1, delegate*<T1, T2>)").WithLocation(4, 5),
+                // (5,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test2(0, converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(5, 5),
+                // (6,38): error CS8787: Cannot convert method group to function pointer (Are you missing a '&'?)
+                //     Test1<string, int>(string.Empty, converter);
+                Diagnostic(ErrorCode.ERR_MissingAddressOf, "converter").WithLocation(6, 38),
+                // (7,27): error CS8787: Cannot convert method group to function pointer (Are you missing a '&'?)
+                //     Test2<string, int>(0, converter);
+                Diagnostic(ErrorCode.ERR_MissingAddressOf, "converter").WithLocation(7, 27)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ThroughLambdaExpression()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    Test1(string.Empty, v => 0);
+    Test2(0, v => 0);
+    Test1<string, int>(string.Empty, v => 0);
+    Test2<string, int>(0, v => 0);
+
+    static void Test1<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+    static void Test2<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0411: The type arguments for method 'Test1<T1, T2>(T1, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(string.Empty, v => 0);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(T1, delegate*<T1, T2>)").WithLocation(4, 5),
+                // (5,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test2(0, v => 0);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(5, 5),
+                // (6,38): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                //     Test1<string, int>(string.Empty, v => 0);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(6, 38),
+                // (7,27): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                //     Test2<string, int>(0, v => 0);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(7, 27)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void AddressOfInference_OnDelegateType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe
+{
+    Test1(string.Empty, &converter);
+    Test2(0, &converter);
+    Test1<string, int>(string.Empty, &converter);
+    Test2<string, int>(0, &converter);
+
+    static int converter(string v) => 0;
+    static void Test1<T1, T2>(T1 t1, Func<T1, T2> func) {}
+    static void Test2<T1, T2>(T2 t2, Func<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test1<T1, T2>(T1, Func<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(string.Empty, &converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(T1, System.Func<T1, T2>)").WithLocation(5, 5),
+                // (6,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, Func<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test2(0, &converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, System.Func<T1, T2>)").WithLocation(6, 5),
+                // (7,38): error CS1503: Argument 2: cannot convert from '&method group' to 'Func<string, int>'
+                //     Test1<string, int>(string.Empty, &converter);
+                Diagnostic(ErrorCode.ERR_BadArgType, "&converter").WithArguments("2", "&method group", "System.Func<string, int>").WithLocation(7, 38),
+                // (8,27): error CS1503: Argument 2: cannot convert from '&method group' to 'Func<string, int>'
+                //     Test2<string, int>(0, &converter);
+                Diagnostic(ErrorCode.ERR_BadArgType, "&converter").WithArguments("2", "&method group", "System.Func<string, int>").WithLocation(8, 27)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_CallingConventionMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<string, void>[] ptr1 = null;
+    Test1(ptr1);
+    Test1<string>(ptr1);
+    delegate* unmanaged[Cdecl, Stdcall]<string, void>[] ptr2 = null;
+    Test1(ptr2);
+    Test1<string>(ptr2);
+
+    static void Test1<T1>(delegate* unmanaged<T1, void>[] func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1>(delegate* unmanaged<T1, void>[])").WithLocation(5, 5),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'delegate*<string, void>[]' to 'delegate* unmanaged<string, void>[]'
+                //     Test1<string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<string, void>[]", "delegate* unmanaged<string, void>[]").WithLocation(6, 19),
+                // (8,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1>(delegate* unmanaged<T1, void>[])").WithLocation(8, 5),
+                // (9,19): error CS1503: Argument 1: cannot convert from 'delegate* unmanaged[Cdecl, Stdcall]<string, void>[]' to 'delegate* unmanaged<string, void>[]'
+                //     Test1<string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate* unmanaged[Cdecl, Stdcall]<string, void>[]", "delegate* unmanaged<string, void>[]").WithLocation(9, 19)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<ref string, string>[] ptr1 = null;
+    Test1(ptr1);
+    Test1<string, string>(ptr1);
+    delegate*<string, ref string>[] ptr2 = null;
+    Test1(ptr2);
+    Test1<string, string>(ptr2);
+
+    static void Test1<T1, T2>(delegate*<T1, T2>[] func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(5, 5),
+                // (6,27): error CS1503: Argument 1: cannot convert from 'delegate*<ref string, string>[]' to 'delegate*<string, string>[]'
+                //     Test1<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<ref string, string>[]", "delegate*<string, string>[]").WithLocation(6, 27),
+                // (8,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(8, 5),
+                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>[]' to 'delegate*<string, string>[]'
+                //     Test1<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    var ptr1 = new delegate*<ref string, string>[] { &Test };
+    Test1(ptr1);
+
+    static string Test(ref string s) => s = ""1"";
+    static void Test1<T1, T2>(delegate*<ref T1, T2>[] func) {
+        T1 t = default;
+        System.Console.Write(func[0](ref t));
+        System.Console.Write(t);
+    }
+}
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  4
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""delegate*<ref string, string>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldftn      ""string <Program>$.<<Main>$>g__Test|0_0(ref string)""
+  IL_000e:  stelem.i
+  IL_000f:  call       ""void <Program>$.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_LowerBoundInference_CallingConventionMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<int, string> ptr = null;
+    Test(ptr);
+    Test<int, string>(ptr);
+
+    static void Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2>)").WithLocation(5, 5),
+                // (6,23): error CS1503: Argument 1: cannot convert from 'delegate*<int, string>' to 'delegate* unmanaged[Cdecl]<int, string>'
+                //     Test<int, string>(ptr);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr").WithArguments("1", "delegate*<int, string>", "delegate* unmanaged[Cdecl]<int, string>").WithLocation(6, 23)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_LowerBoundInference_RefKindMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<ref string, string> ptr1 = null;
+    Test(ptr1);
+    Test<string, string>(ptr1);
+    delegate*<string, ref string> ptr2 = null;
+    Test(ptr2);
+    Test<string, string>(ptr2);
+
+    static void Test<T1, T2>(delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<ref string, string>' to 'delegate*<string, string>'
+                //     Test<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<ref string, string>", "delegate*<string, string>").WithLocation(6, 26),
+                // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(8, 5),
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>' to 'delegate*<string, string>'
+                //     Test<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>", "delegate*<string, string>").WithLocation(9, 26)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_UpperBoundInference_CallingConventionMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<delegate*<string, string>, void> ptr = null;
+    Test(ptr);
+    Test<string, string>(ptr);
+
+    static void Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate* unmanaged[Cdecl]<string, string>, void>'
+                //     Test<string, string>(ptr);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate* unmanaged[Cdecl]<string, string>, void>").WithLocation(6, 26)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_UpperBoundInference_RefKindMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<delegate*<ref string, string>, void> ptr1 = null;
+    Test(ptr1);
+    Test<string, string>(ptr1);
+    delegate*<delegate*<string, ref string>, void> ptr2 = null;
+    Test(ptr2);
+    Test<string, string>(ptr2);
+
+    static void Test<T1, T2>(delegate*<delegate*<T1, T2>, void> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<ref string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                //     Test<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<delegate*<ref string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(6, 26),
+                // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(8, 5),
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                //     Test<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
+            );
         }
 
         [Fact]
@@ -2195,19 +2890,20 @@ True
 True");
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       19 (0x13)
+  // Code size       20 (0x14)
   .maxstack  2
   .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
   IL_0002:  stloc.0
   IL_0003:  ldloc.0
-  IL_0004:  ldnull
-  IL_0005:  ceq
-  IL_0007:  call       ""void System.Console.WriteLine(bool)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""void System.Console.WriteLine(bool)""
-  IL_0012:  ret
+  IL_0004:  ldc.i4.0
+  IL_0005:  conv.u
+  IL_0006:  ceq
+  IL_0008:  call       ""void System.Console.WriteLine(bool)""
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""void System.Console.WriteLine(bool)""
+  IL_0013:  ret
 }
 ");
 
@@ -2228,7 +2924,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>)
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>)
       Value: 
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
@@ -2238,14 +2934,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
 ");
 
             comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8370: Feature 'function pointers' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(7, 9)
             );
         }
 
@@ -2285,9 +2981,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(x)') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(x)') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
       DeconstructionSubpatterns (1):
-          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
       PropertySubpatterns (0)
 ");
         }
@@ -2327,7 +3023,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ } _') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ } _') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (0)
 ");
@@ -2433,7 +3129,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
   Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ O: delegate*<void> _ }') (InputType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ O: delegate*<void> _ }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (1):
           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'O: delegate*<void> _')
@@ -2442,7 +3138,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'O')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, DeclaredSymbol: null, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, NarrowedType: delegate*<System.Void>, DeclaredSymbol: null, MatchesNull: False)
 ");
         }
 
@@ -2505,9 +3201,6 @@ class E<T> where T : struct {}
                 // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //     void M1(delegate*<C*, S> ptr) {}
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
-                // (7,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     void M2<T>(delegate*<T?> ptr) {}
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 26),
                 // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     void M3<T>(delegate*<D<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
@@ -2705,13 +3398,14 @@ unsafe class C
 
             verifier.VerifyIL("C.M", expectedIL: @"
 {
-  // Code size       10 (0xa)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  ceq
-  IL_0004:  call       ""void System.Console.Write(bool)""
-  IL_0009:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(bool)""
+  IL_000a:  ret
 }
 ");
         }
@@ -2896,7 +3590,7 @@ using System;
 unsafe static class C
 {
     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,35): error CS1601: Cannot make reference to variable of type 'ArgIterator'
@@ -2908,6 +3602,74 @@ unsafe static class C
                 // (5,65): warning CS0169: The field 'C.Ptr' is never used
                 //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(5, 65)
+            );
+        }
+
+        [Fact, WorkItem(46688, "https://github.com/dotnet/roslyn/issues/46688")]
+        public void NewAfterPtrDeclaration()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M1()
+    {
+        delegate*<void> ptr = new () => {};
+    }
+
+    void M2()
+    {
+        delegate*<void> ptr = new();
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,38): error CS1003: Syntax error, ',' expected
+                //         delegate*<void> ptr = new () => {};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                // (6,41): error CS1002: ; expected
+                //         delegate*<void> ptr = new () => {};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
+                // (11,31): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
+                //         delegate*<void> ptr = new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("delegate*<void>").WithLocation(11, 31)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr("a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg1").WithLocation(6, 18)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments2()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(arg0: ""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr(arg0: "a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
             );
         }
     }

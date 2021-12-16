@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
     [UseExportProvider]
     public abstract class AbstractAutomaticBraceCompletionTests
     {
-        internal void CheckStart(IBraceCompletionSession session, bool expectValidSession = true)
+        internal static void CheckStart(IBraceCompletionSession session, bool expectValidSession = true)
         {
             Type(session, session.OpeningBrace.ToString());
 
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void CheckBackspace(IBraceCompletionSession session)
+        internal static void CheckBackspace(IBraceCompletionSession session)
         {
             session.TextView.TryMoveCaretToAndEnsureVisible(session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).Add(1));
             session.PreBackspace(out var handled);
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Null(session.ClosingPoint);
         }
 
-        internal void CheckTab(IBraceCompletionSession session, bool allowTab = true)
+        internal static void CheckTab(IBraceCompletionSession session, bool allowTab = true)
         {
             session.PreTab(out var handled);
             if (!handled)
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void CheckReturn(IBraceCompletionSession session, int indentation, string result = null)
+        internal static void CheckReturn(IBraceCompletionSession session, int indentation, string result = null)
         {
             session.PreReturn(out var handled);
 
@@ -90,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void CheckText(IBraceCompletionSession session, string result)
+        internal static void CheckText(IBraceCompletionSession session, string result)
             => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
-        internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
+        internal static void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
             session.PreReturn(out var handled);
 
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedVirtualSpace, virtualCaret.VirtualSpaces);
         }
 
-        internal void CheckOverType(IBraceCompletionSession session, bool allowOverType = true)
+        internal static void CheckOverType(IBraceCompletionSession session, bool allowOverType = true)
         {
             var preClosingPoint = session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot);
             Assert.Equal(session.ClosingBrace, preClosingPoint.Subtract(1).GetChar());
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal void Type(IBraceCompletionSession session, string text)
+        internal static void Type(IBraceCompletionSession session, string text)
         {
             var buffer = session.SubjectBuffer;
             var caret = session.TextView.GetCaretPoint(buffer).Value;
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
+        internal static Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             if (changedOptionSet != null)
             {

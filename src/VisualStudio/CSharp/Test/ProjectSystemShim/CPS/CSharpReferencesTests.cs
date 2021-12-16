@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
@@ -111,7 +114,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
         {
-            using var environment = new TestEnvironment();
+            using var environment = new TestEnvironment(typeof(NoCompilationLanguageServiceFactory));
             var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
             var project2 = CreateNonCompilableProject(environment, "project2", @"C:\project2.fsproj");
             project2.BinOutputPath = "c:\\project2.dll";

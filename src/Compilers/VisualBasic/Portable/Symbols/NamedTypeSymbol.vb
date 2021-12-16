@@ -1007,30 +1007,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
             Dim argsErrorInfo As DiagnosticInfo = Nothing
+            Dim currentType As NamedTypeSymbol = Me
 
-            For Each arg As TypeSymbol In Me.TypeArgumentsNoUseSiteDiagnostics
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
+            Do
+                For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
+                    Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
 
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                        Return errorInfo
+                    If errorInfo IsNot Nothing Then
+                        If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return errorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = errorInfo
+                        End If
                     End If
-
-                    If argsErrorInfo Is Nothing Then
-                        argsErrorInfo = errorInfo
-                    End If
-                End If
-            Next
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-
-                For i As Integer = 0 To Me.Arity - 1
-                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                 Next
 
-                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
-            End If
+                If currentType.HasTypeArgumentsCustomModifiers Then
+                    Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                    For i As Integer = 0 To currentType.Arity - 1
+                        modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(currentType.GetTypeArgumentCustomModifiers(i)))
+                    Next
+
+                    If modifiersErrorInfo IsNot Nothing Then
+                        If modifiersErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
+                            Return modifiersErrorInfo
+                        End If
+
+                        If argsErrorInfo Is Nothing Then
+                            argsErrorInfo = modifiersErrorInfo
+                        End If
+                    End If
+                End If
+
+                currentType = currentType.ContainingType
+            Loop While currentType IsNot Nothing AndAlso Not currentType.IsDefinition
 
             Return argsErrorInfo
         End Function
@@ -1174,8 +1187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedTypeSymbol_IsImplicitClass As Boolean Implements INamedTypeSymbol.IsImplicitClass
             Get
-                ' TODO (tomat):
-                Return False
+                Return Me.IsImplicitClass
             End Get
         End Property
 
@@ -1287,8 +1299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             If Not IsUnboundGenericType AndAlso
-                (ContainingSymbol?.Kind = SymbolKind.Namespace).GetValueOrDefault() AndAlso
-                (ContainingNamespace.ContainingNamespace?.IsGlobalNamespace).GetValueOrDefault() AndAlso
+                If(ContainingSymbol?.Kind = SymbolKind.Namespace, False) AndAlso
+                If(ContainingNamespace.ContainingNamespace?.IsGlobalNamespace, False) AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
                 ContainingNamespace.Name = MetadataHelpers.SystemString Then
 

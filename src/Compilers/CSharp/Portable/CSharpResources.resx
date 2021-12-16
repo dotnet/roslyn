@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -363,6 +363,12 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
+  <data name="IDS_Parameter" xml:space="preserve">
+    <value>parameter</value>
+  </data>
+  <data name="IDS_Return" xml:space="preserve">
+    <value>return</value>
+  </data>
   <data name="XML_InvalidToken" xml:space="preserve">
     <value>The character(s) '{0}' cannot be used at this location.</value>
   </data>
@@ -646,7 +652,7 @@
     <value>Member hides inherited member; missing new keyword</value>
   </data>
   <data name="WRN_NewRequired_Description" xml:space="preserve">
-    <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
+    <value>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
     <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
@@ -742,13 +748,13 @@
     <value>The type '{0}' has no constructors defined</value>
   </data>
   <data name="ERR_NoNewAbstract" xml:space="preserve">
-    <value>Cannot create an instance of the abstract class or interface '{0}'</value>
+    <value>Cannot create an instance of the abstract type or interface '{0}'</value>
   </data>
   <data name="ERR_ConstValueRequired" xml:space="preserve">
     <value>A const field requires a value to be provided</value>
   </data>
   <data name="ERR_CircularBase" xml:space="preserve">
-    <value>Circular base class dependency involving '{0}' and '{1}'</value>
+    <value>Circular base type dependency involving '{0}' and '{1}'</value>
   </data>
   <data name="ERR_BadDelegateConstructor" xml:space="preserve">
     <value>The delegate '{0}' does not have a valid constructor</value>
@@ -819,6 +825,12 @@
   <data name="ERR_UseDefViolation" xml:space="preserve">
     <value>Use of unassigned local variable '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolation" xml:space="preserve">
+    <value>Use of unassigned local variable '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolation_Title" xml:space="preserve">
+    <value>Use of unassigned local variable</value>
+  </data>
   <data name="WRN_UnreferencedVar" xml:space="preserve">
     <value>The variable '{0}' is declared but never used</value>
   </data>
@@ -834,11 +846,29 @@
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationField" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationField_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field</value>
+  </data>
   <data name="ERR_UseDefViolationProperty" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationProperty" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationProperty_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property</value>
+  </data>
   <data name="ERR_UnassignedThis" xml:space="preserve">
     <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
   </data>
   <data name="ERR_AmbigQM" xml:space="preserve">
     <value>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</value>
@@ -857,6 +887,12 @@
   </data>
   <data name="ERR_ParamUnassigned" xml:space="preserve">
     <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned" xml:space="preserve">
+    <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned_Title" xml:space="preserve">
+    <value>An out parameter must be assigned to before control leaves the method</value>
   </data>
   <data name="ERR_InvalidArray" xml:space="preserve">
     <value>Invalid rank specifier: expected ',' or ']'</value>
@@ -901,7 +937,13 @@
     <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields are assigned to</value>
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
   </data>
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
@@ -1057,7 +1099,7 @@
     <value>Do not override object.Finalize. Instead, provide a destructor.</value>
   </data>
   <data name="ERR_CallingBaseFinalizeDeprecated" xml:space="preserve">
-    <value>Do not directly call your base class Finalize method. It is called automatically from your destructor.</value>
+    <value>Do not directly call your base type Finalize method. It is called automatically from your destructor.</value>
   </data>
   <data name="WRN_NegativeArrayIndex" xml:space="preserve">
     <value>Indexing an array with a negative index (array indices always start at zero)</value>
@@ -1108,13 +1150,19 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
-    <value>Imported type '{0}' is invalid. It contains a circular base class dependency.</value>
+    <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
   </data>
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut" xml:space="preserve">
+    <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut_Title" xml:space="preserve">
+    <value>Use of unassigned out parameter</value>
   </data>
   <data name="ERR_ArraySizeInDeclaration" xml:space="preserve">
     <value>Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)</value>
@@ -1143,11 +1191,11 @@
   <data name="WRN_PatternIsAmbiguous_Title" xml:space="preserve">
     <value>Type does not implement the collection pattern; members are ambiguous</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible" xml:space="preserve">
-    <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
+  <data name="WRN_PatternNotPublicOrNotInstance" xml:space="preserve">
+    <value>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
-    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  <data name="WRN_PatternNotPublicOrNotInstance_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is is not a public instance or extension method.</value>
   </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
@@ -1264,7 +1312,7 @@
     <value>'{0}': cannot provide arguments when creating an instance of a variable type</value>
   </data>
   <data name="ERR_AbstractSealedStatic" xml:space="preserve">
-    <value>'{0}': an abstract class cannot be sealed or static</value>
+    <value>'{0}': an abstract type cannot be sealed or static</value>
   </data>
   <data name="WRN_AmbiguousXMLReference" xml:space="preserve">
     <value>Ambiguous reference in cref attribute: '{0}'. Assuming '{1}', but could have also matched other overloads including '{2}'.</value>
@@ -1345,7 +1393,7 @@
     <value>Defining an alias named 'global' is ill-advised</value>
   </data>
   <data name="ERR_SealedStaticClass" xml:space="preserve">
-    <value>'{0}': a class cannot be both static and sealed</value>
+    <value>'{0}': a type cannot be both static and sealed</value>
   </data>
   <data name="ERR_PrivateAbstractAccessor" xml:space="preserve">
     <value>'{0}': abstract properties cannot have private accessors</value>
@@ -1363,7 +1411,7 @@
     <value>The return type for ++ or -- operator must match the parameter type or be derived from the parameter type</value>
   </data>
   <data name="ERR_TypeConstraintsMustBeUniqueAndFirst" xml:space="preserve">
-    <value>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</value>
+    <value>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</value>
   </data>
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
@@ -1494,7 +1542,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot derive from sealed type '{1}'</value>
   </data>
   <data name="ERR_AbstractInConcreteClass" xml:space="preserve">
-    <value>'{0}' is abstract but it is contained in non-abstract class '{1}'</value>
+    <value>'{0}' is abstract but it is contained in non-abstract type '{1}'</value>
   </data>
   <data name="ERR_StaticConstructorWithExplicitConstructorCall" xml:space="preserve">
     <value>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</value>
@@ -1541,6 +1589,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</value>
   </data>
+  <data name="ERR_DuplicateInterfaceWithDifferencesInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</value>
+  </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
   </data>
@@ -1566,7 +1617,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
@@ -1593,7 +1644,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
-    <value>'{0}' is a new virtual member in sealed class '{1}'</value>
+    <value>'{0}' is a new virtual member in sealed type '{1}'</value>
   </data>
   <data name="ERR_ExplicitPropertyAddingAccessor" xml:space="preserve">
     <value>'{0}' adds an accessor not found in interface member '{1}'</value>
@@ -1608,10 +1659,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from an interface are not allowed</value>
   </data>
   <data name="ERR_ConversionWithBase" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a base class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a base type are not allowed</value>
   </data>
   <data name="ERR_ConversionWithDerived" xml:space="preserve">
-    <value>'{0}': user-defined conversions to or from a derived class are not allowed</value>
+    <value>'{0}': user-defined conversions to or from a derived type are not allowed</value>
   </data>
   <data name="ERR_IdentityConversion" xml:space="preserve">
     <value>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</value>
@@ -1662,7 +1713,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
-    <value>Name of destructor must match name of class</value>
+    <value>Name of destructor must match name of type</value>
   </data>
   <data name="ERR_OnlyClassesCanContainDestructors" xml:space="preserve">
     <value>Only class types can contain destructors</value>
@@ -1785,10 +1836,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Method, operator, or accessor is marked external and has no attributes on it</value>
   </data>
   <data name="WRN_ProtectedInSealed" xml:space="preserve">
-    <value>'{0}': new protected member declared in sealed class</value>
+    <value>'{0}': new protected member declared in sealed type</value>
   </data>
   <data name="WRN_ProtectedInSealed_Title" xml:space="preserve">
-    <value>New protected member declared in sealed class</value>
+    <value>New protected member declared in sealed type</value>
   </data>
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
@@ -2051,8 +2102,20 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ParameterIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as parameters</value>
   </data>
+  <data name="WRN_ParameterIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as parameters</value>
+  </data>
+  <data name="WRN_ParameterIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as parameters</value>
+  </data>
   <data name="ERR_ReturnTypeIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as return types</value>
   </data>
   <data name="ERR_VarDeclIsStaticClass" xml:space="preserve">
     <value>Cannot declare a variable of static type '{0}'</value>
@@ -2124,7 +2187,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
+    <value>A partial method must be declared within a partial type</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -2248,6 +2311,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -2501,7 +2570,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -2573,7 +2642,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
+    <value>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
@@ -2651,16 +2720,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
@@ -2894,7 +2963,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</value>
+    <value>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
@@ -3233,7 +3302,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Embedded interop method '{0}' contains a body.</value>
   </data>
   <data name="ERR_BadWarningLevel" xml:space="preserve">
-    <value>Warning level must be in the range 0-4</value>
+    <value>Warning level must be zero or greater</value>
   </data>
   <data name="ERR_BadDebugType" xml:space="preserve">
     <value>Invalid option '{0}' for /debug; must be 'portable', 'embedded', 'full' or 'pdbonly'</value>
@@ -3299,7 +3368,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.</value>
   </data>
   <data name="ERR_QueryNoProviderStandard" xml:space="preserve">
-    <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</value>
+    <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</value>
   </data>
   <data name="ERR_QueryNoProvider" xml:space="preserve">
     <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.</value>
@@ -3375,7 +3444,7 @@ Although C# distinguishes between out and ref, the CLR sees them as the same. Wh
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches" xml:space="preserve">
-    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</value>
+    <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</value>
   </data>
   <data name="WRN_MultipleRuntimeOverrideMatches_Title" xml:space="preserve">
     <value>Member overrides base member with multiple override candidates at run-time</value>
@@ -3848,6 +3917,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_UnexpectedVariance" xml:space="preserve">
     <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}'. '{1}' is {2}.</value>
   </data>
+  <data name="ERR_UnexpectedVarianceStaticMember" xml:space="preserve">
+    <value>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</value>
+  </data>
   <data name="ERR_DeriveFromDynamic" xml:space="preserve">
     <value>'{0}': cannot derive from the dynamic type</value>
   </data>
@@ -3896,8 +3968,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
     <value>The entry point of the program is global code; ignoring entry point</value>
   </data>
-  <data name="ERR_StaticInAsOrIs" xml:space="preserve">
+  <data name="WRN_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
+  </data>
+  <data name="WRN_StaticInAsOrIs_Title" xml:space="preserve">
+    <value>The second operand of an 'is' or 'as' operator may not be a static type</value>
   </data>
   <data name="ERR_BadVisEventType" xml:space="preserve">
     <value>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</value>
@@ -4612,12 +4687,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -4629,6 +4704,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -4698,6 +4774,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </value>
     <comment>Visual C# Compiler Options</comment>
   </data>
@@ -5459,10 +5537,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field is uninitialized. Consider declaring as nullable.</value>
+    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -5530,6 +5608,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ParameterDisallowsNull_Title" xml:space="preserve">
     <value>Parameter must have a non-null value when exiting.</value>
   </data>
+  <data name="WRN_ParameterNotNullIfNotNull" xml:space="preserve">
+    <value>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</value>
+  </data>
+  <data name="WRN_ParameterNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull" xml:space="preserve">
+    <value>Return value must be non-null because parameter '{0}' is non-null.</value>
+  </data>
+  <data name="WRN_ReturnNotNullIfNotNull_Title" xml:space="preserve">
+    <value>Return value must be non-null because parameter is non-null.</value>
+  </data>
   <data name="WRN_MemberNotNull" xml:space="preserve">
     <value>Member '{0}' must have a non-null value when exiting.</value>
   </data>
@@ -5561,16 +5651,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
+    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match the target delegate.</value>
+    <value>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</value>
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+    <value>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
     <value>Cannot convert null literal to non-nullable reference type.</value>
@@ -5603,7 +5693,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
   </data>
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
-    <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
+    <value>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
@@ -5731,6 +5821,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
     <value>null pointer constant pattern</value>
   </data>
+  <data name="IDS_FeatureDefaultTypeParameterConstraint" xml:space="preserve">
+    <value>default type parameter constraints</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
@@ -5757,6 +5850,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithWhen" xml:space="preserve">
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithWhen_Title" xml:space="preserve">
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title" xml:space="preserve">
+    <value>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</value>
   </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
@@ -5989,6 +6094,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_SwitchExpressionNotExhaustiveForNull_Title" xml:space="preserve">
     <value>The switch expression does not handle some null inputs.</value>
   </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNullWithWhen" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs.</value>
+  </data>
   <data name="ERR_AttributeNotOnEventAccessor" xml:space="preserve">
     <value>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</value>
   </data>
@@ -6015,6 +6126,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OverrideValConstraintNotSatisfied" xml:space="preserve">
     <value>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</value>
+  </data>
+  <data name="ERR_OverrideDefaultConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</value>
+  </data>
+  <data name="ERR_DefaultConstraintOverrideOnly" xml:space="preserve">
+    <value>The 'default' constraint is valid on override and explicit interface implementation methods only.</value>
   </data>
   <data name="IDS_OverrideWithConstraints" xml:space="preserve">
     <value>constraints for override and explicit interface implementation methods</value>
@@ -6053,10 +6170,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer.</value>
+  </data>
+  <data name="ERR_TypeNotFound" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
+  </data>
+  <data name="ERR_TypeMustBePublic" xml:space="preserve">
+    <value>Type '{0}' must be public to be used as a calling convention.</value>
+  </data>
+  <data name="WRN_SyncAndAsyncEntryPoints" xml:space="preserve">
+    <value>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
+  </data>
+  <data name="IDS_FeatureStaticAnonymousFunction" xml:space="preserve">
+    <value>static anonymous function</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to '{0}'.</value>
   </data>
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
@@ -6091,16 +6226,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
   </data>
-  <data name="ERR_TypelessNewIllegalTargetType" xml:space="preserve">
+  <data name="ERR_ImplicitObjectCreationIllegalTargetType" xml:space="preserve">
     <value>The type '{0}' may not be used as the target type of new()</value>
   </data>
-  <data name="ERR_TypelessNewNotValid" xml:space="preserve">
+  <data name="ERR_ImplicitObjectCreationNotValid" xml:space="preserve">
     <value>Use of new() is not valid in this context</value>
   </data>
-  <data name="ERR_TypelessNewNoTargetType" xml:space="preserve">
+  <data name="ERR_ImplicitObjectCreationNoTargetType" xml:space="preserve">
     <value>There is no target type for '{0}'</value>
   </data>
-  <data name="IDS_FeatureTargetTypedObjectCreation" xml:space="preserve">
+  <data name="IDS_FeatureImplicitObjectCreation" xml:space="preserve">
     <value>target-typed object creation</value>
   </data>
   <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
@@ -6113,10 +6248,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
@@ -6124,17 +6261,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
   </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>
   </data>
   <data name="IDS_FeatureInitOnlySetters" xml:space="preserve">
     <value>init-only setters</value>
-  </data>
-  <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>A positional record must have both a 'data' modifier and non-empty parameter list</value>
-  </data>
-  <data name="ERR_DuplicateRecordConstructor" xml:space="preserve">
-    <value>There cannot be a primary constructor and a member constructor with the same parameter types.</value>
   </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
@@ -6156,6 +6297,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
+  </data>
+  <data name="IDS_FeatureConstantInterpolatedStrings" xml:space="preserve">
+    <value>constant interpolated strings</value>
   </data>
   <data name="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods" xml:space="preserve">
     <value>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</value>
@@ -6238,17 +6382,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv" xml:space="preserve">
+    <value>The target runtime doesn't support extensible or runtime-environment default calling conventions.</value>
+  </data>
   <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
     <value>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</value>
   </data>
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
+  <data name="CallingConventionTypesRequireUnmanaged" xml:space="preserve">
+    <value>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</value>
+  </data>
+  <data name="CallingConventionTypeIsInvalid" xml:space="preserve">
+    <value>Cannot use '{0}' as a calling convention modifier.</value>
+  </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
+  </data>
+  <data name="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers" xml:space="preserve">
+    <value>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
@@ -6257,7 +6413,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Unexpected argument list.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
-    <value>A constructor declared in a record with parameters must have 'this' constructor initializer.</value>
+    <value>A constructor declared in a record with parameter list must have 'this' constructor initializer.</value>
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
     <value>Only a single record partial declaration may have a parameter list</value>
@@ -6277,7 +6433,171 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
     <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
+  <data name="IDS_FeatureTargetTypedConditional" xml:space="preserve">
+    <value>target-typed conditional expression</value>
+  </data>
   <data name="ERR_DoesNotOverrideMethodFromObject" xml:space="preserve">
-    <value>'{0}' does not override the method from 'object'.</value>
+    <value>'{0}' does not override expected method from 'object'.</value>
+  </data>
+  <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
+    <value>covariant returns</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
+    <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
+  </data>
+  <data name="ERR_SealedAPIInRecord" xml:space="preserve">
+    <value>'{0}' cannot be sealed because containing record is not sealed.</value>
+  </data>
+  <data name="ERR_DoesNotOverrideBaseMethod" xml:space="preserve">
+    <value>'{0}' does not override expected method from '{1}'.</value>
+  </data>
+  <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
+    <value>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
+    <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="ERR_CloneDisallowedInRecord" xml:space="preserve">
+    <value>Members named 'Clone' are disallowed in records.</value>
+  </data>
+  <data name="WRN_RecordNamedDisallowed" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
+  </data>
+  <data name="WRN_RecordNamedDisallowed_Title" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
+  </data>
+  <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
+    <value>'{0}' must allow overriding because the containing record is not sealed.</value>
+  </data>
+  <data name="ERR_NonPublicAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be public.</value>
+  </data>
+  <data name="ERR_SignatureMismatchInRecord" xml:space="preserve">
+    <value>Record member '{0}' must return '{1}'.</value>
+  </data>
+  <data name="ERR_NonProtectedAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be protected.</value>
+  </data>
+  <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
+    <value>'{0}' does not override expected property from '{1}'.</value>
+  </data>
+  <data name="ERR_StaticAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' may not be static.</value>
+  </data>
+  <data name="ERR_CopyConstructorWrongAccessibility" xml:space="preserve">
+    <value>A copy constructor '{0}' must be public or protected because the record is not sealed.</value>
+  </data>
+  <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be private.</value>
+  </data>
+  <data name="WRN_PrecedenceInversion" xml:space="preserve">
+    <value>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</value>
+  </data>
+  <data name="WRN_PrecedenceInversion_Title" xml:space="preserve">
+    <value>Operator cannot be used here due to precedence.</value>
+  </data>
+  <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
+    <value>module initializers</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType" xml:space="preserve">
+    <value>Module initializer method '{0}' must be accessible at the module level</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid" xml:space="preserve">
+    <value>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric" xml:space="preserve">
+    <value>Module initializer method '{0}' must not be generic and must not be contained in a generic type</value>
+  </data>
+  <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
+    <value>A module initializer must be an ordinary member method</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetAsyncEnumerator" xml:space="preserve">
+    <value>extension GetAsyncEnumerator</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
+    <value>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_CannotUseManagedTypeInUnmanagedCallersOnly" xml:space="preserve">
+    <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric" xml:space="preserve">
+    <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate" xml:space="preserve">
+    <value>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_EntryPointCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly" xml:space="preserve">
+    <value>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="WRN_RecordEqualsWithoutGetHashCode" xml:space="preserve">
+    <value>'{0}' defines 'Equals' but not 'GetHashCode'</value>
+    <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
+  <data name="WRN_RecordEqualsWithoutGetHashCode_Title" xml:space="preserve">
+    <value>Record defines 'Equals' but not 'GetHashCode'.</value>
+    <comment>'GetHashCode' and 'Equals' are not localizable.</comment>
+  </data>
+  <data name="ERR_InitCannotBeReadonly" xml:space="preserve">
+    <value>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</value>
+  </data>
+  <data name="IDS_FeatureDiscards" xml:space="preserve">
+    <value>discards</value>
+  </data>
+  <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
+    <value>variance safety for static interface members</value>
+  </data>
+  <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
+    <value>Record equality contract property '{0}' must have a get accessor.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+    <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
+    <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
+    <value>The type '{0}' may not be used for a field of a record.</value>
+  </data>
+  <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
+    <value>A function pointer cannot be called with named arguments.</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
+    <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="ERR_RecordAmbigCtor" xml:space="preserve">
+    <value>The primary constructor conflicts with the synthesized copy constructor.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
+    <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
+    <value>Do not compare function pointer values</value>
   </data>
 </root>

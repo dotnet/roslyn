@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,8 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
     {
-        internal const string UnspeakableName = "$Main";
-
         /// <summary>
         /// The corresponding <see cref="SingleTypeDeclaration"/>. 
         /// </summary>
@@ -56,11 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
             this.MakeFlags(
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: false);
 
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
@@ -73,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return UnspeakableName;
+                return WellKnownMemberNames.TopLevelStatementsEntryPointMethodName;
             }
         }
 
@@ -179,8 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied => false;
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         protected override object MethodChecksLockObject => _declaration;
 
@@ -252,5 +251,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
+
+        private static bool IsNullableAnalysisEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
+        {
+            foreach (var member in syntax.Members)
+            {
+                if (member.Kind() == SyntaxKind.GlobalStatement && compilation.IsNullableAnalysisEnabledIn(member))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

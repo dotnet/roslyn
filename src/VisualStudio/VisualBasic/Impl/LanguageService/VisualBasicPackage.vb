@@ -75,7 +75,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                         Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                         Return New TempPECompilerFactory(workspace)
                     End Function)
-            Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
+            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 

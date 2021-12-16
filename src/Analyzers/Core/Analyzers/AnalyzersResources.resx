@@ -322,4 +322,16 @@
   <data name="Avoid_legacy_format_target_0_in_SuppressMessageAttribute" xml:space="preserve">
     <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</value>
   </data>
+  <data name="Remove_unnecessary_suppression" xml:space="preserve">
+    <value>Remove unnecessary suppression</value>
+  </data>
+  <data name="Remove_redundant_equality" xml:space="preserve">
+    <value>Remove redundant equality</value>
+  </data>
+  <data name="Use_decrement_operator" xml:space="preserve">
+    <value>Use '--' operator</value>
+  </data>
+  <data name="Use_increment_operator" xml:space="preserve">
+    <value>Use '++' operator</value>
+  </data>
 </root>

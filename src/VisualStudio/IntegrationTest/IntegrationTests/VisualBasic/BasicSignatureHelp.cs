@@ -66,8 +66,8 @@ Class C
 End Class
 ";
 
-        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicSignatureHelp))
+        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicSignatureHelp))
         {
         }
 

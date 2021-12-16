@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
-        Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
+        Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
             Return array
         End Function
 

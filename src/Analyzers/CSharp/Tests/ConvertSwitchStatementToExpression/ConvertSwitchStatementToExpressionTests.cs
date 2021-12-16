@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 
     public class ConvertSwitchStatementToExpressionTests
     {
-        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
+        private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
@@ -583,8 +582,6 @@ class Program
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestOnMultiCaseSection_CSharp9()
@@ -623,8 +620,6 @@ class Program
                 LanguageVersion = CSharp9,
             }.RunAsync();
         }
-
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()
@@ -1917,7 +1912,7 @@ return i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(
@@ -1962,7 +1957,7 @@ j = i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(
@@ -1970,6 +1965,101 @@ j = i switch
                 DiagnosticResult.CompilerError("CS8805"));
 
             await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(48006, "https://github.com/dotnet/roslyn/issues/48006")]
+        public async Task TestOnMultiCaseSection_String_CSharp9()
+        {
+            var testCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        [|switch|] (s)
+        {
+	        case ""Last"":
+            case ""First"":
+            case ""Count"":
+                return true;
+            default:
+                return false;
+        }
+    }
+}";
+            var fixedCode = @"
+class Program
+{
+    bool M(string s)
+    {
+        return s switch
+        {
+            ""Last"" or ""First"" or ""Count"" => true,
+            _ => false,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M(object i)
+    {
+        [|switch|] (i.GetType())
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M(object i)
+    {
+        return i.GetType() switch
+        {
+            _ => 0,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M()
+    {
+        [|switch|] (1 + 1)
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M()
+    {
+        return (1 + 1) switch
+        {
+            _ => 0,
+        };
+    }
+}");
         }
     }
 }

@@ -17,24 +17,23 @@ namespace Microsoft.CodeAnalysis.Experiments
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
     internal class DefaultExperimentationService : IExperimentationService
     {
-        public bool ReturnValue = false;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultExperimentationService()
         {
         }
 
-        public bool IsExperimentEnabled(string experimentName) => ReturnValue;
+        public bool IsExperimentEnabled(string experimentName) => false;
     }
 
     internal static class WellKnownExperimentNames
     {
-        public const string RoslynOOP64bit = nameof(RoslynOOP64bit);
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
-        public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
+        public const string OOPServerGC = "Roslyn.OOPServerGC";
+        public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
+        public const string LspTextSyncEnabled = "Roslyn.LspTextSyncEnabled";
     }
 }

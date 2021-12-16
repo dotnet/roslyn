@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="translated">Dodaj brakujące dyrektywy using przy wklejaniu</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Zastosuj wszystkie reguły formatowania kodu C# (wcięcia, zawijanie, odstępy)</target>
@@ -32,6 +37,16 @@
         <target state="translated">Odrzuć</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_color_scheme">
+        <source>Edit color scheme</source>
+        <target state="translated">Edytuj schemat kolorów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">Formatuj dokument</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Ustawienia dokumentu formatu (eksperyment)</target>
@@ -42,15 +57,15 @@
         <target state="translated">Ogólne</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Generuj subskrypcję zdarzenia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">W operatorach relacyjnych:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="translated">Wstaw znaki // na początku nowych wierszy podczas pisania komentarzy ze znakami //</target>
+        <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -62,15 +77,35 @@
         <target state="translated">Poza elementem namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Pattern_matching_preferences_colon">
+        <source>Pattern matching preferences:</source>
+        <target state="translated">Preferencje dopasowywania wzorca:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">Wykonaj dodatkowe oczyszczanie kodu podczas formatowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="translated">Preferuj niejawne tworzenie obiektu, gdy typ jest oczywisty</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="translated">Preferuj dopasowywanie do wzorca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
+        <source>Prefer pattern matching over mixed type check</source>
+        <target state="translated">Preferuj sprawdzanie dopasowania wzorca do typów mieszanych</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
@@ -87,9 +122,14 @@
         <target state="translated">Usuń niepotrzebne użycia</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="translated">Pokaż wskazówki dla wyrażeń „new”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw (eksperymentalne)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

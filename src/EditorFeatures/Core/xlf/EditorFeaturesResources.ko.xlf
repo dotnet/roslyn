@@ -67,6 +67,11 @@
         <target state="translated">기본으로 이동</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">인라인 힌트</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">잘못된 어셈블리 이름</target>
@@ -107,11 +112,6 @@
         <target state="translated">문장 부호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">지원되지 않는 문서 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">파일 이름 바꾸기(형식이 파일 이름과 일치하지 않음)(_F)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">기호의 파일 이름 바꾸기(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">주석 분할</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">사용자 형식 - 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">사용자 유형 - 레코드</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -424,37 +434,37 @@
       </trans-unit>
       <trans-unit id="Adding_project_0">
         <source>Adding project '{0}'</source>
-        <target state="translated">{0}' 프로젝트 추가 중</target>
+        <target state="translated">'{0}' 프로젝트 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_0">
         <source>Removing project '{0}'</source>
-        <target state="translated">{0}' 프로젝트를 제거하는 중</target>
+        <target state="translated">'{0}' 프로젝트를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_references_for_0">
         <source>Changing project references for '{0}'</source>
-        <target state="translated">{0}'에 대한 프로젝트 참조 변경 중</target>
+        <target state="translated">'{0}'에 대한 프로젝트 참조 변경 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_reference_0_to_1">
         <source>Adding reference '{0}' to '{1}'</source>
-        <target state="translated">{1}'에 대한 '{0}' 참조 추가 중</target>
+        <target state="translated">'{1}'에 대한 '{0}' 참조 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_reference_0_from_1">
         <source>Removing reference '{0}' from '{1}'</source>
-        <target state="translated">{1}'에서 '{0}' 참조를 제거하는 중</target>
+        <target state="translated">'{1}'에서 '{0}' 참조를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_reference_0_to_1">
         <source>Adding analyzer reference '{0}' to '{1}'</source>
-        <target state="translated">{1}'에 대한 '{0}' 분석기 참조 추가 중</target>
+        <target state="translated">'{1}'에 대한 '{0}' 분석기 참조 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_analyzer_reference_0_from_1">
         <source>Removing analyzer reference '{0}' from '{1}'</source>
-        <target state="translated">{1}'에서 '{0}' 분석기 참조를 제거하는 중</target>
+        <target state="translated">'{1}'에서 '{0}' 분석기 참조를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_End_Tag_Completion">
@@ -639,7 +649,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1101,17 +1111,17 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}'에 대한 호출</target>
+        <target state="translated">'{0}'에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
         <source>Calls To Base Member '{0}'</source>
-        <target state="translated">{0}' 기본 멤버에 대한 호출</target>
+        <target state="translated">'{0}' 기본 멤버에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Interface_Implementation_0">
         <source>Calls To Interface Implementation '{0}'</source>
-        <target state="translated">{0}' 인터페이스 구현에 대한 호출</target>
+        <target state="translated">'{0}' 인터페이스 구현에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Call_Hierarchy_Information">
@@ -1121,7 +1131,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' 구현</target>
+        <target state="translated">'{0}' 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1131,7 +1141,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="References_To_Field_0">
         <source>References To Field '{0}'</source>
-        <target state="translated">{0}' 필드에 대한 참조</target>
+        <target state="translated">'{0}' 필드에 대한 참조</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Overrides">
@@ -1192,11 +1202,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">중괄호 완성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">다음 위치에서 모든 발생 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

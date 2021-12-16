@@ -5,27 +5,28 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        public override Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => _projectAccessor.ReadChecksumAsync((project, name), cancellationToken);
+        protected override Task<Checksum?> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
+            => _projectAccessor.ReadChecksumAsync((projectKey, bulkLoadSnapshot, name), cancellationToken);
 
-        public override Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken = default)
-            => _projectAccessor.ReadStreamAsync((project, name), checksum, cancellationToken);
+        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => _projectAccessor.ReadStreamAsync((projectKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken = default)
-            => _projectAccessor.WriteStreamAsync((project, name), stream, checksum, cancellationToken);
+        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => _projectAccessor.WriteStreamAsync(((ProjectKey)project, project, name), stream, checksum, cancellationToken);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
         /// retrieving data from <see cref="ProjectDataTableName"/>.
         /// </summary>
         private class ProjectAccessor : Accessor<
-            (Project project, string name),
+            (ProjectKey projectKey, Project? bulkLoadSnapshot, string name),
             (ProjectId projectId, string name),
             long>
         {
@@ -35,11 +36,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected override string DataTableName => ProjectDataTableName;
 
-            protected override (ProjectId projectId, string name) GetWriteQueueKey((Project project, string name) key)
-                => (key.project.Id, key.name);
+            protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, Project? bulkLoadSnapshot, string name) key)
+                => (key.projectKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (Project project, string name) key, out long dataId)
-                => Storage.TryGetProjectDataId(connection, key.project, key.name, out dataId);
+            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, Project? bulkLoadSnapshot, string name) key, out long dataId)
+                => Storage.TryGetProjectDataId(connection, key.projectKey, key.bulkLoadSnapshot, key.name, out dataId);
 
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);

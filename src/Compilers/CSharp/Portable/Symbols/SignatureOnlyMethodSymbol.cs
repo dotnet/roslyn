@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -89,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return _name; } }
 
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool GenerateDebugInfo { get { throw ExceptionUtilities.Unreachable; } }
@@ -108,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation() { throw ExceptionUtilities.Unreachable; }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable; }
 

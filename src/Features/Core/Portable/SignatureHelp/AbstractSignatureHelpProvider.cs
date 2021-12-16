@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -271,7 +273,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
             var finalItems = new List<SignatureHelpItem>();
             foreach (var item in itemsForCurrentDocument.Items)
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 var syntaxTree = await related.Item1.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (!related.Item1.GetLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
-                    var relatedSemanticModel = await related.Item1.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+                    var relatedSemanticModel = await related.Item1.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                     var symbolSet = related.Item2.Select(s => ((SymbolKeySignatureHelpItem)s).SymbolKey?.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
                                                  .WhereNotNull()
                                                  .ToSet(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
@@ -365,9 +367,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return supportedPlatforms;
         }
 
-        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol currentSymbol) where TSymbol : class, ISymbol
         {
-            if (currentSymbol.Symbol is TSymbol matched)
+            if (currentSymbol is TSymbol matched)
             {
                 var found = candidates.IndexOf(matched);
                 if (found >= 0)

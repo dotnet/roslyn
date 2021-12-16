@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,23 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            BaseMethodDeclarationSyntax syntax,
+            CSharpSyntaxNode syntax,
+            DeclarationModifiers declarationModifiers,
+            bool hasBody,
+            bool isExpressionBodied,
+            bool isIterator,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location, isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
+            base(containingType, syntax.GetReference(), location, isIterator: isIterator)
         {
             _name = name;
-            _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
-
-            var defaultAccess = DeclarationModifiers.Private;
-            var allowedModifiers =
-                DeclarationModifiers.AccessibilityMask |
-                DeclarationModifiers.Static |
-                DeclarationModifiers.Extern |
-                DeclarationModifiers.Unsafe;
-
-            bool modifierErrors;
-            var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            _isExpressionBodied = isExpressionBodied;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -50,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
@@ -81,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: its operator body consists of a semicolon. For expression-bodied
             // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            bool hasBody = syntax.HasAnyBody();
             if (hasBody && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
@@ -103,28 +94,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal BaseMethodDeclarationSyntax GetSyntax()
+        protected static DeclarationModifiers MakeDeclarationModifiers(BaseMethodDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics)
         {
-            Debug.Assert(syntaxReferenceOpt != null);
-            return (BaseMethodDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+            var defaultAccess = DeclarationModifiers.Private;
+            var allowedModifiers =
+                DeclarationModifiers.AccessibilityMask |
+                DeclarationModifiers.Static |
+                DeclarationModifiers.Extern |
+                DeclarationModifiers.Unsafe;
+
+            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
         }
 
-        abstract protected ParameterListSyntax ParameterListSyntax { get; }
-        abstract protected TypeSyntax ReturnTypeSyntax { get; }
+        protected abstract Location ReturnTypeLocation { get; }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
         {
+            TypeWithAnnotations returnType;
+            ImmutableArray<ParameterSymbol> parameters;
+
             var binder = this.DeclaringCompilation.
-                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax, GetSyntax(), this);
+                GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(returnTypeSyntax, declarationSyntax, this);
 
             SyntaxToken arglistToken;
 
             var signatureBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(
+            parameters = ParameterHelpers.MakeParameters(
                 signatureBinder,
                 this,
-                ParameterListSyntax,
+                declarationSyntax.ParameterList,
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
@@ -142,21 +142,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the operator method as being a varargs method.
             }
 
-            _lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
+            returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // restricted types cannot be returned. 
             // NOTE: Span-like types can be returned (if expression is returnable).
-            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // The return type of a method, delegate, or function pointer cannot be '{0}'
-                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType.Type);
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
-            if (_lazyReturnType.Type.IsStatic)
+            if (returnType.Type.IsStatic)
             {
+                // Operators in interfaces was introduced in C# 8, so there's no need to be specially concerned about
+                // maintaining backcompat with the native compiler bug around interfaces.
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, ReturnTypeSyntax.Location, _lazyReturnType.Type);
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), returnTypeSyntax.Location, returnType.Type);
             }
+
+            return (returnType, parameters);
+        }
+
+        protected override void MethodChecks(DiagnosticBag diagnostics)
+        {
+            (_lazyReturnType, _lazyParameters) = MakeParametersAndBindReturnType(diagnostics);
 
             this.SetReturnsVoid(_lazyReturnType.IsVoidType());
 
@@ -176,6 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckValueParameters(diagnostics);
             CheckOperatorSignatures(diagnostics);
         }
+
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(DiagnosticBag diagnostics);
 
         private void CheckValueParameters(DiagnosticBag diagnostics)
         {
@@ -404,12 +415,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
-                    // '{0}': user-defined conversions to or from a base class are not allowed
+                    // '{0}': user-defined conversions to or from a base type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
                 }
                 else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
-                    // '{0}': user-defined conversions to or from a derived class are not allowed
+                    // '{0}': user-defined conversions to or from a derived type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
                 }
 
@@ -604,9 +615,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !_lazyParameters.IsDefault ? _lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
+                if (!_lazyParameters.IsDefault)
+                {
+                    int result = _lazyParameters.Length;
+                    Debug.Assert(result == GetParameterCountFromSyntax());
+                    return result;
+                }
+
+                return GetParameterCountFromSyntax();
             }
         }
+
+        protected abstract int GetParameterCountFromSyntax();
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
@@ -622,10 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 
-        public override RefKind RefKind
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
+
+        public sealed override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -639,14 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExpressionBodied
+        internal sealed override bool IsExpressionBodied
         {
             get { return _isExpressionBodied; }
-        }
-
-        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-        {
-            return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
@@ -668,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ReturnType.ContainsNativeInteger())
             {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -676,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
-                compilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);

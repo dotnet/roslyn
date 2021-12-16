@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -45,8 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AutoComment
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value); }
+            get { return GetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration); }
+            set { SetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration, value); }
         }
 
         public int AutoInsertAsteriskForNewLinesOfBlockComments
@@ -119,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnBlockCompletion
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, value); }
+            get { return GetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace); }
+            set { SetBooleanOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, value); }
         }
 
         public int Formatting_TriggerOnPaste
@@ -665,6 +669,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression, value); }
+        }
+
+        public string Style_PreferPatternMatching
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferPatternMatching, value); }
         }
 
         public string Style_PreferPatternMatchingOverAsWithNullCheck

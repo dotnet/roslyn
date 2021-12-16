@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
@@ -33,14 +33,19 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             AnalyzersResources.ResourceManager,
             typeof(AnalyzersResources));
 
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+#pragma warning disable RS0030 // Do not used banned APIs - We cannot use AbstractBuiltInCodeStyleDiagnosticAnalyzer nor AbstractCodeQualityDiagnosticAnalyzer.
+        // This analyzer is run against generated code while the abstract base classes mentioned doesn't. The rule is also not documented.
+        // There is even a current work to remove the rule completely in favor of CA2241.
+        private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticID,
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: Description);
+            description: Description,
+            customTags: EnforceOnBuildValues.ValidateFormatString.ToCustomTag());
+#pragma warning restore RS0030 // Do not used banned APIs
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);
@@ -49,13 +54,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         /// this regex is used to remove escaped brackets from
         /// the format string before looking for valid {} pairs
         /// </summary>
-        private static readonly Regex s_removeEscapedBracketsRegex = new Regex("{{");
+        private static readonly Regex s_removeEscapedBracketsRegex = new("{{");
 
         /// <summary>
         /// this regex is used to extract the text between the
         /// brackets and save the contents in a MatchCollection
         /// </summary>
-        private static readonly Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private static readonly Regex s_extractPlaceholdersRegex = new("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
         private const string NameOfFormatStringParameter = "format";
@@ -203,7 +208,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
+            Debug.Assert(syntaxFacts.IsArgument(argsArgument));
+            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument)!;
             return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 

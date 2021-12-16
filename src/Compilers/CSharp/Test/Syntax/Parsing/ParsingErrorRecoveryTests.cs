@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -6518,7 +6520,7 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Regular9);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics

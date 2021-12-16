@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents,
+            IMethodSymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             // First, find any documents with the full name of the accessor (i.e. get_Goo).
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result;
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 var accessorReferences = propertyReferences.WhereAsArray(
                     loc =>

@@ -6,31 +6,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
     Public Class GoToDestinationsRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ZeroAndOneAfterOnErrorGotoTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On Error Goto |</MethodBody>, "0", "-1")
-        End Function
+        Public Sub ZeroAndOneAfterOnErrorGotoTest()
+            VerifyRecommendationsAreExactly(<MethodBody>On Error Goto |</MethodBody>, "0", "-1")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>On Error Goto 
 |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsAreExactly(
 <MethodBody>On Error Goto _
  |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsAreExactly(
 <MethodBody>On Error Goto _ ' Test
  |</MethodBody>, "0", "-1")
-        End Function
+        End Sub
     End Class
 End Namespace

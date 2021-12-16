@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             };
 
-        private NamingStylePreferences CreateCustomFieldNamingStylePreference()
+        private static NamingStylePreferences CreateCustomFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             return info;
         }
 
-        private NamingStylePreferences CreateUnderscorePrefixedFieldNamingStylePreference()
+        private static NamingStylePreferences CreateUnderscorePrefixedFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             return info;
         }
 
-        private NamingStylePreferences CreateCustomStaticFieldNamingStylePreference()
+        private static NamingStylePreferences CreateCustomStaticFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,

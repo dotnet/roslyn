@@ -13,12 +13,119 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
     <[UseExportProvider]>
     Public Class HelpTests
-        Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
+        Public Shared Async Function TestAsync(markup As String, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim caret = workspace.Documents.First().CursorPosition
                 Dim service = New VisualBasicHelpContextService()
                 Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
             End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestFriend() As Task
+            Dim text = <a>
+Fri[||]end Class G
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.Friend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtected() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.Protected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtectedFriend1() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Friend Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.ProtectedFriend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtectedFriend2() As Task
+            Dim text = <a>
+Public Class G
+    Friend Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.ProtectedFriend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected1() As Task
+            Dim text = <a>
+Public Class G
+    Private Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected2() As Task
+            Dim text = <a>
+Public Class G
+    Priv[||]ate Protected Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected3() As Task
+            Dim text = <a>
+Public Class G
+    Protected Priv[||]ate Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected4() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Private Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoup() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Async Shared Private Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoupField() As Task
+            Dim text = <a>
+Public Class G
+    Private Shadows Shared Prot[||]ected foo as Boolean
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>

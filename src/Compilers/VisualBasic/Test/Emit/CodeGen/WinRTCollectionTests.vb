@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
                     Dim listRefs = New List(Of MetadataReference)(WinRtRefs.Length + 2)
                     listRefs.AddRange(WinRtRefs)
                     listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display:="WinRTTest"))
-                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
+                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.SystemCore).GetReference(display:="SystemCore"))
                     _legacyRefs = listRefs.ToArray()
                 End If
                 Return _legacyRefs
@@ -51,7 +50,7 @@ End Class]]></file>
             comp.AssertNoDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorProjectionTests()
             Dim source =
             <compilation>
@@ -178,7 +177,7 @@ b
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorViewProjectionTests()
 
             Dim source =
@@ -225,7 +224,7 @@ End Class]]></file>
 }]]>.Value)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IVectorLinqQueryTest()
             Dim source =
                 <compilation>
@@ -287,7 +286,7 @@ End Class
 ]]>.Value)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub IMapProjectionTests()
             Dim source =
             <compilation>

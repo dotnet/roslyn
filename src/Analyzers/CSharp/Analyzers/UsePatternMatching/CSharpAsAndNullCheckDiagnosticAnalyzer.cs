@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -33,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
+                   EnforceOnBuildValues.InlineAsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -110,6 +109,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var enclosingBlock = localStatement?.Parent;
             if (localStatement == null ||
                 enclosingBlock == null)
+            {
+                return;
+            }
+
+            // Don't convert if the as is part of a using statement
+            // eg using (var x = y as MyObject) { }
+            if (localStatement is UsingStatementSyntax)
+            {
+                return;
+            }
+
+            // Don't convert if the as is part of a local declaration with a using keyword
+            // eg using var x = y as MyObject;
+            if (localStatement is LocalDeclarationStatementSyntax localDecl && localDecl.UsingKeyword != default)
             {
                 return;
             }

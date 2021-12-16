@@ -11,7 +11,7 @@ This is what [C# Scripting API](https://github.com/dotnet/roslyn/blob/master/doc
 
 The Scripting APIs use Trusted Platform Assembly list to locate the implementation assemblies on CoreCLR.
 
-You can get a list of semicolon-separated paths to these .dlls like so (see [RuntimeMetadataReferenceResolver](http://source.roslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/Resolvers/RuntimeMetadataReferenceResolver.cs,180) implementation):
+You can get a list of semicolon-separated paths to these .dlls like so (see [RuntimeMetadataReferenceResolver](http://sourceroslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/Resolvers/RuntimeMetadataReferenceResolver.cs) implementation):
 
 ```C#
 AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")

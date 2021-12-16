@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="translated">붙여넣을 때 누락된 import 추가</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">관계형 연산자:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
+        <source>Insert ' at the start of new lines when writing ' comments</source>
+        <target state="translated">' 주석을 작성할 때 새 줄의 시작 부분에 ' 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -32,14 +42,24 @@
         <target state="translated">안 함 </target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="translated">'IsNot' 식 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'Is Nothing' 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_New_expressions">
+        <source>Show hints for 'New' expressions</source>
+        <target state="translated">'New' 식에 대한 힌트 표시</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">가져오지 않은 네임스페이스의 항목 표시(실험적)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

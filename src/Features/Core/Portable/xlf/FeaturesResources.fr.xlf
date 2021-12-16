@@ -162,7 +162,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;inférence&gt;</target>
+        <target state="translated">&lt;déduire&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -245,6 +245,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Convertir en LINQ (formulaire d'appel)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">Convertir en enregistrement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Convertir en struct</target>
@@ -273,31 +278,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Créer et affecter ce qui reste en tant que propriétés</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">Un type qui implémente System.IDisposable déclare des champs dont les types implémentent également IDisposable. La méthode Dispose du champ n'est pas appelée par la méthode Dispose du type déclarant. Pour corriger toute violation de cette règle, appelez Dispose sur les champs dont les types implémentent IDisposable si vous êtes responsable de l'allocation et de la libération des ressources non managées détenues par le champ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">Le champ supprimable '{0}' n'est jamais supprimé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">Les champs supprimables doivent l'être</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">L'objet supprimable créé par '{0}' n'est jamais supprimé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">Supprimer les objets avant la mise hors de portée</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -335,6 +315,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Erreur durant la lecture du fichier '{0}' : {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="translated">Erreur lors de la création de l'instance de CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="translated">Erreur lors de la création de l'instance de CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Exemple :</target>
@@ -344,6 +334,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Examples:</source>
         <target state="translated">Exemples :</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="translated">Extraire la classe de base...</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
@@ -495,6 +490,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Mettre en retrait les paramètres enveloppés</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="translated">Inline '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="translated">Inline et conserver '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Chiffres hexadécimaux insuffisants</target>
@@ -524,6 +529,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Nom de groupe non valide : les noms de groupe doivent commencer par un caractère alphabétique</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Rendre la classe 'abstract'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
@@ -585,6 +595,21 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La modification de '{0}', qui contient une expression de switch, va empêcher la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
+        <target state="translated">Le fait de modifier le corps de '{0}' empêche la session de débogage de se poursuivre, car le corps contient trop d'instructions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="translated">Le fait de modifier le corps de '{0}' empêche la session de débogage de se poursuivre en raison d'une erreur interne : {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
+        <target state="translated">Le fait de modifier le fichier source '{0}' empêche la session de débogage de se poursuivre, car le fichier est trop volumineux.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Déplacer le contenu vers un espace de noms...</target>
@@ -606,14 +631,19 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Le fait de modifier le fichier source {0} empêche la session de débogage de se poursuivre en raison de l’erreur interne : {1}.</target>
-        <note />
+        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="translated">Le fait de modifier le fichier source '{0}' empêche la session de débogage de se poursuivre en raison d'une erreur interne : {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Quantificateur imbriqué {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
+      </trans-unit>
+      <trans-unit id="No_valid_location_to_insert_method_call">
+        <source>No valid location to insert method call.</source>
+        <target state="translated">Aucun emplacement valide pour l'insertion de l'appel de méthode.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
@@ -638,6 +668,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Tirer les membres jusqu'au type de base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="translated">Tirer (pull) le ou les membres jusqu'à la nouvelle classe de base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1785,6 +1820,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Les signatures de méthode associées dans les métadonnées ne sont pas mises à jour.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="translated">Suppression du document non prise en charge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="translated">Supprimer le modificateur 'async'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
@@ -1833,6 +1878,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Cibler les correspondances de types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly '{0}' contenant le type '{1}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1935,11 +1985,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">La mise à jour de '{0}' autour d'une instruction active va empêcher la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que les objets supprimables de l'étendue locale sont bien supprimés sur tous les chemins. Si possible, enveloppez la création dans une instruction 'using' ou une déclaration 'using'. Sinon, utilisez un modèle try-finally avec une variable locale dédiée déclarée avant la région try et un appel inconditionnel de Dispose sur une valeur non null dans la région 'finally', par exemple 'x?.Dispose()'. Si l'objet est explicitement supprimé dans la région try ou si la propriété de suppression est transférée vers un autre objet ou une autre méthode, affectez la valeur 'null' à la variable locale juste après cette opération pour éviter une double suppression dans 'finally'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Utiliser le corps de bloc pour les expressions lambda</target>
@@ -1954,16 +1999,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <source>Use interpolated verbatim string</source>
         <target state="translated">Utiliser une chaîne verbatim interpolée</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">Utilisez le modèle Dispose recommandé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que l'objet créé par '{0}' est supprimé sur tous les chemins : instruction/déclaration using ou try/finally</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2036,13 +2071,18 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">'{0}' ne peut pas être null ou vide</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="translated">« {0} » ne peut pas être vide ou avoir la valeur Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">'{0}' ne peut pas être null ou un espace</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="translated">'{0}' ne peut pas avoir une valeur null ou être un espace blanc.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2415,6 +2455,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">surcharges génériques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="translated">dans {0} ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
@@ -2871,7 +2916,7 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
         <source>generating source for symbols of this type is not supported</source>
-        <target state="translated">La génération de code source pour les symboles de ce type n'est pas prise en charge.</target>
+        <target state="translated">La génération de code source pour les symboles de ce type n'est pas prise en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">

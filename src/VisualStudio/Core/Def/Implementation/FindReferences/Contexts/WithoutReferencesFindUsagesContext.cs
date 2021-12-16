@@ -34,18 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             // We should never be called in a context where we get references.
-            protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
-                => throw new InvalidOperationException();
-
-            // We should never be called in a context where we get references.
-            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
                 => Task.CompletedTask;
 
-            protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 
@@ -97,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task<Entry> TryCreateEntryAsync(
+            private async Task<Entry?> TryCreateEntryAsync(
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];

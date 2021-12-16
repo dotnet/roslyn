@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -239,6 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// We should be intentional about behavior of derived classes regarding guarding against stack overflow.
         /// </summary>
         protected abstract BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node);
-#nullable restore
+#nullable disable
     }
 }

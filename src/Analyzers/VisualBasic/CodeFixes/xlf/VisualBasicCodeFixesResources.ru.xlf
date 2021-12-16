@@ -4,7 +4,12 @@
     <body>
       <trans-unit id="Add_Me">
         <source>Add 'Me.'</source>
-        <target state="translated">Добавьте "'Me".</target>
+        <target state="translated">Добавьте "Me".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">Преобразовать "GetType" в "NameOf"</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">

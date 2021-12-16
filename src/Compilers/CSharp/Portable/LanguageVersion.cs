@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         CSharp8 = 800,
 
-        // When this value is available in the released NuGet packge, update LanguageVersionExtensions in the IDE layer to point to it.
+        // When this value is available in the released NuGet package, update LanguageVersionExtensions in the IDE layer to point to it.
         // https://github.com/dotnet/roslyn/issues/43348
         //
         /// <summary>
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Displays the version number in the format expected on the command-line (/langver flag).
-        /// For instance, "6", "7", "7.1", "latest".
+        /// For instance, "6", "7.0", "7.1", "latest".
         /// </summary>
         public static string ToDisplayString(this LanguageVersion version)
         {
@@ -379,9 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp8;
-                case LanguageVersion.CSharp9:
-                    return LanguageVersion.Preview;
+                    return LanguageVersion.CSharp9;
                 default:
                     return version;
             }

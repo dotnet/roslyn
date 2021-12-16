@@ -22,14 +22,19 @@
         <target state="translated">解决名称冲突: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">修复以下对象中的所有实例:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">删除冗余分配</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_suppression">
-        <source>Remove redundant suppression</source>
-        <target state="translated">删除冗余抑制</target>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">禁止或配置方面的问题</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

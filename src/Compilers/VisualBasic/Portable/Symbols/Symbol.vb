@@ -771,18 +771,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.[Equals](TryCast(other, Symbol), equalityComparer.CompareKind)
         End Function
 
-        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Private Overloads Function ISymbolInternal_Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
             Return Me.Equals(TryCast(other, Symbol), compareKind)
         End Function
 
         ' By default we don't consider the compareKind. This can be overridden.
-        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+        Public Overridable Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
             Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
         Public Overrides Function GetHashCode() As Integer
-            Return MyBase.GetHashCode()
+            Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
         End Function
 
         Public NotOverridable Overrides Function ToString() As String
@@ -901,7 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case errorInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
-                        errorInfo = If(GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(), errorInfo)
+                        errorInfo = If(GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(), errorInfo)
 
                     Case Else
                         ' Nothing to do, simply use the same error info.
@@ -911,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return errorInfo
         End Function
 
-        Private Function GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() As DiagnosticInfo
+        Private Function GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo() As DiagnosticInfo
             Select Case Me.Kind
                 Case SymbolKind.Field
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
@@ -992,7 +992,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function DeriveUseSiteErrorInfoFromCustomModifiers(
-            customModifiers As ImmutableArray(Of CustomModifier)
+            customModifiers As ImmutableArray(Of CustomModifier),
+            Optional allowIsExternalInit As Boolean = False
         ) As DiagnosticInfo
             Dim modifiersErrorInfo As DiagnosticInfo = Nothing
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
@@ -1001,11 +1002,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim errorInfo As DiagnosticInfo
 
-                If modifier.IsOptional Then
-                    errorInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
-                Else
-                    errorInfo = If(GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+                If Not modifier.IsOptional AndAlso
+                   (Not allowIsExternalInit OrElse Not DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol.IsWellKnownTypeIsExternalInit()) Then
+
+                    errorInfo = If(GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+
+                    If errorInfo.Code = highestPriorityUseSiteError Then
+                        Return errorInfo
+                    End If
+
+                    If modifiersErrorInfo Is Nothing Then
+                        modifiersErrorInfo = errorInfo
+                    End If
                 End If
+
+                errorInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
 
                 If errorInfo IsNot Nothing Then
                     If errorInfo.Code = highestPriorityUseSiteError Then

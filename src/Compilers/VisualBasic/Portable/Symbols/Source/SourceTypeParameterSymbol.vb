@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents a type parameter symbol defined in source.
     ''' </summary>
     Friend MustInherit Class SourceTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _ordinal As Integer ' 0 is first type parameter, etc.
         Private ReadOnly _name As String

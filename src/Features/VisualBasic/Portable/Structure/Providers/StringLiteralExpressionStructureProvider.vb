@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,7 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class StringLiteralExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of LiteralExpressionSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As LiteralExpressionSyntax, spans As ArrayBuilder(Of BlockSpan), isMetadataAsSource As Boolean, options As OptionSet, cancellationToken As CancellationToken)
+        Protected Overrides Sub CollectBlockSpans(node As LiteralExpressionSyntax,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  optionProvider As BlockStructureOptionProvider,
+                                                  cancellationToken As CancellationToken)
             If node.IsKind(SyntaxKind.StringLiteralExpression) AndAlso
                 Not node.ContainsDiagnostics Then
                 spans.Add(New BlockSpan(

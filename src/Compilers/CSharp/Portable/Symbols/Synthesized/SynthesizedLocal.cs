@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
         private static int _nextSequence = 0;
         // Produce a token that helps distinguish one variable from another when debugging
-        private int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
+        private readonly int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
 
         internal string DumperString()
         {
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #endif
 
-        override internal string GetDebuggerDisplay()
+        internal override string GetDebuggerDisplay()
         {
             var builder = new StringBuilder();
             builder.Append('<');

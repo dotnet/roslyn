@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -301,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property;
-                Debug.Assert(autoProp.IsAutoProperty,
+                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
                     "only autoproperties can be assignable without having setters");
 
                 var backingField = autoProp.BackingField;
@@ -317,7 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 rewrittenArguments,
                 property,
-                setMethod,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
@@ -380,7 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [DisallowNull] T newElement)
+        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, T newElement)
+            where T : notnull
         {
             Debug.Assert(newElement is { });
             return possibleNull.NullToEmpty().Add(newElement);

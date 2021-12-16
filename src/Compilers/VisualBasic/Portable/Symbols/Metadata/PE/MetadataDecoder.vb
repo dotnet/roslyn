@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
-            Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
+            Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
@@ -361,8 +361,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
-                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
+                        Dim baseSpecialType As SpecialType = If(candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType, SpecialType.None)
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> If(baseType?.SpecialType, SpecialType.None) Then
                             Continue For
                         End If
 

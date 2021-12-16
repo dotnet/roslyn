@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -70,6 +73,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        internal static string UnescapeInterpolatedStringLiteral(string s)
+        {
+            var builder = PooledStringBuilder.GetInstance();
+            var stringBuilder = builder.Builder;
+            int formatLength = s.Length;
+            for (int i = 0; i < formatLength; i++)
+            {
+                char c = s[i];
+                stringBuilder.Append(c);
+                if ((c == '{' || c == '}') && (i + 1) < formatLength && s[i + 1] == c)
+                {
+                    i++;
+                }
+            }
+            return builder.ToStringAndFree();
+        }
+
         internal static ConstantValue GetAndValidateConstantValue(
             BoundExpression boundValue,
             Symbol thisSymbol,
@@ -78,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
+            CheckLangVersionForConstantValue(boundValue, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -136,6 +157,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return value;
+        }
+
+        private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            internal readonly DiagnosticBag diagnostics;
+
+            public CheckConstantInterpolatedStringValidity(DiagnosticBag diagnostics)
+            {
+                this.diagnostics = diagnostics;
+            }
+
+            public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+            {
+                Binder.CheckFeatureAvailability(node.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics);
+                return null;
+            }
+        }
+
+        internal static void CheckLangVersionForConstantValue(BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            if (!(expression.Type is null) && expression.Type.IsStringType())
+            {
+                var visitor = new CheckConstantInterpolatedStringValidity(diagnostics);
+                visitor.Visit(expression);
+            }
         }
     }
 }

@@ -227,9 +227,19 @@
         <target state="translated">Usuń niepotrzebne rzutowanie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">Usuń nadmiarową równość</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
         <target state="translated">Usuń niepotrzebne nawiasy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">Usuń niepotrzebne pomijanie</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -322,9 +332,19 @@
         <target state="translated">Użyj przypisania złożonego</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">Użyj operatora „--”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="translated">Użyj jawnie podanej nazwy krotki</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">Użyj operatora „++”</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">

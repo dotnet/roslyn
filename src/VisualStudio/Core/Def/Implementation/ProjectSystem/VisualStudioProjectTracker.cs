@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+#pragma warning disable IDE0060 // Remove unused parameter - compatibility shim for TypeScript
+
     [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal sealed partial class VisualStudioProjectTracker
     {
@@ -22,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        private readonly Dictionary<ProjectId, AbstractProject> _projects = new Dictionary<ProjectId, AbstractProject>();
+        private readonly Dictionary<ProjectId, AbstractProject> _projects = new();
 
         [Obsolete("This is a compatibility shim; please do not use it.")]
         public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)

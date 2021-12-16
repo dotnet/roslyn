@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +74,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
                 syntaxFacts.GetPartsOfConditionalExpression(
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
+                whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
+                whenFalse = syntaxFacts.WalkDownParentheses(whenFalse);
 
                 var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
@@ -148,7 +149,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             if (matchParent is TElementAccessExpression elementAccess)
             {
-                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess);
+                Debug.Assert(syntaxFacts.IsElementAccessExpression(elementAccess));
+                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess)!;
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
                         match, ElementBindingExpression(argumentList)));

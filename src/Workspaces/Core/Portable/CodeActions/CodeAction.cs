@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            => throw new NotSupportedException(GetType().FullName);
 
         /// <summary>
         /// used by batch fixer engine to get new solution
@@ -287,17 +285,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             return document;
         }
-
-        internal virtual bool PerformFinalApplicabilityCheck => false;
-
-        /// <summary>
-        /// Called by the CodeActions on the UI thread to determine if the CodeAction is still
-        /// applicable and should be presented to the user.  CodeActions can override this if they
-        /// need to do any final checking that must be performed on the UI thread (for example
-        /// accessing and querying the Visual Studio DTE).
-        /// </summary>
-        internal virtual bool IsApplicable(Workspace workspace)
-            => true;
 
         #region Factories for standard code actions
 

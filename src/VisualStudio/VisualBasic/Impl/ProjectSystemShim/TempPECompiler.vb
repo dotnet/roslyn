@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                       punkProject As Object,
                                       pProjHier As IVsHierarchy,
                                       pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
-            Dim project = New TempPEProject(Me, pVbCompilerHost)
+            Dim project = New TempPEProject(pVbCompilerHost)
 
             _projects.Add(project)
 

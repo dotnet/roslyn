@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,8 +16,8 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -30,14 +28,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
-        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
+        /// <summary>
+        /// Error list diagnostic source for "Build + Intellisense" setting.
+        /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
+        /// for error list diagnostic source for "Build only" setting.
+        /// </summary>
+        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem, DiagnosticsUpdatedArgs>
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+            /// <summary>
+            /// Flag indicating if a build inside Visual Studio is in progress.
+            /// We get build progress updates from <see cref="ExternalErrorDiagnosticUpdateSource.BuildProgressChanged"/>.
+            /// Build progress events are guaranteed to be invoked in a serial fashion during build.
+            /// </summary>
+            private bool _isBuildRunning;
+
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace)
             {
                 _workspace = workspace;
@@ -46,14 +56,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
 
                 _diagnosticService = diagnosticService;
-
                 ConnectToDiagnosticService(workspace, diagnosticService);
+
+                ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
+            public override object GetItemKey(DiagnosticsUpdatedArgs data) => data.Id;
+
+            private void ConnectToBuildUpdateSource(ExternalErrorDiagnosticUpdateSource? buildUpdateSource)
+            {
+                if (buildUpdateSource == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                OnBuildProgressChanged(buildUpdateSource.IsInProgress);
+                buildUpdateSource.BuildProgressChanged +=
+                    (_, progress) => OnBuildProgressChanged(running: progress != ExternalErrorDiagnosticUpdateSource.BuildProgress.Done);
+            }
+
+            private void OnBuildProgressChanged(bool running)
+            {
+                _isBuildRunning = running;
+
+                // We mark error list "Build + Intellisense" setting as stable,
+                // i.e. shown as "Error List" without the trailing "...", if both the following are true:
+                //  1. User invoked build is not running inside Visual Studio AND
+                //  2. Solution crawler is not running in background to compute intellisense diagnostics.
+                ChangeStableStateIfRequired(newIsStable: !_isBuildRunning && !IsSolutionCrawlerRunning);
+            }
 
             public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(
                 AbstractTableEntriesSource<DiagnosticTableItem> source,
@@ -73,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return snapshot;
             }
 
-            protected override object GetOrUpdateAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(DiagnosticsUpdatedArgs data)
             {
                 var key = TryGetAggregateKey(data);
                 if (key == null)
@@ -110,47 +145,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key.DocumentIds == documents;
             }
 
-            private object CreateAggregationKey(object data)
+            private object CreateAggregationKey(DiagnosticsUpdatedArgs data)
             {
-                var args = data as DiagnosticsUpdatedArgs;
-                if (args?.DocumentId == null || args?.Solution == null)
-                {
+                if (data.DocumentId == null || data.Solution == null)
                     return GetItemKey(data);
-                }
 
-                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
-                {
+                if (data.Id is not LiveDiagnosticUpdateArgsId liveArgsId)
                     return GetItemKey(data);
-                }
 
-                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
                 return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                foreach (var args in diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None))
+                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
+                    workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None);
+
+                foreach (var bucket in diagnostics)
                 {
-                    OnDataAddedOrChanged(args);
+                    // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
+                    // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
+                    // this doesn't actually change any data.  All that will happen now is that VS will call back into
+                    // us for these IDs and we'll fetch the diagnostics at that point.
+                    OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                        bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
                 }
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_workspace, a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
-                    if (e.Diagnostics.Length == 0)
+                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
                         return;
                     }
 
-                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    var count = diagnostics.Where(ShouldInclude).Count();
                     if (count <= 0)
                     {
                         OnDataRemoved(e);
@@ -249,7 +288,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var provider = _source._diagnosticService;
-                    var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                        .AsTask()
+                        .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
                                         .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
@@ -417,8 +458,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab)
-                    => TryNavigateToItem(index, previewTab);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 
@@ -517,8 +558,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                // remove this once we moved to new drop
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: remove this once we moved to new drop 
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
+#pragma warning restore IDE0060 // Remove unused parameter
                 {
                     content = null;
                     return false;
@@ -527,7 +569,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(Workspace workspace, DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
@@ -539,7 +581,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }
     }

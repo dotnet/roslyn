@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -38,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         internal ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation)
             => GetListItemFactory().GetNamespaceListItems(parentListItem, compilation);
 
-        internal ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)
-            => GetListItemFactory().GetProjectListItems(solution, languageName, listFlags, cancellationToken);
+        internal ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags)
+            => GetListItemFactory().GetProjectListItems(solution, languageName, listFlags);
 
         internal ImmutableArray<ObjectListItem> GetReferenceListItems(ObjectListItem parentListItem, Compilation compilation)
             => GetListItemFactory().GetReferenceListItems(parentListItem, compilation);

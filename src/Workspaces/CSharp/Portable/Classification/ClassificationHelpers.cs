@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -205,15 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(constructorDeclaration.Parent!);
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(destructorDeclaration.Parent!);
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
@@ -301,6 +295,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
+        private static string? GetClassificationTypeForConstructorOrDestructorParent(SyntaxNode parentNode)
+            => parentNode.Kind() switch
+            {
+                SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                _ => null
+            };
+
         private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
         {
             var parent = identifierSyntax.Parent;
@@ -350,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 _ => null,
             };
 
@@ -362,12 +366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     case SyntaxKind.LessThanToken:
                     case SyntaxKind.GreaterThanToken:
-                        // the < and > tokens of a type parameter list should be classified as
-                        // punctuation; otherwise, they're operators.
+                        // the < and > tokens of a type parameter list or function pointer parameter
+                        // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
                             if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList)
+                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
+                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -440,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                     return true;
 
                 default:

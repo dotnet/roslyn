@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -29,7 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
+#pragma warning disable IDE0044 // Add readonly modifier
         private CancellationTokenSource _disposalCancellationSource;
+#pragma warning restore IDE0044 // Add readonly modifier
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

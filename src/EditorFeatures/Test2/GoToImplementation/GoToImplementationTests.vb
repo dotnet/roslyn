@@ -2,21 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
-    Public Enum TestHost
-        InProcess
-        OutOfProcess
-    End Enum
-
     <[UseExportProvider]>
     Public Class GoToImplementationTests
 
-        Private Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True) As Task
+        Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
-                host <> TestHost.InProcess,
+                host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
                     Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
@@ -504,7 +500,7 @@ class D : C
         Public Async Function TestMultiTargetting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
-    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
         <Document FilePath="C.cs">
 public interface $$IInterface
 {
@@ -523,6 +519,147 @@ public interface IInterface
         <Document>
 public class [|Impl|] : IInterface
 {
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateStringAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;string&gt; CreateStringAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;string&gt; [|CreateStringAsync|]()
+    {
+        return "Another hello world - async!";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting2(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateTupleAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;(string s, string t)&gt; CreateTupleAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;(string x, string y)&gt; [|CreateTupleAsync|]()
+    {
+        return default;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting3(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateNintAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;nint&gt; CreateNintAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;nint&gt; [|CreateNintAsync|]()
+    {
+        return default;
+    }
 }
         </Document>
     </Project>

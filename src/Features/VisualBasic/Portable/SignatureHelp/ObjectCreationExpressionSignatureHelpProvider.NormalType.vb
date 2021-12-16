@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList()
 
             Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
-            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor.Symbol)
 
             Return (items, selectedItem)
         End Function

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -48,13 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             SyntaxNode staticUsingContainer,
             SyntaxNode aliasContainer,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             SyntaxNode root,
             CancellationToken cancellationToken)
         {
             var rewriter = new Rewriter(
-                externAliases, usingDirectives, staticUsingDirectives,
-                aliasDirectives, externContainer, usingContainer,
-                staticUsingContainer, aliasContainer, placeSystemNamespaceFirst, cancellationToken);
+                externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
+                externContainer, usingContainer, staticUsingContainer, aliasContainer,
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
 
             var newRoot = rewriter.Visit(root);
             return newRoot;
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         private class Rewriter : CSharpSyntaxRewriter
         {
             private readonly bool _placeSystemNamespaceFirst;
+            private readonly bool _allowInHiddenRegions;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxNode _externContainer;
             private readonly SyntaxNode _usingContainer;
             private readonly SyntaxNode _aliasContainer;
             private readonly SyntaxNode _staticUsingContainer;
-
             private readonly UsingDirectiveSyntax[] _aliasDirectives;
             private readonly ExternAliasDirectiveSyntax[] _externAliases;
             private readonly UsingDirectiveSyntax[] _usingDirectives;
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 SyntaxNode aliasContainer,
                 SyntaxNode staticUsingContainer,
                 bool placeSystemNamespaceFirst,
+                bool allowInHiddenRegions,
                 CancellationToken cancellationToken)
             {
                 _externAliases = externAliases;
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _aliasContainer = aliasContainer;
                 _staticUsingContainer = staticUsingContainer;
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _allowInHiddenRegions = allowInHiddenRegions;
                 _cancellationToken = cancellationToken;
             }
 
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)(base.VisitNamespaceDeclaration(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_cancellationToken))
+                if (!node.CanAddUsingDirectives(_allowInHiddenRegions, _cancellationToken))
                 {
                     return rewritten;
                 }
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
 
-                if (!node.CanAddUsingDirectives(_cancellationToken))
+                if (!node.CanAddUsingDirectives(_allowInHiddenRegions, _cancellationToken))
                 {
                     return rewritten;
                 }

@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -34,6 +31,21 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public DocumentId DocumentId => _newState.Attributes.Id;
+            }
+
+            internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
+            {
+#pragma warning disable IDE0052 // Remove unread private members
+                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional document changed
+                private readonly TextDocumentState _oldState;
+                private readonly TextDocumentState _newState;
+#pragma warning restore IDE0052 // Remove unread private members
+
+                public TouchAdditionalDocumentAction(TextDocumentState oldState, TextDocumentState newState)
+                {
+                    _oldState = oldState;
+                    _newState = newState;
+                }
             }
 
             internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction
@@ -135,33 +147,31 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
+#pragma warning disable IDE0052 // Remove unread private members
+                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an analyzer reference has been added
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+                private readonly string _language;
+#pragma warning restore IDE0052 // Remove unread private members
 
-                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
                     _analyzerReferences = analyzerReferences;
-                }
-
-                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
-                {
-                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
-                    return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.AddGenerators(generators));
+                    _language = language;
                 }
             }
 
             internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
+#pragma warning disable IDE0052 // Remove unread private members
+                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an analyzer reference has been removed
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+                private readonly string _language;
+#pragma warning restore IDE0052 // Remove unread private members
 
-                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
                     _analyzerReferences = analyzerReferences;
-                }
-
-                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
-                {
-                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
-                    return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.RemoveGenerators(generators));
+                    _language = language;
                 }
             }
 
@@ -176,14 +186,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     _additionalDocuments = additionalDocuments;
                 }
-
-                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
-                {
-                    // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
-                    // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
-                    // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileAddedEdit(new AdditionalTextWithState(a))));
-                    return new TrackedGeneratorDriver(generatorDriver: null);
-                }
             }
 
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
@@ -196,14 +198,6 @@ namespace Microsoft.CodeAnalysis
                 public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
-                }
-
-                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
-                {
-                    // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been removed
-                    // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
-                    // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileRemovedEdit(...)));
-                    return new TrackedGeneratorDriver(generatorDriver: null);
                 }
             }
         }

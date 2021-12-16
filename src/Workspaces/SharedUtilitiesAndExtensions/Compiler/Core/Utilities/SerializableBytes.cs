@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // free any chunks remaining
-        private static void BlowChunks(byte[][] chunks)
+        private static void BlowChunks(byte[][]? chunks)
         {
             if (chunks != null)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                     if (chunks[c] != null)
                     {
                         SharedPools.ByteArray.Free(chunks[c]);
-                        chunks[c] = null;
+                        chunks[c] = null!;
                     }
                 }
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                         SharedPools.ByteArray.Free(chunk);
                     }
 
-                    chunks = null;
+                    chunks = null!;
                 }
             }
 

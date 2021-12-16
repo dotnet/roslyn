@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -56,8 +58,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </returns>
         private static BitmapSource TryCaptureFullScreen()
         {
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
+            var width = Screen.PrimaryScreen.Bounds.Width;
+            var height = Screen.PrimaryScreen.Bounds.Height;
 
             if (width <= 0 || height <= 0)
             {

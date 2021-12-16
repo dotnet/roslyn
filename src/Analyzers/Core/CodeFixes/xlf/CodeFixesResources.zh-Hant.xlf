@@ -22,14 +22,19 @@
         <target state="translated">修正名稱違規: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">修正所有出現之處於</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">移除多餘的指派</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_suppression">
-        <source>Remove redundant suppression</source>
-        <target state="translated">移除多餘的隱藏項目</target>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">隱藏或設定問題</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

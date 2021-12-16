@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private static int s_globalId;
 
-        private readonly ConcurrentDictionary<object, T> _map = new ConcurrentDictionary<object, T>(concurrencyLevel: 2, capacity: 2);
+        private readonly ConcurrentDictionary<object, T> _map = new(concurrencyLevel: 2, capacity: 2);
 
         protected abstract T CreateCounter();
 

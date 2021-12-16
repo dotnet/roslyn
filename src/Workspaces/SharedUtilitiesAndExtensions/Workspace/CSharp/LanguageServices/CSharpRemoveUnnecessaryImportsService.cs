@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     internal partial class CSharpRemoveUnnecessaryImportsService :
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
-        public static readonly CSharpRemoveUnnecessaryImportsService Instance = new CSharpRemoveUnnecessaryImportsService();
+        public static readonly CSharpRemoveUnnecessaryImportsService Instance = new();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]

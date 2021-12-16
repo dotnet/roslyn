@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -27,17 +28,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
-            var typeAndLocation = GetInitializedType(document, semanticModel, position, cancellationToken);
-
-            if (typeAndLocation == null)
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            if (!(GetInitializedType(document, semanticModel, position, cancellationToken) is var (type, initializerLocation)))
             {
                 return;
             }
 
-            var initializerLocation = typeAndLocation.Item2;
-            if (!(typeAndLocation.Item1 is INamedTypeSymbol initializedType))
+            if (type is ITypeParameterSymbol typeParameterSymbol)
+            {
+                type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
+            }
+
+            if (!(type is INamedTypeSymbol initializedType))
             {
                 return;
             }
@@ -61,8 +63,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
             uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
-
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var uninitializedMember in uninitializedMembers)
             {

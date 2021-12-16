@@ -67,6 +67,11 @@
         <target state="translated">Accéder à la base</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Indicateurs inline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Nom d'assembly non valide</target>
@@ -107,11 +112,6 @@
         <target state="translated">Ponctuation</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Suppression du document non prise en charge</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renommer le _fichier (le type ne correspond pas au nom du fichier)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">Renommer le _fichier du symbole</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Diviser le commentaire</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Types d'utilisateurs - Interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Types d'utilisateur - Enregistrements</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -1192,11 +1202,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Fin de l'accolade</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Corriger toutes les occurrences dans</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -54,12 +52,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             var analyzerDiagnosticsByCategory = new SortedDictionary<string, ArrayBuilder<Diagnostic>>();
             using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var analyzerDiagnostics);

@@ -19,6 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property CanNameofAccessNonPublicMembersFromAttributeArgument As Boolean = False
+        Protected Overrides ReadOnly Property CanNameofAccessNonPublicMembersFromAttributeArgument As Boolean
     End Class
 End Namespace

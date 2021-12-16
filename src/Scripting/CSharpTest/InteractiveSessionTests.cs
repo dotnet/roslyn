@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -474,7 +476,7 @@ Environment.ProcessorCount
             var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
             var compilation1 = state1.Result.Script.GetCompilation();
             compilation1.VerifyDiagnostics(
-                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed type
                 // internal class C1 { }   protected int X;   1
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
                 );

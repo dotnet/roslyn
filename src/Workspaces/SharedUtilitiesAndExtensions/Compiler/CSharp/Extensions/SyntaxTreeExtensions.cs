@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -65,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             continue;
                         }
 
-                        if (token.HasMatchingText(SyntaxKindEx.DataKeyword))
+                        if (token.HasMatchingText(SyntaxKind.DataKeyword))
                         {
-                            result.Add(SyntaxKindEx.DataKeyword);
+                            result.Add(SyntaxKind.DataKeyword);
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinSingleLineDocComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var trivia = root.FindTrivia(position);
 
             // If we ask right at the end of the file, we'll get back nothing.
@@ -236,8 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (trivia.IsSingleLineDocComment())
             {
+                RoslynDebug.Assert(trivia.HasStructure);
+
                 var fullSpan = trivia.FullSpan;
-                var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+                var endsWithNewLine = trivia.GetStructure()!.GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 
                 if (endsWithNewLine)
                 {
@@ -416,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinCharLiteral(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing.

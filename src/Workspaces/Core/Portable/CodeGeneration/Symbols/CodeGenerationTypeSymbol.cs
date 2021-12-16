@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -75,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
         bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
+
+        public virtual bool IsRecord => false;
 
         public NullableAnnotation NullableAnnotation { get; }
 

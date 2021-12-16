@@ -2,15 +2,15 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
-        <source>Add await and ConfigureAwait(false)</source>
-        <target state="translated">添加 await 和 ConfigureAwait(false)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
-        <source>Add await</source>
-        <target state="translated">添加 await</target>
-        <note />
+        <source>Add 'await'</source>
+        <target state="translated">添加 "await"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_await_and_ConfigureAwaitFalse">
+        <source>Add 'await' and 'ConfigureAwait(false)'</source>
+        <target state="translated">添加 "await" 和 "ConfigureAwait(false)"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
@@ -30,6 +30,11 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">应用表达式/块主体首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">应用文件头首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -80,6 +85,16 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">更改为 "as" 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">更改为强制转换</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
@@ -629,7 +644,7 @@
       </trans-unit>
       <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
         <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'“{0}”不包含采用许多参数的构造函数。</target>
+        <target state="translated">“{0}”不包含采用许多参数的构造函数。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">

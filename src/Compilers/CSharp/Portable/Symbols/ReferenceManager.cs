@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -124,24 +122,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AssemblyIdentityComparer.CultureComparer.Equals(identity1.CultureName, identity2.CultureName);
             }
 
-            protected override AssemblySymbol?[] GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol)
+            protected override void GetActualBoundReferencesUsedBy(AssemblySymbol assemblySymbol, List<AssemblySymbol?> referencedAssemblySymbols)
             {
-                var refs = new List<AssemblySymbol?>();
-
+                Debug.Assert(referencedAssemblySymbols.IsEmpty());
                 foreach (var module in assemblySymbol.Modules)
                 {
-                    refs.AddRange(module.GetReferencedAssemblySymbols());
+                    referencedAssemblySymbols.AddRange(module.GetReferencedAssemblySymbols());
                 }
 
-                for (int i = 0; i < refs.Count; i++)
+                for (int i = 0; i < referencedAssemblySymbols.Count; i++)
                 {
-                    if (refs[i]!.IsMissing)
+                    if (referencedAssemblySymbols[i]!.IsMissing)
                     {
-                        refs[i] = null; // Do not expose missing assembly symbols to ReferenceManager.Binder
+                        referencedAssemblySymbols[i] = null; // Do not expose missing assembly symbols to ReferenceManager.Binder
                     }
                 }
-
-                return refs.ToArray();
             }
 
             protected override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies(AssemblySymbol candidateAssembly)

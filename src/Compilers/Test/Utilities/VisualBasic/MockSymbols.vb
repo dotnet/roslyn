@@ -17,7 +17,7 @@ Friend Class MockNamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
-    Private _extent As NamespaceExtent
+    Private ReadOnly _extent As NamespaceExtent
     Private _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
@@ -383,8 +383,8 @@ End Class
 Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
-    Private _name As String
-    Private _container As Symbol
+    Private ReadOnly _name As String
+    Private ReadOnly _container As Symbol
 
     Public Sub New(name As String)
         _name = name
@@ -529,6 +529,12 @@ Friend Class MockMethodSymbol
     End Property
 
     Public Overrides ReadOnly Property IsIterator As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property IsInitOnly As Boolean
         Get
             Return False
         End Get

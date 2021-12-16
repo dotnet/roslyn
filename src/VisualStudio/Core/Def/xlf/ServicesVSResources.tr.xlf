@@ -92,9 +92,24 @@
         <target state="translated">Arka plan çözümleme kapsamı:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="translated">32 bit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="translated">64 bit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Derleme ve canlı analiz (NuGet paketi)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="translated">C#/Visual Basic Tanılama Dili İstemcisi</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -137,9 +152,19 @@
         <target state="translated">Kod analizi, Çözüm için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="translated">Renk ipuçları</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Normal ifadeleri renklendir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="translated">Açıklamalar</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -159,7 +184,22 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">Geçerli parametre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="translated">Alt+F1 tuşlarına basılırken tüm ipuçlarını görüntüle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">Satır içi parametre adı ipuç_larını göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="translated">Satır içi tür ipuçlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -187,6 +227,16 @@
         <target state="translated">Öğe geçerli değil.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Razor 'pull' tanılamasını etkinleştir (deneysel, yeniden başlatma gerekir)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">'Pull' tanılamasını etkinleştir (deneysel, yeniden başlatma gerekir)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Bir çağrı sitesi değeri girin veya farklı bir değer yerleştirme tipi seçin</target>
@@ -205,6 +255,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Değerlendiriliyor (kuyrukta {0} görev var)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="translated">Temel Sınıfı Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -245,6 +300,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Depo içinde dizini oluşturulmuş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="translated">Satır İçi İpuçları (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -335,6 +395,16 @@
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">Ad Alanına Taşı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="translated">Ad, mevcut bir tür adıyla çakışıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="translated">Ad geçerli bir {0} tanımlayıcısı değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -495,6 +565,11 @@
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Gereksizse hiçbir zaman</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="translated">Yeni Tür Adı:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -737,14 +812,64 @@
         <target state="translated">Tamamlama listesini göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="translated">Diğer her şey için ipuçlarını göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">Örtük nesne oluşturma ipuçlarını göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="translated">Lambda parametre türleri için ipuçlarını göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="translated">Sabit değerler için ipuçlarını göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="translated">Çıkarsanan türlere sahip değişkenler için ipuçlarını göster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Bazı renk düzeni renkleri, Ortam &gt; Yazı Tipleri ve Renkler seçenek sayfasında yapılan değişiklikler tarafından geçersiz kılınıyor. Tüm özelleştirmeleri geri döndürmek için Yazı Tipleri ve Renkler sayfasında `Varsayılanları Kullan` seçeneğini belirleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="translated">Parametre adı metodun hedefi ile eşleştiğinde ipuçlarını gizle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="translated">Parametre adlarının yalnızca sonekleri farklı olduğunda ipuçlarını gizle</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Hedef Ad Alanı:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
+        <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
+        <target state="translated">Bu dosyayı oluşturan '{0}' oluşturucusu projeden kaldırıldı; bu dosya artık projenize dahil edilmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
+        <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
+        <target state="translated">Bu dosyayı oluşturan '{0}' oluşturucusu bu dosyayı oluşturmayı durdurdu; bu dosya artık projenize dahil edilmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
+        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
+        <target state="translated">Bu dosya, '{0}' oluşturucusu tarafından otomatik olarak oluşturuldu ve düzenlenemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
@@ -787,9 +912,9 @@
         <target state="translated">Önem derecesi güncelleştiriliyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="translated">.editorconfig uyumluluk modunu kullanın (yeniden başlatma gerektirir)</target>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="translated">Kod analizi için 64 bit işlemi kullanın (yeniden başlatma gerekir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -865,16 +990,6 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">En az bir üye seçmelisiniz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">Arabirim adı, mevcut bir tür adıyla çakışıyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">Arabirim adı, geçerli bir {0} tanımlayıcısı değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -997,6 +1112,16 @@
         <target state="translated">'{0}' ortak olacak şekilde değiştirildi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="generated_by_0_suffix">
+        <source>[generated by {0}]</source>
+        <target state="translated">[{0} tarafından oluşturuldu]</target>
+        <note>{0} is the name of a generator.</note>
+      </trans-unit>
+      <trans-unit id="generated_suffix">
+        <source>[generated]</source>
+        <target state="translated">[oluşturuldu]</target>
+        <note />
+      </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
         <target state="translated">sağlanan çalışma alanı, geri almayı desteklemiyor</target>
@@ -1004,7 +1129,7 @@
       </trans-unit>
       <trans-unit id="Add_a_reference_to_0">
         <source>Add a reference to '{0}'</source>
-        <target state="translated">{0}' öğesine başvuru ekleyin</target>
+        <target state="translated">'{0}' öğesine başvuru ekleyin</target>
         <note />
       </trans-unit>
       <trans-unit id="Event_type_is_invalid">
@@ -1034,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Can_t_create_a_node_id_for_this_symbol_kind_colon_0">
         <source>Can't create a node id for this symbol kind: '{0}'</source>
-        <target state="translated">{0}' sembol türü için düğüm kimliği oluşturulamıyor</target>
+        <target state="translated">'{0}' sembol türü için düğüm kimliği oluşturulamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_References">
@@ -1054,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project '{0}'</source>
-        <target state="translated">{0}' adlı proje bulunamadı</target>
+        <target state="translated">'{0}' adlı proje bulunamadı</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_location_of_folder_on_disk">
@@ -1162,16 +1287,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Proje: {0}
 
 Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçiş yapmak için açılan menüyü kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">{0} kural kümesi dosyası okunurken hata - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -1361,7 +1476,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Reference_to_0_in_project_1">
         <source>Reference to '{0}' in project '{1}'</source>
-        <target state="translated">{1}' adlı projedeki '{0}' öğesine yönelik başvuru</target>
+        <target state="translated">'{1}' adlı projedeki '{0}' öğesine yönelik başvuru</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown1">
@@ -1371,12 +1486,12 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Analyzer_reference_to_0_in_project_1">
         <source>Analyzer reference to '{0}' in project '{1}'</source>
-        <target state="translated">{1}' projesindeki '{0}' öğesine yönelik çözümleyici başvurusu</target>
+        <target state="translated">'{1}' projesindeki '{0}' öğesine yönelik çözümleyici başvurusu</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_reference_to_0_in_project_1">
         <source>Project reference to '{0}' in project '{1}'</source>
-        <target state="translated">{1}' adlı projedeki '{0}' öğesine yönelik proje başvurusu</target>
+        <target state="translated">'{1}' adlı projedeki '{0}' öğesine yönelik proje başvurusu</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDependencyConflict">
@@ -1386,7 +1501,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
         <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="translated">{0}' ve '{1}' çözümleyici bütünleştirilmiş kodlarının ikisi de '{2}' kimliğine sahip, ancak içerikleri farklı. Yalnızca biri yüklenecek; bu bütünleştirilmiş kodları kullanan çözümleyiciler düzgün şekilde çalışmayabilir.</target>
+        <target state="translated">'{0}' ve '{1}' çözümleyici bütünleştirilmiş kodlarının ikisi de '{2}' kimliğine sahip, ancak içerikleri farklı. Yalnızca biri yüklenecek; bu bütünleştirilmiş kodları kullanan çözümleyiciler düzgün şekilde çalışmayabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -1506,12 +1621,12 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
-        <target state="translated">{0}' yükleniyor</target>
+        <target state="translated">'{0}' yükleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Installing_0_completed">
         <source>Installing '{0}' completed</source>
-        <target state="translated">{0}' yüklendi</target>
+        <target state="translated">'{0}' yüklendi</target>
         <note />
       </trans-unit>
       <trans-unit id="Package_install_failed_colon_0">
@@ -1691,22 +1806,22 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Install_0">
         <source>Install '{0}'</source>
-        <target state="translated">{0}' öğesini yükle</target>
+        <target state="translated">'{0}' öğesini yükle</target>
         <note />
       </trans-unit>
       <trans-unit id="Uninstalling_0">
         <source>Uninstalling '{0}'</source>
-        <target state="translated">{0}' kaldırılıyor</target>
+        <target state="translated">'{0}' kaldırılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Uninstalling_0_completed">
         <source>Uninstalling '{0}' completed</source>
-        <target state="translated">{0}' kaldırıldı</target>
+        <target state="translated">'{0}' kaldırıldı</target>
         <note />
       </trans-unit>
       <trans-unit id="Uninstall_0">
         <source>Uninstall '{0}'</source>
-        <target state="translated">{0}' öğesini kaldır</target>
+        <target state="translated">'{0}' öğesini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Package_uninstall_failed_colon_0">
@@ -1754,7 +1869,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <source>Installing '{0}' failed.
 
 Additional information: {1}</source>
-        <target state="translated">{0}' yüklenemedi.
+        <target state="translated">'{0}' yüklenemedi.
 
 Ek bilgiler: {1}</target>
         <note />
@@ -1763,7 +1878,7 @@ Ek bilgiler: {1}</target>
         <source>Uninstalling '{0}' failed.
 
 Additional information: {1}</source>
-        <target state="translated">{0}' kaldırılamadı.
+        <target state="translated">'{0}' kaldırılamadı.
 
 Ek bilgiler: {1}</target>
         <note />
@@ -2065,12 +2180,12 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
-        <target state="translated">{0}' için yardım alın</target>
+        <target state="translated">'{0}' için yardım alın</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0_from_Bing">
         <source>Get help for '{0}' from Bing</source>
-        <target state="translated">{0}' için Bing'den yardım alın</target>
+        <target state="translated">'{0}' için Bing'den yardım alın</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">
@@ -2210,7 +2325,7 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="No_references_found_to_0">
         <source>No references found to '{0}'</source>
-        <target state="translated">{0}' için başvuru bulunamadı</target>
+        <target state="translated">'{0}' için başvuru bulunamadı</target>
         <note />
       </trans-unit>
       <trans-unit id="Search_found_no_results">
@@ -2240,21 +2355,21 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="translated">ÖNEMLİ: Visual Studio ikili koddan kaynak kodu yeniden üretmeyi sağlayan derleme ayırma (“Derleme Ayırıcı”) özelliğini içerir. Derleme Ayırıcı’ya erişerek ve kullanarak, Visual Studio lisans koşullarını ve aşağıdaki Derleme Ayırıcı koşullarını kabul etmiş olursunuz. Bu birleşik koşulları kabul etmiyorsanız, Derleme Ayırıcı’ya erişmeyin veya kullanmayın.
- 
-İkili kodun ve kaynak kodun telif hakkı ve ticari marka yasaları tarafından korunuyor olabileceğini kabul etmiş olursunuz. Derleme Ayırıcı’yı herhangi bir ikili kod üzerinde kullanmadan önce:  
-(i) ikili kodu kullanımınızı yöneten yasaların yazılım derlemesini ayırmasını yasaklayan bir madde içermediğinden emin olmanız; veya
-(ii) yazılım sahibinden ikili kodun derlemesini ayırmak için izin almanız gerekir.
- 
-Derleme Ayırıcı’yı kullanmak isteğe bağlıdır. Microsoft, yazılımın ayrılmasını yasaklayan herhangi bir yasayı veya yazılım lisansı koşulunu ihlal eden kullanımlardan sorumlu değildir ve tüm sorumluluğu reddeder.
+        <target state="translated">ÖNEMLİ: Visual Studio ikili koddan kaynak kodu yeniden üretmeyi sağlayan kaynak koda dönüştürme (“Kaynak Koda Dönüştürücü”) işlevini içerir. Kaynak Koda Dönüştürücü’ye erişerek ve kullanarak, Visual Studio lisans koşullarını ve aşağıdaki Kaynak Koda Dönüştürücü koşullarını kabul etmiş olursunuz. Bu birleşik koşulları kabul etmiyorsanız, Kaynak Koda Dönüştürücü’ye erişmeyin veya kullanmayın.
+
+İkili kodun ve kaynak kodun telif hakkı ve ticari marka yasaları tarafından korunuyor olabileceğini kabul etmiş olursunuz. Kaynak Koda Dönüştürücü’yü herhangi bir ikili kod üzerinde kullanmadan önce:
+(i) ikili kodu kullanımınızı yöneten yasaların yazılımı kaynak koda dönüştürmeyi yasaklayan bir madde içermediğinden emin olmanız; veya
+(ii) yazılım sahibinden ikili kodu kaynak koda dönüştürmek için izin almanız gerekir.
+
+Kaynak Koda Dönüştürücü’yü kullanmak isteğe bağlıdır. Microsoft, yazılımın kaynak koda dönüştürülmesini yasaklayan herhangi bir yasayı veya yazılım lisansı koşulunu ihlal eden kullanımlardan sorumlu değildir ve tüm sorumluluğu reddeder.
 
 Aşağıdakilerin tümünü onaylıyorum:</target>
         <note />

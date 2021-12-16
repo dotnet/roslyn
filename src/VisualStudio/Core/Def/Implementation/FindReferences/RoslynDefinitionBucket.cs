@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -52,12 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     name, expandedByDefault: true, presenter, context, definitionItem);
             }
 
-            public bool TryNavigateTo(bool isPreview)
+            public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionItem.TryNavigateTo(
-                    _presenter._workspace,
-                    isPreview ? NavigationBehavior.PreviewWithoutFocus : NavigationBehavior.Normal);
+                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
-            public override bool TryGetValue(string key, out object content)
+            public override bool TryGetValue(string key, out object? content)
             {
                 content = GetValue(key);
                 return content != null;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// Workaround this bug by overriding the string content to provide the proper data for the screen reader.
             /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1020534/
             /// </summary>
-            public override bool TryCreateStringContent(out string content)
+            public override bool TryCreateStringContent(out string? content)
             {
                 if (TryGetValue(StandardTableKeyNames.Text, out var contentValue) && contentValue is string textContent)
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            private object GetValue(string key)
+            private object? GetValue(string key)
             {
                 switch (key)
                 {
@@ -95,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         {
                             inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
                         }
+
                         return inlines;
 
                     case StandardTableKeyNames2.DefinitionIcon:

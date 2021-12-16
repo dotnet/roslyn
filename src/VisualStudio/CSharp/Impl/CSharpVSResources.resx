@@ -483,6 +483,9 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
+  <data name="Prefer_pattern_matching" xml:space="preserve">
+    <value>Prefer pattern matching</value>
+  </data>
   <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
     <value>Prefer pattern matching over 'is' with 'cast' check</value>
   </data>
@@ -536,9 +539,6 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate_Event_Subscription" xml:space="preserve">
-    <value>Generate Event Subscription</value>
-  </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
   </data>
@@ -574,7 +574,7 @@
     <value>When on multiple lines</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Inside_namespace" xml:space="preserve">
     <value>Inside namespace</value>
@@ -604,5 +604,30 @@
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>
+  </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
+  <data name="Pattern_matching_preferences_colon" xml:space="preserve">
+    <value>Pattern matching preferences:</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_mixed_type_check" xml:space="preserve">
+    <value>Prefer pattern matching over mixed type check</value>
+  </data>
+  <data name="Edit_color_scheme" xml:space="preserve">
+    <value>Edit color scheme</value>
+  </data>
+  <data name="Prefer_implicit_object_creation_when_type_is_apparent" xml:space="preserve">
+    <value>Prefer implicit object creation when type is apparent</value>
+  </data>
+  <data name="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments" xml:space="preserve">
+    <value>Insert // at the start of new lines when writing // comments</value>
+  </data>
+  <data name="Show_hints_for_new_expressions" xml:space="preserve">
+    <value>Show hints for 'new' expressions</value>
+  </data>
+  <data name="Add_missing_using_directives_on_paste" xml:space="preserve">
+    <value>Add missing using directives on paste</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
 </root>

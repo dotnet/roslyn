@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal class CSharpDeclarationComparer : IComparer<SyntaxNode>
     {
-        private static readonly Dictionary<SyntaxKind, int> s_kindPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
+        private static readonly Dictionary<SyntaxKind, int> s_kindPrecedenceMap = new(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.FieldDeclaration, 0 },
             { SyntaxKind.ConstructorDeclaration, 1 },
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.DelegateDeclaration, 14 }
         };
 
-        private static readonly Dictionary<SyntaxKind, int> s_operatorPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
+        private static readonly Dictionary<SyntaxKind, int> s_operatorPrecedenceMap = new(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.PlusToken, 0 },
             { SyntaxKind.MinusToken, 1 },
@@ -57,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.FalseKeyword, 21 },
         };
 
-        public static readonly CSharpDeclarationComparer WithNamesInstance = new CSharpDeclarationComparer(includeName: true);
-        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new CSharpDeclarationComparer(includeName: false);
+        public static readonly CSharpDeclarationComparer WithNamesInstance = new(includeName: true);
+        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new(includeName: false);
 
         private readonly bool _includeName;
 

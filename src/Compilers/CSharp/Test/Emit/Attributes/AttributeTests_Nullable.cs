@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -2011,10 +2013,10 @@ public class Program
             var expected =
 @"[NullableContext(1)] [Nullable(0)] Program
     Program()
-    System.Object! this[System.Object! x, System.Object! y] { get; }
-        System.Object! x
-        System.Object! y
-        [NullableContext(2)] [Nullable(1)] System.Object! this[System.Object! x, System.Object! y].get
+    System.Object! this[System.Object? x, System.Object? y] { get; }
+        System.Object? x
+        System.Object? y
+        [NullableContext(2)] [Nullable(1)] System.Object! this[System.Object? x, System.Object? y].get
             System.Object? x
             System.Object? y
     System.Object! this[System.Object? z] { set; }
@@ -2320,6 +2322,49 @@ class C
                     AssertNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });
+        }
+
+        [Fact]
+        public void EmitAttribute_UnconstrainedTypeParameter()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public T F1<T>() => default!;
+    public T? F2<T>() => default;
+    public T F3<T>() where T : class => default!;
+    public T? F4<T>() where T : class => default;
+    public T F5<T>() where T : class? => default!;
+    public T F6<T>() where T : struct => default;
+    public T? F7<T>() where T : struct => default;
+    public T F8<T>() where T : notnull => default;
+    public T? F9<T>() where T : notnull => default!;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    T F1<T>()
+        [Nullable(2)] T
+    [NullableContext(2)] T? F2<T>()
+        T
+    T! F3<T>() where T : class!
+        T
+    [Nullable(2)] T? F4<T>() where T : class!
+        T
+    T F5<T>() where T : class?
+        [Nullable(2)] T
+    [NullableContext(0)] T F6<T>() where T : struct
+        T
+    [NullableContext(0)] T? F7<T>() where T : struct
+        T
+    T F8<T>() where T : notnull
+        T
+    [Nullable(2)] T? F9<T>() where T : notnull
+        T
+    Program()
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -4778,6 +4823,138 @@ public class C
 ";
                 AssertNullableAttributes(module, expected);
             });
+        }
+
+        [Fact]
+        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        public void PropertyAccessorWithNullableContextAttribute_01()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public object? this[object x, object? y] => null;
+    public static A F(object x) => new A();
+    public static A F(object x, object? y) => new A();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] A
+    A! F(System.Object! x)
+        System.Object! x
+    A! F(System.Object! x, System.Object? y)
+        System.Object! x
+        [Nullable(2)] System.Object? y
+    A()
+    [Nullable(2)] System.Object? this[System.Object! x, System.Object? y] { get; }
+        [Nullable(1)] System.Object! x
+        System.Object? y
+        [NullableContext(2)] System.Object? this[System.Object! x, System.Object? y].get
+            [Nullable(1)] System.Object! x
+            System.Object? y
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        public void PropertyAccessorWithNullableContextAttribute_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public object? this[object x, object? y] { set { } }
+    public static A F(object x) => new A();
+    public static A F(object x, object? y) => new A();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] A
+    A! F(System.Object! x)
+        System.Object! x
+    A! F(System.Object! x, System.Object? y)
+        System.Object! x
+        [Nullable(2)] System.Object? y
+    A()
+    [Nullable(2)] System.Object? this[System.Object! x, System.Object? y] { set; }
+        [Nullable(1)] System.Object! x
+        System.Object? y
+        [NullableContext(2)] void this[System.Object! x, System.Object? y].set
+            [Nullable(1)] System.Object! x
+            System.Object? y
+            System.Object? value
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        public void PropertyAccessorWithNullableContextAttribute_03()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public object this[object? x, object y] => null;
+    public static A? F0;
+    public static A? F1;
+    public static A? F2;
+    public static A? F3;
+    public static A? F4;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(2)] [Nullable(0)] A
+    A? F0
+    A? F1
+    A? F2
+    A? F3
+    A? F4
+    A()
+    [Nullable(1)] System.Object! this[System.Object? x, System.Object! y] { get; }
+        [Nullable(2)] System.Object? x
+        System.Object! y
+        [NullableContext(1)] System.Object! this[System.Object? x, System.Object! y].get
+            [Nullable(2)] System.Object? x
+            System.Object! y
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        [WorkItem(47221, "https://github.com/dotnet/roslyn/issues/47221")]
+        public void PropertyAccessorWithNullableContextAttribute_04()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public object this[object? x, object y] { set { } }
+    public static A? F0;
+    public static A? F1;
+    public static A? F2;
+    public static A? F3;
+    public static A? F4;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(2)] [Nullable(0)] A
+    A? F0
+    A? F1
+    A? F2
+    A? F3
+    A? F4
+    A()
+    [Nullable(1)] System.Object! this[System.Object? x, System.Object! y] { set; }
+        [Nullable(2)] System.Object? x
+        System.Object! y
+        [NullableContext(1)] void this[System.Object? x, System.Object! y].set
+            [Nullable(2)] System.Object? x
+            System.Object! y
+            System.Object! value
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)

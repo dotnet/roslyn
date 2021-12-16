@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
-        Public Async Sub BuildQuickInfoItem()
+        Public Async Function BuildQuickInfoItem() As Task
 
             Dim codeAnalysisQuickInfoItem =
                 QuickInfoItem.Create(
@@ -108,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
-        Public Async Sub BuildQuickInfoItemWithoutDocumentation()
+        Public Async Function BuildQuickInfoItemWithoutDocumentation() As Task
 
             Dim codeAnalysisQuickInfoItem =
                 QuickInfoItem.Create(
@@ -194,11 +194,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
-        Public Async Sub BuildQuickInfoItemWithMultiLineDocumentation()
+        Public Async Function BuildQuickInfoItemWithMultiLineDocumentation() As Task
 
             Dim codeAnalysisQuickInfoItem =
                 QuickInfoItem.Create(
@@ -310,11 +310,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
-        Public Async Sub BuildQuickInfoFromSymbol()
+        Public Async Function BuildQuickInfoFromSymbol() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -391,11 +391,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
-        Public Async Sub QuickInfoShowsMethodRemarks()
+        Public Async Function QuickInfoShowsMethodRemarks() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -439,11 +439,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "Remarks text.")))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
-        Public Async Sub QuickInfoShowsMethodReturns()
+        Public Async Function QuickInfoShowsMethodReturns() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -497,11 +497,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
-        Public Async Sub QuickInfoShowsDelegateReturns()
+        Public Async Function QuickInfoShowsDelegateReturns() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -557,11 +557,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
-        Public Async Sub QuickInfoShowsPropertyValue()
+        Public Async Function QuickInfoShowsPropertyValue() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -620,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Value text."))))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("<para>text1</para><para>text2</para>")>
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <InlineData("<para/><para/>text1<br/><br/>text2<para/><para/>")>
         <InlineData("<para>text1</para><br/><para>text2</para>")>
         <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
-        Public Async Sub EquivalentParagraphForms(summary As String)
+        Public Async Function EquivalentParagraphForms(summary As String) As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -678,10 +678,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "text2")))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub InlineCodeElement()
+        Public Async Function InlineCodeElement() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -727,10 +727,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub BlockLevelCodeElement()
+        Public Async Function BlockLevelCodeElement() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -777,11 +777,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForParameterReference()
+        Public Async Function QuickInfoForParameterReference() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -829,11 +829,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForReadOnlyMethodReference()
+        Public Async Function QuickInfoForReadOnlyMethodReference() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -869,11 +869,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForReadOnlyPropertyReference()
+        Public Async Function QuickInfoForReadOnlyPropertyReference() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -912,11 +912,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForReadOnlyEventReference()
+        Public Async Function QuickInfoForReadOnlyEventReference() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -950,11 +950,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent", navigationAction:=Sub() Return, "readonly event Action MyStruct.MyEvent"))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForTypeParameterReference()
+        Public Async Function QuickInfoForTypeParameterReference() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1002,11 +1002,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForTypeParameterReferenceClosedGeneric()
+        Public Async Function QuickInfoForTypeParameterReferenceClosedGeneric() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1054,11 +1054,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
-        Public Async Sub QuickInfoForTypeParameterReferenceBoundGeneric()
+        Public Async Function QuickInfoForTypeParameterReferenceBoundGeneric() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1109,6 +1109,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, container)
-        End Sub
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")>
+        Public Async Function QuickInfoForRecords() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            public sealed record TestRecord(int X, int Y) { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var x = new Test$$Record(1, 2);
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "X", navigationAction:=Sub() Return, "int X"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ","),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "Y", navigationAction:=Sub() Return, "int Y"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
     End Class
 End Namespace

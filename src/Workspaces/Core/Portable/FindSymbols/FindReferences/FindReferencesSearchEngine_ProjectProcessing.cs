@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
+    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -27,17 +27,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
 
                     var documentTasks = new List<Task>();
-                    foreach (var kvp in documentMap)
+                    foreach (var (document, documentQueue) in documentMap)
                     {
-                        var document = kvp.Key;
-
                         if (document.Project == project)
-                        {
-                            var documentQueue = kvp.Value;
-
-                            documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(
-                                document, documentQueue), _cancellationToken));
-                        }
+                            documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken));
                     }
 
                     await Task.WhenAll(documentTasks).ConfigureAwait(false);

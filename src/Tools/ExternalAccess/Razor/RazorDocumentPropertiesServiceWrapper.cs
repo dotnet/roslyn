@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Host;
 
@@ -13,15 +11,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         public RazorDocumentPropertiesServiceWrapper(IRazorDocumentPropertiesService razorDocumentPropertiesService)
         {
-            DesignTimeOnly = razorDocumentPropertiesService.DesignTimeOnly;
             DiagnosticsLspClientName = razorDocumentPropertiesService.DiagnosticsLspClientName;
         }
-
-        /// <summary>
-        /// True if the source code contained in the document is only used in design-time (e.g. for completion),
-        /// but is not passed to the compiler when the containing project is built.
-        /// </summary>
-        public override bool DesignTimeOnly { get; }
 
         /// <summary>
         /// The LSP client name that should get the diagnostics produced by this document; any other source

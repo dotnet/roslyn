@@ -2,21 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System;
+
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorInfo
     {
         internal EditCallback<AdditionalFileEdit>? EditCallback { get; }
 
-        internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; }
+        internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; }
+
+        internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; }
 
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxReceiverCreator? receiverCreator)
+        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback)
         {
             EditCallback = editCallback;
-            SyntaxReceiverCreator = receiverCreator;
+            SyntaxContextReceiverCreator = receiverCreator;
+            PostInitCallback = postInitCallback;
             Initialized = true;
         }
 
@@ -24,9 +28,11 @@ namespace Microsoft.CodeAnalysis
         {
             internal EditCallback<AdditionalFileEdit>? EditCallback { get; set; }
 
-            internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; set; }
+            internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxReceiverCreator);
+            internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; set; }
+
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxContextReceiverCreator, PostInitCallback);
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,145 +10,212 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    internal class InProcOrRemoteHostAnalyzerRunner
     {
-        // internal for testing
-        internal class InProcOrRemoteHostAnalyzerRunner
+        private readonly IAsynchronousOperationListener _asyncOperationListener;
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
+
+        public InProcOrRemoteHostAnalyzerRunner(
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            IAsynchronousOperationListener? operationListener = null)
         {
-            private readonly IAsynchronousOperationListener _asyncOperationListener;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            AnalyzerInfoCache = analyzerInfoCache;
+            _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
+        }
 
-            public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+        public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentAsync(
+            DocumentAnalysisScope documentAnalysisScope,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+            => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers,
+                forceExecuteAllAnalyzers: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+
+        public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
+            Project project,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            bool forceExecuteAllAnalyzers,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+            => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers,
+                forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+
+        private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
+            DocumentAnalysisScope? documentAnalysisScope,
+            Project project,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            bool forceExecuteAllAnalyzers,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            var result = await AnalyzeCoreAsync().ConfigureAwait(false);
+            Debug.Assert(getTelemetryInfo || result.TelemetryInfo.IsEmpty);
+            return result;
+
+            async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeCoreAsync()
             {
-                _asyncOperationListener = operationListener;
-                _analyzerInfoCache = analyzerInfoCache;
-            }
+                Contract.ThrowIfFalse(!compilationWithAnalyzers.Analyzers.IsEmpty);
 
-            public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers compilation, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfFalse(compilation.Analyzers.Length != 0);
-
-                var workspace = project.Solution.Workspace;
-                var service = workspace.Services.GetService<IRemoteHostClientProvider>();
-                if (service == null)
+                var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (remoteHostClient != null)
                 {
-                    // host doesn't support RemoteHostService such as under unit test
-                    return await AnalyzeInProcAsync(compilation, project, client: null, cancellationToken).ConfigureAwait(false);
+                    return await AnalyzeOutOfProcAsync(documentAnalysisScope, project, compilationWithAnalyzers, remoteHostClient,
+                        forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
                 }
 
-                var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
-                {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await AnalyzeInProcAsync(compilation, project, client: null, cancellationToken).ConfigureAwait(false);
-                }
-
-                // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
-                // that are not part of roslyn solution. these host analyzers must be sync to OOP before hand by the Host. 
-                return await AnalyzeOutOfProcAsync(remoteHostClient, compilation, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
-                CompilationWithAnalyzers compilation, Project project, RemoteHostClient? client, CancellationToken cancellationToken)
-            {
-                Debug.Assert(compilation.Analyzers.Length != 0);
-
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-                // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-                var analysisResult = await compilation.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
-
-                // if remote host is there, report performance data
-                var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
-                var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
-
-                var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
-
-                // get compiler result builder map
-                var builderMap = analysisResult.ToResultBuilderMap(project, version, compilation.Compilation, compilation.Analyzers, skippedAnalyzersInfo, cancellationToken);
-
-                return DiagnosticAnalysisResultMap.Create(
-                    builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value)),
-                    analysisResult.AnalyzerTelemetryInfo);
-            }
-
-            private async Task FireAndForgetReportAnalyzerPerformanceAsync(Project project, RemoteHostClient? client, AnalysisResult analysisResult, CancellationToken cancellationToken)
-            {
-                if (client == null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    await client.RunRemoteAsync(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                        solution: null,
-                        new object[]
-                        {
-                            analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache),
-                            // +1 for project itself
-                            project.DocumentIds.Count + 1
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
-                {
-                    // ignore all, this is fire and forget method
-                }
-            }
-
-            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
-                RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
-            {
-                var solution = project.Solution;
-
-                using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
-                var analyzerMap = pooledObject.Object;
-
-                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Options)));
-                if (analyzerMap.Count == 0)
-                {
-                    return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-                }
-
-                var argument = new DiagnosticArguments(
-                    forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    project.Id, analyzerMap.Keys.ToArray());
-
-                return await client.RunRemoteAsync(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
-                    solution,
-                    new object[] { argument },
-                    callbackTarget: null,
-                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c),
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
-            {
-                // handling of cancellation and exception
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
-
-                // We only get a reader for data transmitted between live processes.
-                // This data should always be correct as we're never persisting the data between sessions.
-                Contract.ThrowIfNull(reader);
-
-                return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
+                return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
+                    client: null, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
+            DocumentAnalysisScope? documentAnalysisScope,
+            Project project,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            RemoteHostClient? client,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+
+            var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                documentAnalysisScope, project, AnalyzerInfoCache, cancellationToken).ConfigureAwait(false);
+
+            if (logPerformanceInfo)
+            {
+                // if remote host is there, report performance data
+                var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
+                var _ = FireAndForgetReportAnalyzerPerformanceAsync(documentAnalysisScope, project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
+            }
+
+            var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
+            var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(AnalyzerInfoCache);
+
+            // get compiler result builder map
+            var builderMap = await analysisResult.ToResultBuilderMapAsync(
+                additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
+                compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo,
+                compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+
+            var result = builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
+            var telemetry = getTelemetryInfo
+                ? analysisResult.AnalyzerTelemetryInfo
+                : ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty;
+            return DiagnosticAnalysisResultMap.Create(result, telemetry);
+        }
+
+        private async Task FireAndForgetReportAnalyzerPerformanceAsync(
+            DocumentAnalysisScope? documentAnalysisScope,
+            Project project,
+            RemoteHostClient? client,
+            AnalysisResult analysisResult,
+            CancellationToken cancellationToken)
+        {
+            if (client == null)
+            {
+                return;
+            }
+
+            try
+            {
+                // +1 for project itself
+                var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
+
+                var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
+
+                _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+            {
+                // ignore all, this is fire and forget method
+            }
+        }
+
+        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
+            DocumentAnalysisScope? documentAnalysisScope,
+            Project project,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            RemoteHostClient client,
+            bool forceExecuteAllAnalyzers,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+
+            using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
+            var analyzerMap = pooledObject.Object;
+
+            var analyzers = documentAnalysisScope?.Analyzers ??
+                compilationWithAnalyzers.Analyzers.Where(a => forceExecuteAllAnalyzers || !a.IsOpenFileOnly(solution.Options));
+            analyzerMap.AppendAnalyzerMap(analyzers);
+
+            if (analyzerMap.Count == 0)
+            {
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+            }
+
+            var argument = new DiagnosticArguments(
+                compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
+                logPerformanceInfo,
+                getTelemetryInfo,
+                documentAnalysisScope?.TextDocument.Id,
+                documentAnalysisScope?.Span,
+                documentAnalysisScope?.Kind,
+                project.Id,
+                analyzerMap.Keys.ToArray());
+
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
+                solution,
+                invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!result.HasValue)
+            {
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+            }
+
+            // handling of cancellation and exception
+            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+
+            var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
+
+            return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
+                result.Value.Diagnostics.ToImmutableDictionary(
+                    entry => analyzerMap[entry.analyzerId],
+                    entry => DiagnosticAnalysisResult.Create(
+                        project,
+                        version,
+                        syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
+                        semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
+                        nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
+                        others: entry.diagnosticMap.Other,
+                        documentIds)),
+                result.Value.Telemetry.ToImmutableDictionary(entry => analyzerMap[entry.analyzerId], entry => entry.telemetry));
+        }
+
+        // TODO: filter in OOP https://github.com/dotnet/roslyn/issues/47859
+        private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Hydrate(ImmutableArray<(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)> diagnosticByDocument, Project project)
+            => diagnosticByDocument
+                .Where(entry => project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() == true)
+                .ToImmutableDictionary(entry => entry.documentId, entry => entry.diagnostics);
     }
 }

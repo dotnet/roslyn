@@ -290,9 +290,11 @@ End Class
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
 BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
     Sub <%= s_longSymbolName %>1()
         <%= _longSquiggle_ %>~
+BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
+        Sub <%= s_longSymbolName %>1()
+            <%= _longSquiggle_ %>~
 BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in metadata.
         Sub <%= s_longSymbolName %>1()
             <%= _longSquiggle_ %>~

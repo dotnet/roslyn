@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -47,7 +49,7 @@ class C
 interface C
 {
     int P => 1;
-}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,14): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     int P => 1;
@@ -81,7 +83,7 @@ class C
     // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "1").WithArguments("C.P.get").WithLocation(4, 29),
-    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "1").WithArguments("C.P.get", "C").WithLocation(4, 29));
         }
@@ -210,7 +212,7 @@ class C
     // (4,24): error CS1597: Semicolon after method or accessor block is not valid
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 24),
-    // (4,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    // (4,26): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 26));
         }

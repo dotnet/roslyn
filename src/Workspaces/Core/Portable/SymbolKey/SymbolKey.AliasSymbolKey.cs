@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -15,14 +16,14 @@ namespace Microsoft.CodeAnalysis
             {
                 visitor.WriteString(symbol.Name);
                 visitor.WriteSymbolKey(symbol.Target);
-                visitor.WriteString(FirstOrDefault(symbol.DeclaringSyntaxReferences)?.SyntaxTree.FilePath ?? "");
+                visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var name = reader.ReadString();
+                var name = reader.ReadString()!;
                 var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
-                var filePath = reader.ReadString();
+                var filePath = reader.ReadString()!;
 
                 if (targetFailureReason != null)
                 {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (child.IsNode)
                     {
-                        var result = Resolve(semanticModel, child.AsNode(), name, target, cancellationToken);
+                        var result = Resolve(semanticModel, child.AsNode()!, name, target, cancellationToken);
                         if (result.HasValue)
                         {
                             return result;

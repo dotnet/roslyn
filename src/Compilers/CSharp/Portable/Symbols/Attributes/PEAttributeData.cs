@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Threading;
 
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal protected override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get
             {
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get
             {
@@ -148,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _decoder.GetTargetAttributeSignatureIndex(_handle, description);
         }
 
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get

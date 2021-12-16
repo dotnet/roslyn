@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,20 +9,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
     {
-        protected AbstractFormatDocumentHandlerBase(ILspSolutionProvider solutionProvider) : base(solutionProvider)
-        {
-        }
-
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            var document = SolutionProvider.GetDocument(documentIdentifier, clientName);
+            var document = context.Document;
 
             if (document != null)
             {
@@ -45,5 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         protected virtual Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
             => formattingService.GetFormattingChangesAsync(document, textSpan, cancellationToken);
+        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
+        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -352,6 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (from a in @this.GetAttributes()
                     where a.AttributeConstructor.Equals(m)
                     select a).ToList().First();
+        }
+
+        public static bool HasAttribute(this Symbol @this, MethodSymbol m)
+        {
+            return (from a in @this.GetAttributes()
+                    where a.AttributeConstructor.Equals(m)
+                    select a).ToList().FirstOrDefault() != null;
         }
 
         public static void VerifyValue<T>(this CSharpAttributeData attr, int i, TypedConstantKind kind, T v)

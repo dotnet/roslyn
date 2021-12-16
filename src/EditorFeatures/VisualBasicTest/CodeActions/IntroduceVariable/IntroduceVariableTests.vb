@@ -1634,8 +1634,8 @@ End Class")
 End Module",
 "Module Program
     Sub Main()
-        Dim {|Rename:v|} As Integer() = New Integer() {}
-        Return v
+        Dim {|Rename:vs|} As Integer() = New Integer() {}
+        Return vs
     End Sub
 End Module")
         End Function
@@ -1953,8 +1953,8 @@ End Class",
 
 Class C
     Shared Sub Main()
-        Dim {|Rename:v|} As Integer() = New C().Goo()
-        Dim x = v(0)
+        Dim {|Rename:vs|} As Integer() = New C().Goo()
+        Dim x = vs(0)
     End Sub
     Function Goo() As Integer()
     End Function

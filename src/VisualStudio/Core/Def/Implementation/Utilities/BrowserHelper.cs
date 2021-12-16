@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell;
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private const string BingGetApiUrl = "https://bingdev.cloudapp.net/BingUrl.svc/Get";
         private const int BingQueryArgumentMaxLength = 10240;
 
-        private static bool TryGetWellFormedHttpUri(string link, out Uri uri)
+        private static bool TryGetWellFormedHttpUri(string? link, [NotNullWhen(true)] out Uri? uri)
         {
             uri = null;
             if (string.IsNullOrWhiteSpace(link) || !Uri.IsWellFormedUriString(link, UriKind.Absolute))
@@ -39,13 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri GetHelpLink(DiagnosticDescriptor descriptor, string language)
+        public static Uri? GetHelpLink(DiagnosticDescriptor descriptor, string language)
             => GetHelpLink(descriptor.Id, descriptor.GetBingHelpMessage(), language, descriptor.HelpLinkUri);
 
-        public static Uri GetHelpLink(DiagnosticData data)
+        public static Uri? GetHelpLink(DiagnosticData data)
             => GetHelpLink(data.Id, data.ENUMessageForBingSearch, data.Language, data.HelpLink);
 
-        private static Uri GetHelpLink(string diagnosticId, string title, string language, string rawHelpLink)
+        private static Uri? GetHelpLink(string diagnosticId, string? title, string? language, string? rawHelpLink)
         {
             if (string.IsNullOrWhiteSpace(diagnosticId))
             {
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 "&errorCode=" + EscapeDataString(diagnosticId));
         }
 
-        private static string EscapeDataString(string str)
+        private static string EscapeDataString(string? str)
         {
             if (str == null)
             {
@@ -82,8 +83,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
         }
 
-        public static string GetHelpLinkToolTip(DiagnosticData data)
-            => GetHelpLinkToolTip(data.Id, GetHelpLink(data));
+        public static string? GetHelpLinkToolTip(DiagnosticData data)
+        {
+            var helpLink = GetHelpLink(data);
+
+            if (helpLink == null)
+            {
+                return null;
+            }
+
+            return GetHelpLinkToolTip(data.Id, helpLink);
+        }
 
         public static string GetHelpLinkToolTip(string diagnosticId, Uri uri)
         {

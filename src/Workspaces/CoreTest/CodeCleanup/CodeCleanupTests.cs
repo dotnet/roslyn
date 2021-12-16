@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
-using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -230,18 +232,20 @@ End Class
             var semanticModel = await document.GetSemanticModelAsync();
             var root = await document.GetSyntaxRootAsync();
             var accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
-            var factory = new SemanticModelWorkspaceServiceFactory();
-            var service = (ISemanticModelService)factory.CreateService(document.Project.Solution.Workspace.Services);
-            var newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
+            var newSemanticModel = await document.ReuseExistingSpeculativeModelAsync(accessor.Statements[0], CancellationToken.None);
             Assert.NotNull(newSemanticModel);
+            Assert.False(newSemanticModel.IsSpeculativeSemanticModel);
+
             var newDocument = CreateDocument(code, LanguageNames.VisualBasic);
             var newRoot = await newDocument.GetSyntaxRootAsync();
             var newAccessor = newRoot.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
             root = root.ReplaceNode(accessor, newAccessor);
             document = document.WithSyntaxRoot(root);
             accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
-            newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
+            newSemanticModel = await document.ReuseExistingSpeculativeModelAsync(accessor.Statements[0], CancellationToken.None);
             Assert.NotNull(newSemanticModel);
+            Assert.True(newSemanticModel.IsSpeculativeSemanticModel);
+
             var cleanDocument = await CodeCleaner.CleanupAsync(document);
             Assert.Equal(document, cleanDocument);
         }

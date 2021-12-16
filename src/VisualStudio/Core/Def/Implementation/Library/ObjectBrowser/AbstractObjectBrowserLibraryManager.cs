@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -28,11 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal ILibraryService LibraryService => _libraryService.Value;
 
-        private readonly IServiceProvider _serviceProvider;
         private readonly Lazy<ILibraryService> _libraryService;
-
         private readonly string _languageName;
-        private readonly __SymbolToolLanguage _preferredLanguage;
 
         private uint _classVersion;
         private uint _membersVersion;
@@ -40,22 +38,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
-        private readonly object _classMemberGate = new object();
+        private readonly object _classMemberGate = new();
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
-            __SymbolToolLanguage preferredLanguage,
             IServiceProvider serviceProvider,
             IComponentModel componentModel,
             VisualStudioWorkspace workspace)
             : base(libraryGuid, serviceProvider)
         {
             _languageName = languageName;
-            _preferredLanguage = preferredLanguage;
-            _serviceProvider = serviceProvider;
 
             Workspace = workspace;
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -130,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 UpdateClassAndMemberVersions();
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 // make it crash VS on any exception
             }
@@ -331,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             Debug.Assert(listKind == ObjectListKind.Projects);
 
-            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags, CancellationToken.None));
+            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
         }
 
         protected override uint GetUpdateCounter()
@@ -344,9 +339,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             ppNavInfo = null;
 
             var count = 0;
-            string libraryName = null;
             string referenceOwnerName = null;
 
+            string libraryName;
             if (rgSymbolNodes[0].dwType != (uint)_LIB_LISTTYPE.LLT_PACKAGE)
             {
                 Debug.Fail("Symbol description should always contain LLT_PACKAGE node as first node");
@@ -498,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // and the references will be asynchronously added to the FindReferences
                                 // window as they are computed.  The user also knows something is happening
                                 // as the window, with the progress-banner will pop up immediately.
-                                var task = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }
@@ -540,7 +535,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

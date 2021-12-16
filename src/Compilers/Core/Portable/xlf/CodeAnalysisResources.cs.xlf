@@ -12,6 +12,16 @@
         <target state="translated">Pro tuto možnost se musí zadat název jazyka.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Sestavení, které obsahuje typ {0}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Změny musí spadat do mezí SourceText.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">Změna verze odkazu na sestavení není povolená při ladění: {0} změnil(a) verzi na {1}.</target>
@@ -37,6 +47,11 @@
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
         <target state="translated">Parametr hintName přidaného zdrojového souboru musí být jedinečný v rámci generátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">Další soubor nepatří do základního CompilationWithAnalyzers.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -108,6 +123,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">Na jeden generátor je možné zaregistrovat jen jedno {0}.</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="translated">Zadaný SourceText musí mít explicitní sadu kódování.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -552,6 +572,16 @@
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
         <target state="translated">Neplatný název jazykové verze: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">Název oddílu konfigurace globálního analyzátoru {0} není platný, protože to není absolutní cesta. Oddíl se bude ignorovat. Deklaroval se v souboru: {1}</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">Název oddílu konfigurace globálního analyzátoru není platný, protože to není absolutní cesta. Oddíl se bude ignorovat</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

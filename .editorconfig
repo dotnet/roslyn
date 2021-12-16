@@ -148,6 +148,21 @@ dotnet_diagnostic.RS2008.severity = none
 dotnet_diagnostic.IDE0073.severity = warning
 file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
 
+# IDE0035: Remove unreachable code
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0043: Format string contains invalid placeholder
+dotnet_diagnostic.IDE0043.severity = warning
+
+# IDE0044: Make field readonly
+dotnet_diagnostic.IDE0044.severity = warning
+
+# RS0016: Only enable if API files are present
+dotnet_public_api_analyzer.require_api_files = true
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -218,33 +233,19 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-# warning RS0037: PublicAPI.txt is missing '#nullable enable'
-dotnet_diagnostic.RS0037.severity = none
-
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
 
-[src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
+[src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures, VisualStudio}/**/*.{cs,vb}]
+
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
 # NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
 dotnet_diagnostic.IDE0011.severity = warning
 
-# IDE0035: Remove unreachable code
-dotnet_diagnostic.IDE0035.severity = warning
-
-# IDE0036: Order modifiers
-dotnet_diagnostic.IDE0036.severity = warning
-
 # IDE0040: Add accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
-
-# IDE0043: Format string contains invalid placeholder
-dotnet_diagnostic.IDE0043.severity = warning
-
-# IDE0044: Make field readonly
-dotnet_diagnostic.IDE0044.severity = warning
 
 # CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
 # IDE0051: Remove unused private member
@@ -267,3 +268,9 @@ dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
+
+[src/{VisualStudio}/**/*.{cs,vb}]
+# CA1822: Make member static
+# Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
+# Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
+dotnet_diagnostic.CA1822.severity = suggestion

@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
@@ -42,13 +45,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
                 return false;
 
-            // Look for simple patterns that are known to be absolutely safe to always remove.
-            if (CastCanDefinitelyBeRemoved(castNode, castedExpressionNode, semanticModel, cancellationToken))
+            // Now perform basic checks looking for a few things:
+            //
+            // 1. casts that must stay because removal will produce actually illegal code.
+            // 2. casts that must stay because they have runtime impact (i.e. could cause exceptions to be thrown).
+            // 3. casts that *seem* unnecessary because they don't violate the above, and the cast seems like it has no
+            //    effect at runtime (i.e. casting a `string` to `object`).  Note: just because the cast seems like it
+            //    will have not runtime impact doesn't mean we can remove it.  It still may be necessary to preserve the
+            //    meaning of the code (for example for overload resolution).  That check will occur after this.
+            //
+            // This is the fundamental separation between CastHasNoRuntimeImpact and
+            // speculationAnalyzer.ReplacementChangesSemantics.  The former is simple and is only asking if the cast
+            // seems like it would have no impact *at runtime*.  The latter ensures that the static meaning of the code
+            // is preserved.
+            //
+            // When adding/updating checks keep the above in mind to determine where the check should go.
+            var castHasRuntimeImpact = CastHasRuntimeImpact(
+                speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+            if (castHasRuntimeImpact)
+                return false;
+
+            // Cast has no runtime effect.  But it may change static semantics.  Only allow removal if static semantics
+            // don't change.
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
+
+            return true;
+        }
+
+        private static bool CastHasRuntimeImpact(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Look for simple patterns we know will never cause any runtime changes.  
+            if (CastDefinitelyHasNoRuntimeImpact(castNode, castedExpressionNode, semanticModel, cancellationToken))
+                return false;
+
+            // Call into our legacy codepath that tries to make the same determination. 
+            return !CastHasNoRuntimeImpact_Legacy(speculationAnalyzer, castNode, castedExpressionNode, semanticModel, cancellationToken);
+        }
+
+        private static bool CastDefinitelyHasNoRuntimeImpact(
+            ExpressionSyntax castNode,
+            ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // NOTE: Keep this method simple.  Each type of runtime impact check should just be a new check added
+            // independently from the rest.  We want to make it very clear exactly which cases each check is covering.
+
+            // castNode is:             `(Type)expr` or `expr as Type`.
+            // castedExpressionnode is: `expr`
+
+            // The type in `(Type)...` or `... as Type`
+            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+
+            // The type in `(...)expr` or `expr as ...`
+            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
+
+            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast as this cast happens automatically.
+            if (IsObjectCastInInterpolation(castNode, castType))
                 return true;
 
-            // Then look for patterns for cases where we never want to remove casts.  Note: we want these checks to be
-            // very fast, and to eliminate as many cases as necessary.  Importantly, we want to be able to do these
-            // checks before calling into the speculation analyzer.
+            // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            return false;
+        }
+
+        private static bool CastHasNoRuntimeImpact_Legacy(
+            SpeculationAnalyzer speculationAnalyzer,
+            ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Note: Legacy codepaths for determining if a cast is removable.  As much as possible we should attempt to 
+            // extract simple and clearly defined checks from here and move to CastDefinitelyHasNoRuntimeImpact.
+
+            // Then look for patterns for cases where we never want to remove casts.
             if (CastMustBePreserved(castNode, castedExpressionNode, semanticModel, cancellationToken))
                 return false;
 
@@ -58,6 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
+            RoslynDebug.AssertNotNull(castType);
+
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
@@ -73,6 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (expressionToCastType.IsIdentity)
                 return true;
 
+            // Is this a cast inside a conditional expression? Because of target typing we already sorted that out
+            // in ReplacementChangesSemantics()
+            if (IsBranchOfConditionalExpression(castNode))
+            {
+                return true;
+            }
+
             // We already bailed out of we had an explicit/none conversions back in CastMustBePreserved 
             // (except for implicit user defined conversions).
             Debug.Assert(!expressionToCastType.IsExplicit || expressionToCastType.IsUserDefined);
@@ -87,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // FormattableString or some interface of FormattableString.
 
                 return castType.Equals(castTypeInfo.ConvertedType) ||
-                       ImmutableArray<ITypeSymbol>.CastUp(castType.AllInterfaces).Contains(castTypeInfo.ConvertedType);
+                       ImmutableArray<ITypeSymbol?>.CastUp(castType.AllInterfaces).Contains(castTypeInfo.ConvertedType);
             }
 
             if (castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) &&
@@ -152,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     expressionToCastType.IsImplicit &&
                     (expressionToCastType.IsNumeric || expressionToCastType.IsConstantExpression))
                 {
+                    RoslynDebug.AssertNotNull(expressionType);
+
                     // Some implicit numeric conversions can cause loss of precision and must not be removed.
                     return !IsRequiredImplicitNumericConversion(expressionType, castType);
                 }
@@ -176,6 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     }
                     else if (expressionToCastType.IsImplicit && expressionToCastType.IsNumeric && !castToOuterType.IsIdentity)
                     {
+                        RoslynDebug.AssertNotNull(expressionType);
+
                         // Some implicit numeric conversions can cause loss of precision and must not be removed.
                         return !IsRequiredImplicitNumericConversion(expressionType, castType);
                     }
@@ -241,32 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool CastCanDefinitelyBeRemoved(
-            ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // castNode is:             `(Type)expr` or `expr as Type`.
-            // castedExpressionnode is: `expr`
-
-            // The type in `(Type)...` or `... as Type`
-            var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
-
-            // The type in `(...)expr` or `expr as ...`
-            var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
-
-            // $"x {(object)y} z"    It's always safe to remove this `(object)` cast.
-            if (IsObjectCastInInterpolation(castNode, castType))
-                return true;
-
-            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
-                return true;
-
-            return false;
-        }
-
-        private static bool IsObjectCastInInterpolation(ExpressionSyntax castNode, ITypeSymbol castType)
+        private static bool IsObjectCastInInterpolation(ExpressionSyntax castNode, [NotNullWhen(true)] ITypeSymbol? castType)
         {
             // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             // in order to call string.Format(...) anyway.
@@ -276,8 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsEnumToNumericCastThatCanDefinitelyBeRemoved(
             ExpressionSyntax castNode,
-            ITypeSymbol castType,
-            ITypeSymbol castedExpressionType,
+            [NotNullWhen(true)] ITypeSymbol? castType,
+            [NotNullWhen(true)] ITypeSymbol? castedExpressionType,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -289,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // if we have `(E)~(int)e` then the cast to (int) is not necessary as enums always support `~`.
             castNode = castNode.WalkUpParentheses();
-            if (castNode.IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax prefixUnary))
+            if (castNode.IsParentKind(SyntaxKind.BitwiseNotExpression, out PrefixUnaryExpressionSyntax? prefixUnary))
             {
-                if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax parentCast))
+                if (!prefixUnary.WalkUpParentheses().IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax? parentCast))
                     return false;
 
                 // `(int)` in `(E?)~(int)e` is also redundant.
@@ -310,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 {
                     var otherSide = castNode == binaryExpression.Left ? binaryExpression.Right : binaryExpression.Left;
                     var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
-                    if (otherSideType.Equals(castedEnumType.EnumUnderlyingType))
+                    if (Equals(otherSideType, castedEnumType.EnumUnderlyingType))
                     {
                         var constantValue = semanticModel.GetConstantValue(otherSide, cancellationToken);
                         if (constantValue.HasValue &&
@@ -338,21 +401,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(Type)...` or `... as Type`
             var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
 
+            // If we don't understand the type, we must keep it.
+            if (castType == null)
+                return true;
+
             // The type in `(...)expr` or `expr as ...`
             var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
 
             var conversion = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
-
-            // If we don't understand the type, we must keep it.
-            if (castType == null)
-                return true;
 
             // If we've got an error for some reason, then we don't want to touch this at all.
             if (castType.IsErrorType())
                 return true;
 
             // Almost all explicit conversions can cause an exception or data loss, hence can never be removed.
-            if (IsExplicitCastThatMustBePreserved(conversion))
+            if (IsExplicitCastThatMustBePreserved(castNode, conversion))
                 return true;
 
             // If this conversion doesn't even exist, then this code is in error, and we don't want to touch it.
@@ -395,7 +458,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // runtime is allowed to perform the operations with wider precision than the actual specified fp-precision.
             // i.e. 64-bit doubles can actually be 80 bits at runtime.  Even though the language considers this to be an
             // identity cast, we don't want to remove these because the user may be depending on that truncation.
-            if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, conversion, cancellationToken))
+            RoslynDebug.Assert(!conversion.IsIdentity || castedExpressionType is not null);
+            if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType!, semanticModel, conversion, cancellationToken))
                 return true;
 
             if (PointerOrIntPtrCastMustBePreserved(conversion))
@@ -407,10 +471,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionType))
                 return true;
 
+            // If we have something like `(nuint)(nint)x` where x is an IntPtr then the nint cast cannot be removed
+            // as IntPtr to nuint is invalid.
+            if (IsIntPtrToNativeIntegerNestedCast(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
+                return true;
+
+            // If we have `~(ulong)uintVal` then we have to preserve the `(ulong)` cast.  Otherwise, the `~` will
+            // operate on the shorter-bit value, before being extended out to the full length, rather than operating on
+            // the full length. 
+            if (IsBitwiseNotOfExtendedUnsignedValue(castNode, conversion, castType, castedExpressionType))
+                return true;
+
             return false;
         }
 
-        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, ITypeSymbol castedExpressionType)
+        private static bool IsBitwiseNotOfExtendedUnsignedValue(ExpressionSyntax castNode, Conversion conversion, ITypeSymbol castType, ITypeSymbol castedExressionType)
+        {
+            if (castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression) &&
+                conversion.IsImplicit &&
+                conversion.IsNumeric)
+            {
+                return IsUnsigned(castType) || IsUnsigned(castedExressionType);
+            }
+
+            return false;
+        }
+
+        private static bool IsUnsigned(ITypeSymbol type)
+            => type.SpecialType.IsUnsignedIntegralType() || IsNuint(type);
+
+        private static bool IsNuint(ITypeSymbol type)
+            => type.SpecialType == SpecialType.System_UIntPtr && type.IsNativeIntegerType;
+
+        private static bool IsIntPtrToNativeIntegerNestedCast(ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol castedExpressionType, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (castedExpressionType == null)
+            {
+                return false;
+            }
+
+            if (castType.SpecialType is not (SpecialType.System_IntPtr or SpecialType.System_UIntPtr))
+            {
+                return false;
+            }
+
+            if (castNode.WalkUpParentheses().Parent is CastExpressionSyntax castExpression)
+            {
+                var parentCastType = semanticModel.GetTypeInfo(castExpression, cancellationToken).Type;
+
+                if (parentCastType == null)
+                {
+                    return false;
+                }
+
+                var oppositeType = castType.SpecialType == SpecialType.System_IntPtr ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr;
+
+                // Given (nuint)(nint)myIntPtr we would normally suggest removing the (nint) cast as being identity
+                // but it is required as a means to get from IntPtr to nuint, and vice versa from UIntPtr to nint,
+                // so we check for an identity cast from [U]IntPtr to n[u]int, and a parent cast to the opposite.
+                if (castedExpressionType.SpecialType == castType.SpecialType &&
+                    !castedExpressionType.IsNativeIntegerType &&
+                    castType.IsNativeIntegerType &&
+                    parentCastType.IsNativeIntegerType &&
+                    parentCastType.SpecialType == oppositeType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, [NotNullWhen(false)] ITypeSymbol? castedExpressionType)
         {
             // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
             // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
@@ -496,10 +628,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsExplicitCastThatMustBePreserved(Conversion conversion)
+        private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
         {
             if (conversion.IsExplicit)
             {
+                // Consider the explicit cast in a line like:
+                //
+                // string? s = conditional ? (string?)"hello" : null;
+                //
+                // That string? cast is an explicit conversion that not IsUserDefined, but it may be removable if we support
+                // target-typed conditionals; in that case we'll return false here and force the full algorithm to be ran rather
+                // than this fast-path.
+                if (IsBranchOfConditionalExpression(castNode) &&
+                    !CastMustBePreservedInConditionalBranch(castNode, conversion))
+                {
+                    return false;
+                }
+
                 // if it's not a user defined conversion, we must preserve it as it has runtime impact that we don't want to change.
                 if (!conversion.IsUserDefined)
                     return true;
@@ -531,8 +676,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool InvolvesDynamic(
             ExpressionSyntax castNode,
-            ITypeSymbol castType,
-            ITypeSymbol castedExpressionType,
+            ITypeSymbol? castType,
+            ITypeSymbol? castedExpressionType,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -555,8 +700,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                    castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression);
         }
 
+        private static bool IsBranchOfConditionalExpression(ExpressionSyntax expression)
+        {
+            return expression.Parent is ConditionalExpressionSyntax conditionalExpression &&
+                   expression != conditionalExpression.Condition;
+        }
+
         private static bool CastMustBePreservedInConditionalBranch(
-            ExpressionSyntax expression, Conversion conversion)
+            ExpressionSyntax castNode, Conversion conversion)
         {
             // `... ? (int?)i : default`.  This cast is necessary as the 'null/default' on the other side of the
             // conditional can change meaning since based on the type on the other side.
@@ -565,18 +716,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // `... ? (int)1 : default`.
             if (!conversion.IsIdentity)
             {
-                expression = expression.WalkUpParentheses();
-                if (expression.Parent is ConditionalExpressionSyntax conditionalExpression)
+                castNode = castNode.WalkUpParentheses();
+                if (castNode.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    if (conditionalExpression.WhenTrue == expression ||
-                        conditionalExpression.WhenFalse == expression)
+                    if (conditionalExpression.WhenTrue == castNode ||
+                        conditionalExpression.WhenFalse == castNode)
                     {
-                        var otherSide = conditionalExpression.WhenTrue == expression
+                        var otherSide = conditionalExpression.WhenTrue == castNode
                             ? conditionalExpression.WhenFalse
                             : conditionalExpression.WhenTrue;
 
                         otherSide = otherSide.WalkDownParentheses();
-                        return otherSide.IsKind(SyntaxKind.NullLiteralExpression) ||
+
+                        // In C# 9 we can potentially remove the cast if the other side is null, since the cast was previously required to
+                        // resolve a situation like:
+                        //
+                        //     var x = condition ? (int?)i : null
+                        //
+                        // but it isn't with target-typed conditionals. We do have to keep the cast if it's default, as:
+                        //
+                        //     var x = condition ? (int?)i : default
+                        //
+                        // is inferred by the compiler to mean 'default(int?)', whereas removing the cast would mean default(int).
+                        var languageVersion = ((CSharpParseOptions)castNode.SyntaxTree.Options).LanguageVersion;
+
+                        return (otherSide.IsKind(SyntaxKind.NullLiteralExpression) && languageVersion < LanguageVersion.CSharp9) ||
                                otherSide.IsKind(SyntaxKind.DefaultLiteralExpression);
                     }
                 }
@@ -635,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var leftOperation = semanticModel.GetOperation(leftOperand.WalkDownParentheses(), cancellationToken);
             var rightOperation = semanticModel.GetOperation(rightOperand.WalkDownParentheses(), cancellationToken);
 
-            if (leftOperand == null || rightOperand == null)
+            if (leftOperation == null || rightOperation == null)
                 return false;
 
             // Note: we are asking the question about if there would be a problem removing the cast. So we have to act
@@ -676,9 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             // We might have a nullable conversion on top of an integer constant. But only dig out
             // one level.
-
-#if !CODE_STYLE
-
             if (operation is IConversionOperation conversion &&
                 conversion.Conversion.IsImplicit &&
                 conversion.Conversion.IsNullable)
@@ -686,12 +847,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 operation = conversion.Operand;
             }
 
-#endif
-
             var constantValue = operation.ConstantValue;
             if (!constantValue.HasValue || constantValue.Value == null)
                 return null;
 
+            RoslynDebug.Assert(operation.Type is not null);
             if (!operation.Type.SpecialType.IsIntegralType())
                 return null;
 
@@ -706,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         // * an conversion (with or without a cast) from a smaller
         //   signed type to a larger unsigned type.
 
-        private static ulong FindSurprisingSignExtensionBits(IOperation operation, bool treatExplicitCastAsImplicit)
+        private static ulong FindSurprisingSignExtensionBits(IOperation? operation, bool treatExplicitCastAsImplicit)
         {
             if (!(operation is IConversionOperation conversion))
                 return 0;
@@ -842,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
-            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
+            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
             {
                 // Identity fp conversion is safe if this is in an array initializer.
                 var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);
@@ -915,9 +1075,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         private static bool IsDynamicInvocation(
             ExpressionSyntax castExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (castExpression.WalkUpParentheses().IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument) &&
-                argument.IsParentKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
-                argument.Parent.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+            if (castExpression.WalkUpParentheses().IsParentKind(SyntaxKind.Argument, out ArgumentSyntax? argument) &&
+                argument.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList) &&
+                argument.Parent.Parent.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
             {
                 var typeInfo = semanticModel.GetTypeInfo(argument.Parent.Parent, cancellationToken);
                 return typeInfo.Type?.Kind == SymbolKind.DynamicType;
@@ -931,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             castExpression = castExpression.WalkUpParentheses();
             if (castExpression.IsRightSideOfAnyAssignExpression())
             {
-                var assignmentExpression = (AssignmentExpressionSyntax)castExpression.Parent;
+                var assignmentExpression = (AssignmentExpressionSyntax)castExpression.Parent!;
                 var assignmentType = semanticModel.GetTypeInfo(assignmentExpression.Left, cancellationToken).Type;
 
                 return assignmentType?.Kind == SymbolKind.DynamicType;
@@ -1173,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool ParameterTypeMatchesParamsElementType(IParameterSymbol parameter, ITypeSymbol castType, SemanticModel semanticModel)
+        private static bool ParameterTypeMatchesParamsElementType([NotNullWhen(true)] IParameterSymbol? parameter, ITypeSymbol castType, SemanticModel semanticModel)
         {
             if (parameter?.IsParams == true)
             {
@@ -1202,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static ITypeSymbol GetOuterCastType(
+        private static ITypeSymbol? GetOuterCastType(
             ExpressionSyntax expression, SemanticModel semanticModel, out bool parentIsIsOrAsExpression)
         {
             expression = expression.WalkUpParentheses();
@@ -1214,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return null;
             }
 
-            if (parentNode.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
+            if (parentNode.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
             {
                 return semanticModel.GetTypeInfo(castExpression).Type;
             }
@@ -1236,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32);
             }
 
-            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess))
             {
                 if (memberAccess.Expression == expression)
                 {
@@ -1259,6 +1419,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
                 return GetOuterCastType(parentExpression, semanticModel, out parentIsIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
+            }
+
+            if (parentNode is InterpolationSyntax)
+            {
+                // $"{(x)y}"
+                //
+                // Regardless of the cast to 'x', being in an interpolation automatically casts the result to object
+                // since this becomes a call to: FormattableStringFactory.Create(string, params object[]).
+                return semanticModel.Compilation.ObjectType;
             }
 
             return null;

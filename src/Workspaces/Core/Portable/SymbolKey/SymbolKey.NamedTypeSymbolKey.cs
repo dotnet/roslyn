@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString();
+                var metadataName = reader.ReadString()!;
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();

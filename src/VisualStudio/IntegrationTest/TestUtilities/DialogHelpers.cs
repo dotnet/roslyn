@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -164,13 +166,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
-            DateTime beginTime = DateTime.UtcNow;
-            T retval = default;
-
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                T retval;
                 try
                 {
                     retval = action(cancellationToken);

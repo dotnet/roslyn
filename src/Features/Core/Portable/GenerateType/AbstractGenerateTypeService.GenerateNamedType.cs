@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,16 +22,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        internal abstract IMethodSymbol GetDelegatingConstructor(
-            SemanticDocument document,
-            TObjectCreationExpressionSyntax objectCreation,
-            INamedTypeSymbol namedType,
-            ISet<IMethodSymbol> candidates,
-            CancellationToken cancellationToken);
-
         private partial class Editor
         {
-            private INamedTypeSymbol GenerateNamedType()
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync()
             {
                 return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                     DetermineAttributes(),
@@ -38,10 +35,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers());
+                    members: await DetermineMembersAsync().ConfigureAwait(false));
             }
 
-            private INamedTypeSymbol GenerateNamedType(GenerateTypeOptionsResult options)
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync(GenerateTypeOptionsResult options)
             {
                 if (options.TypeKind == TypeKind.Delegate)
                 {
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers(options));
+                    members: await DetermineMembersAsync(options).ConfigureAwait(false));
             }
 
             private ITypeSymbol DetermineReturnType()
@@ -104,10 +101,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return default;
             }
 
-            private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
+            private async Task<ImmutableArray<ISymbol>> DetermineMembersAsync(GenerateTypeOptionsResult options = null)
             {
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
-                AddMembers(members, options);
+                await AddMembersAsync(members, options).ConfigureAwait(false);
 
                 if (_state.IsException)
                     AddExceptionConstructors(members);
@@ -115,7 +112,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return members.ToImmutable();
             }
 
-            private void AddMembers(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
+            private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 AddProperties(members);
                 if (!_service.TryGetArgumentList(_state.ObjectCreationExpressionOpt, out var argumentList))
@@ -139,36 +136,38 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // just call into that instead of generating fields.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    if (_state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface && argumentList.Count == 0)
+                    if (_state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface || argumentList.Count == 0)
                     {
-                        // No need to add the default constructor if our base type is going to be
-                        // 'object'.  We get that constructor for free.
+                        // No need to add the default constructor if our base type is going to be 'object' or if we
+                        // would be calling the empty constructor.  We get that base constructor implicitly.
                         return;
                     }
 
-                    var accessibleInstanceConstructors = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Where(
-                        IsSymbolAccessible).ToSet();
+                    // Synthesize some parameter symbols so we can see if these particular parameters could map to the
+                    // parameters of any of the constructors we have in our base class.  This will have the added
+                    // benefit of allowing us to infer better types for complex type-less expressions (like lambdas).
+                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                    var refKinds = argumentList.SelectAsArray(a => syntaxFacts.GetRefKindOfArgument(a));
+                    var parameters = parameterTypes.Zip(refKinds,
+                        (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 
-                    if (accessibleInstanceConstructors.Any())
+                    var expressions = GetArgumentExpressions(argumentList);
+                    var delegatedConstructor = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.FirstOrDefault(
+                        c => GenerateConstructorHelpers.CanDelegateTo(_semanticDocument, parameters, expressions, c));
+
+                    if (delegatedConstructor != null)
                     {
-                        var delegatedConstructor = _service.GetDelegatingConstructor(
-                            _semanticDocument,
-                            _state.ObjectCreationExpressionOpt,
-                            _state.BaseTypeOrInterfaceOpt,
-                            accessibleInstanceConstructors,
-                            _cancellationToken);
-                        if (delegatedConstructor != null)
-                        {
-                            // There was a best match.  Call it directly.  
-                            AddBaseDelegatingConstructor(delegatedConstructor, members);
-                            return;
-                        }
+                        // There was a constructor match in the base class.  Synthesize a constructor of our own with
+                        // the same parameter types that calls into that.
+                        var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
+                        members.Add(factory.CreateBaseDelegatingConstructor(delegatedConstructor, DetermineName()));
+                        return;
                     }
                 }
 
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                AddFieldDelegatingConstructor(argumentList, members, options);
+                await AddFieldDelegatingConstructorAsync(argumentList, members, options).ConfigureAwait(false);
             }
 
             private void AddProperties(ArrayBuilder<ISymbol> members)
@@ -183,23 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            private void AddBaseDelegatingConstructor(
-                IMethodSymbol methodSymbol,
-                ArrayBuilder<ISymbol> members)
-            {
-                // If we're generating a constructor to delegate into the no-param base constructor
-                // then we can just elide the constructor entirely.
-                if (methodSymbol.Parameters.Length == 0)
-                {
-                    return;
-                }
-
-                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                members.Add(factory.CreateBaseDelegatingConstructor(
-                    methodSymbol, DetermineName()));
-            }
-
-            private void AddFieldDelegatingConstructor(
+            private async Task AddFieldDelegatingConstructorAsync(
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
@@ -222,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
-                    FindExistingOrCreateNewMember(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap);
+                    await FindExistingOrCreateNewMemberAsync(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap).ConfigureAwait(false);
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
@@ -242,7 +225,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,
                         preferThrowExpression: false,
-                        generateProperties: false));
+                        generateProperties: false,
+                        isContainedInUnsafeType: false)); // Since we generated the type, we know its not unsafe
                 }
             }
 

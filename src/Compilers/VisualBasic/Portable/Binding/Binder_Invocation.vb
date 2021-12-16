@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property],
                     propertyGroup,
                     PropertyAccessKind.Unknown,
-                    [property].IsWritable(receiver, Me),
+                    [property].IsWritable(receiver, Me, isKnownTargetOfObjectMemberInintializer:=False),
                     receiver,
                     boundArguments,
                     argumentInfo.DefaultArguments,
@@ -2905,6 +2905,18 @@ ProduceBoundNode:
                                                           outConversion, outPlaceholder,
                                                           targetType, copyBackExpression.HasErrors).MakeCompilerGenerated()
             Else
+                Dim propertyAccess = TryCast(argument, BoundPropertyAccess)
+
+                If propertyAccess IsNot Nothing AndAlso propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso
+                   propertyAccess.PropertySymbol.SetMethod?.IsInitOnly Then
+
+                    Debug.Assert(Not propertyAccess.IsWriteable) ' Used to be writable prior to VB 16.9, which caused a use-site error while binding an assignment above.
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   argument.Syntax.Location,
+                                                                   DirectCast(argument.Syntax.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.InitOnlySettersUsage)
+                End If
+
                 ' Need to allocate a temp of the target type,
                 ' init it with argument's value,
                 ' pass it ByRef. Code gen will do this.

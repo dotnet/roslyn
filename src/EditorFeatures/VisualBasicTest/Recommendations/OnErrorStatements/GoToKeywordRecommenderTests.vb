@@ -6,17 +6,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
     Public Class GoToKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToAfterOnErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>On Error |</MethodBody>, "GoTo")
-        End Function
+        Public Sub GoToAfterOnErrorTest()
+            VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "GoTo")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToNotAfterOnErrorInLambdaTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>
+        Public Sub GoToNotAfterOnErrorInLambdaTest()
+            VerifyRecommendationsAreExactly(<MethodBody>
 Dim x = Sub()
             On Error |
         End Sub</MethodBody>, Array.Empty(Of String)())
-        End Function
+        End Sub
     End Class
 End Namespace

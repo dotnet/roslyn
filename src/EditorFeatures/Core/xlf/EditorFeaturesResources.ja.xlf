@@ -67,6 +67,11 @@
         <target state="translated">基本へ移動</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">インラインのヒント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">無効なアセンブリ名</target>
@@ -107,11 +112,6 @@
         <target state="translated">句読点</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">ドキュメントの削除はサポートされていません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">ファイル名の変更 (種類がファイル名と一致しません)(_F)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">シンボルのファイルの名前を変更する(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">コメントの分割</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">ユーザー タイプ - インターフェイス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">ユーザー タイプ - レコード</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -619,7 +629,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
         <source>Rename operation was cancelled or is not valid</source>
-        <target state="translated">名前の変更操作は取り消されたか、または検証されていません。</target>
+        <target state="translated">名前の変更操作は取り消されたか、または検証されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Symbol">
@@ -639,7 +649,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1086,7 +1096,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' の名前を '{1}' に変更します。</target>
+        <target state="translated">'{0}' の名前を '{1}' に変更します:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1101,7 +1111,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' への呼び出し</target>
+        <target state="translated">'{0}' への呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1121,7 +1131,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' を実装します</target>
+        <target state="translated">'{0}' を実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1141,7 +1151,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
-        <target state="translated">プレビューの変更(_P)</target>
+        <target state="translated">変更のプレビュー(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply3">
@@ -1192,11 +1202,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">かっこ完了</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">次の場所のすべての出現箇所を修正します</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

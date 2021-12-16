@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
-Imports Xunit.Sdk
-Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
-Imports Microsoft.CodeAnalysis
+Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -49,14 +49,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 helper As ITestOutputHelper,
                 workspaceXml As XElement,
                 renameTo As String,
-                host As TestHost,
+                host As RenameTestHost,
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
                 Optional expectFailure As Boolean = False) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
             workspace.SetTestLogger(AddressOf helper.WriteLine)
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -111,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 solution As Solution,
                 symbol As ISymbol,
                 optionSet As OptionSet,
-                host As TestHost) As ConflictResolution
+                host As RenameTestHost) As ConflictResolution
 
             Dim renameOptions = RenameOptionSet.From(solution, optionSet)
 
-            If host = TestHost.OutOfProcess_SplitCall Then
+            If host = RenameTestHost.OutOfProcess_SplitCall Then
                 ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
                 ' features that need to call each part independently and operate on the intermediary values.
 
@@ -140,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Property
 
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            For Each documentWithSpans In _workspace.Documents
+            For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
                 Dim oldSyntaxTree = _workspace.CurrentSolution.GetDocument(documentWithSpans.Id).GetSyntaxTreeAsync().Result
 
                 For Each span In documentWithSpans.SelectedSpans

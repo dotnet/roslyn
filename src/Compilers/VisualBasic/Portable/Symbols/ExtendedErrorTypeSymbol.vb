@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' An error type symbol with name and diagnostic. More info can be added in the future.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend Class ExtendedErrorTypeSymbol
+    Friend NotInheritable Class ExtendedErrorTypeSymbol
         Inherits InstanceErrorTypeSymbol
 
         Private ReadOnly _diagnosticInfo As DiagnosticInfo
@@ -146,10 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides Function Equals(obj As Object) As Boolean
-            If (Me Is obj) Then
-                Return True
-            End If
+        Protected Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+            Debug.Assert(obj IsNot Me)
 
             '' Error type symbols representing errors that have been reported compare based on the full
             '' name of the potential type they are representing.  If not reported, subclasses of ErrorTypeSymbol

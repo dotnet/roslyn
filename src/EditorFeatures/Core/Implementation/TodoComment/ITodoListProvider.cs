@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -25,10 +25,5 @@ namespace Microsoft.CodeAnalysis.Editor
         event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
 
         ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get current UpdatedEventArgs stored in ITodoListProvider
-        /// </summary>
-        IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken);
     }
 }

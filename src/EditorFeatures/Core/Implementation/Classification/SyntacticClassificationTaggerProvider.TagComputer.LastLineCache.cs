@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Text;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // this helper class is primarily to improve active typing perf. don't bother to cache
                 // something very big. 
                 private const int MaxClassificationNumber = 32;
-                private readonly object _gate = new object();
+                private readonly object _gate = new();
 
                 // mutating state
                 private SnapshotSpan _span;

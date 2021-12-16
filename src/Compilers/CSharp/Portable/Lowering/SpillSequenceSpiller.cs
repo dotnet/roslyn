@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -524,6 +526,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(expression));
         }
 
+        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+        {
+            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            var locals = node.Locals;
+
+            var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
+            Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
+            BoundSpillSequenceBuilder builder = null;
+            var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
+            if (builder is { })
+            {
+                Debug.Assert(builder.Value is null);
+                locals = locals.AddRange(builder.GetLocals());
+                exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+            }
+
+            BoundBlock body = (BoundBlock)this.Visit(node.Body);
+            TypeSymbol exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
+        }
+
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -860,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder((consequenceBuilder ?? alternativeBuilder).Syntax);
@@ -1135,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

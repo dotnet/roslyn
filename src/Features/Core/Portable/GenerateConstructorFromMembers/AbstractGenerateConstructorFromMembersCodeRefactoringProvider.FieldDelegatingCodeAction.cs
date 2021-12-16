@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -62,7 +64,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
                     preferThrowExpression: preferThrowExpression,
-                    generateProperties: false);
+                    generateProperties: false,
+                    _state.IsContainedInUnsafeType);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 

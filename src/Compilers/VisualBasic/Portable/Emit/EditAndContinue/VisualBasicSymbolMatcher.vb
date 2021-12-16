@@ -42,23 +42,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
-            Dim symbol As Symbol = TryCast(definition, Symbol)
+            Dim symbol As Symbol = TryCast(definition?.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol), Cci.IDefinition)
+                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.IDefinition)
             End If
 
             Return _defs.VisitDef(definition)
         End Function
 
         Public Overrides Function MapNamespace([namespace] As Cci.INamespace) As Cci.INamespace
-            Debug.Assert(TypeOf [namespace] Is NamespaceSymbol)
-            Return DirectCast(_symbols.Visit(CType([namespace], NamespaceSymbol)), Cci.INamespace)
+            Debug.Assert(TypeOf [namespace]?.GetInternalSymbol() Is NamespaceSymbol)
+            Return DirectCast(_symbols.Visit(DirectCast([namespace]?.GetInternalSymbol(), NamespaceSymbol))?.GetCciAdapter(), Cci.INamespace)
         End Function
 
         Public Overrides Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
-            Dim symbol As Symbol = TryCast(reference, Symbol)
+            Dim symbol As Symbol = TryCast(reference?.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol), Cci.ITypeReference)
+                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.ITypeReference)
             End If
             Return Nothing
         End Function
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     If member.Kind = SymbolKind.Namespace Then
                         GetTopLevelTypes(builder, DirectCast(member, NamespaceSymbol))
                     Else
-                        builder.Add(DirectCast(member, Cci.INamespaceTypeDefinition))
+                        builder.Add(DirectCast(member.GetCciAdapter(), Cci.INamespaceTypeDefinition))
                     End If
                 Next
             End Sub
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             Debug.Assert(otherContainer Is _otherAssembly.GlobalNamespace)
                             Dim value As AnonymousTypeValue = Nothing
                             TryFindAnonymousType(template, value)
-                            Return DirectCast(value.Type, NamedTypeSymbol)
+                            Return DirectCast(value.Type?.GetInternalSymbol(), NamedTypeSymbol)
                         End If
 
                         If type.IsAnonymousType Then

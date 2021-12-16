@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -833,6 +835,9 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
 
+        ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
+        public const int CompilationOptionsSchemaVersion = 1;
+
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
         /// to be reconstructed from the pdb
@@ -842,9 +847,11 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
             WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
             WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+            WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
 
             if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {

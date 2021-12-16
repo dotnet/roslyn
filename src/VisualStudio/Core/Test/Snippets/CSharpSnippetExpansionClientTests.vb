@@ -336,7 +336,7 @@ using G=   H.I;
                     subjectBufferDocument.GetTextBuffer(),
                     Nothing)
 
-                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
         End Sub
 
@@ -379,7 +379,9 @@ using G=   H.I;
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     If(position, 0),
                     snippetNode,
-                    placeSystemNamespaceFirst, CancellationToken.None)
+                    placeSystemNamespaceFirst,
+                    allowInHiddenRegions:=False,
+                    CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode,
                              (Await updatedDocument.GetTextAsync()).ToString())

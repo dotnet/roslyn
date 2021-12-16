@@ -5,8 +5,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -15,13 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             NamespaceDeclarationSyntax namespaceDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, ref spans, optionProvider);
 
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, isMetadataAsSource);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, optionProvider);
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)
             {
                 CSharpStructureHelpers.CollectCommentBlockSpans(
-                    namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
+                    namespaceDeclaration.CloseBraceToken.LeadingTrivia, ref spans);
             }
         }
     }

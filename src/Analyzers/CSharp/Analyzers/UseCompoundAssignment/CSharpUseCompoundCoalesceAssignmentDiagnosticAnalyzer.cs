@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     {
         public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

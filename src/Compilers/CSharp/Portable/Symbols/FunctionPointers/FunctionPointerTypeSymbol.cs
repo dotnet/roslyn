@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -26,15 +25,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     suppressUseSiteDiagnostics));
 
         /// <summary>
+        /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed. This is
+        /// intended for use in test code.
+        /// </summary>
+        public static FunctionPointerTypeSymbol CreateFromPartsForTests(
+            CallingConvention callingConvention,
+            TypeWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<ImmutableArray<CustomModifier>> parameterRefCustomModifiers,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromPartsForTest(callingConvention, returnType, refCustomModifiers, returnRefKind, parameterTypes, parameterRefCustomModifiers, parameterRefKinds, compilation));
+
+        /// <summary>
         /// Creates a function pointer from individual parts. This method should only be used when diagnostics are not needed.
         /// </summary>
         public static FunctionPointerTypeSymbol CreateFromParts(
+            CallingConvention callingConvention,
+            ImmutableArray<CustomModifier> callingConventionModifiers,
             TypeWithAnnotations returnType,
             RefKind returnRefKind,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             CSharpCompilation compilation)
-            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(callingConvention, callingConventionModifiers, returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
 
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
@@ -46,17 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
             => new FunctionPointerTypeSymbol(Signature.SubstituteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
-
-        public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
-            convention switch
-            {
-                "" => (CallingConvention.Default, true),
-                "cdecl" => (CallingConvention.CDecl, true),
-                "managed" => (CallingConvention.Default, true),
-                "thiscall" => (CallingConvention.ThisCall, true),
-                "stdcall" => (CallingConvention.Standard, true),
-                _ => (CallingConvention.Default, false),
-            };
 
         private FunctionPointerTypeSymbol(FunctionPointerMethodSymbol signature)
         {
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         // Pointers do not support boxing, so they really have no base type.
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
-        internal override ManagedKind ManagedKind => ManagedKind.Unmanaged;
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Unmanaged;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
@@ -91,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitFunctionPointerType(this, a);
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return Signature.Equals(other.Signature, compareKind, isValueTypeOverrideOpt);
+            return Signature.Equals(other.Signature, compareKind);
         }
 
         public override int GetHashCode()
@@ -194,5 +199,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static RefKind GetRefKindForHashCode(RefKind refKind)
             => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
+
+        /// <summary>
+        /// Return true if the given type is valid as a calling convention modifier type.
+        /// </summary>
+        internal static bool IsCallingConventionModifier(NamedTypeSymbol modifierType)
+        {
+            Debug.Assert(modifierType.ContainingAssembly is not null || modifierType.IsErrorType());
+            return (object?)modifierType.ContainingAssembly == modifierType.ContainingAssembly?.CorLibrary
+                   && modifierType.Arity == 0
+                   && modifierType.Name != "CallConv"
+                   && modifierType.Name.StartsWith("CallConv", StringComparison.Ordinal)
+                   && modifierType.IsCompilerServicesTopLevelType();
+        }
+
+        internal override bool IsRecord => false;
     }
 }

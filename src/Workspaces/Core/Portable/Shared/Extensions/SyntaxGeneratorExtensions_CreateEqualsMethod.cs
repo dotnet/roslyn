@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -124,12 +126,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // return statement of 'Equals'.
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
-            if (factory.SupportsPatterns(parseOptions))
+            if (factory.SyntaxGeneratorInternal.SupportsPatterns(parseOptions))
             {
                 // If we support patterns then we can do "return obj is MyType myType && ..."
                 expressions.Add(
-                    factory.IsPatternExpression(objNameExpression,
-                        factory.DeclarationPattern(containingType, localName)));
+                    factory.SyntaxGeneratorInternal.IsPatternExpression(objNameExpression,
+                        factory.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
             }
             else if (containingType.IsValueType)
             {

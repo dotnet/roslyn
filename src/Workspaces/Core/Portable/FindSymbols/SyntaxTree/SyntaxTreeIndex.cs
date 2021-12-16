@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
         private readonly ExtensionMethodInfo _extensionMethodInfo;
+        private readonly Lazy<HashSet<DeclaredSymbolInfo>> _declaredSymbolInfoSet;
 
         private SyntaxTreeIndex(
             Checksum checksum,
@@ -34,10 +39,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
             _extensionMethodInfo = extensionMethodInfo;
+            _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
         }
 
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();
-        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new();
+        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
@@ -62,10 +68,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static Task<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
             => GetIndexAsync(document, loadOnly: false, cancellationToken);
 
-        public static async Task<SyntaxTreeIndex> GetIndexAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SyntaxTreeIndex> GetIndexAsync(
             Document document,
             bool loadOnly,
             CancellationToken cancellationToken)

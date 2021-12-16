@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,7 +82,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 if (inline != null)
                 {
-                    string inlineText = GetStringFromInline(inline);
+                    var inlineText = GetStringFromInline(inline);
                     if (!string.IsNullOrEmpty(inlineText))
                     {
                         sb.Append(inlineText);
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static string GetStringFromInline(Inline currentInline)
         {
-            if (currentInline is LineBreak lineBreak)
+            if (currentInline is LineBreak)
             {
                 return Environment.NewLine;
             }

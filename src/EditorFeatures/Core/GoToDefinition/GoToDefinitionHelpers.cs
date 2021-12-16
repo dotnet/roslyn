@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return threadingContext.JoinableTaskFactory.Run(
                 () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions));
+                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
         }
 
         public static bool TryGoToDefinition(
@@ -117,14 +119,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Solution solution,
             string title,
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken)
         {
             if (definitions.IsDefaultOrEmpty)
                 return false;
 
             return threadingContext.JoinableTaskFactory.Run(() =>
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions));
+                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
         }
     }
 }

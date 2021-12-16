@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,12 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
     public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
-        public GenericNameSignatureHelpProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-            => new GenericNameSignatureHelpProvider();
+        internal override Type GetSignatureHelpProviderType()
+            => typeof(GenericNameSignatureHelpProvider);
 
         #region "Declaring generic type objects"
 
@@ -850,6 +849,44 @@ class C
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task DeclaringGenericTypeWithDocCommentList()
+        {
+            var markup = @"
+/// <summary>
+/// List:
+/// <list>
+/// <item>
+/// <description>
+/// Item 1.
+/// </description>
+/// </item>
+/// </list>
+/// </summary>
+class G<S, T> { };
+
+class C
+{
+    void Goo()
+    {
+        [|G<int, $$|]>
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", "List:\r\n\r\nItem 1.",
+                classificationTypeNames: ImmutableArray.Create(
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace)));
+
             await TestAsync(markup, expectedOrderedItems);
         }
     }

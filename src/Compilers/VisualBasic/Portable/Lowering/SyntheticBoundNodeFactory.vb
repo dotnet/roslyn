@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddNestedType(nestedType As NamedTypeSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(_currentClass, nestedType)
+                [module].AddSynthesizedDefinition(_currentClass, nestedType.GetCciAdapter())
             End If
         End Sub
 
@@ -93,21 +93,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub AddField(containingType As NamedTypeSymbol, field As FieldSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, field)
+                [module].AddSynthesizedDefinition(containingType, field.GetCciAdapter())
             End If
         End Sub
 
         Public Sub AddMethod(containingType As NamedTypeSymbol, method As MethodSymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, method)
+                [module].AddSynthesizedDefinition(containingType, method.GetCciAdapter())
             End If
         End Sub
 
         Public Sub AddProperty(containingType As NamedTypeSymbol, prop As PropertySymbol)
             Dim [module] As PEModuleBuilder = Me.EmitModule
             If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, prop)
+                [module].AddSynthesizedDefinition(containingType, prop.GetCciAdapter())
             End If
         End Sub
 

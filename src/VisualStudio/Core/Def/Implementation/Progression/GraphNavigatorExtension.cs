@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -120,11 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var editorWorkspace = document.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+
+                    // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                     navigationService.TryNavigateToLineAndOffset(
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
-                        sourceLocation.StartPosition.Character);
+                        sourceLocation.StartPosition.Character,
+                        CancellationToken.None);
                 }
             }
         }

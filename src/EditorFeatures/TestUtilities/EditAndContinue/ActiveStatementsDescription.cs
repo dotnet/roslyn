@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly TextSpan[] NewSpans;
         public readonly ImmutableArray<TextSpan>[] OldRegions;
         public readonly ImmutableArray<TextSpan>[] NewRegions;
-        public readonly TextSpan?[]? OldTrackingSpans;
+        public readonly TextSpan[]? OldTrackingSpans;
 
         private ActiveStatementsDescription()
         {
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 text.Lines.GetLinePositionSpan(span),
                 documentId);
 
-        internal static TextSpan?[]? GetTrackingSpans(string src, int count)
+        internal static TextSpan[]? GetTrackingSpans(string src, int count)
         {
             var matches = s_trackingStatementPattern.Matches(src);
             if (matches.Count == 0)
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 return null;
             }
 
-            var result = new TextSpan?[count];
+            var result = new TextSpan[count];
 
             for (var i = 0; i < matches.Count; i++)
             {
@@ -162,6 +161,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     result[id] = new TextSpan(span.Index, span.Length);
                 }
             }
+
+            Contract.ThrowIfTrue(result.Any(span => span == default));
 
             return result;
         }

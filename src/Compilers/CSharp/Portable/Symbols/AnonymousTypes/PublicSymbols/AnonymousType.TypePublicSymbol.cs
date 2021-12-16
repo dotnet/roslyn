@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -326,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
-            {
-                Debug.Assert(isValueTypeOverrideOpt == null);
+            internal override bool IsRecord => false;
 
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+            {
                 if (ReferenceEquals(this, t2))
                 {
                     return true;
@@ -343,6 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.TypeDescriptor.GetHashCode();
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

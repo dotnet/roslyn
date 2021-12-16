@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -126,24 +127,22 @@ class C
 
             // Adding a dependency with internal definitions of Index and Range should not break the feature
             var source1 = "namespace System { internal struct Index { } internal struct Range { } }";
-            var dependencyReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(null, CancellationToken.None);
 
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(dependencyReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
                 FixedCode = fixedSource,
             }.RunAsync();

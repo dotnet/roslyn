@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
+            if (ch == '}' && !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, textSpan);
             var service = document.GetLanguageService<ISyntaxFormattingService>();
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
+        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
@@ -186,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
+            var formattingRules = GetFormattingRules(document, caretPosition, token);
 
             var service = document.GetLanguageService<ISyntaxFactsService>();
             if (service != null && service.IsInNonUserCode(token.SyntaxTree, caretPosition, cancellationToken))
@@ -253,15 +252,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
-        private bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
+        private static bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
         {
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
-            return !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) ||
+            return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
                    !options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
         }
 
-        private bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
+        private static bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
         {
             // User does not want auto-formatting .  So we only smart indent open braces when typed.
             // Note: there is no specific option for controlling formatting on open brace.  So we
@@ -279,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return token;
         }
 
-        private async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private static async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
@@ -287,10 +286,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+        private static ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
             => new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
 
-        private async Task<IList<TextChange>> FormatRangeAsync(
+        private static async Task<IList<TextChange>> FormatRangeAsync(
             Document document,
             OptionSet options,
             SyntaxToken endToken,
@@ -321,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
+        private static IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
@@ -404,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);
         }
 
-        private bool IsEndToken(SyntaxToken endToken)
+        private static bool IsEndToken(SyntaxToken endToken)
         {
             if (endToken.IsKind(SyntaxKind.OpenBraceToken))
             {
@@ -416,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         // We'll autoformat on n, t, e, only if they are the last character of the below
         // keywords.  
-        private bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
+        private static bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
             => typedChar switch
             {
                 'n' => kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword,
@@ -425,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 _ => true,
             };
 
-        private bool IsInvalidTokenKind(SyntaxToken token)
+        private static bool IsInvalidTokenKind(SyntaxToken token)
         {
             // invalid token to be formatted
             return token.IsKind(SyntaxKind.None) ||

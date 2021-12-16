@@ -7,6 +7,11 @@
         <target state="translated">Agregar "Me."</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">Convertir "GetType" en "NameOf"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Quitar instrucciones Import innecesarias</target>

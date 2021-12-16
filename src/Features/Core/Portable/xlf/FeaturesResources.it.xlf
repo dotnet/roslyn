@@ -162,7 +162,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;deduci&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -245,6 +245,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Converti in LINQ (form di chiamata)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">Converti in record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Converti in struct</target>
@@ -273,31 +278,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Crea e assegna rimanenti come proprietà</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">Un tipo che implementa System.IDisposable dichiara i campi di tipi che implementano anch'essi IDisposable. Il metodo Dispose del campo non viene chiamato dal metodo Dispose del tipo dichiarante. Per correggere una violazione di questa regola, chiamare Dispose su campi di tipi che implementano IDisposable se si è responsabile dell'allocazione e del rilascio delle risorse non gestite utilizzate dal campo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">Il campo eliminabile '{0}' non viene mai eliminato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">I campi eliminabili devono essere eliminati</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">L'oggetto eliminabile creato da '{0}' non viene mai eliminato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">Elimina gli oggetti prima che siano esterni all'ambito</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -335,6 +315,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="translated">Si è verificato un errore durante la creazione dell'istanza di CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="translated">Si è verificato un errore durante la creazione dell'istanza di CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Esempio:</target>
@@ -344,6 +334,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Examples:</source>
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Extract_base_class">
+        <source>Extract base class...</source>
+        <target state="translated">Estrai classe di base...</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
@@ -495,6 +490,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Imposta rientro per parametri con ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_0">
+        <source>Inline '{0}'</source>
+        <target state="translated">Imposta '{0}' come inline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_and_keep_0">
+        <source>Inline and keep '{0}'</source>
+        <target state="translated">Imposta come inline e mantieni '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Cifre esadecimali insufficienti</target>
@@ -524,6 +529,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Nome di gruppo non valido: i nomi di gruppo devono iniziare con un carattere alfanumerico</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="translated">Rendi la classe 'abstract'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
@@ -585,6 +595,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si modifica '{0}' che contiene un'espressione switch, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
+        <target state="translated">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare perché il corpo contiene troppe istruzioni.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="translated">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
+        <target state="translated">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare perché le dimensioni del file sono eccessive.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Sposta contenuto nello spazio dei nomi...</target>
@@ -606,14 +631,19 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Se si modifica il file di origine {0}, la sessione di debug non potrà continuare a causa di errore interno: {1}.</target>
-        <note />
+        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
+        <target state="translated">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Quantificatore nidificato {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
+      </trans-unit>
+      <trans-unit id="No_valid_location_to_insert_method_call">
+        <source>No valid location to insert method call.</source>
+        <target state="translated">Non ci sono posizioni valide per inserire la chiamata a un metodo.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
@@ -638,6 +668,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Esegui pull dei membri fino al tipo di base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="translated">Esegui pull dei membri fino alla nuova classe di base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1785,6 +1820,16 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Le firme del metodo correlate trovate nei metadati non verranno aggiornate.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="translated">La rimozione del documento non è supportata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_async_modifier">
+        <source>Remove 'async' modifier</source>
+        <target state="translated">Rimuovi il modificatore 'async'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
@@ -1833,6 +1878,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Imposta destinazione per corrispondenze di tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">L'assembly '{0}' che contiene il tipo '{1}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1935,11 +1985,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Se si aggiorna '{0}' in prossimità di un'istruzione attiva, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
@@ -1954,16 +1999,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <source>Use interpolated verbatim string</source>
         <target state="translated">Usa stringa verbatim interpolata</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">Usare il criterio dispose consigliato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Usare il criterio dispose consigliato per garantire che l'oggetto creato da '{0}' venga eliminato in tutti i percorsi, ovvero istruzione/dichiarazione using o try/finally</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2036,13 +2071,18 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">'{0}' non può essere Null o vuoto</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="translated">'{0}' non può essere null o vuoto.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">'{0}' non può essere Null o uno spazio vuoto</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="translated">'{0}' non può essere Null o uno spazio vuoto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2415,6 +2455,11 @@ L'identificatore di formato standard "f" rappresenta una combinazione degli sche
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">overload generici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="translated">in {0} ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
@@ -3497,7 +3542,7 @@ Continuare?</target>
       </trans-unit>
       <trans-unit id="property_">
         <source>property</source>
-        <target state="translated">Proprietà.</target>
+        <target state="translated">proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="event_accessor">

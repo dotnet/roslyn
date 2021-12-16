@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -37,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider()
-            => new CSharpRemoveConfusingSuppressionFixAllProvider();
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -68,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             bool negate, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
@@ -102,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
+
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await FixAllAsync(
+                    document, diagnostics,
+                    context.CodeActionEquivalenceKey == NegateExpression,
+                    context.CancellationToken).ConfigureAwait(false));
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

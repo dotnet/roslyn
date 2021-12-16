@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CallingConventionTypeIsInvalid">
+        <source>Cannot use '{0}' as a calling convention modifier.</source>
+        <target state="translated">Невозможно использовать "{0}" в качестве модификатора соглашения о вызовах.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CallingConventionTypesRequireUnmanaged">
+        <source>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</source>
+        <target state="translated">Передача "{0}" недопустима, если "{1}" является "SignatureCallingConvention.Unmanaged".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">Не удается создать сконструированный универсальный тип из другого сконструированного универсального типа.</target>
@@ -78,18 +88,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">Асинхронный оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит подходящее открытое определение экземпляра для "{1}".</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="translated">Асинхронный оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит подходящее открытое определение экземпляра или расширения для "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">Асинхронный оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра для "{1}" Возможно, вы имели в виду "foreach", а не "await foreach"?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="translated">Асинхронный оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}" Возможно, вы имели в виду "foreach", а не "await foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Не удается использовать коллекцию динамического типа в асинхронном операторе foreach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">Тип "{0}" не может быть использован для поля записи.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -137,11 +152,6 @@
         <target state="translated">Записи могут наследоваться только от объекта или другой записи.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">Позиционная запись должна иметь модификатор "data" и непустой список параметров.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
@@ -157,10 +167,20 @@
         <target state="translated">Не удается преобразовать &amp;группу методов "{0}" в тип делегата "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
+        <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
+        <target state="translated">Соглашение о вызовах "managed" невозможно использовать вместе с спецификаторами неуправляемых соглашений о вызовах.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
         <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
         <target state="translated">Локальная переменная, объявленная в операторе fixed, не может быть указателем на функцию.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseManagedTypeInUnmanagedCallersOnly">
+        <source>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Невозможно использовать "{0}" как тип {1} для метода с атрибутом "UnmanagedCallersOnly".</target>
+        <note>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
@@ -175,6 +195,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">В __arglist невозможно передать аргумент с помощью in или out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloneDisallowedInRecord">
+        <source>Members named 'Clone' are disallowed in records.</source>
+        <target state="translated">Элементы с именем "Clone" не могут использоваться в записях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -202,9 +227,19 @@
         <target state="translated">Конструктор копий в записи должен вызвать конструктор копий базового класса или конструктор объекта без параметров, если запись наследуется от объекта.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="translated">Конструктор копий "{0}" должен быть открытым или защищенным, так как запись не запечатана.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Имя "{0}" не соответствует указанному параметру "Deconstruct" "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultConstraintOverrideOnly">
+        <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
+        <target state="translated">Ограничение "default" допустимо только для переопределенных и явных методов реализации интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -232,9 +267,19 @@
         <target state="translated">Шаблон отмены запрещено использовать как метку case в операторе switch. Используйте "case var _:" в качестве шаблона отмены или "case @_:" в качестве константы "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
+        <source>'{0}' does not override expected property from '{1}'.</source>
+        <target state="translated">"{0}" не переопределяет ожидаемое свойство из "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="translated">"{0}" не переопределяет ожидаемый метод из "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
-        <source>'{0}' does not override the method from 'object'.</source>
-        <target state="translated">"{0}" не переопределяет метод из объекта "Object".</target>
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="translated">"{0}" не переопределяет ожидаемый метод из "object".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
@@ -247,6 +292,11 @@
         <target state="translated">"{0}" явно реализуется больше одного раза.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">"{0}" уже указан в списке интерфейсов в типе "{2}" в виде "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Оператор подавления повторяющихся значений NULL ("!")</target>
@@ -257,14 +307,19 @@
         <target state="translated">Запрещено указывать модификаторы readonly для обоих методов доступа свойства или индексатора "{0}". Вместо этого укажите модификатор readonly для самого свойства.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="translated">Первичный конструктор и конструктор элемента не могут иметь одинаковые типы параметров.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">"else" не может запускать оператор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Точки входа приложения не могут иметь атрибут "UnmanagedCallersOnly".</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">Свойство контракта на равенство записей "{0}" должно иметь метод доступа get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -358,8 +413,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">Оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра для "{1}" Возможно, вы имели в виду "await foreach", а не "foreach"?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="translated">Оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}" Возможно, вы имели в виду "await foreach", а не "foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
@@ -370,6 +425,11 @@
       <trans-unit id="ERR_FuncPtrRefMismatch">
         <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
         <target state="translated">Несоответствие ссылок между "{0}" и указателем на функцию "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">Невозможно вызвать указатель на функцию с именованными аргументами.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,6 +452,21 @@
         <target state="translated">Вызов неявного индексатора для индекса не может присвоить аргументу имя.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">Тип "{0}" не может использоваться в качестве типа целевого объекта для new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">Отсутствует целевой тип для "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">Использование new() в этом контексте не допускается.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Вызов неявного индексатора для диапазона не может присвоить аргументу имя.</target>
@@ -400,6 +475,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически диспетчеризируемых выражениях.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -423,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
-        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
-        <target state="translated">"{0}" не является допустимым соглашением о вызовах для указателя на функцию. Допустимые соглашения: cdecl, managed, thiscall и stdcall.</target>
+        <source>'{0}' is not a valid calling convention specifier for a function pointer.</source>
+        <target state="translated">"{0}" не является допустимым соглашением о вызовах для указателя на функцию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -446,6 +526,11 @@
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="translated">"Недопустимый описатель ранга: ожидается "]"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidUnmanagedCallersOnlyCallConv">
+        <source>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</source>
+        <target state="translated">"{0}" не является допустимым типом соглашения о вызовах для "UnmanagedCallersOnly".</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
         <source>The receiver of a `with` expression must have a non-void type.</source>
@@ -480,6 +565,31 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Отсутствует шаблон</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Инициализатор модуля не может иметь атрибут "UnmanagedCallersOnly".</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
+        <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
+        <target state="translated">Метод инициализатора модуля "{0}" не должен быть универсальным и не должен содержаться в универсальном типе.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType">
+        <source>Module initializer method '{0}' must be accessible at the module level</source>
+        <target state="translated">Метод инициализатора модуля "{0}" должен быть доступен на уровне модуля.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeOrdinary">
+        <source>A module initializer must be an ordinary member method</source>
+        <target state="translated">Инициализатор модуля должен быть обычным методом-элементом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
+        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
+        <target state="translated">Метод инициализатора модуля "{0}" должен быть статическим, не должен иметь параметров и должен возвращать "void".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -527,6 +637,26 @@
         <target state="translated">Тип получателя "{0}" не является допустимым типом записи.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="translated">Элемент записи "{0}" должен быть закрытым.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonProtectedAPIInRecord">
+        <source>Record member '{0}' must be protected.</source>
+        <target state="translated">Элемент записи "{0}" должен быть защищенным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="translated">Элемент записи "{0}" должен быть открытым.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' must allow overriding because the containing record is not sealed.</source>
+        <target state="translated">"{0}" должен допускать переопределение, поскольку содержащая его запись не является запечатанной.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">Ожидается "enable", "disable" или "restore"</target>
@@ -543,8 +673,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Параметр типа, допускающего значение NULL, должен быть известен как тип значения или ссылочный тип, не допускающий значение NULL. Рекомендуется добавить "class", "struct" или ограничение типа.</target>
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
+        <target state="translated">Параметр типа, допускающий значение null, должен представлять собой тип значения или ссылку на тип, не допускающую значение null, если не используется версия языка "{0}" или выше. Попробуйте изменить версию языка или добавить ограничение "class", "struct" или ограничение типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedTypeArgument">
@@ -555,6 +685,11 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Выходная переменная не может быть объявлена как локальная переменная ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
+        <target state="translated">Метод "{0}" задает ограничение "default" для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" ограничен и может представлять собой только тип ссылки или тип значения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -639,7 +774,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'"{0}": readonly можно использовать для методов доступа, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
+        <target state="translated">"{0}": readonly можно использовать для методов доступа, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">Первичный конструктор конфликтует с синтезированным конструктором копий.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -657,9 +797,34 @@
         <target state="translated">Реляционные шаблоны не могут использоваться для NaN с плавающей запятой.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">"{0}": целевая среда выполнения не поддерживает ковариантные типы в переопределениях. Для сопоставления переопределенного элемента "{1}" необходимо использовать тип "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">"{0}": целевая среда выполнения не поддерживает ковариантные возвращаемые типы в переопределениях. Для сопоставления переопределенного элемента "{1}" необходимо использовать возвращаемый тип "{2}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
+        <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
+        <target state="translated">Целевая среда выполнения не поддерживает расширяемые или принадлежащие среде выполнения соглашения о вызовах по умолчанию.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SealedAPIInRecord">
+        <source>'{0}' cannot be sealed because containing record is not sealed.</source>
+        <target state="translated">"{0}" не может быть запечатанным, поскольку содержащая его запись не является запечатанной.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="translated">Элемент записи "{0}" должен возвращать "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
@@ -685,6 +850,21 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="translated">Элемент записи "{0}" не может быть статическим.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="translated">Статическая анонимная функция не может содержать ссылку на "this" или "base".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="translated">Статическая анонимная функция не может содержать ссылку на "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -748,23 +928,118 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeConstraintsMustBeUniqueAndFirst">
-        <source>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
-        <target state="translated">Ограничения "class", "struct", "unmanaged" и "notnull" не могут быть объединены или повторяться, поэтому они должны быть указаны первыми в списке ограничений.</target>
+        <source>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
+        <target state="translated">Ограничения "class", "struct", "unmanaged", "notnull" и "default" не могут быть объединены или повторяться, поэтому они должны быть указаны первыми в списке ограничений.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">Тип "{0}" не может использоваться в качестве типа целевого объекта для new()</target>
+      <trans-unit id="ERR_TypeMustBePublic">
+        <source>Type '{0}' must be public to be used as a calling convention.</source>
+        <target state="translated">Тип "{0}" должен быть открытым для использования в качестве соглашения о вызовах.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">Отсутствует целевой тип для "{0}".</target>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может вызываться напрямую. Получите указатель на функцию для этого метода.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">ковариантные возвращаемые значения</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">Использование new() в этом контексте не допускается.</target>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="translated">пустые переменные</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">создание объекта с типом целевого объекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">Сравнение указателей на функции может привести к непредвиденному результату, так как указатели на одну и ту же функцию могут быть разными.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">Не сравнивайте значения указателей на функции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="translated">При выходе параметр "{0}" должен иметь значение, отличное от NULL, так как параметр "{1}" имеет значение, отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="translated">При выходе параметр должен иметь значение, отличное от NULL, так как параметр, на который ссылается NotNullIfNotNull, имеет значение, отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="translated">"{0}" определяет "Equals", но не "GetHashCode"</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="translated">Запись определяет "Equals", но не "GetHashCode".</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">Типы и псевдонимы не могут иметь имя "record"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">Типы и псевдонимы не могут иметь имя "record"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="translated">Возвращаемое значение должно быть отлично от NULL, так как параметр "{0}" имеет значение, отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="translated">Возвращаемое значение должно быть отлично от NULL, так как параметр имеет значение, отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="translated">Выражение switch не обрабатывает некоторые типы входных значений, в том числе неименованное значение перечисления (не является исчерпывающим). Например, не охвачен шаблон "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="translated">Выражение switch не обрабатывает некоторые типы входных значений, в том числе неименованное значение перечисления (не является исчерпывающим).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
+        <target state="translated">Метод "{0}" не будет использоваться в качестве точки входа, так как была найдена синхронная точка входа "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeNotFound">
+        <source>Type '{0}' is not defined.</source>
+        <target state="translated">Тип "{0}" не определен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -773,14 +1048,29 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="translated">Конструктор, объявленный в записи с параметрами, должен иметь инициализатор конструктора "this".</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="translated">Конструктор, объявленный в записи со списком параметров, должен иметь инициализатор конструктора "this".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="translated">Недопустимая вариантность: если не используется как минимум версия языка "{4}", параметр типа "{1}" должен быть допустимым ({3}) для "{0}". Состояние "{1}": {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">"{0}": невозможно одновременно задать класс ограничения и ограничение "unmanaged"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</source>
+        <target state="translated">Методы с атрибутом "UnmanagedCallersOnly" не могут иметь параметры универсального типа и не могут быть объявлены в универсальном типе.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
+        <target state="translated">"UnmanagedCallersOnly" может применяться только к обычным статическим методам или к статическим локальным функциям.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
@@ -899,12 +1189,12 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -916,6 +1206,7 @@
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -985,21 +1276,23 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="translated">
                              Параметры компилятора Visual C#
 
-                       - Выходные файлы -
+                       — Выходные файлы -
 -out:&lt;file&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
                               файла с классом main или имя первого файла)
 -target:exe                   Выполнить сборку консольного исполняемого файла (по умолчанию) (краткая
                               форма: -t:exe)
--target:winexe                Выполнить сборку исполняемого файла Windows (краткая форма:
+-target:winexe               Выполнить сборку исполняемого файла Windows (краткая форма:
                               -t:winexe)
 -target:library               Выполнить сборку библиотеки (краткая форма: -t:library)
--target:module                Выполнить сборку модуля, который может быть добавлен в другую
+-target:module                Выполнить сборку модуля, который можно добавить в другую
                               сборку (краткая форма: -t:module)
--target:appcontainerexe       Выполнить сборку исполняемого файла контейнера приложений (краткая форма:
+-target:appcontainerexe       Выполнить сборку исполняемого файла AppContainer (краткая форма:
                               -t:appcontainerexe)
 -target:winmdobj              Выполнить сборку промежуточного файла среды выполнения Windows,
                               используемого в WinMDExp (краткая форма: -t:winmdobj)
@@ -1009,7 +1302,7 @@
                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
                               anycpu. Значение по умолчанию — anycpu.
 
-                       - Входные файлы -
+                       — Входные файлы -
 -recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
                               подкаталогах в соответствии с заданным
                               подстановочным знаком
@@ -1017,7 +1310,7 @@
                               сборки с помощью определенного псевдонима (краткая форма: -r)
 -reference:&lt;file list&gt;        Сослаться на метаданные из заданных файлов
                               сборки (краткая форма: -r)
--addmodule:&lt;file list&gt;        Скомпоновать указанные модули вместе с этой сборкой
+-addmodule:&lt;file list&gt;        Скомпоновать указанные модули в этой сборке
 -link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
                               сборок взаимодействия (краткая форма: -l)
 -analyzer:&lt;file list&gt;         Запускать анализаторы из этой сборки
@@ -1028,23 +1321,23 @@
 -embed                        Внедрить все исходные файлы в PDB.
 -embed:&lt;file list&gt;            Внедрить указанные файлы в PDB.
 
-                       - Ресурсы -
+                       — Ресурсы -
 -win32res:&lt;file&gt;              Задать файл ресурсов Win32 (RES-файл)
 -win32icon:&lt;file&gt;             Использовать этот значок для вывода
 -win32manifest:&lt;file&gt;         Задать файл манифеста Win32 (XML-файл)
 -nowin32manifest              Не включать манифест Win32 по умолчанию
 -resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
--linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
+-linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс в этой сборке
                               (краткая форма: -linkres), где данные о ресурсах имеют
                               формат &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - Создание кода -
+                       — Создание кода -
 -debug[+|-]                   Выдать отладочную информацию
 -debug:{full|pdbonly|portable|embedded}
                               Задать тип отладки (по умолчанию — "full",
                               "portable"  — кроссплатформенный формат,
                               "embedded" — кроссплатформенный формат, внедряемый в
-                              целевой DLL- или EXE-файл
+                              целевой DLL- или EXE-файл)
 -optimize[+|-]                Включить оптимизацию (краткая форма: -o)
 -deterministic                Создать детерминированную сборку
                               (включая GUID версии модуля и метку времени)
@@ -1053,11 +1346,11 @@
                               сведений об объеме протестированного кода
 -sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
  
-                       - Ошибки и предупреждения -
+                       — Ошибки и предупреждения -
 -warnaserror[+|-]             Регистрировать все предупреждения как ошибки
 -warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
                               (используйте "nullable" для всех предупреждений о допустимости значений NULL)
--warn:&lt;n&gt;                     Задать порог предупреждений (0–4) (краткая форма: -w)
+-warn:&lt;n&gt;                     Задать порог предупреждений (0 или выше) (краткая форма: -w)
 -nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
                               (используйте "nullable" для всех предупреждений о допустимости значений NULL)
 -ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
@@ -1065,12 +1358,13 @@
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
                               Указать файл для записи всех диагностических данных
                               компилятора и анализатора.
-                              sarif_version:{1|2|2.1} По умолчанию используются значения 1. 2 и 2.1,
+                              sarif_version:{1|2|2.1} По умолчанию используются значения 1.2 и 2.1,
                               обозначающие версию SARIF 2.1.0.
 -reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
                               время выполнения.
+-skipanalyzers[+|-]           Пропустить выполнение анализаторов диагностики.
 
-                       - Язык -
+                       — Язык -
 -checked[+|-]                 Создать проверки переполнений
 -unsafe[+|-]                  Допускать "небезопасный" код
 -define:&lt;symbol list&gt;         Определить символы условной компиляции (краткая
@@ -1078,7 +1372,7 @@
 -langversion:?                Отобразить разрешенные значения для версии языка
 -langversion:&lt;string&gt;         Указать версию языка, например
                               "latest" (последняя версия, включая дополнительные номера версии),
-                              "default" (то же что и "latest"),
+                              "default" (то же, что и "latest"),
                               "latestmajor" (последняя версия, исключая дополнительные номера версии),
                               "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии),
                               либо конкретные версии, например "6" или "7.1"
@@ -1086,16 +1380,16 @@
 -nullable:{enable|disable|warnings|annotations}
                               Указать параметр допускающего значение NULL контекста enable|disable|warnings|annotations.
 
-                       - Безопасность -
+                       — Безопасность -
 -delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
                               часть ключа строгого имени
--publicsign[+|-]              Подписать сборку, используя только открытую
+-publicsign[+|-]              Выполнить общедоступную подпись сборки, используя только открытую
                               часть ключа строгого имени
 -keyfile:&lt;file&gt;               Указать файл ключей строгого имени
 -keycontainer:&lt;string&gt;        Указать контейнер ключей строгого имени
 -highentropyva[+|-]           Включить ASLR с высокой энтропией
 
-                       - Прочее -
+                       — Прочее -
 @&lt;file&gt;                       Считать файл ответов с дополнительными параметрами
 -help                         Отобразить это сообщение об использовании (краткая форма: -?)
 -nologo                       Запрещать отображение сообщения компилятора об авторских правах
@@ -1103,7 +1397,7 @@
 -parallel[+|-]                Параллельная сборка.
 -version                      Отобразить номер версии компилятора и выйти.
 
-                       - Дополнительно -
+                       — Дополнительно -
 -baseaddress:&lt;address&gt;        Базовый адрес библиотеки, для которой выполняется сборка
 -checksumalgorithm:&lt;alg&gt;      Задать алгоритм для расчета контрольной суммы
                               исходного файла, хранимой в формате PDB. Поддерживаемые значения:
@@ -1120,7 +1414,7 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Задать сопоставление для выходных данных имен исходного пути по
                               компилятору.
--pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию:
+-pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию
                               используется имя выходного файла с расширением PDB)
 -errorendlocation             Выводить строку и столбец конечного расположения
                               каждой ошибки
@@ -1138,6 +1432,8 @@
 -moduleassemblyname:&lt;string&gt;  Имя сборки, частью которой будет являться
                               этот модуль
 -modulename:&lt;string&gt;          Задать имя исходного модуля
+-generatedfilesout:&lt;dir&gt;      Размещать файлы, созданные во время компиляции, в
+                              указанном каталоге.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -1171,6 +1467,16 @@
         <target state="translated">назначение объединения</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">константные интерполированные строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
+        <source>default type parameter constraints</source>
+        <target state="translated">ограничения параметров типа по умолчанию</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">ограничения универсального типа для делегата</target>
@@ -1194,6 +1500,16 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">расширяемый оператор fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="translated">GetAsyncEnumerator расширения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="translated">GetEnumerator расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
@@ -1234,6 +1550,11 @@
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
         <target state="translated">Атрибут MemberNotNull</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureModuleInitializers">
+        <source>module initializers</source>
+        <target state="translated">инициализаторы модулей</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1341,6 +1662,11 @@
         <target state="translated">инициализатор stackalloc</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAnonymousFunction">
+        <source>static anonymous function</source>
+        <target state="translated">статическая анонимная функция</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">статические локальные функции</target>
@@ -1351,9 +1677,9 @@
         <target state="translated">&lt;выражения для выбора вариантов&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">создание объекта с типом целевого объекта</target>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>target-typed conditional expression</source>
+        <target state="translated">условное выражение с целевым типом</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1386,6 +1712,11 @@
         <target state="translated">объявления using</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="translated">безопасность вариантности для статических элементов интерфейса</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;NULL&gt;</target>
@@ -1394,6 +1725,16 @@
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">ограничения для методов переопределения и явной реализации интерфейса</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Parameter">
+        <source>parameter</source>
+        <target state="translated">параметр</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Return">
+        <source>return</source>
+        <target state="translated">возвращаемый</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -1796,6 +2137,16 @@
         <target state="translated">Не используйте "_" для константы case.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Константное значение "{0}" может привести к переполнению "{1}" во время выполнения (для переопределения используйте синтаксис "unchecked").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Константное значение может привести к переполнению во время выполнения (для переопределения используйте синтаксис "unchecked")</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Преобразование литерала, допускающего значение NULL или возможного значения NULL в тип, не допускающий значение NULL.</target>
@@ -1837,9 +2188,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате.</target>
-        <note />
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}"</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Генератор создал следующее исключение:
+"{0}".</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -1847,9 +2205,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате.</target>
-        <note />
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}"</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Генератор создал следующее исключение:
+"{0}".</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -2097,13 +2462,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" для "{1}" не совпадает с целевым делегатом "{2}".</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра "{0}" объекта "{1}" не соответствует целевому объекту делегирования "{2}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра не совпадает с целевым делегатом.</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра не соответствует целевому объекту делегирования (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2147,13 +2512,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе "{0}" не совпадает с целевым делегатом "{1}".</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения "{0}" не соответствует целевому объекту делегирования "{1}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе не совпадает с целевым делегатом.</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения не соответствует целевому объекту делегирования (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
@@ -2266,6 +2631,16 @@
         <target state="translated">Тип значения, допускающего NULL, может быть NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned">
+        <source>The out parameter '{0}' must be assigned to before control leaves the current method</source>
+        <target state="translated">До передачи управления из текущего метода параметру, помеченному ключевым словом out, "{0}" должно быть присвоено значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned_Title">
+        <source>An out parameter must be assigned to before control leaves the method</source>
+        <target state="translated">Параметру out должно быть присвоено значение до передачи управления из метода</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
         <target state="translated">Параметр "{0}" должен иметь значение, отличное от NULL, при выходе с "{1}".</target>
@@ -2286,6 +2661,46 @@
         <target state="translated">Параметр должен иметь значение, отличное от NULL, при выходе.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="translated">"{0}": нельзя использовать статические типы в качестве параметров.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="translated">Статические типы не могут использоваться в качестве параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="translated">Не удается использовать оператор "{0}" в этом месте из-за приоритета. Для устранения неоднозначности используйте круглые скобки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="translated">Не удается использовать оператор в этом месте из-за приоритета</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</source>
+        <target state="translated">"{0}" не реализует шаблон "{1}". "{2}" не является общедоступным экземпляром либо методом расширения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
+        <target state="translated">Тип не реализует шаблон коллекции; член не является общедоступным экземпляром или методом расширения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="translated">"{0}": нельзя использовать статические типы в качестве возвращаемых типов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="translated">Статические типы не могут использоваться в качестве возвращаемых типов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Метод, помеченный [DoesNotReturn], не должен возвращать значение.</target>
@@ -2294,6 +2709,16 @@
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Метод, помеченный [DoesNotReturn], не должен возвращать значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="translated">Второй операнд оператора "is" или "as" не может быть статического типа "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="translated">Второй операнд оператора "is" или "as" не может иметь статический тип</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -2306,9 +2731,29 @@
         <target state="translated">Выражение switch не обрабатывает некоторые входные значения, равные null (не является исчерпывающим). Например, шаблон "{0}" не охвачен.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Выражение switch не обрабатывает некоторые входные значения null (не является исчерпывающим). Например, шаблон "{0}" не охвачен. Однако шаблон с предложением "when" может соответствовать этому значению.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="translated">Выражение switch не обрабатывает некоторые входные данные NULL.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
         <target state="translated">Выражение switch не обрабатывает некоторые входные данные NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Выражение switch не обрабатывает все возможные значения входного типа (не является исчерпывающим). Например, шаблон "{0}" не охвачен. Однако шаблон с предложением "when" может соответствовать этому значению.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen_Title">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="translated">Выражение switch обрабатывает не все возможные значения своего типа входных данных (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -2406,6 +2851,26 @@
         <target state="translated">Параметр типа имеет то же имя, что и параметр типа во внешнем методе.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedThis">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
+        <target state="translated">Поле "{0}" должно быть полностью определено до возврата управления в вызывающий метод.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">Автоматически реализованное свойство "{0}" должно быть полностью определено до возврата управления в вызывающий метод.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">Необходимо полностью присвоить значение автоматически реализованному свойству до того, как управление будет возвращено в вызывающий метод</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThis_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
+        <target state="translated">Необходимо полностью присвоить значения полям структуры в конструкторе до того, как управление будет возвращено в вызывающий метод</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
         <target state="translated">Распаковка-преобразование вероятного значения NULL.</target>
@@ -2437,13 +2902,73 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Поле {0} "{1}", не допускающее значение NULL, не инициализировано. Попробуйте объявить {0} как допускающее значение NULL.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="translated">{0} "{1}", не допускающий значения NULL, должен содержать значение, отличное от NULL, при выходе из конструктора. Возможно, стоит объявить {0} как допускающий значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="translated">Поле, не допускающее значения NULL, должно содержать значение, отличное от NULL, при выходе из конструктора. Возможно, стоит объявить поле как допускающее значения NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Параметр "{0}" не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Параметр не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation">
+        <source>Use of unassigned local variable '{0}'</source>
+        <target state="translated">Использование локальной переменной "{0}", которой не присвоено значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField">
+        <source>Use of possibly unassigned field '{0}'</source>
+        <target state="translated">Использование поля "{0}", которому, возможно, не присвоено значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField_Title">
+        <source>Use of possibly unassigned field</source>
+        <target state="translated">Использование поля, которому, возможно, не присвоено значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut">
+        <source>Use of unassigned out parameter '{0}'</source>
+        <target state="translated">Использование выходного параметра "{0}", которому не присвоено значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut_Title">
+        <source>Use of unassigned out parameter</source>
+        <target state="translated">Использование параметра out, которому не присвоено значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty">
+        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
+        <target state="translated">Использование автоматически реализованного свойства "{0}", которому, возможно, не присвоено значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty_Title">
+        <source>Use of possibly unassigned auto-implemented property</source>
+        <target state="translated">Использование автоматически реализованного свойства, которому, возможно, не присвоено значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis">
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="translated">Невозможно использовать объект this, пока не будут назначены все поля этого объекта.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
+        <target state="translated">Невозможно использовать объект this в конструкторе, пока не будут назначены все поля этого объекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation_Title">
+        <source>Use of unassigned local variable</source>
+        <target state="translated">Использование локальной переменной, которой не присвоено значение</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2618,7 +3143,7 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig">
         <source>'{0}' has the wrong signature to be an entry point</source>
-        <target state="translated">'"{0}" имеет неправильную сигнатуру и не может быть точкой входа</target>
+        <target state="translated">"{0}" имеет неправильную сигнатуру и не может быть точкой входа</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig_Title">
@@ -2733,12 +3258,12 @@
       </trans-unit>
       <trans-unit id="ERR_EventNeedsBothAccessors">
         <source>'{0}': event property must have both add and remove accessors</source>
-        <target state="translated">'{0}": свойство события должно иметь методы доступа для добавления и удаления.</target>
+        <target state="translated">"{0}": свойство события должно иметь методы доступа для добавления и удаления.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventNotDelegate">
         <source>'{0}': event must be of a delegate type</source>
-        <target state="translated">'{0}": событие должно иметь тип делегата.</target>
+        <target state="translated">"{0}": событие должно иметь тип делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreferencedEvent">
@@ -2753,7 +3278,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
         <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="translated">'{0}": событие экземпляра в интерфейсе не может иметь инициализатор.</target>
+        <target state="translated">"{0}": событие экземпляра в интерфейсе не может иметь инициализатор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2768,7 +3293,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonEvent">
         <source>'{0}': cannot override; '{1}' is not an event</source>
-        <target state="translated">'{0}": невозможно переопределить, так как "{1}" не является событием.</target>
+        <target state="translated">"{0}": невозможно переопределить, так как "{1}" не является событием.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddRemoveMustHaveBody">
@@ -2778,7 +3303,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventInitializer">
         <source>'{0}': abstract event cannot have initializer</source>
-        <target state="translated">'"{0}": абстрактное событие не может иметь инициализатор.</target>
+        <target state="translated">"{0}": абстрактное событие не может иметь инициализатор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReservedAssemblyName">
@@ -2853,7 +3378,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigContext">
         <source>'{0}' is an ambiguous reference between '{1}' and '{2}'</source>
-        <target state="translated">'{0}" является неоднозначной ссылкой между "{1}" и "{2}".</target>
+        <target state="translated">"{0}" является неоднозначной ссылкой между "{1}" и "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateUsing">
@@ -2878,7 +3403,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewRequired">
         <source>'{0}' hides inherited member '{1}'. Use the new keyword if hiding was intended.</source>
-        <target state="translated">'"{0}" скрывает наследуемый член "{1}". Если скрытие было намеренным, используйте ключевое слово new.</target>
+        <target state="translated">"{0}" скрывает наследуемый член "{1}". Если скрытие было намеренным, используйте ключевое слово new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Title">
@@ -2887,8 +3412,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Переменная объявлена с тем же именем, что и переменная в базовом классе, однако, не было использовано новое ключевое слово. Это предупреждение сообщает о том, что следует использовать новое ключевое слово: переменная объявлена с учетом использования нового ключевого слова в декларации.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="translated">Переменная объявлена с тем же именем, что и переменная в базовом типе, однако, не было использовано ключевое слово new. Это предупреждение сообщает о том, что следует использовать ключевое слово new: переменная объявлена так, как если бы в объявлении использовалось ключевое слово new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -2923,7 +3448,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewOrOverrideExpected">
         <source>'{0}' hides inherited member '{1}'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.</source>
-        <target state="translated">'"{0}" скрывает наследуемый член "{1}". Чтобы текущий член переопределял эту реализацию, добавьте ключевое слово override. В противном случае добавьте ключевое слово new.</target>
+        <target state="translated">"{0}" скрывает наследуемый член "{1}". Чтобы текущий член переопределял эту реализацию, добавьте ключевое слово override. В противном случае добавьте ключевое слово new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewOrOverrideExpected_Title">
@@ -2933,7 +3458,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideNotExpected">
         <source>'{0}': no suitable method found to override</source>
-        <target state="translated">'"{0}": не найден метод, пригодный для переопределения.</target>
+        <target state="translated">"{0}": не найден метод, пригодный для переопределения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
@@ -2943,17 +3468,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
         <source>'{0}' does not contain a definition for '{1}'</source>
-        <target state="translated">'"{0}" не содержит определение для "{1}".</target>
+        <target state="translated">"{0}" не содержит определение для "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKknown">
         <source>'{0}' is a {1} but is used like a {2}</source>
-        <target state="translated">'{0}" является {1}, но используется как {2}.</target>
+        <target state="translated">"{0}" является {1}, но используется как {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKunknown">
         <source>'{0}' is a {1}, which is not valid in the given context</source>
-        <target state="translated">'{0}" является {1}, который недопустим в данном контексте.</target>
+        <target state="translated">"{0}" является {1}, который недопустим в данном контексте.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectRequired">
@@ -2963,12 +3488,12 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigCall">
         <source>The call is ambiguous between the following methods or properties: '{0}' and '{1}'</source>
-        <target state="translated">Неоднозначный вызов следующих методов или свойств: '{0}" и "{1}"</target>
+        <target state="translated">Неоднозначный вызов следующих методов или свойств: "{0}" и "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAccess">
         <source>'{0}' is inaccessible due to its protection level</source>
-        <target state="translated">'{0}" недоступен из-за его уровня защиты.</target>
+        <target state="translated">"{0}" недоступен из-за его уровня защиты.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethDelegateMismatch">
@@ -2998,7 +3523,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticConstParam">
         <source>'{0}': a static constructor must be parameterless</source>
-        <target state="translated">'"{0}": статический конструктор не должен иметь параметров.</target>
+        <target state="translated">"{0}": статический конструктор не должен иметь параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotConstantExpression">
@@ -3008,7 +3533,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstRefField">
         <source>'{0}' is of type '{1}'. A const field of a reference type other than string can only be initialized with null.</source>
-        <target state="translated">'"{0}" является типом "{1}". Константное поле ссылочного типа, отличного от string, может инициализироваться только значением Null.</target>
+        <target state="translated">"{0}" является типом "{1}". Константное поле ссылочного типа, отличного от string, может инициализироваться только значением Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalIllegallyOverrides">
@@ -3047,8 +3572,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">Не удается создать экземпляр абстрактного класса или интерфейса "{0}".</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="translated">Не удается создать экземпляр абстрактного типа или интерфейса "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3057,8 +3582,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Циклическая зависимость базового класса включает "{0}" и "{1}".</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="translated">Циклическая зависимость базового типа включает "{0}" и "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3143,7 +3668,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReturnExpected">
         <source>'{0}': not all code paths return a value</source>
-        <target state="translated">'"{0}": не все пути к коду возвращают значение.</target>
+        <target state="translated">"{0}": не все пути к коду возвращают значение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableCode">
@@ -3248,7 +3773,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExternHasBody">
         <source>'{0}' cannot be extern and declare a body</source>
-        <target state="translated">'{0}" не может одновременно быть внешним и объявлять тело.</target>
+        <target state="translated">"{0}" не может одновременно быть внешним и объявлять тело.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternHasConstructorInitializer">
@@ -3258,7 +3783,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractAndExtern">
         <source>'{0}' cannot be both extern and abstract</source>
-        <target state="translated">'"{0}" не может одновременно внешним и абстрактным.</target>
+        <target state="translated">"{0}" не может одновременно внешним и абстрактным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeParamType">
@@ -3298,7 +3823,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockNeedsReference">
         <source>'{0}' is not a reference type as required by the lock statement</source>
-        <target state="translated">'{0}" не является ссылочным типом, как требуется в операторе lock.</target>
+        <target state="translated">"{0}" не является ссылочным типом, как требуется в операторе lock.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullNotValid">
@@ -3312,8 +3837,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields are assigned to</source>
-        <target state="translated">Невозможно использовать объект this, пока не будут назначены все его поля.</target>
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="translated">Невозможно использовать объект this, пока не будут назначены все поля этого объекта.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -3508,12 +4033,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">'"{0}" не может быть запечатанным, т. к. не содержит модификатора override.</target>
+        <target state="translated">"{0}" не может быть запечатанным, т. к. не содержит модификатора override.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'{0}": невозможно переопределить наследуемый член "{1}", так как он запечатан.</target>
+        <target state="translated">"{0}": невозможно переопределить наследуемый член "{1}", так как он запечатан.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -3557,8 +4082,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">Не вызывайте метод Finalize базового класса напрямую. Он вызывается автоматически из деструктора.</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="translated">Не вызывайте метод Finalize базового типа напрямую. Он вызывается автоматически из деструктора.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3642,13 +4167,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед "class", "struct", "interface" или "void".</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface" и перед возвращаемым типом метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Недопустимый импортированный тип "{0}". Он содержит циклическую зависимость базового класса.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="translated">Недопустимый импортированный тип "{0}". Он содержит циклическую зависимость базового типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -3683,17 +4208,17 @@
       </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'"{0}": модификаторы доступа для методов доступа могут использоваться, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
+        <target state="translated">"{0}": модификаторы доступа для методов доступа могут использоваться, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceAccessor">
         <source>'{0}' does not implement interface member '{1}'. '{2}' is not public.</source>
-        <target state="translated">'"{0}" не реализует член интерфейса "{1}". "{2}" не открытый.</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". "{2}" не открытый.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is ambiguous with '{3}'.</source>
-        <target state="translated">'"{0}" не реализует шаблон "{1}". "{2}" неоднозначен с "{3}".</target>
+        <target state="translated">"{0}" не реализует шаблон "{1}". "{2}" неоднозначен с "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
@@ -3701,19 +4226,9 @@
         <target state="translated">Тип не реализует шаблон коллекции: члены неоднозначны</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'"{0}" не реализует шаблон "{1}". "{2}" либо статический, либо не открытый.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">Тип не реализует шаблон коллекции: член является статическим или закрытым</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="translated">'"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
+        <target state="translated">"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
@@ -3818,7 +4333,7 @@
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
         <source>'{0}': an entry point cannot be generic or in a generic type</source>
-        <target state="translated">'"{0}": точка входа не может быть универсальной или находиться в универсальном типе</target>
+        <target state="translated">"{0}": точка входа не может быть универсальной или находиться в универсальном типе</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric_Title">
@@ -3868,7 +4383,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsTypeParam">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter</source>
-        <target state="translated">'"{0}": имя параметра, локальной переменной или локальной функции не может совпадать с именем параметра типа метода.</target>
+        <target state="translated">"{0}": имя параметра, локальной переменной или локальной функции не может совпадать с именем параметра типа метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsWithTypeVar">
@@ -3893,17 +4408,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttrArgWithTypeVars">
         <source>'{0}': an attribute argument cannot use type parameters</source>
-        <target state="translated">'{0}": аргумент атрибута не может использовать параметры типа.</target>
+        <target state="translated">"{0}": аргумент атрибута не может использовать параметры типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewTyvarWithArgs">
         <source>'{0}': cannot provide arguments when creating an instance of a variable type</source>
-        <target state="translated">'{0}": при создании экземпляра типа переменной не удается задать аргументы</target>
+        <target state="translated">"{0}": при создании экземпляра типа переменной не удается задать аргументы</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'"{0}": абстрактный класс не может быть запечатанным или статическим.</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="translated">"{0}": абстрактный тип не может быть запечатанным или статическим.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -3918,7 +4433,7 @@
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef">
         <source>'{0}': a reference to a volatile field will not be treated as volatile</source>
-        <target state="translated">'"{0}": ссылка на временное поле не будет считаться временной.</target>
+        <target state="translated">"{0}": ссылка на временное поле не будет считаться временной.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef_Title">
@@ -3938,7 +4453,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComImportWithBase">
         <source>'{0}': a class with the ComImport attribute cannot specify a base class</source>
-        <target state="translated">'{0}": класс с атрибутом ComImport не может указывать базовый класс.</target>
+        <target state="translated">"{0}": класс с атрибутом ComImport не может указывать базовый класс.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplBadConstraints">
@@ -4037,13 +4552,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'"{0}": класс не может быть одновременно статическим и запечатанным.</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="translated">"{0}": тип не может быть одновременно статическим и запечатанным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
         <source>'{0}': abstract properties cannot have private accessors</source>
-        <target state="translated">'"{0}": абстрактные свойства не могут иметь закрытых методов доступа.</target>
+        <target state="translated">"{0}": абстрактные свойства не могут иметь закрытых методов доступа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueExpected">
@@ -4068,7 +4583,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefValBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</source>
-        <target state="translated">'"{0}": невозможно одновременно задать класс ограничения и ограничения "class" или "struct".</target>
+        <target state="translated">"{0}": невозможно одновременно задать класс ограничения и ограничения "class" или "struct".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithVal">
@@ -4172,7 +4687,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplParams">
         <source>'{0}' should not have a params parameter since '{1}' does not</source>
-        <target state="translated">'{0}" не должен иметь параметр params, так как у "{1}" его нет.</target>
+        <target state="translated">"{0}" не должен иметь параметр params, так как у "{1}" его нет.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GotoCaseShouldConvert">
@@ -4222,17 +4737,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractHasBody">
         <source>'{0}' cannot declare a body because it is marked abstract</source>
-        <target state="translated">'"{0}" не может объявить тело, потому что помечен как abstract.</target>
+        <target state="translated">"{0}" не может объявить тело, потому что помечен как abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConcreteMissingBody">
         <source>'{0}' must declare a body because it is not marked abstract, extern, or partial</source>
-        <target state="translated">'{0}" должен объявлять тело, так как он не помечен модификатором abstract, extern или partial.</target>
+        <target state="translated">"{0}" должен объявлять тело, так как он не помечен модификатором abstract, extern или partial.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'"{0}" не может быть одновременно абстрактным и запечатанным.</target>
+        <target state="translated">"{0}" не может быть одновременно абстрактным и запечатанным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -4247,47 +4762,47 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonFunction">
         <source>'{0}': cannot override because '{1}' is not a function</source>
-        <target state="translated">'{0}": невозможно переопределить, так как "{1}" не является функцией.</target>
+        <target state="translated">"{0}": невозможно переопределить, так как "{1}" не является функцией.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonVirtual">
         <source>'{0}': cannot override inherited member '{1}' because it is not marked virtual, abstract, or override</source>
-        <target state="translated">'{0}": невозможно переопределить наследуемый член "{1}", так как он не помечен как virtual, abstract или override.</target>
+        <target state="translated">"{0}": невозможно переопределить наследуемый член "{1}", так как он не помечен как virtual, abstract или override.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeAccessOnOverride">
         <source>'{0}': cannot change access modifiers when overriding '{1}' inherited member '{2}'</source>
-        <target state="translated">'{0}": невозможно изменить модификаторы доступа при переопределении "{1}", унаследованном из "{2}".</target>
+        <target state="translated">"{0}": невозможно изменить модификаторы доступа при переопределении "{1}", унаследованном из "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeTupleNamesOnOverride">
         <source>'{0}': cannot change tuple element names when overriding inherited member '{1}'</source>
-        <target state="translated">'"{0}": невозможно изменить имена элементов кортежа при переопределении наследуемого элемента "{1}"</target>
+        <target state="translated">"{0}": невозможно изменить имена элементов кортежа при переопределении наследуемого элемента "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeReturnTypeOnOverride">
         <source>'{0}': return type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'{0}": возвращаемый тип должен быть "{2}", чтобы соответствовать переопределенному члену "{1}".</target>
+        <target state="translated">"{0}": возвращаемый тип должен быть "{2}", чтобы соответствовать переопределенному члену "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'{0}": не может быть производным от запечатанного типа "{1}".</target>
+        <target state="translated">"{0}": не может быть производным от запечатанного типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'"{0}" является абстрактным, но содержится в классе "{1}", который не является абстрактным.</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="translated">"{0}" является абстрактным, но содержится в типе "{1}", который не является абстрактным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
         <source>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</source>
-        <target state="translated">'"{0}": статический конструктор не может иметь явный вызов конструктора "this" или "base".</target>
+        <target state="translated">"{0}": статический конструктор не может иметь явный вызов конструктора "this" или "base".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithAccessModifiers">
         <source>'{0}': access modifiers are not allowed on static constructors</source>
-        <target state="translated">'"{0}": модификаторы доступа для статических конструкторов не разрешены.</target>
+        <target state="translated">"{0}": модификаторы доступа для статических конструкторов не разрешены.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecursiveConstructorCall">
@@ -4302,7 +4817,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ObjectCallingBaseConstructor">
         <source>'{0}' has no base class and cannot call a base constructor</source>
-        <target state="translated">'"{0}" не имеет базового класса и не может вызвать базовый конструктор.</target>
+        <target state="translated">"{0}" не имеет базового класса и не может вызвать базовый конструктор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeNotFound">
@@ -4322,7 +4837,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">'"{0}": структуры не могут вызывать конструкторы базового класса.</target>
+        <target state="translated">"{0}": структуры не могут вызывать конструкторы базового класса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -4347,12 +4862,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceInBaseList">
         <source>'{0}' is already listed in interface list</source>
-        <target state="translated">'{0}" уже присутствует в списке интерфейсов.</target>
+        <target state="translated">"{0}" уже присутствует в списке интерфейсов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithTupleNamesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</source>
-        <target state="translated">'"{0}" уже указан в списке интерфейсов типа "{2}" с другими именами элементов кортежа: "{1}".</target>
+        <target state="translated">"{0}" уже указан в списке интерфейсов типа "{2}" с другими именами элементов кортежа: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CycleInInterfaceInheritance">
@@ -4362,17 +4877,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
         <source>'{0}' hides inherited abstract member '{1}'</source>
-        <target state="translated">'{0}" скрывает наследуемый абстрактный член "{1}".</target>
+        <target state="translated">"{0}" скрывает наследуемый абстрактный член "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedAbstractMethod">
         <source>'{0}' does not implement inherited abstract member '{1}'</source>
-        <target state="translated">'"{0}" не реализует наследуемый абстрактный член "{1}".</target>
+        <target state="translated">"{0}" не реализует наследуемый абстрактный член "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'</source>
-        <target state="translated">'"{0}" не реализует член интерфейса "{1}".</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectCantHaveBases">
@@ -4382,7 +4897,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationNotInterface">
         <source>'{0}' in explicit interface declaration is not an interface</source>
-        <target state="translated">'{0}" в явном объявлении интерфейса не является интерфейсом.</target>
+        <target state="translated">"{0}" в явном объявлении интерфейса не является интерфейсом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
@@ -4392,57 +4907,57 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
         <source>'{0}': containing type does not implement interface '{1}'</source>
-        <target state="translated">'{0}": вмещающий тип не реализует интерфейс "{1}".</target>
+        <target state="translated">"{0}": вмещающий тип не реализует интерфейс "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="translated">"{0}": явное объявление интерфейса может содержаться только в классе, записи, структуре или интерфейсе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
         <source>'{0}': member names cannot be the same as their enclosing type</source>
-        <target state="translated">'{0}": имена членов не могут совпадать с именами типов, в которых они содержатся</target>
+        <target state="translated">"{0}": имена членов не могут совпадать с именами типов, в которых они содержатся</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumeratorOverflow">
         <source>'{0}': the enumerator value is too large to fit in its type</source>
-        <target state="translated">'{0}": значение перечислителя недопустимо велико для типа, к которому он относится.</target>
+        <target state="translated">"{0}": значение перечислителя недопустимо велико для типа, к которому он относится.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonProperty">
         <source>'{0}': cannot override because '{1}' is not a property</source>
-        <target state="translated">'{0}": невозможно переопределить, так как "{1}" не является свойством.</target>
+        <target state="translated">"{0}": невозможно переопределить, так как "{1}" не является свойством.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoGetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable get accessor</source>
-        <target state="translated">'{0}": переопределение невозможно, так как "{1}" не имеет функции доступа get, доступной для переопределения.</target>
+        <target state="translated">"{0}": переопределение невозможно, так как "{1}" не имеет функции доступа get, доступной для переопределения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable set accessor</source>
-        <target state="translated">'{0}": переопределение невозможно, так как "{1}" не имеет функции доступа set, доступной для переопределения.</target>
+        <target state="translated">"{0}": переопределение невозможно, так как "{1}" не имеет функции доступа set, доступной для переопределения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyCantHaveVoidType">
         <source>'{0}': property or indexer cannot have void type</source>
-        <target state="translated">'"{0}": свойство или индексатор не могут иметь тип void.</target>
+        <target state="translated">"{0}": свойство или индексатор не могут иметь тип void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyWithNoAccessors">
         <source>'{0}': property or indexer must have at least one accessor</source>
-        <target state="translated">'"{0}": для свойства или индексатора должен быть указан по крайней мере один метод доступа.</target>
+        <target state="translated">"{0}": для свойства или индексатора должен быть указан по крайней мере один метод доступа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}" — новый виртуальный член в запечатанном классе "{1}".</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="translated">"{0}" — новый виртуальный элемент в запечатанном типе "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
         <source>'{0}' adds an accessor not found in interface member '{1}'</source>
-        <target state="translated">'{0}" добавляет метод доступа, не обнаруженный в члене интерфейса "{1}".</target>
+        <target state="translated">"{0}" добавляет метод доступа, не обнаруженный в члене интерфейса "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMissingAccessor">
@@ -4452,17 +4967,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ConversionWithInterface">
         <source>'{0}': user-defined conversions to or from an interface are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в интерфейс или из интерфейса.</target>
+        <target state="translated">"{0}": не разрешено пользовательское преобразование в интерфейс или из интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в базовый класс или из базового класса.</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="translated">"{0}": не разрешено пользовательское преобразование в базовый тип или из базового типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}": не разрешено пользовательское преобразование в производный класс или из производного класса.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="translated">"{0}": не разрешено пользовательское преобразование в производный тип или из производного типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4517,7 +5032,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantOverrideBogusMethod">
         <source>'{0}': cannot override '{1}' because it is not supported by the language</source>
-        <target state="translated">'{0}": невозможно переопределение "{1}", так как такая операция в данном языке не поддерживается.</target>
+        <target state="translated">"{0}": невозможно переопределение "{1}", так как такая операция в данном языке не поддерживается.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogus">
@@ -4527,22 +5042,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantCallSpecialMethod">
         <source>'{0}': cannot explicitly call operator or accessor</source>
-        <target state="translated">'{0}": явный вызов оператора или метода доступа невозможен.</target>
+        <target state="translated">"{0}": явный вызов оператора или метода доступа невозможен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
-        <target state="translated">'{0}": невозможно сослаться на тип через выражение; попытайтесь использовать "{1}".</target>
+        <target state="translated">"{0}": невозможно сослаться на тип через выражение; попытайтесь использовать "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldInitializerInStruct">
         <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'"{0}": в структуре не могут содержаться инициализаторы свойств или полей экземпляров.</target>
+        <target state="translated">"{0}": в структуре не могут содержаться инициализаторы свойств или полей экземпляров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Имя деструктора должно соответствовать имени класса.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="translated">Имя деструктора должно соответствовать имени типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4592,7 +5107,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadDynamicConversion">
         <source>'{0}': user-defined conversions to or from the dynamic type are not allowed</source>
-        <target state="translated">'{0}": пользовательские преобразования в динамические типы или из них не разрешены.</target>
+        <target state="translated">"{0}": пользовательские преобразования в динамические типы или из них не разрешены.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAttributeArgument">
@@ -4677,7 +5192,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbol">
         <source>'{0}' is obsolete</source>
-        <target state="translated">'"{0}" является устаревшим.</target>
+        <target state="translated">"{0}" является устаревшим.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbol_Title">
@@ -4687,17 +5202,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_NotAnAttributeClass">
         <source>'{0}' is not an attribute class</source>
-        <target state="translated">'"{0}" не является классом атрибута.</target>
+        <target state="translated">"{0}" не является классом атрибута.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgument">
         <source>'{0}' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.</source>
-        <target state="translated">'{0}" недопустимый именованный аргумент атрибута. Аргументы именованного атрибута должны быть полями без описателей readonly, static и const или открытыми нестатическими свойствами с доступом на чтение и запись.</target>
+        <target state="translated">"{0}" недопустимый именованный аргумент атрибута. Аргументы именованного атрибута должны быть полями без описателей readonly, static и const или открытыми нестатическими свойствами с доступом на чтение и запись.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'{0}" является устаревшим: '{1}'</target>
+        <target state="translated">"{0}" является устаревшим: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr_Title">
@@ -4707,7 +5222,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'{0}" является устаревшим: '{1}'</target>
+        <target state="translated">"{0}" является устаревшим: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerCantHaveVoidType">
@@ -4717,7 +5232,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_VirtualPrivate">
         <source>'{0}': virtual or abstract members cannot be private</source>
-        <target state="translated">'"{0}": виртуальные и абстрактные члены не могут быть закрытыми.</target>
+        <target state="translated">"{0}": виртуальные и абстрактные члены не могут быть закрытыми.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitToNonArrayType">
@@ -4746,13 +5261,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'"{0}": новый защищенный член объявлен в запечатанном классе</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="translated">"{0}": новый защищенный элемент объявлен в запечатанном типе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">Новый защищенный член объявлен в запечатанном классе</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="translated">Новый защищенный элемент объявлен в запечатанном типе</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -4797,12 +5312,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DuplicateNamedAttributeArgument">
         <source>'{0}' duplicate named attribute argument</source>
-        <target state="translated">'{0}" повторяющийся именованный аргумент атрибута</target>
+        <target state="translated">"{0}" повторяющийся именованный аргумент атрибута</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromEnumOrValueType">
         <source>'{0}' cannot derive from special class '{1}'</source>
-        <target state="translated">'{0}" не может наследовать от специального класса "{1}".</target>
+        <target state="translated">"{0}" не может наследовать от специального класса "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberOnIndexedType">
@@ -4812,7 +5327,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BogusType">
         <source>'{0}' is a type not supported by the language</source>
-        <target state="translated">'{0}" является типом, который не поддерживается в данном языке.</target>
+        <target state="translated">"{0}" является типом, который не поддерживается в данном языке.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalField">
@@ -4847,7 +5362,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
         <source>'{0}' is not a valid named attribute argument because it is not a valid attribute parameter type</source>
-        <target state="translated">'{0}" не является допустимым аргументом именованного атрибута, так как он не является допустимым типом параметра атрибута.</target>
+        <target state="translated">"{0}" не является допустимым аргументом именованного атрибута, так как он не является допустимым типом параметра атрибута.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPredefinedMember">
@@ -4857,7 +5372,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration">
         <source>'{0}' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'"{0}" недопустимое место атрибута для этого объявления. Для этого объявления допускаются следующие места атрибутов: "{1}". Все атрибуты этого блока будут проигнорированы.</target>
+        <target state="translated">"{0}" недопустимое место атрибута для этого объявления. Для этого объявления допускаются следующие места атрибутов: "{1}". Все атрибуты этого блока будут проигнорированы.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration_Title">
@@ -4867,7 +5382,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation">
         <source>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'"{0}" не распознан как расположение атрибута. Допустимые расположения атрибута для этого объявления: "{1}". Все атрибуты этого блока будут проигнорированы.</target>
+        <target state="translated">"{0}" не распознан как расположение атрибута. Допустимые расположения атрибута для этого объявления: "{1}". Все атрибуты этого блока будут проигнорированы.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation_Title">
@@ -4877,7 +5392,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode">
         <source>'{0}' overrides Object.Equals(object o) but does not override Object.GetHashCode()</source>
-        <target state="translated">'"{0}" переопределяет Object.Equals(object o), но не переопределяет Object.GetHashCode().</target>
+        <target state="translated">"{0}" переопределяет Object.Equals(object o), но не переопределяет Object.GetHashCode().</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode_Title">
@@ -4887,7 +5402,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals">
         <source>'{0}' defines operator == or operator != but does not override Object.Equals(object o)</source>
-        <target state="translated">'"{0}" определяет оператор "==" или оператор "!=", но не переопределяет Object.Equals(object o).</target>
+        <target state="translated">"{0}" определяет оператор "==" или оператор "!=", но не переопределяет Object.Equals(object o).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals_Title">
@@ -4897,7 +5412,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode">
         <source>'{0}' defines operator == or operator != but does not override Object.GetHashCode()</source>
-        <target state="translated">'"{0}" определяет оператор "==" или оператор "!=", но не переопределяет Object.GetHashCode().</target>
+        <target state="translated">"{0}" определяет оператор "==" или оператор "!=", но не переопределяет Object.GetHashCode().</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode_Title">
@@ -4912,7 +5427,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_OverloadRefKind">
         <source>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</source>
-        <target state="translated">'"{0}" не может определять перегруженный {1}, который отличается только модификаторами параметров "{2}" и "{3}"</target>
+        <target state="translated">"{0}" не может определять перегруженный {1}, который отличается только модификаторами параметров "{2}" и "{3}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LiteralDoubleCast">
@@ -4932,7 +5447,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStruct">
         <source>'{0}': new protected member declared in struct</source>
-        <target state="translated">'"{0}": новый защищенный член объявлен в структуре.</target>
+        <target state="translated">"{0}": новый защищенный член объявлен в структуре.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InconsistentIndexerNames">
@@ -4987,12 +5502,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_VolatileStruct">
         <source>'{0}': a volatile field cannot be of the type '{1}'</source>
-        <target state="translated">'"{0}": изменяемое поле не может быть типа "{1}"</target>
+        <target state="translated">"{0}": изменяемое поле не может быть типа "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VolatileAndReadonly">
         <source>'{0}': a field cannot be both volatile and readonly</source>
-        <target state="translated">'"{0}": поле не может быть одновременно изменяемым и доступным только для чтения</target>
+        <target state="translated">"{0}": поле не может быть одновременно изменяемым и доступным только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractField">
@@ -5002,7 +5517,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BogusExplicitImpl">
         <source>'{0}' cannot implement '{1}' because it is not supported by the language</source>
-        <target state="translated">'{0}" не удается реализовать "{1}", так как он не поддерживается в данном языке.</target>
+        <target state="translated">"{0}" не удается реализовать "{1}", так как он не поддерживается в данном языке.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitMethodImplAccessor">
@@ -5062,7 +5577,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
-        <target state="translated">'"{0}" не в состоянии реализовать ни "{1}", ни "{2}", так как они могут быть идентичными для некоторых подстановок параметров типа.</target>
+        <target state="translated">"{0}" не в состоянии реализовать ни "{1}", ни "{2}", так как они могут быть идентичными для некоторых подстановок параметров типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericDerivingFromAttribute">
@@ -5072,12 +5587,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
         <source>'{1}' does not define type parameter '{0}'</source>
-        <target state="translated">'"{1}" не определяет параметр типа "{0}"</target>
+        <target state="translated">"{1}" не определяет параметр типа "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'{0}" не является допустимым ограничением. Тип, использованный в качестве ограничения, должен быть интерфейсом, незапечатанным классом или параметром-типом.</target>
+        <target state="translated">"{0}" не является допустимым ограничением. Тип, использованный в качестве ограничения, должен быть интерфейсом, незапечатанным классом или параметром-типом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -5102,12 +5617,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}": нельзя объявлять члены экземпляра в статическом классе.</target>
+        <target state="translated">"{0}": нельзя объявлять члены экземпляра в статическом классе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'"{1}": не может быть производным от статического класса "{0}"</target>
+        <target state="translated">"{1}": не может быть производным от статического класса "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
@@ -5132,17 +5647,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
-        <target state="translated">'"{0}": реализация интерфейсов статическими классами невозможна.</target>
+        <target state="translated">"{0}": реализация интерфейсов статическими классами невозможна.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructInterfaceImpl">
         <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'"{0}": ссылочные структуры не могут реализовывать интерфейсы</target>
+        <target state="translated">"{0}": ссылочные структуры не могут реализовывать интерфейсы</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">
         <source>'{0}': static classes cannot contain user-defined operators</source>
-        <target state="translated">'"{0}": статические классы не могут содержать определяемых пользователем операторов.</target>
+        <target state="translated">"{0}": статические классы не могут содержать определяемых пользователем операторов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConvertToStaticClass">
@@ -5152,32 +5667,32 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsStaticClass">
         <source>'{0}': static classes cannot be used as constraints</source>
-        <target state="translated">'{0}": нельзя использовать статические классы в качестве ограничений.</target>
+        <target state="translated">"{0}": нельзя использовать статические классы в качестве ограничений.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericArgIsStaticClass">
         <source>'{0}': static types cannot be used as type arguments</source>
-        <target state="translated">'{0}": нельзя использовать статические типы в качестве аргументов типов.</target>
+        <target state="translated">"{0}": нельзя использовать статические типы в качестве аргументов типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayOfStaticClass">
         <source>'{0}': array elements cannot be of static type</source>
-        <target state="translated">'{0}": элементы массива не могут быть статического типа.</target>
+        <target state="translated">"{0}": элементы массива не могут быть статического типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
         <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'{0}": нельзя объявлять индексаторы в статическом классе.</target>
+        <target state="translated">"{0}": нельзя объявлять индексаторы в статическом классе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">
         <source>'{0}': static types cannot be used as parameters</source>
-        <target state="translated">'"{0}": нельзя использовать статические типы в качестве параметров.</target>
+        <target state="translated">"{0}": нельзя использовать статические типы в качестве параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReturnTypeIsStaticClass">
         <source>'{0}': static types cannot be used as return types</source>
-        <target state="translated">'"{0}": нельзя использовать статические типы в качестве возвращаемых типов.</target>
+        <target state="translated">"{0}": нельзя использовать статические типы в качестве возвращаемых типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarDeclIsStaticClass">
@@ -5192,7 +5707,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InvalidSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0}" не является допустимым описателем формата.</target>
+        <target state="translated">"{0}" не является допустимым описателем формата.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AssignmentToLockOrDispose">
@@ -5237,22 +5752,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">'{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать член интерфейса, потому что он является статическим.</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать член интерфейса, потому что он является статическим.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not public.</source>
-        <target state="translated">'{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать член интерфейса, потому что он не является открытым.</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать член интерфейса, потому что он не является открытым.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongReturnType">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have the matching return type of '{3}'.</source>
-        <target state="translated">'{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать "{1}", потому что не имеет соответствующего возвращаемого типа "{3}".</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". '{2}" не может реализовать "{1}", потому что не имеет соответствующего возвращаемого типа "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateTypeForwarder">
         <source>'{0}' duplicate TypeForwardedToAttribute</source>
-        <target state="translated">'{0}" повторяющийся TypeForwardedToAttribute</target>
+        <target state="translated">"{0}" повторяющийся TypeForwardedToAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSelectOrGroup">
@@ -5296,8 +5811,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="translated">Разделяемый метод должен быть объявлен в разделяемом типе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -5747,7 +6262,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStatic">
         <source>'{0}': static classes cannot contain protected members</source>
-        <target state="translated">'"{0}": статические классы не могут содержать защищенные члены.</target>
+        <target state="translated">"{0}": статические классы не могут содержать защищенные члены.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
@@ -5781,7 +6296,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
         <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</source>
-        <target state="translated">'{0}" не содержит определения для "{1}", и не удалось найти метод расширения "{1}", принимающий тип "{0}" в качестве первого аргумента (возможно, пропущена директива using для "{2}").</target>
+        <target state="translated">"{0}" не содержит определения для "{1}", и не удалось найти метод расширения "{1}", принимающий тип "{0}" в качестве первого аргумента (возможно, пропущена директива using для "{2}").</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadThisParam">
@@ -5920,8 +6435,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">Недопустимый токен "{0}" в объявлении класса, структуры или члена интерфейса.</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="translated">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6001,7 +6516,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AddModuleAssembly">
         <source>'{0}' cannot be added to this assembly because it already is an assembly</source>
-        <target state="translated">'{0}" не может быть добавлен к этой сборке, так как он уже там находится.</target>
+        <target state="translated">"{0}" не может быть добавлен к этой сборке, так как он уже там находится.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogusProp2">
@@ -6040,13 +6555,13 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">'{0}", определенный для метода Main, должен быть неуниверсальным классом, структурой или интерфейсом.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="translated">"{0}", определенный для метода Main, должен быть неуниверсальным классом, записью, структурой или интерфейсом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
         <source>'{0}' does not have a suitable static 'Main' method</source>
-        <target state="translated">'{0}" не имеет подходящего статического метода Main.</target>
+        <target state="translated">"{0}" не имеет подходящего статического метода Main.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -6165,8 +6680,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">Оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра для "{1}"</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="translated">Оператор foreach не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -6331,7 +6846,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
         <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">'"{0}" неоднозначен между "{1}" и "{2}"; используйте либо "@{0}", либо "{0}Attribute".</target>
+        <target state="translated">"{0}" неоднозначен между "{1}" и "{2}"; используйте либо "@{0}", либо "{0}Attribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">
@@ -6520,8 +7035,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в классе, в котором определено поле: в конструкторе класса или в методе задания значения, вызываемом только при инициализации класса, либо в инициализаторе переменной)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="translated">Полю, которое доступно только для чтения, не может быть присвоено значение (значение может быть присвоено только в конструкторе типа, в методе задания значения, вызываемом только при инициализации типа, в котором определено поле, либо в инициализаторе переменной)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6791,7 +7306,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
         <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'"{0}" является недопустимым номером предупреждения.</target>
+        <target state="translated">"{0}" является недопустимым номером предупреждения.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber_Title">
@@ -6901,7 +7416,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_DuplicateImport">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
-        <target state="translated">Импортировано несколько сборок с одинаковыми удостоверениями: '{0}" и "{1}". Удалите одну из повторяющихся ссылок.</target>
+        <target state="translated">Импортировано несколько сборок с одинаковыми удостоверениями: "{0}" и "{1}". Удалите одну из повторяющихся ссылок.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateImportSimple">
@@ -6961,7 +7476,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_CantChangeTypeOnOverride">
         <source>'{0}': type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'{0}": тип должен быть "{2}", чтобы соответствовать переопределенному члену "{1}".</target>
+        <target state="translated">"{0}": тип должен быть "{2}", чтобы соответствовать переопределенному члену "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttr">
@@ -7041,7 +7556,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadCtorArgCount">
         <source>'{0}' does not contain a constructor that takes {1} arguments</source>
-        <target state="translated">'{0}" не содержит конструктор, который принимает аргументы {1}.</target>
+        <target state="translated">"{0}" не содержит конструктор, который принимает аргументы {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
@@ -7065,8 +7580,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWarningLevel">
-        <source>Warning level must be in the range 0-4</source>
-        <target state="translated">Уровень предупреждений должен быть в диапазоне 0–4.</target>
+        <source>Warning level must be zero or greater</source>
+        <target state="translated">Уровень предупреждений должен быть неотрицательным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDebugType">
@@ -7151,7 +7666,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'{0}" не содержит определение для "{1}", и наиболее подходящий перегруженный метод расширения "{2}" требует наличия получателя типа "{3}".</target>
+        <target state="translated">"{0}" не содержит определение для "{1}", и наиболее подходящий перегруженный метод расширения "{2}" требует наличия получателя типа "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -7175,8 +7690,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Не удалось найти реализацию шаблона запроса для исходного типа "{0}".  "{1}" не найден.  Возможно, не хватает ссылки на "System.Core.dll" или директивы using для "System.Linq".</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="translated">Не удалось найти реализацию шаблона запроса для исходного типа "{0}". "{1}" не найден. Возможно, не хватает обязательных ссылок на сборку или используется директива для "System.Linq".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
@@ -7303,8 +7818,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Член "{1}" переопределяет "{0}". Возникает множественное переопределение в ходе выполнения. Реализация зависит от того, какой метод будет вызван.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="translated">Элемент "{1}" переопределяет "{0}". Во время выполнения появляется множество кандидатов на переопределение. Реализация зависит от того, какой метод будет вызван. Используйте более позднюю версию среды выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
@@ -7319,7 +7834,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_InvalidConstantDeclarationType">
         <source>'{0}' is of type '{1}'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.</source>
-        <target state="translated">'{0}" является типом "{1}". Тип, заданный в объявлении константы, должен быть sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, типом enum или ссылочным.</target>
+        <target state="translated">"{0}" является типом "{1}". Тип, заданный в объявлении константы, должен быть sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, типом enum или ссылочным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
@@ -7384,7 +7899,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_BinaryFile">
         <source>'{0}' is a binary file instead of a text file</source>
-        <target state="translated">'{0}" является двоичным файлом, а не текстовым.</target>
+        <target state="translated">"{0}" является двоичным файлом, а не текстовым.</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_BadCodepage">
@@ -7574,7 +8089,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase">
         <source>'{0}': base type '{1}' is not CLS-compliant</source>
-        <target state="translated">'"{0}": базовый тип "{1}" несовместим с CLS.</target>
+        <target state="translated">"{0}": базовый тип "{1}" несовместим с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase_Title">
@@ -7589,7 +8104,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember">
         <source>'{0}': CLS-compliant interfaces must have only CLS-compliant members</source>
-        <target state="translated">'"{0}": совместимые с CLS интерфейсы должны иметь только совместимые с CLS члены.</target>
+        <target state="translated">"{0}": совместимые с CLS интерфейсы должны иметь только совместимые с CLS члены.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember_Title">
@@ -7599,7 +8114,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers">
         <source>'{0}': only CLS-compliant members can be abstract</source>
-        <target state="translated">'"{0}': только совместимые с CLS члены могут быть абстрактными.</target>
+        <target state="translated">"{0}": только совместимые с CLS члены могут быть абстрактными.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers_Title">
@@ -7629,7 +8144,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS">
         <source>'{0}' cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute</source>
-        <target state="translated">'"{0}" не может быть помечен как совместимый с CLS, поскольку сборка не имеет атрибута CLSCompliant.</target>
+        <target state="translated">"{0}" не может быть помечен как совместимый с CLS, поскольку сборка не имеет атрибута CLSCompliant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS_Title">
@@ -7639,7 +8154,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType">
         <source>'{0}' has no accessible constructors which use only CLS-compliant types</source>
-        <target state="translated">'"{0}" не имеет доступных конструкторов, которые используют совместимые с CLS типы.</target>
+        <target state="translated">"{0}" не имеет доступных конструкторов, которые используют совместимые с CLS типы.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType_Title">
@@ -7669,7 +8184,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse">
         <source>'{0}' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type '{1}'</source>
-        <target state="translated">'"{0}" не может быть помечен как совместимый с CLS, поскольку является членом типа "{1}", несовместимого с CLS.</target>
+        <target state="translated">"{0}" не может быть помечен как совместимый с CLS, поскольку является членом типа "{1}", несовместимого с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse_Title">
@@ -7689,7 +8204,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS2">
         <source>'{0}' does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute</source>
-        <target state="translated">'"{0}" не требуется атрибут CLSCompliant, так как сборка не имеет атрибута CLSCompliant.</target>
+        <target state="translated">"{0}" не требуется атрибут CLSCompliant, так как сборка не имеет атрибута CLSCompliant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS2_Title">
@@ -7739,7 +8254,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface">
         <source>'{0}' is not CLS-compliant because base interface '{1}' is not CLS-compliant</source>
-        <target state="translated">'"{0}" несовместим с CLS, поскольку с ним несовместим базовый интерфейс "{1}".</target>
+        <target state="translated">"{0}" несовместим с CLS, поскольку с ним несовместим базовый интерфейс "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface_Title">
@@ -7779,7 +8294,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface">
         <source>'{0}' does not implement '{1}'</source>
-        <target state="translated">'{0}" не реализует "{1}"</target>
+        <target state="translated">"{0}" не реализует "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
@@ -8091,12 +8606,12 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DeriveFromDynamic">
         <source>'{0}': cannot derive from the dynamic type</source>
-        <target state="translated">'{0}": не может наследовать от динамического типа.</target>
+        <target state="translated">"{0}": не может наследовать от динамического типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromConstructedDynamic">
         <source>'{0}': cannot implement a dynamic interface '{1}'</source>
-        <target state="translated">'{0}": не может реализовывать динамический интерфейс "{1}".</target>
+        <target state="translated">"{0}": не может реализовывать динамический интерфейс "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DynamicTypeAsBound">
@@ -8167,11 +8682,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="WRN_MainIgnored_Title">
         <source>The entry point of the program is global code; ignoring entry point</source>
         <target state="translated">Точкой входа программы является глобальный код; игнорируется точка входа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">Второй операнд оператора "is" или "as" не может быть статического типа "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
@@ -8251,7 +8761,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NotNullRefDefaultParameter">
         <source>'{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null</source>
-        <target state="translated">'"{0}" является типом "{1}". Значение по умолчанию для параметра, имеющее ссылочный тип, который отличается от string, может инициализироваться только значением Null.</target>
+        <target state="translated">"{0}" является типом "{1}". Значение по умолчанию для параметра, имеющее ссылочный тип, который отличается от string, может инициализироваться только значением Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultValueForUnconsumedLocation">
@@ -8546,7 +9056,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'{0}" не имеет применимого метода с именем "{1}", но, по-видимому, имеет метод расширения с таким именем. Методы расширения диспетчеризовать динамически. Попробуйте привести динамические аргументы или вызвать метод расширения без использования синтаксиса метода расширения.</target>
+        <target state="translated">"{0}" не имеет применимого метода с именем "{1}", но, по-видимому, имеет метод расширения с таким именем. Методы расширения диспетчеризовать динамически. Попробуйте привести динамические аргументы или вызвать метод расширения без использования синтаксиса метода расширения.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8586,7 +9096,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
-        <target state="translated">'{0}" не может реализовать "{1}", так как "{2}" является событием среды выполнения Windows и "{3}" является регулярным событием .NET.</target>
+        <target state="translated">"{0}" не может реализовать "{1}", так как "{2}" является событием среды выполнения Windows и "{3}" является регулярным событием .NET.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
@@ -9214,7 +9724,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
-        <target state="translated">'{0}": класс с атрибутом ComImport не может указывать инициализаторы полей.</target>
+        <target state="translated">"{0}": класс с атрибутом ComImport не может указывать инициализаторы полей.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9564,7 +10074,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CantChangeRefReturnOnOverride">
         <source>'{0}' must match by reference return of overridden member '{1}'</source>
-        <target state="translated">'"{0}" должен соответствовать возвращаемому по ссылке типу переопределенного члена "{1}"</target>
+        <target state="translated">"{0}" должен соответствовать возвращаемому по ссылке типу переопределенного члена "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustNotHaveRefReturn">
@@ -9584,7 +10094,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</source>
-        <target state="translated">'"{0}" не реализует член интерфейса "{1}". "{2}" не может реализовать "{1}", так как он не имеет соответствующего возвращаемого по ссылке типа.</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". "{2}" не может реализовать "{1}", так как он не имеет соответствующего возвращаемого по ссылке типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturnRef">
@@ -10094,7 +10604,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
+        <target state="translated">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' A simple type parameter with no constraints.
     ''' </summary>
     Friend NotInheritable Class SimpleTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _container As Symbol
         Private ReadOnly _ordinal As Integer

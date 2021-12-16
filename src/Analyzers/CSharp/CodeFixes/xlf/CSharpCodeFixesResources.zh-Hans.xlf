@@ -7,6 +7,11 @@
         <target state="translated">添加 "this."</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">将 "typeof" 转换为 "nameof"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">以参数形式传入捕获的变量</target>

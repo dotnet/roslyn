@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ImplementInterface">
         <source>Implement interface</source>
-        <target state="translated">インターフェイスを実装します。</target>
+        <target state="translated">インターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterfaceWithoutTypeAnnotation">

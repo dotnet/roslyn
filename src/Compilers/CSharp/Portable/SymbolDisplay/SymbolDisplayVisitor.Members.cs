@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -273,36 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
             {
-                AddKeyword(SyntaxKind.DelegateKeyword);
-                AddPunctuation(SyntaxKind.AsteriskToken);
-
-                // Expose calling convention here when there is a public API: https://github.com/dotnet/roslyn/issues/39865
-
-                AddPunctuation(SyntaxKind.LessThanToken);
-
-                foreach (var param in symbol.Parameters)
-                {
-                    param.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.CommaToken);
-                    AddSpace();
-                }
-
-                if (symbol.ReturnsByRef)
-                {
-                    AddRefIfRequired();
-                }
-                else if (symbol.ReturnsByRefReadonly)
-                {
-                    AddRefReadonlyIfRequired();
-                }
-
-                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
-
-                symbol.ReturnType.Accept(this.NotFirstVisitor);
-
-                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
-
-                AddPunctuation(SyntaxKind.GreaterThanToken);
+                visitFunctionPointerSignature(symbol);
                 return;
             }
 
@@ -574,6 +548,88 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddTypeArguments(symbol, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
+            }
+
+            void visitFunctionPointerSignature(IMethodSymbol symbol)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                if (symbol.CallingConvention != SignatureCallingConvention.Default)
+                {
+                    AddSpace();
+                    AddKeyword(SyntaxKind.UnmanagedKeyword);
+
+                    var conventionTypes = symbol.UnmanagedCallingConventionTypes;
+
+                    if (symbol.CallingConvention != SignatureCallingConvention.Unmanaged || !conventionTypes.IsEmpty)
+                    {
+                        AddPunctuation(SyntaxKind.OpenBracketToken);
+
+                        switch (symbol.CallingConvention)
+                        {
+                            case SignatureCallingConvention.CDecl:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Cdecl"));
+                                break;
+                            case SignatureCallingConvention.StdCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Stdcall"));
+                                break;
+                            case SignatureCallingConvention.ThisCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Thiscall"));
+                                break;
+                            case SignatureCallingConvention.FastCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Fastcall"));
+                                break;
+
+                            case SignatureCallingConvention.Unmanaged:
+                                Debug.Assert(!conventionTypes.IsDefaultOrEmpty);
+                                bool isFirst = true;
+                                foreach (var conventionType in conventionTypes)
+                                {
+                                    if (!isFirst)
+                                    {
+                                        AddPunctuation(SyntaxKind.CommaToken);
+                                        AddSpace();
+                                    }
+
+                                    isFirst = false;
+                                    Debug.Assert(conventionType.Name.StartsWith("CallConv"));
+                                    const int CallConvLength = 8;
+                                    builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, conventionType, conventionType.Name[CallConvLength..]));
+                                }
+
+                                break;
+                        }
+
+                        AddPunctuation(SyntaxKind.CloseBracketToken);
+                    }
+                }
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    param.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                if (symbol.ReturnsByRef)
+                {
+                    AddRefIfRequired();
+                }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
+
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
             }
         }
 

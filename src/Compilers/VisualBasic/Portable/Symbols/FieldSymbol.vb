@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return (value IsNot Nothing) AndAlso Not value.IsBad ' can be null in error scenarios
             End Get
         End Property
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                Dim value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                Dim value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 Return If(value IsNot Nothing, value.Value, Nothing) ' can be null in error scenarios
             End Get
         End Property
@@ -159,16 +159,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the constant value.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param>
-        Friend MustOverride Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param>
+        Friend MustOverride Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
 
         ''' <summary>
         ''' Const fields do not (always) have to be declared with a given type. To get the inferred type determined from
         ''' the initialization this method should be called instead of "Type". For non const field this method returns the
         ''' declared type.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param><returns></returns>
-        Friend Overridable Function GetInferredType(inProgress As SymbolsInProgress(Of FieldSymbol)) As TypeSymbol
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param><returns></returns>
+        Friend Overridable Function GetInferredType(inProgress As ConstantFieldsInProgress) As TypeSymbol
             Return Type
         End Function
 

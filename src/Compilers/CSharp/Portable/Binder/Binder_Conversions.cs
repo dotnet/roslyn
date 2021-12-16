@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -85,12 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-
             if (conversion.IsMethodGroup)
             {
                 return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
+
+            // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
             }
 
+            if (conversion.Kind == ConversionKind.ConditionalExpression)
+            {
+                return ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+            }
+
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol? type = source.Type;
@@ -133,6 +138,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsObjectCreation)
             {
                 return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+            }
+
+            if (source.Kind == BoundKind.UnconvertedConditionalOperator)
+            {
+                TypeSymbol? type = source.Type;
+                if (type is null)
+                {
+                    Debug.Assert(!conversion.Exists);
+                    type = CreateErrorType();
+                    hasErrors = true;
+                }
+
+                source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                {
+                    return source;
+                }
             }
 
             if (conversion.IsUserDefined)
@@ -208,9 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Array:
                 case TypeKind.Class:
                 case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
+                    Error(diagnostics, ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Error:
@@ -221,11 +244,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Rewrite the subexpressions in a conditional expression to convert the whole thing to the destination type.
+        /// </summary>
+        private BoundExpression ConvertConditionalExpression(
+            BoundUnconvertedConditionalOperator source,
+            TypeSymbol destination,
+            Conversion? conversionIfTargetTyped,
+            DiagnosticBag diagnostics,
+            bool hasErrors = false)
+        {
+            bool targetTyped = conversionIfTargetTyped is { };
+            Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
+            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            var condition = source.Condition;
+            hasErrors |= source.HasErrors || destination.IsErrorType();
+
+            var trueExpr =
+                targetTyped
+                ? CreateConversion(source.Consequence.Syntax, source.Consequence, underlyingConversions[0], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                : GenerateConversionForAssignment(destination, source.Consequence, diagnostics);
+            var falseExpr =
+                targetTyped
+                ? CreateConversion(source.Alternative.Syntax, source.Alternative, underlyingConversions[1], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
+            var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+            hasErrors |= constantValue?.IsBad == true;
+            if (targetTyped && !destination.IsErrorType())
+                MessageID.IDS_FeatureTargetTypedConditional.CheckFeatureAvailability(diagnostics, source.Syntax);
+
+            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
+                .WithSuppression(source.IsSuppressed);
+        }
+
+        /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
         private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, Conversion? conversionIfTargetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
         {
-            bool targetTyped = conversionIfTargetTyped != null;
+            bool targetTyped = conversionIfTargetTyped is { };
             Conversion conversion = conversionIfTargetTyped ?? Conversion.Identity;
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
             ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
@@ -442,18 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            var originalGroup = source switch
+            var (originalGroup, isAddressOf) = source switch
             {
-                BoundMethodGroup m => m,
-                BoundUnconvertedAddressOfOperator { Operand: { } m } => m,
+                BoundMethodGroup m => (m, false),
+                BoundUnconvertedAddressOfOperator { Operand: { } m } => (m, true),
                 _ => throw ExceptionUtilities.UnexpectedValue(source),
             };
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
-            BoundExpression? receiverOpt = group.ReceiverOpt;
-            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
-            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, destination, diagnostics))
+            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf, destination, diagnostics))
             {
                 hasErrors = true;
             }
@@ -1029,6 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BoundExpression? receiverOpt,
             bool isExtensionMethod,
+            bool isAddressOf,
             TypeSymbol delegateOrFuncPtrType,
             DiagnosticBag diagnostics)
         {
@@ -1037,7 +1092,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
+            var location = syntax.Location;
+            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -1046,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (selectedMethod.IsConditional)
             {
                 // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, location, selectedMethod);
                 return true;
             }
 
@@ -1054,14 +1110,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, location, selectedMethod);
                 return true;
             }
 
-            if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
+            if ((selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe()) && ReportUnsafeIfNotAllowed(syntax, diagnostics))
             {
-                return ReportUnsafeIfNotAllowed(syntax, diagnostics);
+                return true;
             }
+            if (!isAddressOf)
+            {
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
+            }
+            ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
@@ -1105,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(conversion.IsValid); // i.e. if it exists, then it is valid.
                 // Only cares about nullness and type of receiver, so no need to worry about BoundTypeOrValueExpression.
-                return this.MethodGroupConversionHasErrors(boundMethodGroup.Syntax, conversion, boundMethodGroup.ReceiverOpt, conversion.IsExtensionMethod, delegateType, diagnostics);
+                return this.MethodGroupConversionHasErrors(boundMethodGroup.Syntax, conversion, boundMethodGroup.ReceiverOpt, conversion.IsExtensionMethod, isAddressOf: false, delegateType, diagnostics);
             }
         }
 
@@ -1211,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ConstantValue FoldConstantNumericConversion(
+        private ConstantValue? FoldConstantNumericConversion(
             SyntaxNode syntax,
             ConstantValue sourceValue,
             TypeSymbol destination,
@@ -1240,30 +1301,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceValue.IsDecimal)
             {
-                if (!CheckConstantBounds(destinationType, sourceValue))
+                if (!CheckConstantBounds(destinationType, sourceValue, out _))
                 {
                     // NOTE: Dev10 puts a suffix, "M", on the constant value.
                     Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value + "M", destination!);
-
                     return ConstantValue.Bad;
                 }
             }
             else if (destinationType == SpecialType.System_Decimal)
             {
-                if (!CheckConstantBounds(destinationType, sourceValue))
+                if (!CheckConstantBounds(destinationType, sourceValue, out _))
                 {
                     Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value!, destination!);
-
                     return ConstantValue.Bad;
                 }
             }
             else if (CheckOverflowAtCompileTime)
             {
-                if (!CheckConstantBounds(destinationType, sourceValue))
+                if (!CheckConstantBounds(destinationType, sourceValue, out bool maySucceedAtRuntime))
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRangeChecked, syntax, sourceValue.Value!, destination!);
-
-                    return ConstantValue.Bad;
+                    if (maySucceedAtRuntime)
+                    {
+                        // Can be calculated at runtime, but is not a compile-time constant.
+                        Error(diagnostics, ErrorCode.WRN_ConstOutOfRangeChecked, syntax, sourceValue.Value!, destination!);
+                        return null;
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ConstOutOfRangeChecked, syntax, sourceValue.Value!, destination!);
+                        return ConstantValue.Bad;
+                    }
+                }
+            }
+            else if (destinationType == SpecialType.System_IntPtr || destinationType == SpecialType.System_UIntPtr)
+            {
+                if (!CheckConstantBounds(destinationType, sourceValue, out _))
+                {
+                    // Can be calculated at runtime, but is not a compile-time constant.
+                    return null;
                 }
             }
 
@@ -1525,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // When converting from a floating-point type to an integral type, if the checked conversion would
                         // throw an overflow exception, then the unchecked conversion is undefined.  So that we have
                         // identical behavior on every host platform, we yield a result of zero in that case.
-                        double doubleValue = CheckConstantBounds(destinationType, value.DoubleValue) ? value.DoubleValue : 0D;
+                        double doubleValue = CheckConstantBounds(destinationType, value.DoubleValue, out _) ? value.DoubleValue : 0D;
                         switch (destinationType)
                         {
                             case SpecialType.System_Byte: return (byte)doubleValue;
@@ -1545,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
                     case ConstantValueTypeDiscriminator.Decimal:
-                        decimal decimalValue = CheckConstantBounds(destinationType, value.DecimalValue) ? value.DecimalValue : 0m;
+                        decimal decimalValue = CheckConstantBounds(destinationType, value.DecimalValue, out _) ? value.DecimalValue : 0m;
                         switch (destinationType)
                         {
                             case SpecialType.System_Byte: return (byte)decimalValue;
@@ -1573,11 +1648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // return value.Value;
         }
 
-        public static bool CheckConstantBounds(SpecialType destinationType, ConstantValue value)
+        public static bool CheckConstantBounds(SpecialType destinationType, ConstantValue value, out bool maySucceedAtRuntime)
         {
             if (value.IsBad)
             {
                 //assume that the constant was intended to be in bounds
+                maySucceedAtRuntime = false;
                 return true;
             }
 
@@ -1586,12 +1662,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // convert it to one of those and then check the bounds on that.
             var canonicalValue = CanonicalizeConstant(value);
             return canonicalValue is decimal ?
-                CheckConstantBounds(destinationType, (decimal)canonicalValue) :
-                CheckConstantBounds(destinationType, (double)canonicalValue);
+                CheckConstantBounds(destinationType, (decimal)canonicalValue, out maySucceedAtRuntime) :
+                CheckConstantBounds(destinationType, (double)canonicalValue, out maySucceedAtRuntime);
         }
 
-        private static bool CheckConstantBounds(SpecialType destinationType, double value)
+        private static bool CheckConstantBounds(SpecialType destinationType, double value, out bool maySucceedAtRuntime)
         {
+            maySucceedAtRuntime = false;
+
             // Dev10 checks (minValue - 1) < value < (maxValue + 1).
             // See ExpressionBinder::isConstantInRange.
             switch (destinationType)
@@ -1607,14 +1685,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note: Using <= to compare the min value matches the native compiler.
                 case SpecialType.System_Int64: return (long.MinValue - 1D) <= value && value < (long.MaxValue + 1D);
                 case SpecialType.System_Decimal: return ((double)decimal.MinValue - 1D) < value && value < ((double)decimal.MaxValue + 1D);
+                case SpecialType.System_IntPtr:
+                    maySucceedAtRuntime = (long.MinValue - 1D) < value && value < (long.MaxValue + 1D);
+                    return (int.MinValue - 1D) < value && value < (int.MaxValue + 1D);
+                case SpecialType.System_UIntPtr:
+                    maySucceedAtRuntime = (ulong.MinValue - 1D) < value && value < (ulong.MaxValue + 1D);
+                    return (uint.MinValue - 1D) < value && value < (uint.MaxValue + 1D);
             }
 
             return true;
         }
 
-        private static bool CheckConstantBounds(SpecialType destinationType, decimal value)
+        private static bool CheckConstantBounds(SpecialType destinationType, decimal value, out bool maySucceedAtRuntime)
         {
-            // Dev10 checks (minValue - 1) < value < (MaxValue + 1) + 1).
+            maySucceedAtRuntime = false;
+
+            // Dev10 checks (minValue - 1) < value < (maxValue + 1).
             // See ExpressionBinder::isConstantInRange.
             switch (destinationType)
             {
@@ -1627,6 +1713,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int16: return (short.MinValue - 1M) < value && value < (short.MaxValue + 1M);
                 case SpecialType.System_Int32: return (int.MinValue - 1M) < value && value < (int.MaxValue + 1M);
                 case SpecialType.System_Int64: return (long.MinValue - 1M) < value && value < (long.MaxValue + 1M);
+                case SpecialType.System_IntPtr:
+                    maySucceedAtRuntime = (long.MinValue - 1M) < value && value < (long.MaxValue + 1M);
+                    return (int.MinValue - 1M) < value && value < (int.MaxValue + 1M);
+                case SpecialType.System_UIntPtr:
+                    maySucceedAtRuntime = (ulong.MinValue - 1M) < value && value < (ulong.MaxValue + 1M);
+                    return (uint.MinValue - 1M) < value && value < (uint.MaxValue + 1M);
             }
 
             return true;

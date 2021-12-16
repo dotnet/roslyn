@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -25,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
+        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
         private TypeWithAnnotations.Boxed? _lazyReturnType;
         private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
@@ -428,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics, location);
+
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)
                 {
@@ -459,32 +460,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            if (_lazyTypeParameterConstraintTypes.IsDefault)
             {
+                GetTypeParameterConstraintKinds();
+
                 var syntax = Syntax;
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = this.MakeTypeParameterConstraints(
+                var constraints = this.MakeTypeParameterConstraintTypes(
                     _binder,
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
-                    syntax.Identifier.GetLocation(),
                     diagnostics);
                 lock (_declarationDiagnostics)
                 {
-                    if (_lazyTypeParameterConstraints.IsDefault)
+                    if (_lazyTypeParameterConstraintTypes.IsDefault)
                     {
                         _declarationDiagnostics.AddRange(diagnostics);
-                        _lazyTypeParameterConstraints = constraints;
+                        _lazyTypeParameterConstraintTypes = constraints;
                     }
                 }
                 diagnostics.Free();
             }
 
-            return _lazyTypeParameterConstraints;
+            return _lazyTypeParameterConstraintTypes;
         }
+
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+        {
+            if (_lazyTypeParameterConstraintKinds.IsDefault)
+            {
+                var syntax = Syntax;
+                var constraints = this.MakeTypeParameterConstraintKinds(
+                    _binder,
+                    TypeParameters,
+                    syntax.TypeParameterList,
+                    syntax.ConstraintClauses);
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, constraints);
+            }
+
+            return _lazyTypeParameterConstraintKinds;
+        }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
 
         public override int GetHashCode()
         {

@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\VisualBasicAddRequiredParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\VisualBasicConvertAnonymousTypeToTupleDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
@@ -23,8 +24,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\VisualBasicRemoveRedundantEqualityDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
@@ -41,6 +45,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />

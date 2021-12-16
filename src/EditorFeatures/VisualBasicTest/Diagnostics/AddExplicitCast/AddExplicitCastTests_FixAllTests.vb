@@ -1270,7 +1270,7 @@ Public Class Program1
         Foo4(i:=1, j:="", CType(b1, Derived1))
         Foo5("", 1, b1)
         Foo5(d:=CType(b1, Derived2), i:=1, j:="", x:=1)
-        Foo5(CType(1, String), "", x:=1, d:=b1)
+        Foo5(CStr(1), "", x:=1, d:=b1)
         Foo5(1, "", d:=b1, b2, b3, d1)
         Foo5("", 1, d:=b1, b2, b3, d1)
         Dim d2list = New Derived2() {}
@@ -1475,7 +1475,7 @@ Public Class Program1
         Foo4(i:=1, j:="", CType(b1, Derived1))
         Foo5("", 1, b1)
         Foo5(d:=CType(b1, Derived2), i:=1, j:="", x:=1)
-        Foo5(CType(1, String), "", x:=1, d:=b1)
+        Foo5(CStr(1), "", x:=1, d:=b1)
         Foo5(1, "", d:=b1, b2, b3, d1)
         Foo5("", 1, d:=b1, b2, b3, d1)
         Dim d2list = New Derived2() {}
@@ -1680,7 +1680,7 @@ Public Class Program1
         Foo4(i:=1, j:="", CType(b1, Derived1))
         Foo5("", 1, b1)
         Foo5(d:=CType(b1, Derived2), i:=1, j:="", x:=1)
-        Foo5(CType(1, String), "", x:=1, d:=b1)
+        Foo5(CStr(1), "", x:=1, d:=b1)
         Foo5(1, "", d:=b1, b2, b3, d1)
         Foo5("", 1, d:=b1, b2, b3, d1)
         Dim d2list = New Derived2() {}

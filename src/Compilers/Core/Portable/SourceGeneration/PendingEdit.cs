@@ -9,11 +9,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    internal delegate bool EditCallback<T>(EditContext context, T edit) where T : PendingEdit;
+    internal delegate bool EditCallback<T>(GeneratorEditContext context, T edit) where T : PendingEdit;
 
     internal abstract class PendingEdit
     {
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool AcceptedBy(GeneratorInfo info);
 
-        internal abstract bool TryApply(GeneratorInfo info, EditContext context);
+        internal abstract bool TryApply(GeneratorInfo info, GeneratorEditContext context);
     }
 
     internal abstract class AdditionalFileEdit : PendingEdit
@@ -41,6 +39,6 @@ namespace Microsoft.CodeAnalysis
 
         internal override bool AcceptedBy(GeneratorInfo info) => info.EditCallback is object;
 
-        internal override bool TryApply(GeneratorInfo info, EditContext context) => info.EditCallback!.Invoke(context, this);
+        internal override bool TryApply(GeneratorInfo info, GeneratorEditContext context) => info.EditCallback!.Invoke(context, this);
     }
 }

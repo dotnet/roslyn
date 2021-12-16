@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
             // make sure we don't accidentally capture any state but the list of references:
             static Lazy<HostDiagnosticAnalyzers> CreateLazyHostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> analyzerReferences)
-                => new Lazy<HostDiagnosticAnalyzers>(() => new HostDiagnosticAnalyzers(analyzerReferences));
+                => new(() => new HostDiagnosticAnalyzers(analyzerReferences));
         }
 
         public SolutionState(
@@ -213,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
+            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -360,22 +359,39 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
-        private DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
+        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
             if (syntaxTree != null)
             {
                 // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
+                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
                 {
                     // does this solution even have the document?
-                    var document = GetProjectState(docId.ProjectId)?.GetDocumentState(docId);
-                    if (document != null)
+                    var projectState = GetProjectState(documentId.ProjectId);
+                    if (projectState != null)
                     {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                        var document = projectState.GetDocumentState(documentId);
+                        if (document != null)
                         {
-                            return document;
+                            // does this document really have the syntax tree?
+                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                            {
+                                return document;
+                            }
+                        }
+                        else
+                        {
+                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+
+                            if (generatedDocument != null)
+                            {
+                                // does this document really have the syntax tree?
+                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                                {
+                                    return generatedDocument;
+                                }
+                            }
                         }
                     }
                 }
@@ -772,16 +788,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Update a new solution instance with a fork of the specified project.
-        ///
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-            => ForkProject(GetRequiredProjectState(projectId));
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -992,7 +998,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences));
+                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
         }
 
         /// <summary>
@@ -1011,7 +1017,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference)));
+                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
         }
 
         /// <summary>
@@ -1102,14 +1108,13 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            // Adding a new analyzer config potentially impacts all syntax trees and the diagnostic reporting information
-            // attached to them, so we'll just replace all syntax trees in that case.
+            // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1120,7 +1125,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1427,7 +1432,12 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject);
+            var oldDocument = oldProject.GetAdditionalDocumentState(newDocument.Id);
+            Contract.ThrowIfNull(oldDocument);
+
+            return ForkProject(
+                newProject,
+                translate: new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(oldDocument, newDocument));
         }
 
         private SolutionState UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
@@ -1438,7 +1448,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject,
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
         }
 
         /// <summary>
@@ -1675,7 +1686,7 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1757,10 +1768,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns the generated document states for source generated documents.
+        /// </summary>
+        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
+        {
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
-            new ConditionalWeakTable<ISymbol, ProjectId>();
+            new();
 
         private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
         {
@@ -1798,7 +1832,7 @@ namespace Microsoft.CodeAnalysis
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
                 return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1934,10 +1968,21 @@ namespace Microsoft.CodeAnalysis
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => GetProjectLanguages(ProjectStates);
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => GetRemoteSupportedProjectLanguages(ProjectStates);
 
-        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
-            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
+        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var projectState in projectStates)
+            {
+                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
+                {
+                    builder.Add(projectState.Value.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }

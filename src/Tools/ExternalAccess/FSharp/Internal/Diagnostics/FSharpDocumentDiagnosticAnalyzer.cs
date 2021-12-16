@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             _supportedDiagnostics = CreateSupportedDiagnostics();
         }
 
-        static public ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics()
+        public static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics()
         {
             // We are constructing our own descriptors at run-time. Compiler service is already doing error formatting and localization.
             var dummyDescriptors = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();

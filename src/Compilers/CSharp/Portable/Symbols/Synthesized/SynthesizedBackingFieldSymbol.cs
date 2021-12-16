@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override IAttributeTargetSymbol AttributeOwner
-            => _property;
+            => _property.AttributesOwner;
 
         internal override Location ErrorLocation
             => _property.Location;
@@ -118,5 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared
             => true;
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            {
+                CheckForFieldTargetedAttribute(diagnostics);
+            }
+        }
+
+        private void CheckForFieldTargetedAttribute(DiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in AttributeDeclarationSyntaxList)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Target.Location);
+                }
+            }
+        }
     }
 }

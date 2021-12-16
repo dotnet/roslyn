@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Managed;
 
         public sealed override bool IsRefLikeType
         {
@@ -339,12 +337,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, comparison, isValueTypeOverrideOpt);
+            return this.Equals(t2 as ArrayTypeSymbol, comparison);
         }
 
-        private bool Equals(ArrayTypeSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt)
+        private bool Equals(ArrayTypeSymbol? other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -352,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object?)other == null || !other.HasSameShapeAs(this) ||
-                !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison, isValueTypeOverrideOpt))
+                !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison))
             {
                 return false;
             }
@@ -483,6 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
+
+        internal override bool IsRecord => false;
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 

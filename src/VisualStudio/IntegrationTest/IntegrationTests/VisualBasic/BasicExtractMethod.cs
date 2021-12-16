@@ -40,8 +40,8 @@ End Module";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicExtractMethod))
+        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicExtractMethod))
         {
         }
 

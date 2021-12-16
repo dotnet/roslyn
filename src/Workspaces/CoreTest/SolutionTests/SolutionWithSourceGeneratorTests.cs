@@ -2,49 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        private static Project CreateEmptyProject()
-        {
-            var solution = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: LanguageNames.CSharp,
-                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview))).Projects.Single();
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTreesOnce(
             bool fetchCompilationBeforeAddingGenerator,
-            bool generatorSupportsIncrementalUpdates)
+            bool useRecoverableTrees)
         {
-            var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator() { CanApplyChanges = generatorSupportsIncrementalUpdates });
-            var project = CreateEmptyProject()
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
 
             // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -62,28 +47,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal($"{typeof(AdditionalFileAddedGenerator).Module.ModuleVersionId}_{typeof(AdditionalFileAddedGenerator).FullName}_Test.generated.cs", Path.GetFileName(generatedTree.FilePath));
+            var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
+
+            Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
+
+            var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+            Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task SourceGeneratorsRerunAfterSourceChange(bool generatorSupportsIncrementalUpdates)
+        [Fact]
+        public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange()
         {
-            var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator() { CanApplyChanges = generatorSupportsIncrementalUpdates });
-            var project = CreateEmptyProject()
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
             var documentId = project.DocumentIds.Single();
 
-            await AssertCompilationContainsOneRegularAndOneGeneratedFile(project, documentId);
+            await AssertCompilationContainsOneRegularAndOneGeneratedFile(project, documentId, "// Hello, world!");
 
             project = project.Solution.WithDocumentText(documentId, SourceText.From("// Changed Source File")).Projects.Single();
 
-            await AssertCompilationContainsOneRegularAndOneGeneratedFile(project, documentId);
+            await AssertCompilationContainsOneRegularAndOneGeneratedFile(project, documentId, "// Hello, world!");
 
-            static async Task AssertCompilationContainsOneRegularAndOneGeneratedFile(Project project, DocumentId documentId)
+            static async Task AssertCompilationContainsOneRegularAndOneGeneratedFile(Project project, DocumentId documentId, string expectedGeneratedContents)
             {
                 var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
@@ -91,15 +81,46 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Contains(regularDocumentSyntaxTree, compilation.SyntaxTrees);
 
                 var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees.Where(t => t != regularDocumentSyntaxTree));
-                Assert.Null(project.GetDocument(generatedSyntaxTree));
+                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
+
+                Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
+            }
+        }
+
+        [Fact]
+        public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var additionalDocumentId = project.AdditionalDocumentIds.Single();
+
+            await AssertCompilationContainsGeneratedFile(project, "// Hello, world!");
+
+            project = project.Solution.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("Hello, everyone!")).Projects.Single();
+
+            await AssertCompilationContainsGeneratedFile(project, "// Hello, everyone!");
+
+            static async Task AssertCompilationContainsGeneratedFile(Project project, string expectedGeneratedContents)
+            {
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+                var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees);
+                Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
+
+                Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
             }
         }
 
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator());
-            var project = CreateEmptyProject()
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("Hello.cs", "// Source File").Project
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
@@ -115,10 +136,63 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task DocumentIdOfGeneratedDocumentsIsStable()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedDocumentBeforeChange = Assert.Single(await projectBeforeChange.GetSourceGeneratedDocumentsAsync());
+
+            var projectAfterChange =
+                projectBeforeChange.Solution.WithAdditionalDocumentText(
+                    projectBeforeChange.AdditionalDocumentIds.Single(),
+                    SourceText.From("Hello, world!!!!")).Projects.Single();
+
+            var generatedDocumentAfterChange = Assert.Single(await projectAfterChange.GetSourceGeneratedDocumentsAsync());
+
+            Assert.NotSame(generatedDocumentBeforeChange, generatedDocumentAfterChange);
+            Assert.Equal(generatedDocumentBeforeChange.Id, generatedDocumentAfterChange.Id);
+        }
+
+        [Fact]
+        public async Task DocumentIdGuidInDifferentProjectsIsDifferent()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+
+            var solutionWithProjects = AddProjectWithReference(workspace.CurrentSolution, analyzerReference);
+            solutionWithProjects = AddProjectWithReference(solutionWithProjects, analyzerReference);
+
+            var projectIds = solutionWithProjects.ProjectIds.ToList();
+
+            var generatedDocumentsInFirstProject = await solutionWithProjects.GetRequiredProject(projectIds[0]).GetSourceGeneratedDocumentsAsync();
+            var generatedDocumentsInSecondProject = await solutionWithProjects.GetRequiredProject(projectIds[1]).GetSourceGeneratedDocumentsAsync();
+
+            // A DocumentId consists of a GUID and then the ProjectId it's within. Even if these two documents have the same GUID,
+            // they'll still be not equal because of the different ProjectIds. However, we'll also assert the GUIDs should be different as well,
+            // because otherwise things can get confusing. If nothing else, the DocumentId debugger display string shows only the GUID, so you could
+            // easily confuse them as being the same.
+            Assert.NotEqual(generatedDocumentsInFirstProject.Single().Id.Id, generatedDocumentsInSecondProject.Single().Id.Id);
+
+            static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
+            {
+                var project = AddEmptyProject(solution);
+                project = project.AddAnalyzerReference(analyzerReference);
+                project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+                return project.Solution;
+            }
+        }
+
+        [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
-            var analyzerReference = new TestGeneratorReference(new AdditionalFileAddedGenerator());
-            var solution = CreateEmptyProject()
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project.Solution;
 
@@ -137,44 +211,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(compilationWithGenerator, compilationReference.Compilation);
         }
 
-        private sealed class TestGeneratorReference : AnalyzerReference
+        [Fact]
+        public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
         {
-            private readonly ISourceGenerator _generator;
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
-            public TestGeneratorReference(ISourceGenerator generator)
-            {
-                _generator = generator;
-            }
+            var generatedDocumentFirstTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+            var tree = await generatedDocumentFirstTime.GetSyntaxTreeAsync();
 
-            public override string? FullPath => null;
-            public override object Id => this;
+            // Fetch the compilation, and then wait for it to be GC'ed, then fetch it again. This ensures that
+            // finalizing a compilation more than once doesn't recreate things incorrectly.
+            var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
+            compilationReference.AssertReleased();
+            var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => ImmutableArray<DiagnosticAnalyzer>.Empty;
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => ImmutableArray<DiagnosticAnalyzer>.Empty;
-            public override ImmutableArray<ISourceGenerator> GetGenerators() => ImmutableArray.Create(_generator);
+            var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+
+            Assert.Same(generatedDocumentFirstTime, generatedDocumentSecondTime);
+            Assert.Same(tree, secondCompilation.SyntaxTrees.Single());
         }
 
-        // TODO: find a way to reuse this implementation from the compiler unit tests
-        private sealed class AdditionalFileAddedGenerator : ISourceGenerator
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
         {
-            public bool CanApplyChanges { get; set; } = true;
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
-            public void Execute(SourceGeneratorContext context)
-            {
-                foreach (var file in context.AdditionalFiles)
-                {
-                    AddSourceForAdditionalFile(context, file);
-                }
-            }
+            var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+            var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
+            Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
+        }
 
-            public void Initialize(InitializationContext context)
-            {
-                // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
-            }
+        [Fact]
+        public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
-            private static void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
+            // Ensure we've ran generators at least once
+            await project.GetCompilationAsync();
 
-            private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
+            // Produce an in-progress snapshot
+            project = project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemantics(CancellationToken.None).Project;
+
+            // The generated tree should still be there; even if the regular compilation fell away we've now cached the 
+            // generated trees.
+            var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees, t => t.FilePath != "RegularDocument.cs");
+            var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
+            Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
         }
     }
 }

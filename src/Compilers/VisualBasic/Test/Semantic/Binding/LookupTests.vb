@@ -6,13 +6,13 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LookupTests
@@ -952,7 +952,7 @@ P.Q.R.S
             ' We need to be careful about metadata references we use here.
             ' The test checks that fields of namespace symbols are initialized in certain order.
             ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
-            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
+            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
             Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>
@@ -1608,7 +1608,7 @@ Imports Undefined
 
         <Fact()>
         Public Sub AmbiguousNamespaces_01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1620,7 +1620,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, {SystemWindowsFormsRef})
+</compilation>, references:={Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic, Net451.SystemWindowsForms})
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -1633,7 +1633,7 @@ End Module
 
             Dim ns = DirectCast(info.Symbol, NamespaceSymbol)
 
-            Assert.Equal(NamespaceKind.Compilation, ns.NamespaceKind)
+            Assert.Equal(NamespaceKind.Module, ns.NamespaceKind)
             Assert.Equal("System.ComponentModel", ns.ToTestDisplayString())
 
             Assert.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},

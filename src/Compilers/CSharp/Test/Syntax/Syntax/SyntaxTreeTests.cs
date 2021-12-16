@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -14,11 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxTreeTests
     {
+        // Diagnostic options on syntax trees are now obsolete
+#pragma warning disable CS0618
         [Fact]
         public void CreateTreeWithDiagnostics()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
-            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), diagnosticOptions: options);
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
+                options: null,
+                path: "",
+                encoding: null,
+                diagnosticOptions: options);
             Assert.Same(options, tree.DiagnosticOptions);
         }
 
@@ -28,7 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: options);
+                options: null,
+                path: "",
+                diagnosticOptions: options,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.Same(options, tree.DiagnosticOptions);
             var newTree = tree.WithChangedText(SourceText.From("class C { }"));
             Assert.Same(options, newTree.DiagnosticOptions);
@@ -39,7 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: null);
+                options: null,
+                path: "",
+                diagnosticOptions: null,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.NotNull(tree.DiagnosticOptions);
             Assert.True(tree.DiagnosticOptions.IsEmpty);
             // The default options are case insensitive but the default empty ImmutableDictionary is not
@@ -51,7 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty);
+                options: null,
+                path: "",
+                diagnosticOptions: ImmutableDictionary<string, ReportDiagnostic>.Empty,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.NotNull(tree.DiagnosticOptions);
             Assert.True(tree.DiagnosticOptions.IsEmpty);
             Assert.Same(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
@@ -63,7 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
             var tree = CSharpSyntaxTree.ParseText(
                 SourceText.From(""),
-                diagnosticOptions: options);
+                options: null,
+                path: "",
+                diagnosticOptions: options,
+                isGeneratedCode: null,
+                cancellationToken: default);
             Assert.Same(options, tree.DiagnosticOptions);
         }
 
@@ -107,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions);
             Assert.NotEqual(tree, newTree);
         }
+#pragma warning restore CS0618
 
         [Fact]
         public void WithRootAndOptions_ParsedTree()
@@ -127,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithRootAndOptions_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
@@ -137,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
-            Assert.Same(Encoding.UTF7, newText.Encoding);
+            Assert.Same(Encoding.Unicode, newText.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
         }
 
@@ -169,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithFilePath_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
 
             var newTree = oldTree.WithFilePath("new.cs");
@@ -178,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
-            Assert.Same(Encoding.UTF7, newText.Encoding);
+            Assert.Same(Encoding.Unicode, newText.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,11 +17,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddParameterTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddParameterCodeFixProvider());
 
@@ -1644,6 +1652,68 @@ namespace N1
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_ExtendedPartialMethods()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
@@ -2591,6 +2661,92 @@ class MyClass : BaseClass
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().[|GetEnumerator|](1);
+        foreach (var a in new object());
+    }
+}}";
+            var fix =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().GetEnumerator(1);
+        foreach (var a in new object());
+    }
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetAsyncEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().[|GetAsyncEnumerator|](1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            var fix =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().GetAsyncEnumerator(1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TopLevelStatement()
@@ -2608,7 +2764,7 @@ void local(int x, int y)
 void local(int x, int y, int v)
 {
 }
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
@@ -2635,6 +2791,63 @@ void outer()
     }
 }
 ");
+        }
+
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_ImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
+        public async Task TestNamedArgOnExtensionMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act([|param3|]: 123);
+    }
+}",
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true, int param3 = 0) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act(param3: 123);
+    }
+}");
         }
     }
 }

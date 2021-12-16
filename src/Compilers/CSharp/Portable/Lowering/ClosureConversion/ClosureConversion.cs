@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
 
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
 
-#nullable restore
+#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame.GetCciAdapter());
                     if (frame.Constructor != null)
                     {
                         AddSynthesizedMethod(
@@ -384,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var hoistedField = LambdaCapturedVariable.Create(synthesizedEnv, captured, ref _synthesizedFieldNameIdDispenser);
                     proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                     synthesizedEnv.AddHoistedField(hoistedField);
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField.GetCciAdapter());
                 }
 
                 return synthesizedEnv;
@@ -532,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var frame = _lazyStaticLambdaFrame;
 
                     // add frame type and cache field
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame.GetCciAdapter());
 
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
                     AddSynthesizedMethod(
@@ -664,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
                     frameType));
             }
 
@@ -685,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(capturedFrame.Type.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
                         frame.AddHoistedField(capturedFrame);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame.GetCciAdapter());
                     }
 
                     proxies[_innermostFramePointer] = new CapturedToFrameSymbolReplacement(capturedFrame, isReusable: false);
@@ -1055,8 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
+                    node.DefaultArguments,
                     node.ResultKind,
-                    node.BinderOpt,
                     type);
             }
 
@@ -1188,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It needs to run before the exception variable is accessed.
             // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
+            var rewrittenFilterPrologue = (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt);
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
             {
@@ -1205,12 +1208,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (prologue.Count > 0)
             {
                 Debug.Assert(rewrittenFilter != null);
-                rewrittenFilter = new BoundSequence(
-                    rewrittenFilter.Syntax,
-                    ImmutableArray.Create<LocalSymbol>(),
-                    prologue.ToImmutable(),
-                    rewrittenFilter,
-                    rewrittenFilter.Type);
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(prologue.Count);
+                foreach (var p in prologue)
+                {
+                    prologueBuilder.Add(new BoundExpressionStatement(p.Syntax, p) { WasCompilerGenerated = true });
+                }
+                if (rewrittenFilterPrologue != null)
+                {
+                    prologueBuilder.AddRange(rewrittenFilterPrologue.Statements);
+                }
+
+                rewrittenFilterPrologue = new BoundStatementList(rewrittenFilter.Syntax, prologueBuilder.ToImmutableAndFree());
             }
 
             // done with this.
@@ -1225,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCatchLocals,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBlock,
                 node.IsSynthesizedAsyncCatchAll);
@@ -1478,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaScope = null;
             }
 
-            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
+            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod.GetCciAdapter());
 
             foreach (var parameter in node.Symbol.Parameters)
             {
@@ -1633,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lambdaId.Generation);
 
                         var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
                         cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }
                     else

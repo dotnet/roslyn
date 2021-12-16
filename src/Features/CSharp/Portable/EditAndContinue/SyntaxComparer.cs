@@ -7,9 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>

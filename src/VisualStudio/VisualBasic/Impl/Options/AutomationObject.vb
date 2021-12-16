@@ -7,6 +7,7 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -18,18 +19,18 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As CodeAnalysis.Workspace
+        Private ReadOnly _workspace As Workspace
 
-        Friend Sub New(workspace As CodeAnalysis.Workspace)
+        Friend Sub New(workspace As Workspace)
             _workspace = workspace
         End Sub
 
         Public Property AutoComment As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration)
+                Return GetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value)
+                SetBooleanOption(DocumentationCommentOptions.AutoXmlDocCommentGeneration, value)
             End Set
         End Property
 

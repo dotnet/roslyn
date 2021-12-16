@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -262,6 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             return _underlying.GetReturnTypeAttributes().Cast<CSharpAttributeData, AttributeData>();
         }
+
+        SignatureCallingConvention IMethodSymbol.CallingConvention => _underlying.CallingConvention.ToSignatureConvention();
+
+        ImmutableArray<INamedTypeSymbol> IMethodSymbol.UnmanagedCallingConventionTypes => _underlying.UnmanagedCallingConventionTypes.SelectAsArray(t => t.GetPublicSymbol());
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] typeArguments)
         {

@@ -2,15 +2,15 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
-        <source>Add await and ConfigureAwait(false)</source>
-        <target state="translated">Agregar await y ConfigureAwait(false)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
-        <source>Add await</source>
-        <target state="translated">Añadir await</target>
-        <note />
+        <source>Add 'await'</source>
+        <target state="translated">Agregar "await"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_await_and_ConfigureAwaitFalse">
+        <source>Add 'await' and 'ConfigureAwait(false)'</source>
+        <target state="translated">Agregar "await" y "ConfigureAwait(false)"</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
@@ -30,6 +30,11 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">Aplicar preferencias de cuerpo de la expresión o del bloque</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">Aplicar preferencias de encabezado de archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -80,6 +85,16 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">La selección automática se ha deshabilitado debido a una posible declaración de variable de patrón.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">Cambiar a la expresión "as"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">Cambiar a cast</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
                     // Only if there was a base.GetHashCode() do we pass in the ContainingType
                     // so that we generate the same.
-                    var containingType = accessesBase ? method.ContainingType : null;
+                    var containingType = accessesBase ? method!.ContainingType : null;
                     var components = generator.GetGetHashCodeComponents(
                         semanticModel.Compilation, containingType, members, justMemberReference: true);
 

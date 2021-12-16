@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Managed;
 
         public sealed override bool IsRefLikeType
         {
@@ -195,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
         }
 
-        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
         {
             if ((object?)t2 == null)
             {
@@ -247,5 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.DynamicTypeSymbol(this, nullableAnnotation);
         }
+
+        internal override bool IsRecord => false;
     }
 }

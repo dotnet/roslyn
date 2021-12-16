@@ -559,10 +559,18 @@
   <data name="Symbols_project_could_not_be_found_in_the_provided_solution" xml:space="preserve">
     <value>Symbol's project could not be found in the provided solution</value>
   </data>
+  <data name="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed" xml:space="preserve">
+    <value>The contents of a SourceGeneratedDocument may not be changed.</value>
+    <comment>{locked:SourceGeneratedDocument}</comment>
+  </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename '{0}' to '{1}'</value>
   </data>
   <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
     <value>Sync namespace to folder structure</value>
+  </data>
+  <data name="CodeAction_{0}_did_not_produce_a_changed_solution" xml:space="preserve">
+    <value>CodeAction '{0}' did not produce a changed solution</value>
+    <comment>"CodeAction" is a specific type, and {0} represents the title shown by the action.</comment>
   </data>
 </root>

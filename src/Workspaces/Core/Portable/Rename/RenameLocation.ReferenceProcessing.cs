@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -223,10 +221,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     return ((IMethodSymbol)symbol).AssociatedSymbol;
                 }
 
-                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
                 {
                     var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                        symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+                        symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
 
                     if (originalSourceSymbol != null)
                     {
@@ -429,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return results;
             }
 
-            internal static async Task<(ImmutableArray<RenameLocation>, ImmutableArray<RenameLocation>)> GetRenamableLocationsInStringsAndCommentsAsync(
+            internal static async Task<(ImmutableArray<RenameLocation> strings, ImmutableArray<RenameLocation> comments)> GetRenamableLocationsInStringsAndCommentsAsync(
                 ISymbol originalSymbol,
                 Solution solution,
                 ISet<RenameLocation> renameLocations,

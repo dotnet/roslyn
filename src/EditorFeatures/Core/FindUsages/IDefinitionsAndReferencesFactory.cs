@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem GetThirdPartyDefinitionItem(
+        DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return null;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         public static DefinitionItem ToNonClassifiedDefinitionItem(
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return properties;
         }
 
-        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
+        public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,

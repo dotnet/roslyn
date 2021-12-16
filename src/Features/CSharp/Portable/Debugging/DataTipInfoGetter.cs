@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,18 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 if (expression.IsRightSideOfDotOrArrow())
                 {
-                    var curr = expression;
-                    while (true)
-                    {
-                        var conditionalAccess = curr.GetParentConditionalAccessExpression();
-                        if (conditionalAccess == null)
-                        {
-                            break;
-                        }
-
-                        curr = conditionalAccess;
-                    }
-
+                    var curr = expression.GetRootConditionalAccessExpression() ?? expression;
                     if (curr == expression)
                     {
                         // NB: Parent.Span, not Span as below.
@@ -96,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 return new DebugDataTipInfo(expression.Span, textOpt);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return default;
             }

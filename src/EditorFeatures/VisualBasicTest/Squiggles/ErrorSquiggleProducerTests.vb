@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -22,11 +23,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
     Public Class ErrorSquiggleProducerTests
 
-        Private _producer As New DiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider)
-
-        Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
+        Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
+                Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
@@ -69,7 +68,7 @@ End Class")
     End Sub
 End Class")
 
-                Dim diagnosticsAndSpans = Await _producer.GetDiagnosticsAndErrorSpans(workspace)
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(1, spans.Count())
@@ -80,7 +79,7 @@ End Class")
                 Dim expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "BC30002"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "BC30002", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)", UriKind.Absolute)), "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30002)"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, firstSpan.diagostic.Message)))
@@ -89,7 +88,7 @@ End Class")
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function CustomizableTagsForUnnecessaryCode() As Task
 
             Dim content = "
@@ -115,7 +114,7 @@ End Class"
                 }
             }
 
-            Using workspace = TestWorkspace.CreateVisualBasic(content)
+            Using workspace = TestWorkspace.CreateVisualBasic(content, composition:=SquiggleUtilities.CompositionWithSolutionCrawler)
                 Dim options As New Dictionary(Of OptionKey2, Object)
                 Dim language = workspace.Projects.Single().Language
                 Dim preferIntrinsicPredefinedTypeOption = New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
@@ -123,7 +122,7 @@ End Class"
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
-                Dim diagnosticsAndSpans = Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
@@ -133,7 +132,7 @@ End Class"
                 Dim expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, VisualBasicAnalyzersResources.Imports_statement_is_unnecessary)))
@@ -146,7 +145,7 @@ End Class"
                 expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Name_can_be_simplified)))

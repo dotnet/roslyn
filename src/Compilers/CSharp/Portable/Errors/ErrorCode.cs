@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AccessModMissingAccessor = 276,
         ERR_UnimplementedInterfaceAccessor = 277,
         WRN_PatternIsAmbiguous = 278,
-        WRN_PatternStaticOrInaccessible = 279,
+        WRN_PatternNotPublicOrNotInstance = 279,
         WRN_PatternBadSignature = 280,
         ERR_FriendRefNotEqualToThis = 281,
         WRN_SequentialOnPartialClass = 282,
@@ -1166,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
@@ -1634,7 +1636,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
-        // available 8524-8596
+        WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
+        // available 8525-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1744,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1777,7 +1780,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
         WRN_ParameterDisallowsNull = 8777,
+        WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,
@@ -1819,26 +1824,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
-        ERR_8813 = 8813, // used by features/module-initializers
-
-        ERR_8814 = 8814, // used by features/module-initializers
-
-        ERR_8815 = 8815, // used by features/module-initializers
-
-        ERR_8816 = 8816, // used by features/module-initializers
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
+        ERR_OverrideDefaultConstraintNotSatisfied = 8822,
+        ERR_DefaultConstraintOverrideOnly = 8823,
+        WRN_ParameterNotNullIfNotNull = 8824,
+        WRN_ReturnNotNullIfNotNull = 8825,
 
-        ERR_8820 = 8820, // used by features/static-lambdas
+        ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
+        ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
 
-        ERR_8821 = 8821, // used by features/static-lambdas
-
+        WRN_SwitchExpressionNotExhaustiveWithWhen = 8846,
+        WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
+        WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
-        ERR_DuplicateRecordConstructor = 8851,
+
+        WRN_AnalyzerReferencesFramework = 8850,
+
+        // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
+        // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
+        WRN_RecordEqualsWithoutGetHashCode = 8851,
+
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
         ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
@@ -1846,6 +1861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
+        ERR_CloneDisallowedInRecord = 8859,
+        WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
@@ -1855,8 +1872,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
         ERR_DoesNotOverrideMethodFromObject = 8869,
+        ERR_SealedAPIInRecord = 8870,
+        ERR_DoesNotOverrideBaseMethod = 8871,
+        ERR_NotOverridableAPIInRecord = 8872,
+        ERR_NonPublicAPIInRecord = 8873,
+        ERR_SignatureMismatchInRecord = 8874,
+        ERR_NonProtectedAPIInRecord = 8875,
+        ERR_DoesNotOverrideBaseEqualityContract = 8876,
+        ERR_StaticAPIInRecord = 8877,
+        ERR_CopyConstructorWrongAccessibility = 8878,
+        ERR_NonPrivateAPIInRecord = 8879,
+
+        // The following warnings correspond to errors of the same name, but are reported
+        // when a definite assignment issue is reported due to private fields imported from metadata.
+        WRN_UnassignedThisAutoProperty = 8880,
+        WRN_UnassignedThis = 8881,
+        WRN_ParamUnassigned = 8882,
+        WRN_UseDefViolationProperty = 8883,
+        WRN_UseDefViolationField = 8884,
+        WRN_UseDefViolationThis = 8885,
+        WRN_UseDefViolationOut = 8886,
+        WRN_UseDefViolation = 8887,
+
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
+        ERR_TypeNotFound = 8890,
+        ERR_TypeMustBePublic = 8891,
+
+        WRN_SyncAndAsyncEntryPoints = 8892,
+
+        ERR_InvalidUnmanagedCallersOnlyCallConv = 8893,
+        ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
+        ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric = 8895,
+        ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
+
+        // The following warnings correspond to errors of the same name, but are reported
+        // as warnings on interface methods and properties due in warning level 5. They
+        // were not reported at all prior to level 5.
+        WRN_ParameterIsStaticClass = 8897,
+        WRN_ReturnTypeIsStaticClass = 8898,
+
+        ERR_EntryPointCannotBeUnmanagedCallersOnly = 8899,
+        ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8901,
+        ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
+
+        ERR_InitCannotBeReadonly = 8903,
+
+        ERR_UnexpectedVarianceStaticMember = 8904,
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
+
+        ERR_EqualityContractRequiresGetter = 8906,
+        WRN_UnreadRecordParameter = 8907,
+        ERR_BadFieldTypeInRecord = 8908,
+
+        WRN_DoNotCompareFunctionPointers = 8909,
+        ERR_RecordAmbigCtor = 8910,
 
         #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

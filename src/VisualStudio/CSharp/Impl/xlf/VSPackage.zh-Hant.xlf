@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,8 +81,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">顯示已關閉檔案的診斷;
-為規則運算式標示色彩; 
+        <target state="translated">顯示內嵌提示;
+顯示已關閉檔案的診斷;
+為規則運算式著色; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;
 啟用完整解決方案分析;
@@ -100,11 +102,11 @@ using 指示詞;
 顯示程序行分隔符號;
 顯示宣告層級建構的大綱;
 顯示程式碼層級建構的大綱;
-顯示註解和前置處理器區域的大綱;
+顯示註解與前置處理器區域的大綱;
 在摺疊到定義時摺疊區域;
-淡化;
-淡化未使用的 using;
-淡化無法執行到的程式碼;
+漸層;
+淡出未使用的 using;
+淡出無法執行到的程式碼;
 區塊結構輔助線;
 顯示宣告層級建構的輔助線;
 顯示程式碼層級建構的輔助線;
@@ -113,14 +115,14 @@ using 指示詞;
 在撰寫 /* */ 註解時，於新行開頭插入 *;
 顯示重新命名追蹤的預覽;
 在按 Enter 鍵時分割字串常值;
-回報 string.Format 呼叫中的無效預留位置;
+回報 string.Format 呼叫中無效的預留位置;
 擷取方法;
 不要在自訂結構上放置 ref 或 out;
 實作介面或抽象類別;
 在插入屬性、事件和方法時，予以放置;
 隨同其他同種類的成員;
-在結尾;
-在產生屬性時;
+結尾處;
+產生屬性時;
 建議使用擲回屬性;
 建議使用自動屬性;
 regex;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Document()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -107,7 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task SerializationTest_Project()
         {
-            using var workspace = new TestWorkspace(EditorServicesUtil.ExportProvider, workspaceKind: "DiagnosticDataSerializerTest");
+            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestPersistentStorageServiceFactory)));
+
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", "");
 
             var diagnostics = new[]
@@ -237,11 +243,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.WarningLevel, item2.WarningLevel);
             Assert.Equal(item1.DefaultSeverity, item2.DefaultSeverity);
 
-            Assert.Equal(item1.CustomTags.Count, item2.CustomTags.Count);
-            for (var j = 0; j < item1.CustomTags.Count; j++)
-            {
+            Assert.Equal(item1.CustomTags.Length, item2.CustomTags.Length);
+            for (var j = 0; j < item1.CustomTags.Length; j++)
                 Assert.Equal(item1.CustomTags[j], item2.CustomTags[j]);
-            }
 
             Assert.Equal(item1.Properties.Count, item2.Properties.Count);
             Assert.True(item1.Properties.SetEquals(item2.Properties));
@@ -271,12 +275,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
-        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticDataSerializerTest"), Shared]
-        public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+        public class TestPersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public PersistentStorageServiceFactory()
+            public TestPersistentStorageServiceFactory()
             {
             }
 

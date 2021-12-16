@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -39,9 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // TODO(DustinCa): Enqueue unknown change event if a file is closed without being saved.
             var oldTree = _lastSyntaxTree;
-            var newTree = document
-                .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            var newTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
 
             _lastSyntaxTree = newTree;
 
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            if (!projectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out var fileCodeModelHandle))
+            if (!projectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out _))
             {
                 return needMoreTime;
             }

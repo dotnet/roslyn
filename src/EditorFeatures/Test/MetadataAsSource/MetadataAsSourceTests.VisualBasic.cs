@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -47,20 +49,15 @@ End Module");
 Imports System.Runtime.InteropServices
 
 Namespace System
-    <__DynamicallyInvokableAttribute> <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate, Inherited:=False)> <ComVisible(True)>
+    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate, Inherited:=False)> <ComVisible(True)>
     Public NotInheritable Class [|ObsoleteAttribute|]
         Inherits Attribute
 
-        <__DynamicallyInvokableAttribute>
         Public Sub New()
-        <__DynamicallyInvokableAttribute>
         Public Sub New(message As String)
-        <__DynamicallyInvokableAttribute>
         Public Sub New(message As String, [error] As Boolean)
 
-        <__DynamicallyInvokableAttribute>
         Public ReadOnly Property Message As String
-        <__DynamicallyInvokableAttribute>
         Public ReadOnly Property IsError As Boolean
     End Class
 End Namespace";

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -987,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         retargetedType,
                         method.MethodKind,
                         method.CallingConvention,
-                        IndexedTypeParameterSymbol.Take(method.Arity),
+                        IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
                         method.IsInitOnly,

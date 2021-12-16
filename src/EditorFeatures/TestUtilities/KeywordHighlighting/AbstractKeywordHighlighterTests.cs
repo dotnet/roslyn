@@ -2,62 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 {
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificHighlighterExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider;
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IHighlighter));
+        private TestComposition _lazyComposition;
 
-        protected ExportProvider ExportProvider
-        {
-            get
-            {
-                return _exportProvider ??= GetExportProvider(this);
-
-                static ExportProvider GetExportProvider(AbstractKeywordHighlighterTests self)
-                {
-                    IExportProviderFactory factory;
-                    lock (_specificHighlighterExportProviderFactories)
-                    {
-                        factory = _specificHighlighterExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
-                    }
-
-                    return factory.CreateExportProvider();
-                }
-            }
-        }
+        protected TestComposition Composition
+            => _lazyComposition ??= s_baseComposition.AddParts(GetHighlighterType());
 
         internal abstract Type GetHighlighterType();
+
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IHighlighter));
-            var catalog = catalogWithoutCompletion.WithPart(GetHighlighterType());
-            return catalog;
-        }
-
-        protected async Task TestAsync(
-            string code)
+        protected async Task TestAsync(string code)
         {
             foreach (var option in GetOptions())
             {

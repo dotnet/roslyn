@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
-        internal protected Binder? Next { get; }
+        protected internal Binder? Next { get; }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
@@ -235,14 +233,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
         {
-            Syntax.NullableContextState context = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position);
+            CSharpSyntaxTree csTree = (CSharpSyntaxTree)syntaxTree;
+            Syntax.NullableContextState context = csTree.GetNullableContextState(position);
 
             return context.AnnotationsState switch
             {
                 Syntax.NullableContextState.State.Enabled => true,
                 Syntax.NullableContextState.State.Disabled => false,
                 Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
-                Syntax.NullableContextState.State.Unknown => AreNullableAnnotationsGloballyEnabled(),
+                Syntax.NullableContextState.State.Unknown =>
+                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                    && AreNullableAnnotationsGloballyEnabled(),
                 _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
             };
         }
@@ -251,6 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(token.SyntaxTree is object);
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
+        }
+
+        internal bool IsGeneratedCode(SyntaxToken token)
+        {
+            var tree = (CSharpSyntaxTree)token.SyntaxTree!;
+            return tree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None);
         }
 
         internal virtual bool AreNullableAnnotationsGloballyEnabled()
@@ -694,6 +701,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return kind;
+        }
+
+        internal static void ReportDiagnosticsIfUnmanagedCallersOnly(DiagnosticBag diagnostics, MethodSymbol symbol, Location location, bool isDelegateConversion)
+        {
+            var unmanagedCallersOnlyAttributeData = symbol.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnlyAttributeData != null)
+            {
+                // Either we haven't yet bound the attributes of this method, or there is an UnmanagedCallersOnly present.
+                // In the former case, we use a lazy diagnostic that may end up being ignored later, to avoid causing a
+                // binding cycle.
+                diagnostics.Add(unmanagedCallersOnlyAttributeData == UnmanagedCallersOnlyAttributeData.Uninitialized
+                                    ? (DiagnosticInfo)new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(symbol, isDelegateConversion)
+                                    : new CSDiagnosticInfo(isDelegateConversion
+                                                               ? ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate
+                                                               : ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly,
+                                                           symbol),
+                                location);
+            }
         }
 
         internal static bool IsSymbolAccessibleConditional(

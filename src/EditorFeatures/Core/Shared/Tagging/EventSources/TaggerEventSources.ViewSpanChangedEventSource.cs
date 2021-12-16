@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly TaggerDelay _scrollChangeDelay;
 
             private Span? _span;
-            private ITextSnapshot _viewTextSnapshot;
-            private ITextSnapshot _viewVisualSnapshot;
+            private ITextSnapshot? _viewTextSnapshot;
+            private ITextSnapshot? _viewVisualSnapshot;
 
-            public event EventHandler<TaggerEventArgs> Changed;
+            public event EventHandler<TaggerEventArgs>? Changed;
             public event EventHandler UIUpdatesPaused { add { } remove { } }
             public event EventHandler UIUpdatesResumed { add { } remove { } }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _textView.LayoutChanged -= OnLayoutChanged;
             }
 
-            private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+            private void OnLayoutChanged(object? sender, TextViewLayoutChangedEventArgs e)
             {
                 _foregroundObject.AssertIsForeground();
                 // The formatted span refers to the span of the textview's buffer that is visible.

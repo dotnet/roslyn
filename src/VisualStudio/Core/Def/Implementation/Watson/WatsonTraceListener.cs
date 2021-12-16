@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Exit(string message)
         {
-            FatalError.Report(new Exception(message));
+            FatalError.ReportAndPropagate(new Exception(message));
         }
 
         internal static void Install()

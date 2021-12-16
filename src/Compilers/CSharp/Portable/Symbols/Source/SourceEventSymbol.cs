@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -76,15 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _state.DefaultForceComplete(this, cancellationToken);
         }
 
-        public override abstract string Name { get; }
+        public abstract override string Name { get; }
 
-        public override abstract MethodSymbol? AddMethod { get; }
+        public abstract override MethodSymbol? AddMethod { get; }
 
-        public override abstract MethodSymbol? RemoveMethod { get; }
+        public abstract override MethodSymbol? RemoveMethod { get; }
 
-        public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
+        public abstract override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public override abstract TypeWithAnnotations TypeWithAnnotations { get; }
+        public abstract override TypeWithAnnotations TypeWithAnnotations { get; }
 
         public sealed override Symbol ContainingSymbol
         {
@@ -586,12 +584,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
-                // '{0}' is abstract but it is contained in non-abstract class '{1}'
+                // '{0}' is abstract but it is contained in non-abstract type '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
             }
             else if (IsVirtual && ContainingType.IsSealed)
             {
-                // '{0}' is a new virtual member in sealed class '{1}'
+                // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
 

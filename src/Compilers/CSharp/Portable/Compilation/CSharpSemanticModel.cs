@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
     /// an instance is obtained by a call to <see cref="Compilation"/>.<see
-    /// cref="Compilation.GetSemanticModel"/>. 
+    /// cref="Compilation.GetSemanticModel(SyntaxTree, bool)"/>. 
     /// </summary>
     /// <remarks>
     /// <para>An instance of <see cref="CSharpSemanticModel"/> caches local symbols and semantic
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public SymbolInfo GetCollectionInitializerSymbolInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -626,9 +626,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
 
-                if (initializer.Parent != null && initializer.Parent.Kind() == SyntaxKind.ObjectCreationExpression &&
-                    ((ObjectCreationExpressionSyntax)initializer.Parent).Initializer == initializer &&
-                    CanGetSemanticInfo(initializer.Parent, allowNamedArgumentName: false))
+                if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
+                    objectCreation.Initializer == initializer &&
+                    CanGetSemanticInfo(objectCreation, allowNamedArgumentName: false))
                 {
                     return GetCollectionInitializerSymbolInfoWorker((InitializerExpressionSyntax)expression.Parent, expression, cancellationToken);
                 }
@@ -1311,10 +1311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fullSpan = this.Root.FullSpan;
             var position = node.SpanStart;
-            if (node is StatementSyntax)
+
+            // skip zero-width tokens to get the position, but never get past the end of the node
+            SyntaxToken firstToken = node.GetFirstToken(includeZeroWidth: false);
+            if (firstToken.Node is object)
             {
-                // skip zero-width tokens to get the position, but never get past the end of the node
-                int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
+                int betterPosition = firstToken.SpanStart;
                 if (betterPosition < node.Span.End)
                 {
                     position = betterPosition;
@@ -1775,8 +1777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol RemapSymbolIfNecessary(Symbol symbol)
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return symbol;
-
             switch (symbol)
             {
                 case LocalSymbol _:
@@ -2040,8 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
-                    pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref useSiteDiagnostics));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2211,6 +2211,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = e.Type;
                     convertedNullability = e.TopLevelNullability;
                     conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
+                }
+                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    type = cond.NaturalTypeOpt;
+                    convertedType = cond.Type;
+                    convertedNullability = nullability;
+                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
                 {
@@ -3281,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expr = (BoundBadExpression)boundNode;
                         resultKind = expr.ResultKind;
 
-                        if (expr.Syntax.Kind() == SyntaxKind.ObjectCreationExpression)
+                        if (expr.Syntax.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
                         {
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
@@ -5099,34 +5106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
-        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
-        {
-            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                switch (declaredSymbol.Kind)
-                {
-                    case SymbolKind.Namespace:
-                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
-                        // Do not include top level global statements into a global namespace
-                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
-
-                    case SymbolKind.Method:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
-                        // Include only global statements at the top level
-                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
-
-                    case SymbolKind.NamedType:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
-                        return (node) => false;
-
-                    default:
-                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                        break;
-                }
-            }
-
-            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-        }
+        internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
@@ -5282,7 +5262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                ? NullableContextOptions.Disable
+                : Compilation.Options.NullableContextOptions;
 
             NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
             context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);

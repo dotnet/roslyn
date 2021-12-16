@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -230,10 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             argsToParams.AddRange(Enumerable.Range(0, n));
             argsToParams[n - 1] = n - 2;
             argsToParams[n - 2] = n - 1;
+            var defaultArguments = result.DefaultArguments.Clone();
+            (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
+
             return result.Update(
-                result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), default(ImmutableArray<string>),
-                default(ImmutableArray<RefKind>), result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), result.ResultKind, result.OriginalMethodsOpt, result.BinderOpt, result.Type);
+                result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
+                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
+                argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
         }
 
         private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
@@ -723,7 +725,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // clean up the receiver
             var ultimateReceiver = receiver;
-            while (ultimateReceiver.Kind == BoundKind.QueryClause) ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            while (ultimateReceiver.Kind == BoundKind.QueryClause)
+            {
+                ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            }
             Debug.Assert(receiver.Type is object || ultimateReceiver.Type is null);
             if ((object?)ultimateReceiver.Type == null)
             {
@@ -739,13 +744,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, node.Location);
                 }
-                else if (ultimateReceiver.IsTypelessNew())
+                else if (ultimateReceiver.IsImplicitObjectCreation())
                 {
-                    diagnostics.Add(ErrorCode.ERR_TypelessNewNotValid, node.Location);
+                    diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNotValid, node.Location);
                 }
                 else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_NAMESPACE.Localize());
+                    diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ((BoundNamespaceExpression)ultimateReceiver).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize());
                 }
                 else if (ultimateReceiver.Kind == BoundKind.Lambda || ultimateReceiver.Kind == BoundKind.UnboundLambda)
                 {
@@ -773,6 +778,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
+            else if (ultimateReceiver.Kind == BoundKind.TypeExpression)
+            {
+                if (ultimateReceiver.Type.TypeKind == TypeKind.TypeParameter)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax, ultimateReceiver.Type, MessageID.IDS_SK_TYVAR.Localize());
+                }
+            }
+            else if (ultimateReceiver.Kind == BoundKind.TypeOrValueExpression)
+            {
+                // CheckValue will be called by MakeInvocationExpression when it makes the member access, which will resolve
+                // the type or value to the appropriate kind at that point.
+            }
             else if (receiver.Type!.IsVoidType())
             {
                 if (!receiver.HasAnyErrors && !node.HasErrors)
@@ -781,6 +798,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+            }
+            else
+            {
+                var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
+                if (checkedUltimateReceiver != ultimateReceiver)
+                {
+                    receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
+                }
             }
 
             return (BoundCall)MakeInvocationExpression(
@@ -795,6 +820,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Queries are syntactical rewrites, so we allow fields and properties of delegate types to be invoked,
                 // although no well-known non-generic query method is used atm.
                 allowFieldsAndProperties: true);
+
+            static BoundExpression updateUltimateReceiver(BoundExpression receiver, BoundExpression originalUltimateReceiver, BoundExpression replacementUltimateReceiver)
+            {
+                if (receiver is BoundQueryClause query)
+                {
+                    return query.Update(
+                        updateUltimateReceiver(query.Value, originalUltimateReceiver, replacementUltimateReceiver),
+                        query.DefinedSymbol,
+                        query.Operation,
+                        query.Cast,
+                        query.Binder,
+                        query.UnoptimizedForm,
+                        query.Type);
+                }
+
+                Debug.Assert(receiver == originalUltimateReceiver);
+                return replacementUltimateReceiver;
+            }
         }
 
         protected BoundExpression MakeConstruction(CSharpSyntaxNode node, NamedTypeSymbol toCreate, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)

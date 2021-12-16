@@ -166,18 +166,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-                Dim other = TryCast(obj, AnonymousDelegatePublicSymbol)
-                Return other IsNot Nothing AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor)
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Return Me.TypeDescriptor.GetHashCode()
-            End Function
-
         End Class
 
     End Class

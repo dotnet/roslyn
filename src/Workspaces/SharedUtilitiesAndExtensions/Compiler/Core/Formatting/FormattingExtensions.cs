@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -348,6 +347,43 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return aggregateSpans;
+        }
+
+        internal static int GetAdjustedIndentationDelta(this IndentBlockOperation operation, ISyntaxFacts syntaxFacts, SyntaxNode root, SyntaxToken indentationAnchor)
+        {
+            if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
+            {
+                // Absolute positioning is absolute
+                return operation.IndentationDeltaOrPosition;
+            }
+
+            if (!operation.Option.IsOn(IndentBlockOption.IndentIfConditionOfAnchorToken))
+            {
+                // No adjustment operations are being applied
+                return operation.IndentationDeltaOrPosition;
+            }
+
+            // Consider syntax forms similar to the following:
+            //
+            //   if (conditionLine1
+            //     conditionLine2)
+            //
+            // Adjustments may be requested for conditionLine2 in cases where the anchor for relative indentation is the
+            // first token of the containing statement (in this case, the 'if' token).
+            if (syntaxFacts.IsOnIfStatementHeader(root, operation.BaseToken.SpanStart, out var conditionStatement)
+                || syntaxFacts.IsOnWhileStatementHeader(root, operation.BaseToken.SpanStart, out conditionStatement))
+            {
+                if (conditionStatement.GetFirstToken() == indentationAnchor)
+                {
+                    // The node is located within the condition of a conditional block statement (or
+                    // syntactically-similar), uses a relative anchor to the block statement, and has requested an
+                    // additional indentation adjustment for this case.
+                    return operation.IndentationDeltaOrPosition + 1;
+                }
+            }
+
+            // No adjustments were necessary/applicable
+            return operation.IndentationDeltaOrPosition;
         }
     }
 }

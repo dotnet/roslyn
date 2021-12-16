@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
             // way, when we call into the actual classification service, it should be very quick for the 
             // it to get the tree if it needs it.
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
 
@@ -237,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return;
                     }
                 }
+
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
@@ -418,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ClassificationUtilities.ReturnClassifiedSpanList(tempList);
             }
 
-            private void AddClassifiedSpansForTokens(
+            private static void AddClassifiedSpansForTokens(
                 IClassificationService classificationService,
                 SnapshotSpan span,
                 List<ClassifiedSpan> classifiedSpans)

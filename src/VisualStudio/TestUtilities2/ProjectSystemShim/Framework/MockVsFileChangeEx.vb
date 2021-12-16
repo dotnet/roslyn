@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _lock As New Object
         Private ReadOnly _watchedFiles As New List(Of WatchedEntity)
         Private ReadOnly _watchedDirectories As New List(Of WatchedEntity)
-        Private _nextCookie As UInteger = 0UI
+        Private _nextCookie As UInteger
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
             If fWatchSubDir = 0 Then
@@ -167,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Throw New NotImplementedException()
         End Function
 
-        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), Optional cancellationToken As CancellationToken = Nothing) As Task
+        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), cancellationToken As CancellationToken) As Task Implements IVsAsyncFileChangeEx.FilterDirectoryChangesAsync
             _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).ExtensionFilters = extensions
             Return Task.CompletedTask
         End Function

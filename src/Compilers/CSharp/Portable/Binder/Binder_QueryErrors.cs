@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (ImplementsStandardQueryInterface(instanceArgument.Type, name, ref useSiteDiagnostics))
             {
-                // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProviderStandard,
                     new object[] { instanceArgument.Type, name },

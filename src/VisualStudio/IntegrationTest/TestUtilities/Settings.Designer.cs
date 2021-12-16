@@ -8,6 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+#nullable disable
+
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities {
     
     

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Runtime;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
         // low vm more info page link
-        private const string LowVMMoreInfoLink = "https://docs.microsoft.com/visualstudio/code-quality/automatic-feature-suspension";
+        private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;

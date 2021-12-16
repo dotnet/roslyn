@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 extern alias csc;
 extern alias vbc;
 
@@ -15,49 +17,71 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    internal readonly struct ServerStats
+    internal static class ProtocolUtil
     {
-        internal readonly int Connections;
-        internal readonly int CompletedConnections;
+        internal static readonly BuildRequest EmptyCSharpBuildRequest = new BuildRequest(
+            BuildProtocolConstants.ProtocolVersion,
+            RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
+            ImmutableArray<BuildRequest.Argument>.Empty);
 
-        internal ServerStats(int connections, int completedConnections)
-        {
-            Connections = connections;
-            CompletedConnections = completedConnections;
-        }
+        internal static readonly BuildRequest EmptyBasicBuildRequest = new BuildRequest(
+            BuildProtocolConstants.ProtocolVersion,
+            RequestLanguage.VisualBasicCompile,
+            BuildProtocolConstants.GetCommitHash(),
+            ImmutableArray<BuildRequest.Argument>.Empty);
+
+        internal static readonly BuildResponse EmptyBuildResponse = new CompletedBuildResponse(
+            returnCode: 0,
+            utf8output: false,
+            output: string.Empty);
+
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
+            RequestLanguage.CSharpCompile,
+            Array.Empty<string>(),
+            workingDirectory,
+            tempDirectory ?? Path.GetTempPath(),
+            compilerHash: BuildProtocolConstants.GetCommitHash(),
+            keepAlive: keepAlive.TotalSeconds.ToString());
+
     }
 
     internal sealed class ServerData : IDisposable
     {
         internal CancellationTokenSource CancellationTokenSource { get; }
-        internal Task<ServerStats> ServerTask { get; }
-        internal BlockingCollection<CompletionReason> ConnectionCompletionCollection { get; }
-        internal Task ListenTask { get; }
+        internal Task<TestableDiagnosticListener> ServerTask { get; }
         internal string PipeName { get; }
+        internal ICompilerServerLogger Logger { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask, BlockingCollection<CompletionReason> connectionCompletionCollection)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, ICompilerServerLogger logger, Task<TestableDiagnosticListener> serverTask)
         {
             CancellationTokenSource = cancellationTokenSource;
             PipeName = pipeName;
+            Logger = logger;
             ServerTask = serverTask;
-            ListenTask = listenTask;
-            ConnectionCompletionCollection = connectionCompletionCollection;
         }
 
-        internal async Task<ServerStats> Complete()
+        internal async Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default)
+        {
+            using var client = await BuildServerConnection.TryConnectToServerAsync(PipeName, Timeout.Infinite, Logger, cancellationToken).ConfigureAwait(false);
+            await request.WriteAsync(client).ConfigureAwait(false);
+            return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
+        }
+
+        internal async Task<int> SendShutdownAsync(CancellationToken cancellationToken = default)
+        {
+            var response = await SendAsync(BuildRequest.CreateShutdown(), cancellationToken).ConfigureAwait(false);
+            return ((ShutdownBuildResponse)response).ServerProcessId;
+        }
+
+        internal async Task<TestableDiagnosticListener> Complete()
         {
             CancellationTokenSource.Cancel();
             return await ServerTask;
-        }
-
-        internal async Task Verify(int connections, int completed)
-        {
-            var stats = await Complete().ConfigureAwait(false);
-            Assert.Equal(connections, stats.Connections);
-            Assert.Equal(completed, stats.CompletedConnections);
         }
 
         public void Dispose()
@@ -68,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             ServerTask.Wait();
+            Assert.True(NamedPipeTestUtil.IsPipeFullyClosed(PipeName));
         }
     }
 
@@ -85,46 +110,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
+        internal static string GetPipeName() => Guid.NewGuid().ToString().Substring(0, 10);
+
         internal static async Task<ServerData> CreateServer(
+            ICompilerServerLogger logger,
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
-            bool failingServer = false,
-            string tempPath = null)
+            IClientConnectionHost clientConnectionHost = null,
+            TimeSpan? keepAlive = null)
         {
             // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
-            pipeName = pipeName ?? Guid.NewGuid().ToString().Substring(0, 10);
-            compilerServerHost = compilerServerHost ?? BuildServerController.CreateCompilerServerHost();
-            tempPath = tempPath ?? Path.GetTempPath();
-            var clientConnectionHost = BuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+            pipeName ??= GetPipeName();
+            compilerServerHost ??= BuildServerController.CreateCompilerServerHost(logger);
+            clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName, logger);
+            keepAlive ??= TimeSpan.FromMilliseconds(-1);
 
-            if (failingServer)
-            {
-                clientConnectionHost = new FailingClientConnectionHost(clientConnectionHost);
-            }
-
-            var serverStatsSource = new TaskCompletionSource<ServerStats>();
+            var listener = new TestableDiagnosticListener();
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var listener = new TestableDiagnosticListener();
             var task = Task.Run(() =>
             {
-                listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
-                try
-                {
-                    BuildServerController.CreateAndRunServer(
-                        pipeName,
-                        tempPath,
-                        clientConnectionHost,
-                        listener,
-                        keepAlive: TimeSpan.FromMilliseconds(-1),
-                        cancellationToken: cts.Token);
-                }
-                finally
-                {
-                    var serverStats = new ServerStats(connections: listener.ConnectionCount, completedConnections: listener.CompletedCount);
-                    serverStatsSource.SetResult(serverStats);
-                }
+                BuildServerController.CreateAndRunServer(
+                    pipeName,
+                    compilerServerHost,
+                    clientConnectionHost,
+                    listener,
+                    keepAlive: keepAlive,
+                    cancellationToken: cts.Token);
+                return listener;
             });
 
             // The contract of this function is that it will return once the server has started.  Spin here until
@@ -134,46 +148,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 await Task.Yield();
             }
 
-            if (task.IsFaulted)
-            {
-                throw task.Exception;
-            }
-
-            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task, listener.ConnectionCompletedCollection);
-        }
-
-        /// <summary>
-        /// Create a compiler server that fails all connections.
-        /// </summary>
-        internal static Task<ServerData> CreateServerFailsConnection(string pipeName = null)
-        {
-            return CreateServer(pipeName, failingServer: true);
-        }
-
-        internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
-        {
-            using (var client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
-            {
-                await request.WriteAsync(client).ConfigureAwait(false);
-                return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
-            }
-        }
-
-        internal static async Task<int> SendShutdown(string pipeName)
-        {
-            var response = await Send(pipeName, BuildRequest.CreateShutdown());
-            return ((ShutdownBuildResponse)response).ServerProcessId;
+            return new ServerData(cts, pipeName, logger, task);
         }
 
         internal static BuildClient CreateBuildClient(
             RequestLanguage language,
+            ICompilerServerLogger logger,
             CompileFunc compileFunc = null,
             TextWriter textWriter = null,
             int? timeoutOverride = null)
         {
             compileFunc = compileFunc ?? GetCompileFunc(language);
             textWriter = textWriter ?? new StringWriter();
-            return new BuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
+            return new BuildClient(language, compileFunc, logger, timeoutOverride: timeoutOverride);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

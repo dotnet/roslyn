@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,12 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly TypeKind _typeKind;
         private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
-        private readonly INamedTypeSymbol _baseType;
         private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
         private readonly ImmutableArray<ISymbol> _members;
-        private readonly INamedTypeSymbol _enumUnderlyingType;
 
         public CodeGenerationNamedTypeSymbol(
             IAssemblySymbol containingAssembly,
@@ -26,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
+            bool isRecord,
             TypeKind typeKind,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol enumUnderlyingType)
             : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
         {
-            _typeKind = typeKind;
+            IsRecord = isRecord;
+            TypeKind = typeKind;
             _typeParameters = typeParameters.NullToEmpty();
-            _baseType = baseType;
+            BaseType = baseType;
             _interfaces = interfaces.NullToEmpty();
             _members = members.NullToEmpty();
-            _enumUnderlyingType = enumUnderlyingType;
+            EnumUnderlyingType = enumUnderlyingType;
 
             this.OriginalDefinition = this;
         }
@@ -52,12 +53,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return new CodeGenerationNamedTypeSymbol(
                 this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.TypeKind, this.Name, _typeParameters, _baseType,
+                this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
                 _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
                 this.EnumUnderlyingType);
         }
 
-        public override TypeKind TypeKind => _typeKind;
+        public override bool IsRecord { get; }
+
+        public override TypeKind TypeKind { get; }
 
         public override SymbolKind Kind => SymbolKind.NamedType;
 
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
+        public override INamedTypeSymbol EnumUnderlyingType { get; }
 
         protected override CodeGenerationNamedTypeSymbol ConstructedFrom
         {
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol BaseType => _baseType;
+        public override INamedTypeSymbol BaseType { get; }
 
         public override ImmutableArray<INamedTypeSymbol> Interfaces
         {

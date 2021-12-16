@@ -32,9 +32,7 @@ End Class", parameters)
 
                 Assert.Equal(
                     {
-                        ("IDE0071", DiagnosticSeverity.Info),
-                        ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                        ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden)
+                        ("IDE0071", DiagnosticSeverity.Info)
                     },
                     diagnostics.Select(Function(d) (d.Descriptor.Id, d.Severity)))
             End Using

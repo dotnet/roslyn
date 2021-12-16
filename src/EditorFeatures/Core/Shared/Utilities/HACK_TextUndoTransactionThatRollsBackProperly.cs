@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             public bool CanUndo => true;
 
-            public ITextUndoTransaction Parent { get; set; }
+            public ITextUndoTransaction? Parent { get; set; }
 
             public bool CanMerge(ITextUndoPrimitive older)
                 => false;

@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -168,6 +165,17 @@ namespace Roslyn.Utilities
             }
 
             return source.Cast<T?>().LastOrDefault();
+        }
+
+        public static T? SingleOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+            where T : struct
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            return source.Cast<T?>().SingleOrDefault(v => predicate(v!.Value));
         }
 
         public static bool IsSingle<T>(this IEnumerable<T> list)
@@ -347,9 +355,19 @@ namespace Roslyn.Utilities
             return source.OrderBy(Functions<T>.Identity, comparer);
         }
 
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, IComparer<T>? comparer)
+        {
+            return source.OrderByDescending(Functions<T>.Identity, comparer);
+        }
+
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
             return source.OrderBy(Comparer<T>.Create(compare));
+        }
+
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, Comparison<T> compare)
+        {
+            return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
@@ -501,7 +519,6 @@ namespace Roslyn.Utilities
         }
 #nullable enable
 
-#if !CODE_STYLE
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
@@ -515,18 +532,16 @@ namespace Roslyn.Utilities
 
             return dictionary;
         }
-#endif
 
         /// <summary>
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
         /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.
         /// </summary>
-        [return: MaybeNull]
-        internal static TSource AsSingleton<TSource>(this IEnumerable<TSource>? source)
+        internal static TSource? AsSingleton<TSource>(this IEnumerable<TSource>? source)
         {
             if (source == null)
             {
-                return default!;
+                return default;
             }
 
             if (source is IList<TSource> list)
@@ -537,13 +552,13 @@ namespace Roslyn.Utilities
             using IEnumerator<TSource> e = source.GetEnumerator();
             if (!e.MoveNext())
             {
-                return default!;
+                return default;
             }
 
             TSource result = e.Current;
             if (e.MoveNext())
             {
-                return default!;
+                return default;
             }
 
             return result;
@@ -613,14 +628,13 @@ namespace System.Linq
             return true;
         }
 
-        [return: MaybeNull]
-        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        public static T? AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
         {
             using (var e = source.GetEnumerator())
             {
                 if (!e.MoveNext())
                 {
-                    return default!;
+                    return default;
                 }
 
                 var result = e.Current;

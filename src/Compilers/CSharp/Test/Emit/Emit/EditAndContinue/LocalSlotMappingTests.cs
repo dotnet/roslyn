@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -4232,11 +4234,11 @@ class C
      ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
       IL_0005:  stloc.0
       IL_0006:  ldloc.0
-     ~IL_0007:  ldarg.0
-      IL_0008:  stfld      ""object C.<G>d__0.o""
-      IL_000d:  ldloc.0
-      IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-      IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+     ~IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+      IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0011:  ldloc.0
+      IL_0012:  ldarg.0
+      IL_0013:  stfld      ""object C.<G>d__0.o""
       IL_0018:  ldloc.0
      -IL_0019:  ldc.i4.m1
      -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
@@ -4292,11 +4294,11 @@ class C
      ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
       IL_0005:  stloc.0
       IL_0006:  ldloc.0
-     ~IL_0007:  ldarg.0
-      IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
-      IL_000d:  ldloc.0
-     -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-      IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+     ~IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+      IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0011:  ldloc.0
+      IL_0012:  ldarg.0
+      IL_0013:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
       IL_0018:  ldloc.0
       IL_0019:  ldc.i4.m1
       IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
@@ -4516,9 +4518,9 @@ class C
     }
 }
 ";
-            var source0 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-            var source1 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-            var source2 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source0 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            var source1 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            var source2 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true));
 

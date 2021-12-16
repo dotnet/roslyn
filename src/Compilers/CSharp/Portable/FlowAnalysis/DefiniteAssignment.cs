@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 // We use a struct rather than a class to represent the state for efficiency
 // for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -38,6 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         DefiniteAssignmentPass.LocalFunctionState>
     {
         /// <summary>
+        /// A mapping from local variables to the index of their slot in a flow analysis local state.
+        /// </summary>
+        private readonly PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+
+        /// <summary>
+        /// A mapping from the local variable slot to the symbol for the local variable itself.  This
+        /// is used in the implementation of region analysis (support for extract method) to compute
+        /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to VariableIdentifier.ContainingSlot, slot 0 indicates
+        /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
+        /// tracked variable. Slots less than 0 are illegal.
+        /// </summary>
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
+
+        /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
         /// </summary>
         private readonly HashSet<Symbol> initiallyAssignedVariables;
@@ -47,6 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unused variables.
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
+
+#nullable enable
+        /// <summary>
+        /// Parameters of record primary constructors that were read anywhere.
+        /// </summary>
+        private PooledHashSet<ParameterSymbol>? _readParameters;
+#nullable disable
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -123,13 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
+            bool strictAnalysis,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false,
             bool trackStaticMembers = false)
             : base(compilation, member, node,
-                   compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
+                   strictAnalysis ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
@@ -149,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node,
-                   emptyStructs ?? (compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation)),
-                   trackUnassignments)
+            : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -185,7 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            variableBySlot.Free();
+            _variableSlot.Free();
             _usedVariables.Free();
+            _readParameters?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -194,6 +222,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
 
             base.Free();
+        }
+
+        protected override bool TryGetVariable(VariableIdentifier identifier, out int slot)
+        {
+            return _variableSlot.TryGetValue(identifier, out slot);
+        }
+
+        protected override int AddVariable(VariableIdentifier identifier)
+        {
+            int slot = variableBySlot.Count;
+            _variableSlot.Add(identifier, slot);
+            variableBySlot.Add(identifier);
+            return slot;
+        }
+
+        protected Symbol GetNonMemberSymbol(int slot)
+        {
+            VariableIdentifier variableId = variableBySlot[slot];
+            while (variableId.ContainingSlot > 0)
+            {
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
+                variableId = variableBySlot[variableId.ContainingSlot];
+            }
+            return variableId.Symbol;
+        }
+
+        private int RootSlot(int slot)
+        {
+            while (true)
+            {
+                int containingSlot = variableBySlot[slot].ContainingSlot;
+                if (containingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = containingSlot;
+                }
+            }
         }
 
 #if DEBUG
@@ -367,53 +436,124 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool HasInitializer(Symbol field) => field switch
-        {
-            SourceMemberFieldSymbol f => f.HasInitializer,
-            SynthesizedBackingFieldSymbol f => f.HasInitializer,
-            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
-            _ => false
-        };
-
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
-        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
+        public static void Analyze(
+            CSharpCompilation compilation,
+            MethodSymbol member,
+            BoundNode node,
+            DiagnosticBag diagnostics,
+            bool requireOutParamsAssigned = true)
         {
             Debug.Assert(diagnostics != null);
 
-            var walker = new DefiniteAssignmentPass(
-                compilation,
-                member,
-                node,
-                requireOutParamsAssigned: requireOutParamsAssigned);
-            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
-
-            try
+            // Run the strongest version of analysis
+            DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
+            if (strictDiagnostics.IsEmptyWithoutResolution)
             {
-                bool badRegion = false;
-                walker.Analyze(ref badRegion, diagnostics);
-                Debug.Assert(!badRegion);
-            }
-            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
-            {
-                ex.AddAnError(diagnostics);
-            }
-            finally
-            {
-                walker.Free();
+                // If it reports nothing, there is nothing to report and we are done.
+                strictDiagnostics.Free();
+                return;
             }
 
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
+            // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
+            // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
+            DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+
+            // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
+            // So we just report the compat ones including that error.
+            if (compatDiagnostics.AsEnumerable().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_InsufficientStack))
             {
-                NullableWalker.Analyze(compilation, member, node, diagnostics);
+                diagnostics.AddRangeAndFree(compatDiagnostics);
+                strictDiagnostics.Free();
+                return;
             }
-#if DEBUG
-            else
+
+            // If the compat diagnostics did not overflow and we have the same number of diagnostics, we just report the stricter set.
+            // It is OK if the strict analysis had an overflow here, causing the sets to be incomparable: the reported diagnostics will
+            // include the error reporting that fact.
+            if (strictDiagnostics.Count == compatDiagnostics.Count)
             {
-                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
+                diagnostics.AddRangeAndFree(strictDiagnostics);
+                compatDiagnostics.Free();
+                return;
             }
-#endif
+
+            HashSet<Diagnostic> compatDiagnosticSet = new HashSet<Diagnostic>(compatDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
+            compatDiagnostics.Free();
+            foreach (var diagnostic in strictDiagnostics.AsEnumerable())
+            {
+                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
+                {
+                    diagnostics.Add(diagnostic);
+                    continue;
+                }
+
+                // Otherwise downgrade the error to a warning.
+                ErrorCode oldCode = (ErrorCode)diagnostic.Code;
+                ErrorCode newCode = oldCode switch
+                {
+#pragma warning disable format
+                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+#pragma warning restore format
+                };
+
+                // We don't know any other way this can happen, but if it does we recover gracefully in production.
+                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+
+                var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+                diagnostics.Add(newCode, diagnostic.Location, args);
+            }
+
+            strictDiagnostics.Free();
+            return;
+
+            DiagnosticBag analyze(bool strictAnalysis)
+            {
+                DiagnosticBag result = DiagnosticBag.GetInstance();
+                var walker = new DefiniteAssignmentPass(
+                    compilation,
+                    member,
+                    node,
+                    strictAnalysis: strictAnalysis,
+                    requireOutParamsAssigned: requireOutParamsAssigned);
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+
+                try
+                {
+                    bool badRegion = false;
+                    walker.Analyze(ref badRegion, result);
+                    Debug.Assert(!badRegion);
+                }
+                catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+                {
+                    ex.AddAnError(result);
+                }
+                finally
+                {
+                    walker.Free();
+                }
+
+                return result;
+            }
+        }
+
+        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
+        {
+            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
+            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
+            public override int GetHashCode(Diagnostic obj) =>
+                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 
         /// <summary>
@@ -435,6 +575,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
+
+                if (CurrentSymbol is SynthesizedRecordConstructor)
+                {
+                    foreach (ParameterSymbol parameter in MethodParameters)
+                    {
+                        if (_readParameters?.Contains(parameter) != true)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                        }
+                    }
+                }
             }
         }
 
@@ -475,9 +626,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
         protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
         protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
+        protected IEnumerable<MethodSymbol> GetUsedLocalFunctions() => _usedLocalFunctions.ToArray();
 
         #region Tracking reads/writes of variables for warnings
 
+        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        {
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
+            {
+                _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
+                _readParameters.Add(parameter);
+            }
+        }
         protected virtual void NoteRead(
             Symbol variable,
             ParameterSymbol rangeVariableUnderlyingParameter = null)
@@ -487,6 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _usedVariables.Add(local);
             }
+
+            NoteRecordParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -629,7 +791,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            // In C# 9 and before, interpolated string values were never constant, so field initializers
+            // that used them were always considered used. We now consider interpolated strings that are
+            // made up of only constant expressions to be constant values, but for backcompat we consider
+            // the writes to be uses anyway.
+            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -736,8 +902,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Normalize(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
-            state.Assigned.EnsureCapacity(nextVariableSlot);
-            for (int i = oldNext; i < nextVariableSlot; i++)
+            int n = variableBySlot.Count;
+            state.Assigned.EnsureCapacity(n);
+            for (int i = oldNext; i < n; i++)
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
@@ -903,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (slot >= _alreadyReported.Capacity)
             {
-                _alreadyReported.EnsureCapacity(nextVariableSlot);
+                _alreadyReported.EnsureCapacity(variableBySlot.Count);
             }
 
             if (skipIfUseBeforeDeclaration &&
@@ -1057,7 +1224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(unassignedSlot > 0);
-            return this.State.IsAssigned(unassignedSlot);
+            if (unassignedSlot > 0)
+            {
+                return this.State.IsAssigned(unassignedSlot);
+            }
+
+            return true;
         }
 
         private Symbol UseNonFieldSymbolUnsafely(BoundExpression expression)
@@ -1348,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableBottomState()
         {
-            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(variableBySlot.Count));
             result.Assigned[0] = false; // make the state reachable
             return result;
         }
@@ -1695,10 +1867,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
+            LocalSymbol localSymbol = node.LocalSymbol;
+            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                // Since we've already reported a use of the variable where not permitted, we
+                // suppress the diagnostic that the variable may not be assigned where used.
+                int slot = GetOrCreateSlot(node.LocalSymbol);
+                if (slot > 0)
+                {
+                    _alreadyReported[slot] = true;
+                }
+            }
+
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
             // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
             // That's because this code assumes the variable is being read, not written.
-            LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
 
             if (localSymbol.IsFixed && this.CurrentSymbol is MethodSymbol currentMethod &&
@@ -1713,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
+            _ = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
             if (initiallyAssignedVariables?.Contains(node.LocalSymbol) == true)
             {
                 // When data flow analysis determines that the variable is sometimes
@@ -1797,6 +1980,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.WasCompilerGenerated)
             {
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
+            }
+            else
+            {
+                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
             }
 
             return null;
@@ -1901,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MarkFieldsUsed(type);
             }
         }
-#nullable restore
+#nullable disable
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
@@ -1978,7 +2165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
         }
-#nullable restore
+#nullable disable
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {

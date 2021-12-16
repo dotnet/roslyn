@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -163,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 UpdateWorkspaceForGlobalIdentifierRename(
                     workspace,
                     finalSolution,
-                    workspace.CurrentSolution,
                     _displayText,
                     changedDocuments,
                     renameTrackingSolutionSet.Symbol,
@@ -241,7 +242,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private void UpdateWorkspaceForGlobalIdentifierRename(
                 Workspace workspace,
                 Solution newSolution,
-                Solution oldSolution,
                 string undoName,
                 IEnumerable<DocumentId> changedDocuments,
                 ISymbol symbol,

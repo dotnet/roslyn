@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,10 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForConversionOperatorsHelper :
         UseExpressionBodyHelper<ConversionOperatorDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForConversionOperatorsHelper Instance = new UseExpressionBodyForConversionOperatorsHelper();
+        public static readonly UseExpressionBodyForConversionOperatorsHelper Instance = new();
 
         private UseExpressionBodyForConversionOperatorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForConversionOperators,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_operators), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators,

@@ -111,9 +111,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         ' This is a test for a potential race between two operations; with 20 iterations on my machine either all would fail
         ' or one might pass, it seems the race is easy enough to hit without the fix.
+#Disable Warning IDE0060 ' Remove unused parameter - used for test iterations.
         <WpfTheory>
         <CombinatorialData>
         Public Sub ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer)
+#Enable Warning IDE0060 ' Remove unused parameter
             Using environment = New TestEnvironment()
                 Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
                 Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)

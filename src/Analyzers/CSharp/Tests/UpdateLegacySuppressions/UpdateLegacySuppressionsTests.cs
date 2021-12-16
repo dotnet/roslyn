@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppressions
@@ -19,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppression
     [WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")]
     public class UpdateLegacySuppressionsTests
     {
-        [Fact]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         // Namespace
         [InlineData("namespace", "N", "~N:N")]
@@ -59,7 +58,7 @@ namespace N
     }}
 }}";
 
-            var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+            var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
                                         .WithLocation(0)
                                         .WithArguments(target);
 

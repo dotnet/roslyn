@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         public ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
+                EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

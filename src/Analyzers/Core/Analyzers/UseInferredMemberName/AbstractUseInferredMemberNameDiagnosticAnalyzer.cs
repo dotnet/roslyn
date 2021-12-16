@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
+                   EnforceOnBuildValues.UseInferredMemberName,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, CodeStyleOptions2.PreferInferredTupleNames),
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_inferred_member_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

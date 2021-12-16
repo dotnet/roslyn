@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_LineEnd = "Edit.LineEnd";
         public const string Edit_LineStartExtend = "Edit.LineStartExtend";
         public const string Edit_LineEndExtend = "Edit.LineEndExtend";
+        public const string Edit_NextHighlightedReference = "Edit.NextHighlightedReference";
         public const string Edit_SelectAll = "Edit.SelectAll";
         public const string Edit_Copy = "Edit.Copy";
         public const string Edit_Cut = "Edit.Cut";

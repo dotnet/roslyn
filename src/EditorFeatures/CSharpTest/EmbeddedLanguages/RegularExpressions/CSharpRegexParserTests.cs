@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
         private const string _statmentPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text)
+        private static SyntaxToken GetStringToken(string text)
         {
             var statement = _statmentPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private void Test(string stringText, string expected, RegexOptions options,
-            bool runSubTreeTests = true, [CallerMemberName] string name = "",
+            bool runSubTreeTests = true,
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,
             bool allowOutOfMemory = false,
@@ -55,8 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
-            var actual = TreeToText(sourceText, tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
+            const string DoubleQuoteEscaping = "\"\"";
+            var actual = TreeToText(sourceText, tree)
+                .Replace("\"", DoubleQuoteEscaping)
+                .Replace("&quot;", DoubleQuoteEscaping);
+            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
         }
 
         private void TryParseSubTrees(
@@ -232,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return element;
         }
 
-        private XElement TokenToElement(RegexToken token)
+        private static XElement TokenToElement(RegexToken token)
         {
             var element = new XElement(token.Kind.ToString());
 
@@ -254,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return element;
         }
 
-        private XElement TriviaToElement(RegexTrivia trivia)
+        private static XElement TriviaToElement(RegexTrivia trivia)
             => new XElement(
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
@@ -282,13 +287,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -296,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {

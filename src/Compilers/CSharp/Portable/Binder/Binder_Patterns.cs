@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -54,47 +52,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+
+            bool negated = pattern.IsNegated(out var innerPattern);
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
-                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
-            if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
+
+            if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
-                diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
-                hasErrors = true;
-            }
-            else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
-            {
-                switch (pattern)
+                if (!constantResult)
                 {
-                    case BoundConstantPattern _:
-                    case BoundITuplePattern _:
-                        // these patterns can fail in practice
-                        throw ExceptionUtilities.Unreachable;
-                    case BoundRelationalPattern _:
-                    case BoundTypePattern _:
-                    case BoundNegatedPattern _:
-                    case BoundBinaryPattern _:
-                        diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
-                        break;
-                    case BoundDiscardPattern _:
-                        // we do not give a warning on this because it is an existing scenario, and it should
-                        // have been obvious in source that it would always match.
-                        break;
-                    case BoundDeclarationPattern _:
-                    case BoundRecursivePattern _:
-                        // We do not give a warning on these because people do this to give a name to a value
-                        break;
+                    diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
+                    hasErrors = true;
+                }
+                else
+                {
+                    switch (pattern)
+                    {
+                        case BoundConstantPattern _:
+                        case BoundITuplePattern _:
+                            // these patterns can fail in practice
+                            throw ExceptionUtilities.Unreachable;
+                        case BoundRelationalPattern _:
+                        case BoundTypePattern _:
+                        case BoundNegatedPattern _:
+                        case BoundBinaryPattern _:
+                            diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                            break;
+                        case BoundDiscardPattern _:
+                            // we do not give a warning on this because it is an existing scenario, and it should
+                            // have been obvious in source that it would always match.
+                            break;
+                        case BoundDeclarationPattern _:
+                        case BoundRecursivePattern _:
+                            // We do not give a warning on these because people do this to give a name to a value
+                            break;
+                    }
                 }
             }
             else if (expression.ConstantValue != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
-                if (!hasErrors)
+                if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } simplifiedResult)
                 {
-                    if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                    if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
-                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
+                    else
                     {
                         switch (pattern)
                         {
@@ -113,8 +117,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
+            // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
-                node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+                node, expression, pattern, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+
+            static bool? getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
+            {
+                if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                {
+                    return negated;
+                }
+                else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
+                {
+                    return !negated;
+                }
+                return null;
+            }
         }
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
@@ -161,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
-            return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
+            return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
         }
 
         private BoundPattern BindConstantPatternWithFallbackToTypePattern(
@@ -278,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
+            ConstantValueUtils.CheckLangVersionForConstantValue(expression, diagnostics);
+
             if (!convertedExpression.HasErrors && !hasErrors)
             {
                 if (constantValueOpt == null)
@@ -324,7 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)
                     {
-                        if (inputType.IsNonNullableValueType())
+                        // Pointers are value types, but they can be assigned null, so they can be matched against null.
+                        if (inputType.IsNonNullableValueType() && !inputType.IsPointerOrFunctionPointer())
                         {
                             // We do not permit matching null against a struct type.
                             diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
@@ -736,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
                 variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
-                convertedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors: hasErrors);
+                narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors: hasErrors);
         }
 
         private MethodSymbol? BindDeconstructSubpatterns(
@@ -1025,11 +1047,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DiscardDesignation:
                     {
-                        return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
+                        return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
-                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations();
+                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations(Compilation);
                         BindPatternDesignation(
                             designation: node, declType: declType, inputValEscape: inputValEscape, permitDesignations: permitDesignations,
                             typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
@@ -1040,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             variableSymbol, variableAccess, boundOperandType, isVar: true,
-                            inputType: inputType, convertedType: inputType, hasErrors: hasErrors);
+                            inputType: inputType, narrowedType: inputType, hasErrors: hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -1101,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundRecursivePattern(
                             syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                             deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                            isExplicitNotNullTest: false, inputType: inputType, convertedType: inputType.StrippedType(), hasErrors: hasErrors);
+                            isExplicitNotNullTest: false, inputType: inputType, narrowedType: inputType.StrippedType(), hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {
@@ -1357,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics, underIsPattern);
-            return new BoundNegatedPattern(node, subPattern, inputType: inputType, convertedType: inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(
@@ -1379,10 +1401,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
                 collectCandidates(left, narrowedTypeCandidates);
                 collectCandidates(right, narrowedTypeCandidates);
-                var convertedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
+                var narrowedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
                 narrowedTypeCandidates.Free();
 
-                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: convertedType, hasErrors);
+                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
 
                 static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
                 {
@@ -1393,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        candidates.Add(pat.ConvertedType);
+                        candidates.Add(pat.NarrowedType);
                     }
                 }
 
@@ -1455,9 +1477,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
-                var right = BindPattern(node.Right, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
-                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
+                var leftOutputValEscape = GetValEscape(left.NarrowedType, inputValEscape);
+                var right = BindPattern(node.Right, left.NarrowedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
+                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, narrowedType: right.NarrowedType, hasErrors);
             }
         }
     }

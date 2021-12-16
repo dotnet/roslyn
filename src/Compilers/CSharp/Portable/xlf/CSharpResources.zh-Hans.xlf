@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CallingConventionTypeIsInvalid">
+        <source>Cannot use '{0}' as a calling convention modifier.</source>
+        <target state="translated">不能将“{0}”用作调用约定修饰符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CallingConventionTypesRequireUnmanaged">
+        <source>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</source>
+        <target state="translated">传递“{0}”无效，除非“{1}”是 "SignatureCallingConvention.Unmanaged"。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">无法从另一个构造泛型类型创建构造泛型类型。</target>
@@ -78,18 +88,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">“{0}”不包含“{1}”的适当公共实例定义，因此异步 foreach 语句不能作用于“{0}”类型的变量</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="translated">“{0}”不包含“{1}”的适当公共实例或扩展定义，因此异步 foreach 语句不能作用于“{0}”类型的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">“{0}”不包含“{1}”的公共实例定义，因此异步 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "foreach" 而非 "await foreach"?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="translated">“{0}”不包含“{1}”的公共实例或扩展定义，因此异步 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "foreach" 而非 "await foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">无法在异步 foreach 中使用动态类型集合</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">类型“{0}”不能用于记录的字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -104,7 +119,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
-        <target state="translated">只有记录可以从记录中继承。</target>
+        <target state="translated">只有记录可以从记录继承。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInitAccessor">
@@ -137,11 +152,6 @@
         <target state="translated">记录只能从对象或另一条记录继承</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">位置记录必须同时具有 "data" 修饰符和非空参数列表</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">记录成员“{0}"必须是“{1}”类型的可读实例属性才能匹配位置参数“{2}”。</target>
@@ -157,10 +167,20 @@
         <target state="translated">无法将方法组“{0}”转换为委托类型“{0}”(&amp;M)。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
+        <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
+        <target state="translated">"managed" 调用约定不能与非托管调用约定说明符一起使用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
         <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
         <target state="translated">fixed 语句中声明的局部变量类型不能是函数指针类型。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseManagedTypeInUnmanagedCallersOnly">
+        <source>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">无法在使用 "UnmanagedCallersOnly" 特性化的方法上将“{0}”用作 {1} 类型。</target>
+        <note>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
@@ -175,6 +195,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloneDisallowedInRecord">
+        <source>Members named 'Clone' are disallowed in records.</source>
+        <target state="translated">记录中不允许使用名为 "Clone" 的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -199,12 +224,22 @@
       </trans-unit>
       <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
         <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
-        <target state="translated">如果记录继承自对象，则记录中的复制构造函数必须调用基对象的复制构造函数，或者调用无参数的对象构造函数。</target>
+        <target state="translated">如果记录继承自 object，则记录中的复制构造函数必须调用基对象的复制构造函数，或者调用无参数的对象构造函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="translated">复制构造函数“{0}”必须是公共的或受保护的，因为该记录未密封。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultConstraintOverrideOnly">
+        <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
+        <target state="translated">"default" 约束仅针对替代和显式接口实现方法有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -232,9 +267,19 @@
         <target state="translated">在 switch 语句中，不允许将放弃模式作为大小写标签。对于放弃模式，使用 "case var _:"；对于名为 "_" 的常量，使用 "case @_:"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
+        <source>'{0}' does not override expected property from '{1}'.</source>
+        <target state="translated">“{0}”不替代“{1}”中的预期属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="translated">“{0}”不替代“{1}”中的预期方法。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
-        <source>'{0}' does not override the method from 'object'.</source>
-        <target state="translated">“{0}”不会通过 "object" 覆盖方法。</target>
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="translated">“{0}”不替代 "object" 中的预期方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
@@ -247,6 +292,11 @@
         <target state="translated">多次显式实现“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">“{0}”已作为“{1}”列入类型“{2}”的接口列表中。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Null 抑制运算符("!")重复</target>
@@ -257,14 +307,19 @@
         <target state="translated">不能在属性或索引器 "{0}" 的两个访问器上指定 "readonly" 修饰符。而应在属性本身上指定 "readonly" 修饰符。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="translated">主构造函数和成员构造函数的参数类型不能相同。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">"else" 不能用在语句的开头。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">无法使用 "UnmanagedCallersOnly" 对应用程序入口点进行特性化。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">记录等同性合同属性“{0}”必须具有 get 访问器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -358,8 +413,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">“{0}”不包含“{1}”的公共实例定义，因此 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "await foreach" 而非 "foreach"?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="translated">“{0}”不包含“{1}”的公共实例或扩展定义，因此 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "await foreach" 而非 "foreach"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
@@ -370,6 +425,11 @@
       <trans-unit id="ERR_FuncPtrRefMismatch">
         <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
         <target state="translated">“{0}”和函数指针“{1}”之间的引用不匹配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">不能使用命名参数调用函数指针。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,6 +452,21 @@
         <target state="translated">无法通过对隐式索引索引器的调用为参数命名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">类型 "{0}" 不能用作 new() 目标类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">"{0}" 没有目标类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">在此上下文中使用 new() 无效</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">无法通过对隐式范围索引器的调用为参数命名。</target>
@@ -400,6 +475,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="translated">"init" 访问器不能标记为“只读”。请转而将“{0}”标记为“只读”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -423,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
-        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
-        <target state="translated">“{0}”不是函数指针的有效调用约定。有效的约定为 "cdecl"、"managed"、"thiscall" 和 "stdcall"。</target>
+        <source>'{0}' is not a valid calling convention specifier for a function pointer.</source>
+        <target state="translated">“{0}”不是函数指针的有效调用约定说明符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -446,6 +526,11 @@
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="translated">“无效的秩说明符: 应为“]”</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidUnmanagedCallersOnlyCallConv">
+        <source>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</source>
+        <target state="translated">对于 "UnmanagedCallersOnly" 来说，“{0}”不是有效的调用约定类型。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
         <source>The receiver of a `with` expression must have a non-void type.</source>
@@ -480,6 +565,31 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">模式缺失</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">无法使用 "UnmanagedCallersOnly" 对模块初始值设定项进行特性化。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
+        <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
+        <target state="translated">模块初始值设定项方法“{0}”不能是泛型的，且不得包含在泛型类型中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType">
+        <source>Module initializer method '{0}' must be accessible at the module level</source>
+        <target state="translated">模块初始值设定项方法“{0}”必须可在模块级别被访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeOrdinary">
+        <source>A module initializer must be an ordinary member method</source>
+        <target state="translated">模块初始值设定项必须是普通成员方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
+        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
+        <target state="translated">模块初始值设定项方法“{0}”必须是静态的，不能有任何参数，并且必须返回 "void"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -527,6 +637,26 @@
         <target state="translated">指定的接收器类型“{0}”不是有效的记录类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="translated">记录成员“{0}”必须是非公开的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonProtectedAPIInRecord">
+        <source>Record member '{0}' must be protected.</source>
+        <target state="translated">必须保护记录成员“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="translated">记录成员“{0}”必须是公共的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' must allow overriding because the containing record is not sealed.</source>
+        <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">应为 "enable"、"disable" 或 "restore"</target>
@@ -543,8 +673,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">可为 null 的类型参数必须已知为值类型或不可为 null 引用类型。请考虑添加一个 “class”、“struct” 或类型约束。</target>
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
+        <target state="translated">可以为 null 的类型参数必须已知为值类型或不可以为 null 的引用类型，除非使用了语言版本“{0}”或更高版本。请考虑更改语言版本或添加 "class"、"struct" 或类型约束。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedTypeArgument">
@@ -555,6 +685,11 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 变量无法声明为 ref 局部变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
+        <target state="translated">方法“{0}”为类型参数“{1}”指定了 "default" 约束，但被替代的或显式实现的方法“{3}”的对应类型参数“{2}” 仅限于引用类型或值类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -642,6 +777,11 @@
         <target state="translated">“{0}”: 仅当属性或索引器同时具有 get 访问器和 set 访问器时，才能对访问器使用 "readonly"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">主构造函数与合成的复制构造函数冲突。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">无法将“{1}”重新赋值为“{0}”，因为“{1}”具有比“{0}”更窄的转义范围。</target>
@@ -657,9 +797,34 @@
         <target state="translated">关系模式可能不能用于浮点 NaN。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">“{0}”: 目标运行时不支持替代中的协变类型。类型必须为“{2}”才能匹配替代成员“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">“{0}”: 目标运行时不支持替代中的协变返回类型。返回类型必须为“{2}”才能匹配替代成员“{1}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
+        <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
+        <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SealedAPIInRecord">
+        <source>'{0}' cannot be sealed because containing record is not sealed.</source>
+        <target state="translated">“{0}”不能密封，因为包含的记录未密封。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="translated">记录成员“{0}”必须返回“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
@@ -685,6 +850,21 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="translated">记录成员“{0}”可能不是静态的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="translated">静态匿名函数不能包含对 "this" 或 "base" 的引用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="translated">静态匿名函数不能包含对“{0}”的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -748,23 +928,118 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeConstraintsMustBeUniqueAndFirst">
-        <source>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
-        <target state="translated">"class"、"struct"、"unmanaged" 和 "notnull" 约束不能组合或重复，并且必须先在约束列表中进行指定。</target>
+        <source>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
+        <target state="translated">"class"、"struct"、"unmanaged"、"notnull" 和 "default" 约束不能组合或重复，并且必须先在约束列表中进行指定。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">类型 "{0}" 不能用作 new() 目标类型</target>
+      <trans-unit id="ERR_TypeMustBePublic">
+        <source>Type '{0}' must be public to be used as a calling convention.</source>
+        <target state="translated">类型“{0}”必须是公共的，才能用作调用约定。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">"{0}" 没有目标类型</target>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="translated">“{0}”使用 "UnmanagedCallersOnly" 进行特性化，无法直接调用。请获取指向此方法的函数指针。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="translated">“{0}”使用 "UnmanagedCallersOnly" 进行特性化，无法转换为委托类型。请获取指向此方法的函数指针。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">协变返回</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">在此上下文中使用 new() 无效</target>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="translated">弃元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">创建目标类型对象</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">加载的程序集引用了 .NET Framework，而此操作不受支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">函数指针比较可能产生意外的结果，因为指向同一函数的指针可能是不同的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">不比较函数指针值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="translated">退出时参数“{0}”必须具有非 null 值，因为参数“{1}”是非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="translated">退出时参数必须具有非 null 值，因为由 NotNullIfNotNull 引用的参数是非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="translated">“{0}”定义 "Equals"，而不定义 "GetHashCode"</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="translated">记录定义 "Equals" 而不定义 "GetHashCode"。</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">类型和别名不应命名为 "record"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">类型和别名不应命名为 "record"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="translated">返回值必须为非 null，因为参数“{0}”为非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="translated">由于参数为非 null，因此返回值必须为非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="translated">switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。例如，模式“{0}”未包含在内。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="translated">switch 表达式不会处理其输入类型的某些值(它不是穷举)，这包括未命名的枚举值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
+        <target state="translated">方法“{0}”将不会用作入口点，因为找到了同步入口点“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeNotFound">
+        <source>Type '{0}' is not defined.</source>
+        <target state="translated">未定义类型“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -773,14 +1048,29 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="translated">在带参数的记录中声明的构造函数必须具有 "this" 构造函数初始值设定项。</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="translated">在带参数列表的记录中声明的构造函数必须具有 "this" 构造函数初始值设定项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="translated">无效的变型: 除非使用了语言版本“{4}”或更高版本，否则类型参数“{1}”在“{0}”上必须是 {3} 有效的。“{1}”是 {2}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">“{0}”: 不能既指定约束类又指定 “unmanaged” 约束</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</source>
+        <target state="translated">使用 "UnmanagedCallersOnly" 特性化的方法不能具有泛型类型参数，也不能在泛型类型中声明。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
+        <target state="translated">"UnmanagedCallersOnly" 仅可应用于普通静态方法或静态本地函数。</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
@@ -899,12 +1189,12 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -916,6 +1206,7 @@
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -985,159 +1276,169 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="translated">
                              Visual C# 编译器选项
 
                        - 输出文件 -
--out:&lt;file&gt;                   指定输出文件名称(默认: 具有主类的文件或
-                              第一个文件的基名称)
--target:exe                   生成控制台可执行文件(默认)(缩
-                              写: -t:exe)
--target:winexe                生成 Windows 可执行文件(缩写:
+-out:&lt;file&gt;                    指定输出文件名称(默认: 具有主类的文件或第一个文件的基础名称
+                              )
+-target:exe                    构建控制台可执行文件(默认) (短
+                              格式: -t:exe)
+-target:winexe                构建 Windows 可 执行文件 (短格式:
                               -t:winexe)
--target:library               生成库(缩写: -t:library)
--target:module                生成可添加到另一个程序集的
-                              模块(缩写: -t:module)
--target:appcontainerexe       生成 Appcontainer 可执行文件(缩写:
+-target:library               构建库(短格式: -t:library)
+- target:module                构建可添加到另一个程序集的模块
+                              (短格式: -t:module)
+- target:appcontainerexe       构建 Appcontainer 可执行文件(短格式:
                               -t:appcontainerexe)
--target:winmdobj              生成 WinMDExp 使用的
-                              Windows 运行时中间文件(缩写: -t:winmdobj)
+- target:winmdobj              构建由 WinMDExp 使用的 Windows 运行时中间文件
+                              (短格式: - t:winmdobj)
 -doc:&lt;file&gt;                   要生成的 XML 文档文件
 -refout:&lt;file&gt;                要生成的引用程序集输出
--platform:&lt;string&gt;            限制此代码可以在其上运行的平台: x86、
-                              Itanium、x64、arm、arm64、anycpu32bitpreferred 或
-                              anycpu。默认平台为 anycpu。
+ 
+-platform:&lt;string&gt;            限制可以运行此代码的平台: x86、
+                              Itanium、x64、arm、arm64、 anycpu32bitpreferred 或
+                              anycpu。默认值是 anycpu。
 
-                       - 输入文件 -
+                       - 输入文件 - 
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
-                              子目录中的所有
-                              文件
--reference:&lt;alias&gt;=&lt;file&gt;     使用给定别名从指定程序集文件
-                              引用元数据(缩写: -r)
--reference:&lt;file list&gt;        从指定程序集文件引用
-                              元数据(缩写: -r)
--addmodule:&lt;file list&gt;        将指定模块链接到此程序集中
--link:&lt;file list&gt;             嵌入指定互操作程序集文件中的
-                              元数据(缩写: -l)
--analyzer:&lt;file list&gt;         运行此程序集中的分析器
-                              (缩写: -a)
--additionalfile:&lt;file list&gt;   不会直接影响代码生成
-                              但可能被分析器用于生成
-                              错误或警告的其他文件。
--embed                        嵌入 PDB 中的所有源文件。
--embed:&lt;file list&gt;            嵌入 PDB 中的特定文件。
+                              子目录中的
+                               所有文件
+-reference:&lt;alias&gt;=&lt;file&gt;     使用给定的别名(短格式: -r)引用指定程序集中的
+                               元数据
+-reference:&lt;file list&gt;        引用指定程序集文件(短格式: -r)中的
+                              元数据
+- addmodule:&lt;file list&gt;        将指定的模块关联到此程序集
+-link:&lt;file list&gt;             嵌入指定互操作程序集文件(短格式: -l)中 的
+                              元数据
+-analyzer:&lt;file list&gt;         从此程序集运行分析器
+                               (短格式: -a)
+-additionalfile:&lt;file list&gt;   不直接影响代码生成
+                              但由分析器用于生成错误或警报 
+                              的其他文件。
+-embed                        在 PDB 中嵌入所有源文件。
+-embed:&lt;file list&gt;             在 PDB 中嵌入特定文件。
 
                        - 资源 -
--win32res:&lt;file&gt;              指定 Win32 资源文件(.res)
+-win32res:&lt;file&gt;              指定 Win32 资源文件 (.res)
 -win32icon:&lt;file&gt;             将此图标用于输出
 -win32manifest:&lt;file&gt;         指定 Win32 清单文件(.xml)
--nowin32manifest              不包括默认的 Win32 清单
--resource:&lt;resinfo&gt;           嵌入指定资源(缩写: -res)
--linkresource:&lt;resinfo&gt;       将指定资源链接到此程序集
-                              (缩写: -linkres)其中 resinfo 的格式
-                              为 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+- nowin32manifest              请勿包含默认 Win32 清单
+-resource:&lt;resinfo&gt;           嵌入指定的资源(短格式: -res)
+- linkresource:&lt;resinfo&gt;       将指定资源关联到此程序集
+                              (短格式: -linkres)，其中 resinfo 格式
+ 
+                              是 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 代码生成 -
--debug[+|-]                   发出调试信息
+- debug[+|-]                   发出调试信息
 -debug:{full|pdbonly|portable|embedded}
-                              指定调试类型(默认为 "full"，
-                              "portable" 为跨平台格式，
-                              "embedded" 为嵌入目标 .dll 或 .exe 的
-                              跨平台格式)
--optimize[+|-]                启用优化(缩写: -o)
--deterministic                生成确定性的程序集
+                              指定调试 类型("full" 是默认值，
+                              "portable" 是跨平台格式，
+                              "embedded"  是嵌入目标 .dll 或 .exe 的跨平台格式
+                              )
+-optimize[+|-]                启用优化(短格式: - o)
+-deterministic                生成确定性程序集
                               (包括模块版本 GUID 和时间戳)
--refonly                      生成引用程序集来替换主要输出
--instrument:TestCoverage      生成对其检测以收集覆盖率信息的
-                              程序集
--sourcelink:&lt;file&gt;            要嵌入到 PDB 中的源链接。
-
-                       - 错误和警告 -
--warnaserror[+|-]             将所有警告报告为错误
--warnaserror[+|-]:&lt;warn list&gt;将特定警告报告为错误
-                              (对于所有为 Null 性警告，使用 "nullable")
--warn:&lt;n&gt;                     设置警告级别(0-4)(缩写: -w)
--nowarn:&lt;warn list&gt;           禁用特定警告消息
-                              (对于所有为 Null 性警告，使用 "nullable")\)
--ruleset:&lt;file&gt;               指定禁用特定诊断的
-                              规则集文件。
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              指定用于记录所有编译器和分析器诊断的
+-refonly                       生成引用程序集以替换主要输出
+-instrument:TestCoverage      生成 已检测的程序集以收集
+                               覆盖范围信息
+-sourcelink:&lt;file&gt;           要嵌入 PDB 的源链接信息。
+ 
+                       - 错误和警报  -
+-warnaserror[+|-]             将所有警报报告为错误
+-warnaserror[+|-]:&lt;warn list&gt; 将特定警报报告为错误
+                               (将 "nullable" 用于所有可为 null 的警报)
+-warn:&lt;n&gt;                     设置警报级别(0 或更高) (短格式: -w)
+ 
+-nowarn:&lt;warn list&gt;           禁用特定警报消息
+                              (将 "nullable" 用于所有可为 null 的警报)
+ 
+-ruleset:&lt;file&gt;               指定禁用特定诊断的规则集
                               文件。
-                              sarif_version:{1|2|2.1} 默认为 1. 2 和 2.1
-                              两者均表示 SARIF 版本 2.1.0。
--reportanalyzer               报告其他分析器信息，如
-                              执行时间。
+-errorlog:&lt;file&gt; [,version=&lt;sarif_version&gt;]
+                              指定用于记录所有编译器和分析器诊断的
+                               文件。
+                              sarif_version:{1|2|2.1} 默认值是 1. 2 和 2.1
+                              这两者 都是指 SARIF 版本 2.1.0。
+-reportanalyzer               报告其他分析器信息，例如
+                              执行时间。 
+-skipanalyzers[+|-]           跳过诊断分析器的执行。
 
-                       - 语言 -
--checked[+|-]                 生成溢出检查
+                     - 语言 -
+-checked[+|-]                                  生成溢出检查
 -unsafe[+|-]                  允许 "unsafe" 代码
--define:&lt;symbol list&gt;         定义条件编译符号(缩
-                              写: -d)
--langversion:?                显示允许使用的语言版本值
--langversion:&lt;string&gt;         指定语言版本，例如
-                              `latest` (最新版本，包括次要版本)、
-                              `default` (与 `latest` 相同)、
-                              `latestmajor` (最新版本，不包括次要版本),
-                              `preview` (最新版本，包括不受支持的预览版中的功能),
-                              或者特定版本，如 `6` 或 `7.1`
--nullable[+|-]                指定可为 null 的上下文选项 enable|disable。
+-define:&lt;symbol list&gt;         定义条件编译符 号(短
+                              格式: -d)
+-langversion:?                显示语言版本允许的值
+-langversion:&lt;string&gt;          指定语言版本，例如
+                              "latest" (最新版本，包括次要版本)，
+                               "default" (与 "latest" 相同),
+                              "latestmajor" (最新版本，次要版本除外)，
+                               "preview" (最新版本，包括不受支持的预览版功能)，
+                              或特定版本 "6" 或 "7.1"
+- nullable[+|-]                指定可为 null 的上下文选项启用|禁用。
 -nullable:{enable|disable|warnings|annotations}
-                              指定可为 null 的上下文选项 enable|disable|warnings|annotations.
+                               指定可为 null 的上下文选项启用|禁用|警告|注释。
 
                        - 安全性 -
--delaysign[+|-]               仅使用强名称密钥的公共部分对程序集
-                              进行延迟签名
--publicsign[+|-]              仅使用强名称密钥的公共部分对程序集
-                              进行公共签名
--keyfile:&lt;file&gt;               指定强名称密钥文件
+-delaysign [+|-]               延迟对仅使用强名称密钥的公共部分的程序集
+                              签名
+-publicsign[+|-]               对仅使用强名称密钥的公共部分的程序集进行公共
+                              签名
+-keyfile:&lt;file&gt;               指定强名 称密钥文件
 -keycontainer:&lt;string&gt;        指定强名称密钥容器
--highentropyva[+|-]           启用高平均信息量 ASLR
+-highentropyva[+|-]           启用高熵 ASLR
 
-                       - 其他 -
-@&lt;file&gt;                       读取响应文件以获取更多选项
--help                         显示此用法消息(缩写: -?)
--nologo                       取消显示编译器版权消息
--noconfig                     不自动包括 CSC.RSP 文件
+                        - 其他 -
+@&lt;file&gt;                       阅读响应文件以了解更多选项
+-help                         显示此使用情 况消息(短格式: -?)
+-nologo                       阻止编译器版权消息
+-noconfig                     请勿自动 添加 CSC.RSP  文件
 -parallel[+|-]                并发生成。
 -version                      显示编译器版本号并退出。
 
-                       - 高级 -
--baseaddress:&lt;address&gt;        要生成的库的基址
--checksumalgorithm:&lt;alg&gt;      指定计算存储在 PDB 中的源文件
-                              校验和的算法。支持的值是:
+                        - 高级 -
+-baseaddress:&lt;address&gt;        要生成的库的基础地址
+-checksumalgorithm:&lt;alg&gt;      指定算法以计算存储在  PDB 中的源文件
+                              校验和。支持的值是:
                               SHA1 或 SHA256 (默认)。
--codepage:&lt;n&gt;                 指定打开源文件时要使用的
+ 
+-codepage:&lt;n&gt;                 指定打开源文件时使用的
                               代码页
--utf8output                   以 UTF-8 编码格式输出编译器消息
+-utf8output                    采用 UTF-8 编码的输出编译器消息
 -main:&lt;type&gt;                  指定包含入口点的类型
-                              (忽略所有其他可能的入口点)(缩
-                              写: -m)
--fullpaths                    编译器生成完全限定路径
--filealign:&lt;n&gt;                指定用于输出文件节的
+                              (忽略所有 其他可能的入口点) (短
+                              格式: -m)
+-fullpaths                    编译器生成完全限定的路径
+- filealign:&lt;n&gt;                指定用于输出文件部分的
                               对齐方式
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              通过编译器指定源路径名称输出的
-                              映射。
+- pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              指定编译器的源路径名称输出的
+                               映射。
 -pdb:&lt;file&gt;                   指定调试信息文件名称(默认:
-                              具有 .pdb 扩展名的输出文件名)
--errorendlocation             输出每个错误的结束位置
+                              具有 .pdb 扩展名的输出文件名 称)
+-errorendlocation             每个错误的结束位置的输出
                               行和列
--preferreduilang              指定首选输出语言名称。
+-preferreduilang               指定首选的输出语言名称。
 -nosdkpath                    禁止搜索标准库程序集的默认 SDK 路径。
--nostdlib[+|-]                不引用标准库(mscorlib.dll)
+-nostdlib[+|-]                 请勿引用标准库(mscorlib.dll)
 -subsystemversion:&lt;string&gt;    指定此程序集的子系统版本
--lib:&lt;file list&gt;              指定要在其中搜索引用的附加
-                              目录
--errorreport:&lt;string&gt;         指定如何处理内部编译器错误:
-                              prompt、send、queue 或 none。默认为
-                              queue。
--appconfig:&lt;file&gt;             指定包含程序集绑定设置的
-                              应用程序配置文件
--moduleassemblyname:&lt;string&gt;  此模块所属程序集
-                              的名称
+-lib:&lt;file list&gt;               指定要执行搜索的其他目录
+                              references
+-errorreport:&lt;string&gt;         指定如何处理内部编译器错误 :
+                              提示、发送、排队或无。默认值是
+                              排队。
+-appconfig:&lt;file&gt;              指定包含程序集绑定设置的应用程序配置
+                              文件
+-moduleassemblyname:&lt;string&gt;  此模块所 在的程序集的
+                              名称
 -modulename:&lt;string&gt;          指定源模块的名称
+- generatedfilesout:&lt;dir&gt;      在编译过程中将生成的文件放在
+                              指定的目录中。
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -1171,6 +1472,16 @@
         <target state="translated">合并赋值</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">常数内插字符串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
+        <source>default type parameter constraints</source>
+        <target state="translated">默认类型参数约束</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">委托泛型类型约束</target>
@@ -1194,6 +1505,16 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">可扩展 fixed 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="translated">扩展 GetAsyncEnumerator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="translated">扩展 GetEnumerator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
@@ -1234,6 +1555,11 @@
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
         <target state="translated">MemberNotNull 特性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureModuleInitializers">
+        <source>module initializers</source>
+        <target state="translated">模块初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1341,6 +1667,11 @@
         <target state="translated">stackalloc 初始值设定项</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAnonymousFunction">
+        <source>static anonymous function</source>
+        <target state="translated">静态匿名函数</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">静态本地函数</target>
@@ -1351,9 +1682,9 @@
         <target state="translated">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">创建目标类型对象</target>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>target-typed conditional expression</source>
+        <target state="translated">目标类型的条件表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1386,6 +1717,11 @@
         <target state="translated">Using 声明</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="translated">静态接口成员的变型安全性</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
@@ -1394,6 +1730,16 @@
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">重写和显式接口实现方法的约束</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Parameter">
+        <source>parameter</source>
+        <target state="translated">参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Return">
+        <source>return</source>
+        <target state="translated">返回</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -1796,6 +2142,16 @@
         <target state="translated">不要对大小写常量使用 "_"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">常量值“{0}”可能在运行时溢出“{1}”(请使用 "unchecked" 语法替代)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">常量值可能在运行时溢出(请使用 "unchecked" 语法替代)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
@@ -1837,9 +2193,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">生成器“{0}”无法生成源。它不会影响输出，因此可能会造成编译错误。</target>
-        <note />
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">生成器“{0}”未能生成源。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">生成器引发以下异常:
+“{0}”。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -1847,9 +2210,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">生成器“{0}”无法初始化。它不会对输出产生任何作用，因此可能会造成编译错误。</target>
-        <note />
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">生成器“{0}”未能初始化。它不会影响输出，因此可能会造成编译错误。异常的类型为“{1}”，显示消息“{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">生成器引发以下异常:
+“{0}”。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -2008,12 +2378,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">取消引用可能出现的空引用。</target>
+        <target state="translated">解引用可能出现空引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">取消引用可能出现的空引用。</target>
+        <target state="translated">解引用可能出现空引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -2097,13 +2467,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">“{1}”的参数“{0}”类型中引用类型的为 Null 性与目标委托“{2}”不匹配。</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="translated">“{1}”的参数“{0}”类型中引用类型的为 Null 性与目标委托“{2}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">参数类型中引用类型的为 Null 性与目标委托不匹配。</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">参数类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2147,13 +2517,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">“{0}”返回类型中引用类型的为 Null 性与目标委托“{1}”不匹配。</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="translated">“{0}”的返回类型中引用类型的为 Null 性与目标委托“{1}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">返回类型中引用类型的为 Null 性与目标委托不匹配。</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">返回类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
@@ -2266,6 +2636,16 @@
         <target state="translated">可为 null 的值类型可为 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned">
+        <source>The out parameter '{0}' must be assigned to before control leaves the current method</source>
+        <target state="translated">控制离开当前方法之前必须对 out 参数“{0}”赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned_Title">
+        <source>An out parameter must be assigned to before control leaves the method</source>
+        <target state="translated">控制离开方法之前必须对 out 参数赋值</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
         <target state="translated">当使用 "{1}" 退出时，参数 "{0}" 必须具有非 null 值。</target>
@@ -2286,6 +2666,46 @@
         <target state="translated">退出时，参数必须具有非 null 值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="translated">“{0}”: 静态类型不能用作参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="translated">静态类型不能用作参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="translated">由于优先级，无法在此处使用运算符“{0}”。使用括号可消除歧义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="translated">由于优先级，无法在此处使用运算符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</source>
+        <target state="translated">“{0}”不实现“{1}”模式。“{2}”不是公共实例或扩展方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
+        <target state="translated">类型不实现集合模式；成员不是公共实例或扩展方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="translated">“{0}”: 静态类型不能用作返回类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="translated">静态类型不能用作返回类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">不应返回标记为 [DoesNotReturn] 的方法。</target>
@@ -2294,6 +2714,16 @@
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">不应返回标记为 [DoesNotReturn] 的方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="translated">“is”或“as”运算符的第二个操作数不能是静态类型“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="translated">“is”或“as”运算符的第二个操作数不能是静态类型</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -2306,9 +2736,29 @@
         <target state="translated">switch 表达式未处理某些 null 输入(它并不是穷举)。例如，模式“{0}”未包含在内。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Switch 表达式不会处理一些 null 输入(它不是穷举)。例如，模式“{0}”未包含在内。但是，带有 "when" 子句的模式可能成功匹配此值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="translated">Switch 表达式不会处理某些为 null 的输入。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
         <target state="translated">Switch 表达式不会处理某些为 null 的输入。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Switch 表达式不会处理其输入类型的所有可能值(它不是穷举)。例如，模式“{0}”未包含在内。但是，带有 "when" 子句的模式可能成功匹配此值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen_Title">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="translated">switch 表达式不会处理属于其输入类型的所有可能值(它并非详尽无遗)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -2406,6 +2856,26 @@
         <target state="translated">类型参数与外部方法中的类型参数有相同的类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedThis">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
+        <target state="translated">在控制返回调用方之前，字段“{0}”必须完全赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">在控制返回调用方之前，自动实现的属性“{0}”必须完全赋值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">在控制返回调用方之前，自动实现的属性必须完全赋值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThis_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
+        <target state="translated">在控制返回调用方之前，必须在构造函数中对结构的字段完全赋值</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
         <target state="translated">取消装箱可能为 null 的值。</target>
@@ -2437,13 +2907,73 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">不可为 null 的 {0} "{1}" 未初始化。请考虑将 {0} 声明为可为 null。</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="translated">在退出构造函数时，不可为 null 的 {0}“{1}”必须包含非 null 值。请考虑将 {0} 声明为可以为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">不可为 null 的字段未初始化。请考虑声明为可以为 null。</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="translated">在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">参数“{0}”未读。是否忘记通过它来使用该名称初始化属性?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">参数未读。是否忘记通过它来使用该名称初始化属性?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation">
+        <source>Use of unassigned local variable '{0}'</source>
+        <target state="translated">使用了未赋值的局部变量“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField">
+        <source>Use of possibly unassigned field '{0}'</source>
+        <target state="translated">使用了可能未赋值的字段“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField_Title">
+        <source>Use of possibly unassigned field</source>
+        <target state="translated">使用可能未赋值的字段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut">
+        <source>Use of unassigned out parameter '{0}'</source>
+        <target state="translated">使用了未赋值的 out 参数“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut_Title">
+        <source>Use of unassigned out parameter</source>
+        <target state="translated">使用未赋值的 out 参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty">
+        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
+        <target state="translated">使用可能未赋值的自动实现的属性“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty_Title">
+        <source>Use of possibly unassigned auto-implemented property</source>
+        <target state="translated">使用可能未赋值的自动实现的属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis">
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="translated">在给 "this" 对象的所有字段赋值之前，无法使用该对象</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
+        <target state="translated">在对 "this" 对象的所有字段赋值之前，不能在构造函数中使用 "this" 对象</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation_Title">
+        <source>Use of unassigned local variable</source>
+        <target state="translated">使用未赋值的局部变量</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2618,7 +3148,7 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig">
         <source>'{0}' has the wrong signature to be an entry point</source>
-        <target state="translated">'“{0}”的签名错误，不能作为入口点</target>
+        <target state="translated">“{0}”的签名错误，不能作为入口点</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig_Title">
@@ -2733,12 +3263,12 @@
       </trans-unit>
       <trans-unit id="ERR_EventNeedsBothAccessors">
         <source>'{0}': event property must have both add and remove accessors</source>
-        <target state="translated">'“{0}”: 事件属性必须同时具有 add 和 remove 访问器</target>
+        <target state="translated">“{0}”: 事件属性必须同时具有 add 和 remove 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventNotDelegate">
         <source>'{0}': event must be of a delegate type</source>
-        <target state="translated">'“{0}”: 事件必须是委托类型的</target>
+        <target state="translated">“{0}”: 事件必须是委托类型的</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreferencedEvent">
@@ -2768,7 +3298,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonEvent">
         <source>'{0}': cannot override; '{1}' is not an event</source>
-        <target state="translated">'“{0}”: 无法重写；“{1}”不是事件</target>
+        <target state="translated">“{0}”: 无法重写；“{1}”不是事件</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddRemoveMustHaveBody">
@@ -2778,7 +3308,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventInitializer">
         <source>'{0}': abstract event cannot have initializer</source>
-        <target state="translated">'“{0}”: 抽象事件不能有初始值设定项</target>
+        <target state="translated">“{0}”: 抽象事件不能有初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReservedAssemblyName">
@@ -2853,7 +3383,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigContext">
         <source>'{0}' is an ambiguous reference between '{1}' and '{2}'</source>
-        <target state="translated">'“{0}”是“{1}”和“{2}”之间的不明确的引用</target>
+        <target state="translated">“{0}”是“{1}”和“{2}”之间的不明确的引用</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateUsing">
@@ -2878,7 +3408,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewRequired">
         <source>'{0}' hides inherited member '{1}'. Use the new keyword if hiding was intended.</source>
-        <target state="translated">'“{0}”隐藏继承的成员“{1}”。如果是有意隐藏，请使用关键字 new。</target>
+        <target state="translated">“{0}”隐藏继承的成员“{1}”。如果是有意隐藏，请使用关键字 new。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Title">
@@ -2887,8 +3417,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">使用与基类中的变量相同的名称声明了变量。但是，未使用关键字 new。此警告通知应使用 new；变量如同在声明中使用了 new 一样进行声明。</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="translated">使用与基类型中的变量相同的名称声明了变量。但是，未使用关键字 new。此警告通知应使用 new；变量如同在声明中使用了 new 一样进行声明。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -2923,7 +3453,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewOrOverrideExpected">
         <source>'{0}' hides inherited member '{1}'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.</source>
-        <target state="translated">'“{0}”隐藏继承的成员“{1}”。若要使当前成员重写该实现，请添加关键字 override。否则，添加关键字 new。</target>
+        <target state="translated">“{0}”隐藏继承的成员“{1}”。若要使当前成员重写该实现，请添加关键字 override。否则，添加关键字 new。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewOrOverrideExpected_Title">
@@ -2933,7 +3463,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideNotExpected">
         <source>'{0}': no suitable method found to override</source>
-        <target state="translated">'“{0}”: 没有找到适合的方法来重写</target>
+        <target state="translated">“{0}”: 没有找到适合的方法来重写</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
@@ -2943,17 +3473,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
         <source>'{0}' does not contain a definition for '{1}'</source>
-        <target state="translated">'“{0}”未包含“{1}”的定义</target>
+        <target state="translated">“{0}”未包含“{1}”的定义</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKknown">
         <source>'{0}' is a {1} but is used like a {2}</source>
-        <target state="translated">'“{0}”是 {1}，但此处被当做 {2} 来使用</target>
+        <target state="translated">“{0}”是 {1}，但此处被当做 {2} 来使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKunknown">
         <source>'{0}' is a {1}, which is not valid in the given context</source>
-        <target state="translated">'“{0}”是一个 {1}，这在给定的上下文中无效</target>
+        <target state="translated">“{0}”是一个 {1}，这在给定的上下文中无效</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectRequired">
@@ -2968,7 +3498,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAccess">
         <source>'{0}' is inaccessible due to its protection level</source>
-        <target state="translated">'“{0}”不可访问，因为它具有一定的保护级别</target>
+        <target state="translated">“{0}”不可访问，因为它具有一定的保护级别</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethDelegateMismatch">
@@ -2998,7 +3528,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticConstParam">
         <source>'{0}': a static constructor must be parameterless</source>
-        <target state="translated">'“{0}”: 静态构造函数必须无参数</target>
+        <target state="translated">“{0}”: 静态构造函数必须无参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotConstantExpression">
@@ -3008,7 +3538,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstRefField">
         <source>'{0}' is of type '{1}'. A const field of a reference type other than string can only be initialized with null.</source>
-        <target state="translated">'“{0}”的类型为“{1}”。只能用 Null 对引用类型(字符串除外)的常量字段进行初始化。</target>
+        <target state="translated">“{0}”的类型为“{1}”。只能用 Null 对引用类型(字符串除外)的常量字段进行初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalIllegallyOverrides">
@@ -3047,8 +3577,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">无法创建抽象类或接口“{0}”的实例</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="translated">无法创建抽象类型或接口“{0}”的实例</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3057,8 +3587,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">涉及“{0}”和“{1}”的循环基类依赖项</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="translated">涉及“{0}”和“{1}”的循环基类型依赖项</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3143,7 +3673,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReturnExpected">
         <source>'{0}': not all code paths return a value</source>
-        <target state="translated">'“{0}”: 并非所有的代码路径都返回值</target>
+        <target state="translated">“{0}”: 并非所有的代码路径都返回值</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableCode">
@@ -3248,17 +3778,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExternHasBody">
         <source>'{0}' cannot be extern and declare a body</source>
-        <target state="translated">'“{0}”不能是外部的，也无法声明主体</target>
+        <target state="translated">“{0}”不能是外部的，也无法声明主体</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternHasConstructorInitializer">
         <source>'{0}' cannot be extern and have a constructor initializer</source>
-        <target state="translated">'“{0}”不能是外部的，也不能具有构造函数初始值设定项</target>
+        <target state="translated">“{0}”不能是外部的，也不能具有构造函数初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAndExtern">
         <source>'{0}' cannot be both extern and abstract</source>
-        <target state="translated">'“{0}”不能既是外部的又是抽象的</target>
+        <target state="translated">“{0}”不能既是外部的又是抽象的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeParamType">
@@ -3298,7 +3828,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockNeedsReference">
         <source>'{0}' is not a reference type as required by the lock statement</source>
-        <target state="translated">'“{0}”不是 lock 语句要求的引用类型</target>
+        <target state="translated">“{0}”不是 lock 语句要求的引用类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullNotValid">
@@ -3312,7 +3842,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields are assigned to</source>
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
         <target state="translated">在给 "this" 对象的所有字段赋值之前，无法使用该对象</target>
         <note />
       </trans-unit>
@@ -3513,7 +4043,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'“{0}”: 继承成员“{1}”是密封的，无法进行重写</target>
+        <target state="translated">“{0}”: 继承成员“{1}”是密封的，无法进行重写</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -3557,8 +4087,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">不要直接调用基类 Finalize 方法。它将从析构函数中自动调用。</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="translated">不要直接调用基类型 Finalize 方法。它将从析构函数中自动调用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3642,13 +4172,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">"partial" 修饰符的后面只能紧跟 "class"、"struct"、"interface" 或 "void"</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">"partial" 修饰符的后面只能紧跟 "class"、"record"、"struct"、"interface" 或方法返回类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">导入的类型“{0}”无效。它包含循环的基类依赖项。</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="translated">导入的类型“{0}”无效。它包含循环的基类型依赖项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -3683,17 +4213,17 @@
       </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'“{0}”: 仅当属性或索引器同时具有 get 访问器和 set 访问器时，才能对访问器使用可访问性修饰符</target>
+        <target state="translated">“{0}”: 仅当属性或索引器同时具有 get 访问器和 set 访问器时，才能对访问器使用可访问性修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceAccessor">
         <source>'{0}' does not implement interface member '{1}'. '{2}' is not public.</source>
-        <target state="translated">'“{0}”不实现接口成员“{1}”。“{2}”不是公共的。</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”不是公共的。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is ambiguous with '{3}'.</source>
-        <target state="translated">'“{0}”不实现“{1}”模式。“{2}”与“{3}”一起使用时目的不明确。</target>
+        <target state="translated">“{0}”不实现“{1}”模式。“{2}”与“{3}”一起使用时目的不明确。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
@@ -3701,19 +4231,9 @@
         <target state="translated">类型不实现集合模式；成员不明确</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'“{0}”不实现“{1}”模式。“{2}”是静态的或非公共的。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">类型不实现集合模式；成员静态的或非公共的</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="translated">'“{0}”不实现“{1}”模式。“{2}”有错误的签名。</target>
+        <target state="translated">“{0}”不实现“{1}”模式。“{2}”有错误的签名。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
@@ -3773,7 +4293,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewConstraintNotSatisfied">
         <source>'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">'“{2}”必须是具有公共的无参数构造函数的非抽象类型，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
+        <target state="translated">“{2}”必须是具有公共的无参数构造函数的非抽象类型，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedRefType">
@@ -3818,7 +4338,7 @@
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
         <source>'{0}': an entry point cannot be generic or in a generic type</source>
-        <target state="translated">'“{0}”: 入口点不能是泛型的或属于泛型类型</target>
+        <target state="translated">“{0}”: 入口点不能是泛型的或属于泛型类型</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric_Title">
@@ -3848,7 +4368,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'“{1} {0}”的返回类型错误</target>
+        <target state="translated">“{1} {0}”的返回类型错误</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
@@ -3868,7 +4388,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsTypeParam">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter</source>
-        <target state="translated">'“{0}”: 参数、局部变量或本地函数不能与方法类型参数同名</target>
+        <target state="translated">“{0}”: 参数、局部变量或本地函数不能与方法类型参数同名</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsWithTypeVar">
@@ -3893,17 +4413,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttrArgWithTypeVars">
         <source>'{0}': an attribute argument cannot use type parameters</source>
-        <target state="translated">'“{0}”: 特性参数不能使用类型参数</target>
+        <target state="translated">“{0}”: 特性参数不能使用类型参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewTyvarWithArgs">
         <source>'{0}': cannot provide arguments when creating an instance of a variable type</source>
-        <target state="translated">'“{0}”: 创建变量类型的实例时无法提供参数</target>
+        <target state="translated">“{0}”: 创建变量类型的实例时无法提供参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'“{0}”: 抽象类不能是密封的或静态的</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="translated">“{0}”: 抽象类型不能是密封的或静态的</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -3918,7 +4438,7 @@
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef">
         <source>'{0}': a reference to a volatile field will not be treated as volatile</source>
-        <target state="translated">'“{0}”: 对 volatile 字段的引用不被视为 volatile</target>
+        <target state="translated">“{0}”: 对 volatile 字段的引用不被视为 volatile</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef_Title">
@@ -3938,7 +4458,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComImportWithBase">
         <source>'{0}': a class with the ComImport attribute cannot specify a base class</source>
-        <target state="translated">'“{0}”: 具有 ComImport 特性的类不能指定基类</target>
+        <target state="translated">“{0}”: 具有 ComImport 特性的类不能指定基类</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplBadConstraints">
@@ -4037,13 +4557,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'“{0}”: 类不能既是静态的又是密封的</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="translated">“{0}”: 类型不能既是静态的又是密封的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
         <source>'{0}': abstract properties cannot have private accessors</source>
-        <target state="translated">'“{0}”: 抽象属性不能具有专用访问器</target>
+        <target state="translated">“{0}”: 抽象属性不能具有专用访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueExpected">
@@ -4068,7 +4588,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefValBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</source>
-        <target state="translated">'“{0}”: 不能既指定约束类又指定“class”或“struct”约束</target>
+        <target state="translated">“{0}”: 不能既指定约束类又指定“class”或“struct”约束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithVal">
@@ -4222,17 +4742,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_AbstractHasBody">
         <source>'{0}' cannot declare a body because it is marked abstract</source>
-        <target state="translated">'“{0}”无法声明主体，因为它标记为 abstract</target>
+        <target state="translated">“{0}”无法声明主体，因为它标记为 abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConcreteMissingBody">
         <source>'{0}' must declare a body because it is not marked abstract, extern, or partial</source>
-        <target state="translated">'“{0}”必须声明主体，因为它未标记为 abstract、extern 或 partial</target>
+        <target state="translated">“{0}”必须声明主体，因为它未标记为 abstract、extern 或 partial</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'“{0}”不能既是抽象的又是密封的</target>
+        <target state="translated">“{0}”不能既是抽象的又是密封的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -4247,47 +4767,47 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonFunction">
         <source>'{0}': cannot override because '{1}' is not a function</source>
-        <target state="translated">'“{0}”: 无法重写，因为“{1}”不是函数</target>
+        <target state="translated">“{0}”: 无法重写，因为“{1}”不是函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonVirtual">
         <source>'{0}': cannot override inherited member '{1}' because it is not marked virtual, abstract, or override</source>
-        <target state="translated">'“{0}”: 继承成员“{1}”未标记为 virtual、abstract 或 override，无法进行重写</target>
+        <target state="translated">“{0}”: 继承成员“{1}”未标记为 virtual、abstract 或 override，无法进行重写</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeAccessOnOverride">
         <source>'{0}': cannot change access modifiers when overriding '{1}' inherited member '{2}'</source>
-        <target state="translated">'“{0}”: 当重写“{1}”继承成员“{2}”时，无法更改访问修饰符</target>
+        <target state="translated">“{0}”: 当重写“{1}”继承成员“{2}”时，无法更改访问修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeTupleNamesOnOverride">
         <source>'{0}': cannot change tuple element names when overriding inherited member '{1}'</source>
-        <target state="translated">'{0}: 替代继承成员“{1}”时无法更改元组元素名称</target>
+        <target state="translated">'{0}': 替代继承成员“{1}”时无法更改元组元素名称</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeReturnTypeOnOverride">
         <source>'{0}': return type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'“{0}”: 返回类型必须是“{2}”才能与重写成员“{1}”匹配</target>
+        <target state="translated">“{0}”: 返回类型必须是“{2}”才能与重写成员“{1}”匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'“{0}”: 无法从密封类型“{1}”派生</target>
+        <target state="translated">“{0}”: 无法从密封类型“{1}”派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'“{0}”是抽象的，但它包含在非抽象类“{1}”中</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="translated">“{0}”是抽象的，但它包含在非抽象类型“{1}”中</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
         <source>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</source>
-        <target state="translated">'“{0}”: 静态构造函数不能具有显式的“this”或“base”构造函数调用</target>
+        <target state="translated">“{0}”: 静态构造函数不能具有显式的“this”或“base”构造函数调用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithAccessModifiers">
         <source>'{0}': access modifiers are not allowed on static constructors</source>
-        <target state="translated">'“{0}”: 静态构造函数中不允许出现访问修饰符</target>
+        <target state="translated">“{0}”: 静态构造函数中不允许出现访问修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecursiveConstructorCall">
@@ -4302,7 +4822,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ObjectCallingBaseConstructor">
         <source>'{0}' has no base class and cannot call a base constructor</source>
-        <target state="translated">'“{0}”没有基类，无法调用基构造函数</target>
+        <target state="translated">“{0}”没有基类，无法调用基构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeNotFound">
@@ -4317,12 +4837,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">已在多个引用的程序集(“{1}”和“{2}”)中声明了预定义类型“{0}”。</target>
+        <target state="translated">已在多个引用的程序集(“{1}”和“{2}”)中声明了预定义类型“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">'“{0}”: 结构无法调用基类构造函数</target>
+        <target state="translated">“{0}”: 结构无法调用基类构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -4347,12 +4867,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceInBaseList">
         <source>'{0}' is already listed in interface list</source>
-        <target state="translated">'“{0}”已经在接口列表中列出</target>
+        <target state="translated">“{0}”已经在接口列表中列出</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithTupleNamesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</source>
-        <target state="translated">'“{0}”已列入类型“{2}”的接口列表中，其中包含不同的元组元素名称，例如“{1}”。</target>
+        <target state="translated">“{0}”已列入类型“{2}”的接口列表中，其中包含不同的元组元素名称，例如“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CycleInInterfaceInheritance">
@@ -4362,17 +4882,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
         <source>'{0}' hides inherited abstract member '{1}'</source>
-        <target state="translated">'“{0}”隐藏继承的抽象成员“{1}”</target>
+        <target state="translated">“{0}”隐藏继承的抽象成员“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedAbstractMethod">
         <source>'{0}' does not implement inherited abstract member '{1}'</source>
-        <target state="translated">'“{0}”不实现继承的抽象成员“{1}”</target>
+        <target state="translated">“{0}”不实现继承的抽象成员“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'</source>
-        <target state="translated">'“{0}”不实现接口成员“{1}”</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectCantHaveBases">
@@ -4392,57 +4912,57 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
         <source>'{0}': containing type does not implement interface '{1}'</source>
-        <target state="translated">'“{0}”: 包含类型不实现接口“{1}”</target>
+        <target state="translated">“{0}”: 包含类型不实现接口“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">“{0}”: 显式接口声明只能在类、结构或接口中声明</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="translated">“{0}”: 显式接口声明只能在类、记录、结构或接口中声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
         <source>'{0}': member names cannot be the same as their enclosing type</source>
-        <target state="translated">'“{0}”: 成员名不能与它们的封闭类型相同</target>
+        <target state="translated">“{0}”: 成员名不能与它们的封闭类型相同</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumeratorOverflow">
         <source>'{0}': the enumerator value is too large to fit in its type</source>
-        <target state="translated">'“{0}”: 枚举器值太大，不能适应它的类型</target>
+        <target state="translated">“{0}”: 枚举器值太大，不能适应它的类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonProperty">
         <source>'{0}': cannot override because '{1}' is not a property</source>
-        <target state="translated">'“{0}”: 无法重写，因为“{1}”不是属性</target>
+        <target state="translated">“{0}”: 无法重写，因为“{1}”不是属性</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoGetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable get accessor</source>
-        <target state="translated">'“{0}”: 无法重写，因为“{1}”没有可重写的 get 访问器</target>
+        <target state="translated">“{0}”: 无法重写，因为“{1}”没有可重写的 get 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable set accessor</source>
-        <target state="translated">'“{0}”: 无法重写，因为“{1}”没有可重写的 set 访问器</target>
+        <target state="translated">“{0}”: 无法重写，因为“{1}”没有可重写的 set 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyCantHaveVoidType">
         <source>'{0}': property or indexer cannot have void type</source>
-        <target state="translated">'“{0}”: 属性或索引器不能具有 void 类型</target>
+        <target state="translated">“{0}”: 属性或索引器不能具有 void 类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyWithNoAccessors">
         <source>'{0}': property or indexer must have at least one accessor</source>
-        <target state="translated">'“{0}”: 属性或索引器必须至少有一个访问器</target>
+        <target state="translated">“{0}”: 属性或索引器必须至少有一个访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'“{0}”是密封类“{1}”中新的虚拟成员</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="translated">“{0}”是密封类型“{1}”中新的虚拟成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
         <source>'{0}' adds an accessor not found in interface member '{1}'</source>
-        <target state="translated">'“{0}”添加了接口成员“{1}”中没有的访问器</target>
+        <target state="translated">“{0}”添加了接口成员“{1}”中没有的访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMissingAccessor">
@@ -4452,17 +4972,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ConversionWithInterface">
         <source>'{0}': user-defined conversions to or from an interface are not allowed</source>
-        <target state="translated">'“{0}”: 不允许进行以接口为转换源或目标用户定义转换</target>
+        <target state="translated">“{0}”: 不允许进行以接口为转换源或目标用户定义转换</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'“{0}”: 不允许进行以基类为转换源或目标的用户定义转换</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="translated">“{0}”: 不允许进行以基类型为转换源或目标的用户定义转换</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'“{0}”: 不允许进行以派生类为转换源或目标的用户定义转换</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="translated">“{0}”: 不允许进行以派生类型为转换源或目标的用户定义转换</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4517,7 +5037,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantOverrideBogusMethod">
         <source>'{0}': cannot override '{1}' because it is not supported by the language</source>
-        <target state="translated">'“{0}”: 无法重写“{1}”，因为该语言不支持它</target>
+        <target state="translated">“{0}”: 无法重写“{1}”，因为该语言不支持它</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogus">
@@ -4527,22 +5047,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CantCallSpecialMethod">
         <source>'{0}': cannot explicitly call operator or accessor</source>
-        <target state="translated">'“{0}”: 无法显式调用运算符或访问器</target>
+        <target state="translated">“{0}”: 无法显式调用运算符或访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
-        <target state="translated">'“{0}”: 无法通过表达式引用类型；请尝试“{1}”</target>
+        <target state="translated">“{0}”: 无法通过表达式引用类型；请尝试“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldInitializerInStruct">
         <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'“{0}”: 结构中不能实例属性或字段初始值设定项</target>
+        <target state="translated">“{0}”: 结构中不能实例属性或字段初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">析构函数的名称必须与类的名称匹配</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="translated">析构函数的名称必须与类型的名称匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4592,7 +5112,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadDynamicConversion">
         <source>'{0}': user-defined conversions to or from the dynamic type are not allowed</source>
-        <target state="translated">'“{0}”: 不允许对动态类型执行用户定义的转换</target>
+        <target state="translated">“{0}”: 不允许对动态类型执行用户定义的转换</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAttributeArgument">
@@ -4677,7 +5197,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbol">
         <source>'{0}' is obsolete</source>
-        <target state="translated">'“{0}”已过时</target>
+        <target state="translated">“{0}”已过时</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbol_Title">
@@ -4687,17 +5207,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_NotAnAttributeClass">
         <source>'{0}' is not an attribute class</source>
-        <target state="translated">'“{0}”不是特性类</target>
+        <target state="translated">“{0}”不是特性类</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgument">
         <source>'{0}' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.</source>
-        <target state="translated">'“{0}”不是有效的命名特性参数。命名特性参数必须是非只读、非静态或非常数的字段，或者是公共的和非静态的读写属性。</target>
+        <target state="translated">“{0}”不是有效的命名特性参数。命名特性参数必须是非只读、非静态或非常数的字段，或者是公共的和非静态的读写属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'“{0}”已过时:“{1}”</target>
+        <target state="translated">“{0}”已过时:“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr_Title">
@@ -4707,7 +5227,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'“{0}”已过时:“{1}”</target>
+        <target state="translated">“{0}”已过时:“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerCantHaveVoidType">
@@ -4717,7 +5237,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_VirtualPrivate">
         <source>'{0}': virtual or abstract members cannot be private</source>
-        <target state="translated">'“{0}”: 虚拟成员或抽象成员不能是私有的</target>
+        <target state="translated">“{0}”: 虚拟成员或抽象成员不能是私有的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitToNonArrayType">
@@ -4746,13 +5266,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'“{0}”: 在密封类中声明了新的保护成员</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="translated">“{0}”: 在密封类型中声明了新的保护成员</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">在密封类中声明了新的保护成员</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="translated">在密封类型中声明了新的保护成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -4797,12 +5317,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DuplicateNamedAttributeArgument">
         <source>'{0}' duplicate named attribute argument</source>
-        <target state="translated">'“{0}”重复命名特性参数</target>
+        <target state="translated">“{0}”重复命名特性参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromEnumOrValueType">
         <source>'{0}' cannot derive from special class '{1}'</source>
-        <target state="translated">'“{0}”无法从特殊类“{1}”派生</target>
+        <target state="translated">“{0}”无法从特殊类“{1}”派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberOnIndexedType">
@@ -4812,7 +5332,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BogusType">
         <source>'{0}' is a type not supported by the language</source>
-        <target state="translated">'“{0}”不是现用语言支持的类型</target>
+        <target state="translated">“{0}”不是现用语言支持的类型</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalField">
@@ -4847,7 +5367,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
         <source>'{0}' is not a valid named attribute argument because it is not a valid attribute parameter type</source>
-        <target state="translated">'“{0}”不是有效的特性参数类型，因此不是有效的命名特性参数</target>
+        <target state="translated">“{0}”不是有效的特性参数类型，因此不是有效的命名特性参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPredefinedMember">
@@ -4857,7 +5377,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration">
         <source>'{0}' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'“{0}”不是此声明的有效特性位置。此声明的有效特性位置是“{1}”。此块中的所有特性都将被忽略。</target>
+        <target state="translated">“{0}”不是此声明的有效特性位置。此声明的有效特性位置是“{1}”。此块中的所有特性都将被忽略。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration_Title">
@@ -4867,7 +5387,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation">
         <source>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'“{0}”不是可识别的特性位置。此声明的有效特性位置为“{1}”。此块中的所有特性都将被忽略。</target>
+        <target state="translated">“{0}”不是可识别的特性位置。此声明的有效特性位置为“{1}”。此块中的所有特性都将被忽略。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation_Title">
@@ -4877,7 +5397,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode">
         <source>'{0}' overrides Object.Equals(object o) but does not override Object.GetHashCode()</source>
-        <target state="translated">'“{0}”重写 Object.Equals(object o) 但不重写 Object.GetHashCode()</target>
+        <target state="translated">“{0}”重写 Object.Equals(object o) 但不重写 Object.GetHashCode()</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode_Title">
@@ -4887,7 +5407,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals">
         <source>'{0}' defines operator == or operator != but does not override Object.Equals(object o)</source>
-        <target state="translated">'“{0}”定义运算符 == 或运算符 !=，但不重写 Object.Equals(object o)</target>
+        <target state="translated">“{0}”定义运算符 == 或运算符 !=，但不重写 Object.Equals(object o)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals_Title">
@@ -4897,7 +5417,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode">
         <source>'{0}' defines operator == or operator != but does not override Object.GetHashCode()</source>
-        <target state="translated">'“{0}”定义运算符 == 或运算符 !=，但不重写 Object.GetHashCode()</target>
+        <target state="translated">“{0}”定义运算符 == 或运算符 !=，但不重写 Object.GetHashCode()</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode_Title">
@@ -4912,7 +5432,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_OverloadRefKind">
         <source>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</source>
-        <target state="translated">'“{0}”不能定义仅在参数修饰符“{2}”和“{3}”上存在区别的重载 {1}</target>
+        <target state="translated">“{0}”不能定义仅在参数修饰符“{2}”和“{3}”上存在区别的重载 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LiteralDoubleCast">
@@ -4932,7 +5452,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStruct">
         <source>'{0}': new protected member declared in struct</source>
-        <target state="translated">'“{0}”: 结构中已声明新的保护成员</target>
+        <target state="translated">“{0}”: 结构中已声明新的保护成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InconsistentIndexerNames">
@@ -4987,12 +5507,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_VolatileStruct">
         <source>'{0}': a volatile field cannot be of the type '{1}'</source>
-        <target state="translated">'“{0}”: 可变字段的类型不能是“{1}”</target>
+        <target state="translated">“{0}”: 可变字段的类型不能是“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VolatileAndReadonly">
         <source>'{0}': a field cannot be both volatile and readonly</source>
-        <target state="translated">'“{0}”: 字段不能既是可变的又是只读的</target>
+        <target state="translated">“{0}”: 字段不能既是可变的又是只读的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractField">
@@ -5002,17 +5522,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BogusExplicitImpl">
         <source>'{0}' cannot implement '{1}' because it is not supported by the language</source>
-        <target state="translated">'“{0}”无法实现“{1}”，因为该语言不支持它</target>
+        <target state="translated">“{0}”无法实现“{1}”，因为该语言不支持它</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitMethodImplAccessor">
         <source>'{0}' explicit method implementation cannot implement '{1}' because it is an accessor</source>
-        <target state="translated">'“{0}”显式方法实现无法实现“{1}”，因为它是一个访问器</target>
+        <target state="translated">“{0}”显式方法实现无法实现“{1}”，因为它是一个访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CoClassWithoutComImport">
         <source>'{0}' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'</source>
-        <target state="translated">'“{0}”接口标记为“CoClassAttribute”而不是“ComImportAttribute”</target>
+        <target state="translated">“{0}”接口标记为“CoClassAttribute”而不是“ComImportAttribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CoClassWithoutComImport_Title">
@@ -5062,7 +5582,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
-        <target state="translated">'“{0}”不能同时实现“{1}”和“{2}”，原因是它们可以统一以进行某些类型参数替换</target>
+        <target state="translated">“{0}”不能同时实现“{1}”和“{2}”，原因是它们可以统一以进行某些类型参数替换</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericDerivingFromAttribute">
@@ -5072,12 +5592,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
         <source>'{1}' does not define type parameter '{0}'</source>
-        <target state="translated">'“{1}”未定义类型参数“{0}”</target>
+        <target state="translated">“{1}”未定义类型参数“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'“{0}”不是有效的约束。作为约束使用的类型必须是接口、非密封类或类型参数。</target>
+        <target state="translated">“{0}”不是有效的约束。作为约束使用的类型必须是接口、非密封类或类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -5102,12 +5622,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'“{0}”: 不能在静态类中声明实例成员</target>
+        <target state="translated">“{0}”: 不能在静态类中声明实例成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'“{0}”: 无法从静态类“{1}”派生</target>
+        <target state="translated">“{0}”: 无法从静态类“{1}”派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
@@ -5132,17 +5652,17 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
-        <target state="translated">'“{0}”: 静态类不能实现接口</target>
+        <target state="translated">“{0}”: 静态类不能实现接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructInterfaceImpl">
         <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'{0}: ref 结构不能实现接口</target>
+        <target state="translated">'{0}': ref 结构不能实现接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">
         <source>'{0}': static classes cannot contain user-defined operators</source>
-        <target state="translated">'“{0}”: 静态类不能包含用户定义的运算符</target>
+        <target state="translated">“{0}”: 静态类不能包含用户定义的运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConvertToStaticClass">
@@ -5152,32 +5672,32 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsStaticClass">
         <source>'{0}': static classes cannot be used as constraints</source>
-        <target state="translated">'“{0}”: 静态类不能用作约束</target>
+        <target state="translated">“{0}”: 静态类不能用作约束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericArgIsStaticClass">
         <source>'{0}': static types cannot be used as type arguments</source>
-        <target state="translated">'“{0}”: 静态类型不能用作类型参数</target>
+        <target state="translated">“{0}”: 静态类型不能用作类型参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayOfStaticClass">
         <source>'{0}': array elements cannot be of static type</source>
-        <target state="translated">'“{0}”: 数组元素不能是静态类型的</target>
+        <target state="translated">“{0}”: 数组元素不能是静态类型的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
         <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'“{0}”: 不能在静态类中声明索引器</target>
+        <target state="translated">“{0}”: 不能在静态类中声明索引器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">
         <source>'{0}': static types cannot be used as parameters</source>
-        <target state="translated">'“{0}”: 静态类型不能用作参数</target>
+        <target state="translated">“{0}”: 静态类型不能用作参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReturnTypeIsStaticClass">
         <source>'{0}': static types cannot be used as return types</source>
-        <target state="translated">'“{0}”: 静态类型不能用作返回类型</target>
+        <target state="translated">“{0}”: 静态类型不能用作返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarDeclIsStaticClass">
@@ -5192,7 +5712,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InvalidSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'“{0}”不是有效的格式说明符</target>
+        <target state="translated">“{0}”不是有效的格式说明符</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AssignmentToLockOrDispose">
@@ -5237,22 +5757,22 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">'“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它是静态的。</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它是静态的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not public.</source>
-        <target state="translated">'“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它不是公共的。</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它不是公共的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongReturnType">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have the matching return type of '{3}'.</source>
-        <target state="translated">'“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”，因为它没有“{3}”的匹配返回类型。</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”，因为它没有“{3}”的匹配返回类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateTypeForwarder">
         <source>'{0}' duplicate TypeForwardedToAttribute</source>
-        <target state="translated">'“{0}”与 TypeForwardedToAttribute 重复</target>
+        <target state="translated">“{0}”与 TypeForwardedToAttribute 重复</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSelectOrGroup">
@@ -5296,8 +5816,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">分部方法必须在分部类、分部结构或分布接口内声明</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="translated">分部方法必须在分部类型内声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -5747,7 +6267,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStatic">
         <source>'{0}': static classes cannot contain protected members</source>
-        <target state="translated">'“{0}”: 静态类不能包含保护成员</target>
+        <target state="translated">“{0}”: 静态类不能包含保护成员</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
@@ -5776,12 +6296,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'“{0}”未包含“{1}”的定义，并且找不到可接受第一个“{0}”类型参数的可访问扩展方法“{1}”(是否缺少 using 指令或程序集引用?)</target>
+        <target state="translated">“{0}”未包含“{1}”的定义，并且找不到可接受第一个“{0}”类型参数的可访问扩展方法“{1}”(是否缺少 using 指令或程序集引用?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
         <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</source>
-        <target state="translated">'“{0}”不包含“{1}”的定义，并且找不到可接受类型为“{0}”的第一个参数的扩展方法“{1}”(是否缺少针对“{2}”的 using 指令?)</target>
+        <target state="translated">“{0}”不包含“{1}”的定义，并且找不到可接受类型为“{0}”的第一个参数的扩展方法“{1}”(是否缺少针对“{2}”的 using 指令?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadThisParam">
@@ -5920,8 +6440,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">类、结构或接口成员声明中的标记“{0}”无效</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="translated">类、记录、结构或接口成员声明中的标记“{0}”无效</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6001,7 +6521,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AddModuleAssembly">
         <source>'{0}' cannot be added to this assembly because it already is an assembly</source>
-        <target state="translated">'“{0}”无法添加到此程序集，因为它已是程序集</target>
+        <target state="translated">“{0}”无法添加到此程序集，因为它已是程序集</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogusProp2">
@@ -6040,8 +6560,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">为 Main 方法指定的“{0}”必须是非泛型类、结构或接口</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="translated">为 Main 方法指定的“{0}”必须是非泛型类、记录、结构或接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -6165,8 +6685,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">“{0}”不包含“{1}”的公共实例定义，因此 foreach 语句不能作用于“{0}”类型的变量</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="translated">“{0}”不包含“{1}”的公共实例或扩展定义，因此 foreach 语句不能作用于“{0}”类型的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -6231,7 +6751,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_FailedInclude_Title">
         <source>Unable to include XML fragment</source>
-        <target state="translated">无法包括 XML 段落。</target>
+        <target state="translated">无法包括 XML 段落</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidInclude">
@@ -6331,7 +6851,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
         <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">'“{0}”在“{1}”和“{2}”之间不明确；请使用“@{0}”或“{0}Attribute”</target>
+        <target state="translated">“{0}”在“{1}”和“{2}”之间不明确；请使用“@{0}”或“{0}Attribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">
@@ -6520,8 +7040,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">无法分配到只读字段(除非在定义了该字段的类的构造函数或 init-only 资源库中，或者在变量初始值设定项中)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="translated">无法分配到只读字段(除非在定义了该字段的类型的构造函数或 init-only 资源库中，或者在变量初始值设定项中)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6791,7 +7311,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
         <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'“{0}”不是有效的警告编号</target>
+        <target state="translated">“{0}”不是有效的警告编号</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber_Title">
@@ -6961,7 +7481,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_CantChangeTypeOnOverride">
         <source>'{0}': type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'“{0}”: 类型必须是“{2}”才能与重写成员“{1}”匹配</target>
+        <target state="translated">“{0}”: 类型必须是“{2}”才能与重写成员“{1}”匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttr">
@@ -7041,7 +7561,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadCtorArgCount">
         <source>'{0}' does not contain a constructor that takes {1} arguments</source>
-        <target state="translated">'“{0}”不包含采用 {1} 个参数的构造函数</target>
+        <target state="translated">“{0}”不包含采用 {1} 个参数的构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
@@ -7065,8 +7585,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWarningLevel">
-        <source>Warning level must be in the range 0-4</source>
-        <target state="translated">警告等级必须在 0-4 的范围内</target>
+        <source>Warning level must be zero or greater</source>
+        <target state="translated">警告等级必须大于或等于零</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDebugType">
@@ -7151,7 +7671,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'“{0}”不包含“{1}”的定义，并且最佳扩展方法重载“{2}”需要类型为“{3}”的接收器</target>
+        <target state="translated">“{0}”不包含“{1}”的定义，并且最佳扩展方法重载“{2}”需要类型为“{3}”的接收器</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -7175,8 +7695,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">未能找到源类型“{0}”的查询模式的实现。未找到“{1}”。是否缺少对“System.Core.dll”的引用，或者缺少针对“System.Linq”的 using 指令?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="translated">未能找到源类型“{0}”的查询模式的实现。未找到“{1}”。是否缺少必需的程序集引用或用于 "System.Linq" 的 using 指令?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
@@ -7303,8 +7823,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">成员“{1}”重写“{0}”。在运行时有多个重写候选项。此实现取决于将要调用的方法。</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="translated">成员“{1}”重写“{0}”。在运行时有多个重写候选项。此实现取决于将要调用的方法。请使用较新的运行时。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
@@ -7319,7 +7839,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_InvalidConstantDeclarationType">
         <source>'{0}' is of type '{1}'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.</source>
-        <target state="translated">'“{0}”的类型为“{1}”。在常量声明中指定的类型必须为 sbyte、byte、short、ushort、int、uint、long、ulong、char、float、double、decimal、bool、string、枚举类型或引用类型。</target>
+        <target state="translated">“{0}”的类型为“{1}”。在常量声明中指定的类型必须为 sbyte、byte、short、ushort、int、uint、long、ulong、char、float、double、decimal、bool、string、枚举类型或引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
@@ -7384,7 +7904,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_BinaryFile">
         <source>'{0}' is a binary file instead of a text file</source>
-        <target state="translated">'“{0}”是二进制文件而非文本文件</target>
+        <target state="translated">“{0}”是二进制文件而非文本文件</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_BadCodepage">
@@ -7574,7 +8094,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase">
         <source>'{0}': base type '{1}' is not CLS-compliant</source>
-        <target state="translated">'“{0}”: 基类型“{1}”不符合 CLS</target>
+        <target state="translated">“{0}”: 基类型“{1}”不符合 CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase_Title">
@@ -7589,7 +8109,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember">
         <source>'{0}': CLS-compliant interfaces must have only CLS-compliant members</source>
-        <target state="translated">'“{0}”: 符合 CLS 的接口必须仅有符合 CLS 的成员</target>
+        <target state="translated">“{0}”: 符合 CLS 的接口必须仅有符合 CLS 的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember_Title">
@@ -7599,7 +8119,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers">
         <source>'{0}': only CLS-compliant members can be abstract</source>
-        <target state="translated">'“{0}”: 只有符合 CLS 的成员才能是抽象的</target>
+        <target state="translated">“{0}”: 只有符合 CLS 的成员才能是抽象的</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers_Title">
@@ -7639,7 +8159,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType">
         <source>'{0}' has no accessible constructors which use only CLS-compliant types</source>
-        <target state="translated">'“{0}”没有只使用符合 CLS 类型的可访问的构造函数</target>
+        <target state="translated">“{0}”没有只使用符合 CLS 类型的可访问的构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType_Title">
@@ -7669,7 +8189,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse">
         <source>'{0}' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type '{1}'</source>
-        <target state="translated">'“{0}”是不符合 CLS 的类型“{1}”的成员，因此不能将其标记为符合 CLS</target>
+        <target state="translated">“{0}”是不符合 CLS 的类型“{1}”的成员，因此不能将其标记为符合 CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse_Title">
@@ -7739,7 +8259,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface">
         <source>'{0}' is not CLS-compliant because base interface '{1}' is not CLS-compliant</source>
-        <target state="translated">'“{0}”不符合 CLS，因为基接口“{1}”不符合 CLS</target>
+        <target state="translated">“{0}”不符合 CLS，因为基接口“{1}”不符合 CLS</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface_Title">
@@ -7779,7 +8299,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface">
         <source>'{0}' does not implement '{1}'</source>
-        <target state="translated">'“{0}”不实现“{1}”</target>
+        <target state="translated">“{0}”不实现“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
@@ -8091,12 +8611,12 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DeriveFromDynamic">
         <source>'{0}': cannot derive from the dynamic type</source>
-        <target state="translated">'“{0}”: 无法从动态类型派生</target>
+        <target state="translated">“{0}”: 无法从动态类型派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromConstructedDynamic">
         <source>'{0}': cannot implement a dynamic interface '{1}'</source>
-        <target state="translated">'“{0}”: 无法实现动态接口“{1}”</target>
+        <target state="translated">“{0}”: 无法实现动态接口“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DynamicTypeAsBound">
@@ -8169,11 +8689,6 @@ You should consider suppressing the warning only if you're sure that you don't w
         <target state="translated">程序的入口点是全局代码；将忽略此入口点</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">“is”或“as”运算符的第二个操作数不能是静态类型“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
         <source>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</source>
         <target state="translated">可访问性不一致: 事件类型“{1}”的可访问性低于事件“{0}”</target>
@@ -8201,7 +8716,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DuplicateNamedArgument">
         <source>Named argument '{0}' cannot be specified multiple times</source>
-        <target state="translated">不能多次指定所命名的参数“{0}”。</target>
+        <target state="translated">不能多次指定所命名的参数“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentUsedInPositional">
@@ -8251,7 +8766,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NotNullRefDefaultParameter">
         <source>'{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null</source>
-        <target state="translated">'“{0}”的类型为“{1}”。只能用 Null 对引用类型(字符串除外)的默认参数值进行初始化</target>
+        <target state="translated">“{0}”的类型为“{1}”。只能用 Null 对引用类型(字符串除外)的默认参数值进行初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultValueForUnconsumedLocation">
@@ -8546,7 +9061,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'“{0}”不具有名为“{1}”的适用方法，但是似乎有该名称的扩展方法。无法动态调度扩展方法。请考虑强制转换动态参数或在不使用扩展方法语法的情况下调用扩展方法。</target>
+        <target state="translated">“{0}”不具有名为“{1}”的适用方法，但是似乎有该名称的扩展方法。无法动态调度扩展方法。请考虑强制转换动态参数或在不使用扩展方法语法的情况下调用扩展方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8586,7 +9101,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
-        <target state="translated">'“{0}”无法实现“{1}”，因为“{2}”是 Windows 运行时事件，“{3}”是常规 .NET 事件。</target>
+        <target state="translated">“{0}”无法实现“{1}”，因为“{2}”是 Windows 运行时事件，“{3}”是常规 .NET 事件。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
@@ -9214,7 +9729,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
-        <target state="translated">'“{0}”: 具有 ComImport 特性的类不能指定字段初始值设定项。</target>
+        <target state="translated">“{0}”: 具有 ComImport 特性的类不能指定字段初始值设定项。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9564,7 +10079,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CantChangeRefReturnOnOverride">
         <source>'{0}' must match by reference return of overridden member '{1}'</source>
-        <target state="translated">'“{0}”必须与重写成员“{1}”的引用返回匹配</target>
+        <target state="translated">“{0}”必须与重写成员“{1}”的引用返回匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustNotHaveRefReturn">
@@ -9584,7 +10099,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</source>
-        <target state="translated">'“{0}”未实现接口成员“{1}”。“{2}”无法实现“{1}”，因为它与引用返回不匹配。</target>
+        <target state="translated">“{0}”未实现接口成员“{1}”。“{2}”无法实现“{1}”，因为它与引用返回不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturnRef">
@@ -10094,7 +10609,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'“{0}”仅用于评估，在将来的更新中可能会被更改或删除。</target>
+        <target state="translated">“{0}”仅用于评估，在将来的更新中可能会被更改或删除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

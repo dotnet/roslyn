@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
                 : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition: position)
             {
+                Debug.Assert(parentSemanticModel is not null);
             }
 
             protected override NullableWalker.SnapshotManager GetSnapshotManager()
@@ -41,7 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
             {
                 Debug.Assert(boundRoot.Syntax is TypeSyntax);
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
+            }
+
+            protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+            {
+                NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots);
+            }
+
+            protected override bool IsNullableAnalysisEnabled()
+            {
+                return _parentSemanticModelOpt.IsNullableAnalysisEnabledAtSpeculativePosition(OriginalPositionForSpeculation, Root);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)

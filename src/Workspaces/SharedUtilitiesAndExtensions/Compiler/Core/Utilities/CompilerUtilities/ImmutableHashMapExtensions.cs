@@ -22,6 +22,7 @@ namespace Roslyn.Utilities
         /// <param name="factoryArgument">The argument to pass to the value factory.</param>
         /// <returns>The value obtained from the dictionary or <paramref name="valueFactory" /> if it was not present.</returns>
         public static TValue GetOrAdd<TKey, TValue, TArg>(ref ImmutableHashMap<TKey, TValue> location, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+            where TKey : notnull
         {
             Contract.ThrowIfNull(valueFactory);
 

@@ -92,9 +92,24 @@
         <target state="translated">Область фонового анализа:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="translated">32-разрядный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="translated">64-разрядный</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Сборка и динамический анализ (пакет NuGet)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="translated">Языковой клиент диагностики C#/Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -137,9 +152,19 @@
         <target state="translated">Анализ кода прерван до завершения решения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="translated">Цветовые подсказки</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Выделить регулярные выражения цветом</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="translated">Комментарии</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -159,7 +184,22 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">Текущий параметр</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="translated">Отображать все подсказки при нажатии клавиш ALT+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">Отображать п_одсказки для имен встроенных параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="translated">Отображать подсказки для встроенных типов</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -187,6 +227,16 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Включить диагностику "pull" Razor (экспериментальная функция, требуется перезапуск)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Включить диагностику "pull" (экспериментальная функция, требуется перезапуск)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Введите значение места вызова или выберите другой тип введения значения</target>
@@ -205,6 +255,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Оценка (задач в очереди: {0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="translated">Извлечь базовый класс</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -245,6 +300,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Индексированный в репозитории</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="translated">Встроенные подсказки (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -335,6 +395,16 @@
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">Переместить в пространство имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="translated">Имя конфликтует с существующим именем типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="translated">Имя не является допустимым идентификатором {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -495,6 +565,11 @@
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Никогда, если не требуется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="translated">Новое имя типа:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -737,14 +812,64 @@
         <target state="translated">Показать список завершения</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="translated">Отображать подсказки для всех остальных элементов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">Показать указания для неявного создания объекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="translated">Отображать подсказки для типов лямбда-параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="translated">Отображать подсказки для литералов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="translated">Отображать подсказки для переменных с выводимыми типами</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Некоторые цвета цветовой схемы переопределяются изменениями, сделанными на странице "Среда" &gt; "Шрифты и цвета". Выберите "Использовать значения по умолчанию" на странице "Шрифты и цвета", чтобы отменить все настройки.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="translated">Скрывать подсказки, если имя параметра соответствует намерению метода.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="translated">Скрывать подсказки, если имена параметров различаются только суффиксом.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Целевое пространство имен:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
+        <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
+        <target state="translated">Генератор "{0}", создавший этот файл, был удален из проекта; этот файл больше не включен в проект.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
+        <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
+        <target state="translated">Генератор "{0}", создавший этот файл, остановил создание этого файла; этот файл больше не включен в проект.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
+        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
+        <target state="translated">Этот файл создан автоматически генератором "{0}" и не может быть изменен.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
@@ -787,9 +912,9 @@
         <target state="translated">Обновление уровня серьезности</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="translated">Использовать режим совместимости с .editorconfig (требуется перезапуск)</target>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="translated">Использовать 64-разрядный процесс для анализа кода (требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -865,16 +990,6 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Необходимо выбрать по крайней мере один элемент.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">Название интерфейса конфликтует с существующим названием типа.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">Название интерфейса не является допустимым идентификатором {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -995,6 +1110,16 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">Элемент "{0}" будет изменен на открытый.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_by_0_suffix">
+        <source>[generated by {0}]</source>
+        <target state="translated">[создан генератором {0}]</target>
+        <note>{0} is the name of a generator.</note>
+      </trans-unit>
+      <trans-unit id="generated_suffix">
+        <source>[generated]</source>
+        <target state="translated">[создан генератором]</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1162,16 +1287,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Проект: {0}
 
 Используйте раскрывающийся список для просмотра других проектов, к которым может относиться этот файл, и перехода к ним.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Ошибка при чтении файла с набором правил {0} — {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -2240,20 +2355,20 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
         <target state="translated">ВАЖНО! Visual Studio включает в себя функцию декомпиляции ("декомпилятор"), позволяющую воспроизводить исходный код из двоичного. Открывая и используя декомпилятор, вы принимаете условия лицензионного соглашения Visual Studio, а также приведенные ниже условия для декомпилятора. Если вы не согласны с какими-либо из этих условий, не открывайте и не используйте декомпилятор.
- 
+
 Вы подтверждаете, что двоичный и исходный код может быть защищен законами об авторских правах и торговых марках. Прежде чем применять декомпилятор на любом двоичном коде, вам следует: 
 (i) убедиться, что условия лицензии, регулирующие использование вами этого двоичного кода, не содержат положение, запрещающее декомпиляцию данного программного обеспечения; или
 (ii) получить разрешение на декомпиляцию этого двоичного кода у владельца соответствующего программного обеспечения.
- 
+
 Вы используете этот декомпилятор по собственной инициативе. Корпорация Майкрософт не несет ответственности за такое использование вами компилятора, которое нарушает любые законы или условия лицензионного соглашения на использование программного обеспечения, запрещающие декомпиляцию этого программного обеспечения.
 
 Я принимаю все указанные выше условия и положения:</target>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,10 +22,18 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
         }
 
+        /// <summary>
+        /// Returns classified spans in ascending <see cref="ClassifiedSpan"/> order.
+        /// <see cref="ClassifiedSpan"/>s may have the same <see cref="ClassifiedSpan.TextSpan"/>. This occurs when there are multiple
+        /// <see cref="ClassifiedSpan.ClassificationType"/>s for the same region of code. For example, a reference to a static method
+        /// will have two spans, one that designates it as a method, and one that designates it as static.
+        /// <see cref="ClassifiedSpan"/>s may also have overlapping <see cref="ClassifiedSpan.TextSpan"/>s. This occurs when there are
+        /// strings containing regex and/or escape characters.
+        /// </summary>
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,
             TextSpan textSpan,
@@ -109,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ClassificationTypeNames.Operator => SymbolDisplayPartKind.Operator,
                 ClassificationTypeNames.Punctuation => SymbolDisplayPartKind.Punctuation,
                 ClassificationTypeNames.ClassName => SymbolDisplayPartKind.ClassName,
+                ClassificationTypeNames.RecordClassName => SymbolDisplayPartKind.RecordClassName,
                 ClassificationTypeNames.StructName => SymbolDisplayPartKind.StructName,
                 ClassificationTypeNames.InterfaceName => SymbolDisplayPartKind.InterfaceName,
                 ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,

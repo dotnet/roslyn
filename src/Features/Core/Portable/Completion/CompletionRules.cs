@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionRules"/> if none is otherwise specified.
         /// </summary>
-        public static readonly CompletionRules Default = new CompletionRules(
+        public static readonly CompletionRules Default = new(
             dismissIfEmpty: false,
             dismissIfLastCharacterDeleted: false,
             defaultCommitCharacters: s_defaultCommitKeys,

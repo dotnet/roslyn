@@ -10,9 +10,9 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class ContainsChildrenGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function ContainsChildrenForDocument() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function ContainsChildrenForEmptyDocument() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WorkItem(27805, "https://github.com/dotnet/roslyn/issues/27805")>
         <WorkItem(233666, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/233666")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function ContainsChildrenForFileWithIllegalPath() As Task
             Using testState = ProgressionTestState.Create(<Workspace/>)
                 Dim graph = New Graph
@@ -89,7 +89,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WorkItem(789685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
         <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -128,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         <WorkItem(165369, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/165369")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function ContainsChildrenForNodeWithRelativeUriPath() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>

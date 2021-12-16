@@ -289,4 +289,20 @@
   <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
     <value>Suppression operator has no effect and can be misinterpreted</value>
   </data>
+  <data name="typeof_can_be_converted_ to_nameof" xml:space="preserve">
+    <value>'typeof' can be converted  to 'nameof'</value>
+  </data>
+  <data name="Use_new" xml:space="preserve">
+    <value>Use 'new(...)'</value>
+    <comment>{Locked="new(...)"} This is a C# construct and should not be localized.</comment>
+  </data>
+  <data name="new_expression_can_be_simplified" xml:space="preserve">
+    <value>'new' expression can be simplified</value>
+  </data>
+  <data name="Discard_can_be_removed" xml:space="preserve">
+    <value>Discard can be removed</value>
+  </data>
+  <data name="Remove_unnessary_discard" xml:space="preserve">
+    <value>Remove unnecessary discard</value>
+  </data>
 </root>

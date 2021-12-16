@@ -12,6 +12,16 @@
         <target state="translated">必須指定此選項的語言名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">包含類型 '{0}' 的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">變更必須在 SourceText 的界限內</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">在偵錯期間不允許變更組件參考的版本: '{0}' 已將版本變更為 '{1}'。</target>
@@ -37,6 +47,11 @@
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
         <target state="translated">新增之來源檔案的 hintName，在產生器中必須是唯一的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">其他檔案不屬於基礎 'CompilationWithAnalyzers'。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -108,6 +123,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">每個產生器只能註冊一個 {0}。</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="translated">提供的 SourceText 必須有明確的編碼集。</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -316,12 +336,12 @@
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
         <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
-        <target state="translated">傳回類型不可為值類型、指標、by-ref 或開放式泛型類型。</target>
+        <target state="translated">傳回類型不可為值類型、指標、by-ref 或開放式泛型類型</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
         <source>Return type can't be void, by-ref or open generic type</source>
-        <target state="translated">傳回類型不可為 void、by-ref 或開放式泛型類型。</target>
+        <target state="translated">傳回類型不可為 void、by-ref 或開放式泛型類型</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
@@ -356,12 +376,12 @@
       </trans-unit>
       <trans-unit id="EmptyOrInvalidResourceName">
         <source>Empty or invalid resource name</source>
-        <target state="translated">資源名稱是空的，或其無效。</target>
+        <target state="translated">資源名稱是空的，或其無效</target>
         <note />
       </trans-unit>
       <trans-unit id="EmptyOrInvalidFileName">
         <source>Empty or invalid file name</source>
-        <target state="translated">檔案名稱是空的，或其無效。</target>
+        <target state="translated">檔案名稱是空的，或其無效</target>
         <note />
       </trans-unit>
       <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
@@ -552,6 +572,16 @@
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
         <target state="translated">文化特性名稱無效: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">因為全域分析器組態區段名稱 '{0}' 不是絕對路徑，所以無效。將忽略區段。區段已在以下檔案中宣告: '{1}'</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">因為全域分析器組態區段名稱不是絕對路徑，所以無效。將忽略區段。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
@@ -955,7 +985,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
+        <target state="translated">'{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,15 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly int _methodOrdinal;
+        private readonly int _localFunctionOrdinal;
         private NamedTypeSymbol? _currentDynamicCallSiteContainer;
         private int _callSiteIdDispenser;
 
-        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal)
+        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal = -1)
         {
             Debug.Assert(factory != null);
             _factory = factory;
             _methodOrdinal = methodOrdinal;
+            _localFunctionOrdinal = localFunctionOrdinal;
         }
+
+        public int MethodOrdinal => _methodOrdinal;
 
         // We could read the values of the following enums from metadata instead of hardcoding them here but 
         // - they can never change since existing programs have the values inlined and would be broken if the values changed their meaning,
@@ -641,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_currentDynamicCallSiteContainer is null)
             {
-                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal);
+                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal, _localFunctionOrdinal);
             }
 
             var containerDef = (SynthesizedContainer)_currentDynamicCallSiteContainer.OriginalDefinition;
@@ -691,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return temporariesBuilder.ToImmutableAndFree();
         }
 
-        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
+        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal)
         {
             Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
             Debug.Assert(factory.TopLevelMethod is { });
@@ -699,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
+            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, localFunctionOrdinal, generation);
 
             var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);

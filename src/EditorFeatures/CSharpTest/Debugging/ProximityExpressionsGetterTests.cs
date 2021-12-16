@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -36,73 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             return s_lazyTestFileContent;
         }
 
-        private SyntaxTree GetTree()
+        private static SyntaxTree GetTree()
             => SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
 
-        private SyntaxTree GetTreeFromCode(string code)
+        private static SyntaxTree GetTreeFromCode(string code)
             => SyntaxFactory.ParseSyntaxTree(code);
-
-        private async Task GenerateBaseline()
-        {
-            Console.WriteLine(typeof(FactAttribute));
-
-            using var workspace = TestWorkspace.CreateCSharp(GetTestFileContent());
-            var languageDebugInfo = new CSharpLanguageDebugInfoService();
-
-            var hostdoc = workspace.Documents.First();
-            var snapshot = hostdoc.GetTextBuffer().CurrentSnapshot;
-            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-
-            var builder = new StringBuilder();
-            var statements = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
-
-            // Try to get proximity expressions at every token position and the start of every
-            // line.
-            var index = 0;
-            foreach (var statement in statements)
-            {
-                builder.AppendLine("[WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]");
-                builder.AppendLine("public void TestAtStartOfStatement_" + index + "()");
-                builder.AppendLine("{");
-
-                var token = statement.GetFirstToken();
-                var line = snapshot.GetLineFromPosition(token.SpanStart);
-
-                builder.AppendLine("    //// Line " + (line.LineNumber + 1));
-                builder.AppendLine();
-                if (line.LineNumber > 0)
-                {
-                    builder.AppendLine("    //// " + snapshot.GetLineFromLineNumber(line.LineNumber - 1).GetText());
-                }
-
-                builder.AppendLine("    //// " + line.GetText());
-                var charIndex = token.SpanStart - line.Start;
-                builder.AppendLine("    //// " + new string(' ', charIndex) + "^");
-                builder.AppendLine("    var tree = GetTree(\"ProximityExpressionsGetterTestFile.cs\");");
-                builder.AppendLine("    var terms = CSharpProximityExpressionsService.Do(tree, " + token.SpanStart + ");");
-
-                var proximityExpressionsGetter = new CSharpProximityExpressionsService();
-                var terms = await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None);
-                if (terms == null)
-                {
-                    builder.AppendLine("    Assert.Null(terms);");
-                }
-                else
-                {
-                    builder.AppendLine("    Assert.NotNull(terms);");
-
-                    var termsString = terms.Select(t => "\"" + t + "\"").Join(", ");
-                    builder.AppendLine("    AssertEx.Equal(new[] { " + termsString + " }, terms);");
-                }
-
-                builder.AppendLine("}");
-                builder.AppendLine();
-                index++;
-            }
-
-            var str = builder.ToString();
-            Console.WriteLine(str);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public void TestWithinStatement_1()
@@ -127,7 +67,7 @@ namespace ConsoleApplication1
             AssertEx.Equal(new[] { "yy", "xx" }, terms);
         }
 
-        private async Task TestProximityExpressionGetterAsync(
+        private static async Task TestProximityExpressionGetterAsync(
             string markup,
             Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
@@ -143,7 +83,7 @@ namespace ConsoleApplication1
             await continuation(proximityExpressionsGetter, document, caretPosition);
         }
 
-        private async Task TestTryDoAsync(string input, params string[] expectedTerms)
+        private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
@@ -157,7 +97,7 @@ namespace ConsoleApplication1
             });
         }
 
-        private async Task TestIsValidAsync(string input, string expression, bool expectedValid)
+        private static async Task TestIsValidAsync(string input, string expression, bool expectedValid)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
             {
@@ -360,6 +300,21 @@ class Class
     {
         get { return """"; }
         set { $$ }
+    }
+}", "this", "value");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        public async Task TestValueInPropertyInit()
+        {
+            await TestTryDoAsync(@"
+class Class
+{
+    string Name
+    {
+        get { return """"; }
+        init { $$ }
     }
 }", "this", "value");
         }

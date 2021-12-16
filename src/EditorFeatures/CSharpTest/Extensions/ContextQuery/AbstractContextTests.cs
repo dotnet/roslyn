@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             VerifyWorker(text, validLocation: false, options: Options.Script);
         }
 
-        protected string AddInsideMethod(string text)
+        protected static string AddInsideMethod(string text)
         {
             return
 @"class C
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 }";
         }
 
-        protected string AddInsideClass(string text)
+        protected static string AddInsideClass(string text)
         {
             return
 @"class C

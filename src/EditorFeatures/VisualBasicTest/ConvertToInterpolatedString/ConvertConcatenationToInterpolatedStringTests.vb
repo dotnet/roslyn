@@ -584,5 +584,29 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")>
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <InlineData("[|""a"" + $""{1:000}""|]", "$""a{1:000}""")>
+        <InlineData("[|""a"" + $""b{1:000}""|]", "$""ab{1:000}""")>
+        <InlineData("[|$""a{1:000}"" + ""b""|]", "$""a{1:000}b""")>
+        <InlineData("[|""a"" + $""b{1:000}c"" + ""d""|]", "$""ab{1:000}cd""")>
+        <InlineData("[|""a"" + $""{1:000}b"" + ""c""|]", "$""a{1:000}bc""")>
+        <InlineData("[|""a"" + $""{1:000}"" + $""{2:000}"" + ""b""|]", "$""a{1:000}{2:000}b""")>
+        Public Async Function TestInliningOfInterpolatedString(ByVal before As String, ByVal after As String) As Task
+            Dim initialMarkup = $"
+Public Class C
+    Private Sub M()
+        Dim s = {before}
+    End Sub
+End Class"
+            Dim expected = $"
+Public Class C
+    Private Sub M()
+        Dim s = {after}
+    End Sub
+End Class"
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
+        End Function
     End Class
 End Namespace

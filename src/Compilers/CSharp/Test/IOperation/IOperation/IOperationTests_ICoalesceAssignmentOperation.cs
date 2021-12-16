@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -217,7 +220,7 @@ ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: dynamic) (
         [Fact]
         public void CoalesceAssignment_NullValueAndTarget()
         {
-            string source = @"
+            var comp = CreateCompilation(@"
 class C
 {
     static void M()
@@ -225,7 +228,7 @@ class C
         /*<bind>*/??=/*</bind>*/;
     }
 }
-";
+");
             string expectedOperationTree = @"
 ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: ?, IsInvalid) (Syntax: '/*<bind>*/? ... /*</bind>*/')
   Target: 
@@ -244,7 +247,60 @@ ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: ?, IsInval
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 33)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var m = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            VerifyFlowGraph(comp, m, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '')
+              Value: 
+                IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
+                  Children(0)
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '')
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '')
+                Leaving: {R2}
+            Next (Regular) Block[B4]
+                Leaving: {R2} {R1}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '/*<bind>*/? ... /*</bind>*/')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '')
+              Right: 
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
+    Statements (0)
+");
         }
 
         [Fact, CompilerTrait(CompilerFeature.Dataflow)]

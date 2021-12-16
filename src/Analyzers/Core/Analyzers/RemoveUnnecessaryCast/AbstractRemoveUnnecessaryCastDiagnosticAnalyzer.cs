@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 {
@@ -22,9 +19,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
     {
         protected AbstractRemoveUnnecessaryCastDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnnecessaryCast,
                    option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Remove_Unnecessary_Cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)))
+                   new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)),
+                   isUnnecessary: true)
         {
         }
 
@@ -66,9 +65,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
                 return null;
             }
 
-            RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
             return Diagnostic.Create(
-                UnnecessaryWithSuggestionDescriptor,
+                Descriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),
                 ImmutableArray.Create(node.GetLocation()));
         }

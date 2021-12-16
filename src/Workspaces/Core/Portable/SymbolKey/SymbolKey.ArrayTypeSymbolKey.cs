@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger(symbol.Rank);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var elementTypeResolution = reader.ReadSymbolKey(out var elementTypeFailureReason);
                 var rank = reader.ReadInteger();

@@ -67,6 +67,11 @@
         <target state="translated">Zu Basis wechseln</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Inlinehinweise</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Ungültiger Assemblyname.</target>
@@ -107,11 +112,6 @@
         <target state="translated">Interpunktion</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Das Entfernen des Dokuments wird nicht unterstützt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">_Datei umbenennen (Typ entspricht nicht dem Dateinamen)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">_Datei des Symbols umbenennen</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Kommentar teilen</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Benutzertypen - Schnittstellen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Benutzertypen – Datensätze</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -409,7 +419,7 @@
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
-        <target state="translated">{0} nicht lösbare Konflikt(s)</target>
+        <target state="translated">{0} nicht lösbare(r) Konflikt(e)</target>
         <note />
       </trans-unit>
       <trans-unit id="Applying_0">
@@ -1194,11 +1204,6 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Klammerabschluss</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Alle Vorkommen korrigieren in</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">Der Vorgang kann nicht angewendet werden, während eine Umbenennungssitzung aktiv ist.</target>
@@ -1266,17 +1271,17 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'"{0}"-Verweise</target>
+        <target state="translated">"{0}"-Verweise</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'"{0}"-Implementierungen</target>
+        <target state="translated">"{0}"-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'"{0}"-Deklarationen</target>
+        <target state="translated">"{0}"-Deklarationen</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">

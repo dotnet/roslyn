@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,6 +20,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -291,8 +295,8 @@ public class C { }";
                     Diagnostic("XX0001", @"[Obsolete]
 public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true)); // class declaration
         }
-        [Fact]
 
+        [Fact]
         public void TestGetEffectiveDiagnostics()
         {
             var noneDiagDescriptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
@@ -430,8 +434,8 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(1, effectiveDiags.Count(d => d.Severity == DiagnosticSeverity.Hidden));
         }
-        [Fact]
 
+        [Fact]
         public void TestDisabledDiagnostics()
         {
             var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
@@ -2462,7 +2466,7 @@ internal class C : MyInterface
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -3144,7 +3148,7 @@ class C
     int P2 { get; set; }
 }";
 
-            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
@@ -3297,9 +3301,9 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
@@ -3340,9 +3344,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3391,9 +3396,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same diagnostics and callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3421,6 +3427,59 @@ class C
                 });
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+        }
+
+        [Fact]
+        public void TestAnalyzerCallbacksWithGloballySuppressedFile_SymbolAction()
+        {
+            var tree1 = Parse("partial class A { }");
+            var tree2 = Parse("partial class A { private class B { } }");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics and callbacks without suppression.
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify suppressed analyzer diagnostic for both files when specified globally
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider((NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer });
+
+            Assert.Equal("", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostic even suppression on second file.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for a single file when supressed globally and un-suppressed for a single file
+            options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+            new TestSyntaxTreeOptionsProvider((NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress), (tree1, new[] { (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Default) })));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
+                });
+            Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
 
         [Fact]
@@ -3584,6 +3643,197 @@ class C
                 {
                     Assert.False(diagnostics.ContainsKey(analyzer));
                 }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilation(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            AdditionalText additionalFile = new TestAdditionalText("Additional File Text");
+            var options = new AnalyzerOptions(ImmutableArray.Create(additionalFile));
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                var diagnostic = Assert.Single(diagnostics);
+                Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
+                Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                var location = (ExternalFileLocation)diagnostic.Location;
+                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(diagnosticSpan, location.SourceSpan);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestMultipleAdditionalFileAnalyzers(bool registerFromInitialize, bool additionalFilesHaveSamePaths, bool firstAdditionalFileHasNullPath)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var path1 = firstAdditionalFileHasNullPath ? null : @"c:\file.txt";
+            var path2 = additionalFilesHaveSamePaths ? path1 : @"file2.txt";
+
+            AdditionalText additionalFile1 = new TestAdditionalText("Additional File1 Text", path: path1);
+            AdditionalText additionalFile2 = new TestAdditionalText("Additional File2 Text", path: path2);
+            var additionalFiles = ImmutableArray.Create(additionalFile1, additionalFile2);
+            var options = new AnalyzerOptions(additionalFiles);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer1 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzer2 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0002");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            if (!additionalFilesHaveSamePaths)
+            {
+                verifyAnalysisResult(analysisResult, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths, verifyGetAllDiagnostics: false);
+            }
+
+            return;
+
+            static void verifyDiagnostics(
+                ImmutableArray<Diagnostic> diagnostics,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths)
+            {
+                foreach (AdditionalFileAnalyzer analyzer in analyzers)
+                {
+                    var fileIndex = 0;
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var applicableDiagnostics = diagnostics.WhereAsArray(
+                            d => d.Id == analyzer.Descriptor.Id && PathUtilities.Comparer.Equals(d.Location.GetLineSpan().Path, additionalFile.Path));
+                        if (additionalFile.Path == null)
+                        {
+                            Assert.Empty(applicableDiagnostics);
+                            continue;
+                        }
+
+                        var expectedCount = additionalFilesHaveSamePaths ? additionalFiles.Length : 1;
+                        Assert.Equal(expectedCount, applicableDiagnostics.Length);
+
+                        foreach (var diagnostic in applicableDiagnostics)
+                        {
+                            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                            var location = (ExternalFileLocation)diagnostic.Location;
+                            Assert.Equal(diagnosticSpan, location.SourceSpan);
+                        }
+
+                        fileIndex++;
+                        if (!additionalFilesHaveSamePaths || fileIndex == additionalFiles.Length)
+                        {
+                            diagnostics = diagnostics.RemoveRange(applicableDiagnostics);
+                        }
+                    }
+                }
+
+                Assert.Empty(diagnostics);
+            }
+
+            static void verifyAnalysisResult(
+                AnalysisResult analysisResult,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths,
+                bool verifyGetAllDiagnostics = true)
+            {
+                if (verifyGetAllDiagnostics)
+                {
+                    verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+                }
+
+                foreach (var analyzer in analyzers)
+                {
+                    var singleAnalyzerArray = ImmutableArray.Create(analyzer);
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var reportedDiagnostics = getReportedDiagnostics(analysisResult, analyzer, additionalFile);
+                        verifyDiagnostics(reportedDiagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile), diagnosticSpan, additionalFilesHaveSamePaths);
+                    }
+                }
+
+                return;
+
+                static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
+                {
+                    if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
+                        diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+                    {
+                        return diagnostics;
+                    }
+
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+            }
+        }
+
+        [Fact]
+        public void TestSemanticModelProvider()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            Compilation compilation = CreateCompilation(new[] { tree });
+
+            var semanticModelProvider = new MySemanticModelProvider();
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider);
+
+            // Verify semantic model provider is used by Compilation.GetSemanticModel API
+            var model = compilation.GetSemanticModel(tree);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+
+            // Verify semantic model provider is used by CSharpCompilation.GetSemanticModel API
+            model = ((CSharpCompilation)compilation).GetSemanticModel(tree, ignoreAccessibility: false);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+        }
+
+        private sealed class MySemanticModelProvider : SemanticModelProvider
+        {
+            private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
+            {
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
+            }
+
+            public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
+            {
+                Assert.Same(model, _cache[tree]);
             }
         }
     }

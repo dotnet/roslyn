@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +26,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -34,24 +35,29 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
     [UseExportProvider]
-    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
+    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected readonly Mock<ICompletionSession> MockCompletionSession;
-        protected TWorkspaceFixture WorkspaceFixture;
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(CompletionProvider));
 
-        protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
+
+        protected readonly Mock<ICompletionSession> MockCompletionSession;
+        private ExportProvider _lazyExportProvider;
+
+        protected AbstractCompletionProviderTests()
         {
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
-
-            this.WorkspaceFixture = workspaceFixture;
         }
 
-        public override void Dispose()
-        {
-            this.WorkspaceFixture.DisposeAfterTest();
-            base.Dispose();
-        }
+        protected ExportProvider ExportProvider
+            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+
+        protected virtual TestComposition GetComposition()
+            => s_baseComposition.AddParts(GetCompletionProviderType());
+
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+            => _fixtureHelper.GetOrCreateFixture();
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
@@ -74,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return completionServiceWithProviders;
         }
 
-        internal ImmutableHashSet<string> GetRoles(Document document)
+        internal static ImmutableHashSet<string> GetRoles(Document document)
             => document.SourceCodeKind == SourceCodeKind.Regular ? ImmutableHashSet<string>.Empty : ImmutableHashSet.Create(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
-        internal Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
+        internal static Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
             int position,
@@ -151,42 +157,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
                 else
                 {
-                    Func<RoslynCompletion.CompletionItem, bool> predicate = c
-                        => CompareItems(c.DisplayText, expectedItemOrNull)
-                              && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
-                              && CompareItems(c.InlineDescription, inlineDescription ?? "")
-                              && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                              && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
-                              && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true)
-                              && (matchingFilters != null ? FiltersMatch(matchingFilters, c) : true)
-                              && (flags != null ? flags.Value == c.Flags : true);
-
-                    AssertEx.Any(items, predicate);
+                    AssertEx.Any(items, Predicate);
                 }
             }
-        }
 
-        private static readonly Dictionary<Type, IExportProviderFactory> _specificCompletionExportProviderFactories = new Dictionary<Type, IExportProviderFactory>();
-        private ExportProvider _exportProvider = null;
-
-        protected ExportProvider ExportProvider
-        {
-            get
+            bool Predicate(RoslynCompletion.CompletionItem c)
             {
-                return _exportProvider ??= GetExportProvider(this);
+                if (!CompareItems(c.DisplayText, expectedItemOrNull))
+                    return false;
+                if (!CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? ""))
+                    return false;
+                if (!CompareItems(c.InlineDescription, inlineDescription ?? ""))
+                    return false;
+                if (expectedDescriptionOrNull != null && completionService.GetDescriptionAsync(document, c).Result.Text != expectedDescriptionOrNull)
+                    return false;
+                if (glyph.HasValue && !c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)))
+                    return false;
+                if (matchPriority.HasValue && c.Rules.MatchPriority != matchPriority.Value)
+                    return false;
+                if (matchingFilters != null && !FiltersMatch(matchingFilters, c))
+                    return false;
+                if (flags != null && flags.Value != c.Flags)
+                    return false;
 
-                static ExportProvider GetExportProvider(AbstractCompletionProviderTests<TWorkspaceFixture> self)
-                {
-                    IExportProviderFactory factory;
-                    lock (_specificCompletionExportProviderFactories)
-                    {
-                        factory = _specificCompletionExportProviderFactories.GetOrAdd(
-                            self.GetType(),
-                            type => ExportProviderCache.GetOrCreateExportProviderFactory(self.GetExportCatalog()));
-                    }
-
-                    return factory.CreateExportProvider();
-                }
+                return true;
             }
         }
 
@@ -196,14 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             mockExperimentService.SetExperimentOption(experimentName, enabled);
         }
 
-        protected virtual ComposableCatalog GetExportCatalog()
-        {
-            var catalogWithoutCompletion = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(CompletionProvider));
-            var catalog = catalogWithoutCompletion.WithPart(GetCompletionProviderType());
-            return catalog;
-        }
-
-        private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
+        private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
             var matchingFilters = FilterSet.GetFilters(item);
 
@@ -212,30 +199,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return expectedMatchingFilters.SetEquals(matchingFilters);
         }
 
-        private Task VerifyAsync(
+        private async Task VerifyAsync(
             string markup, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem, string displayTextSuffix,
             string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider);
+            var code = workspaceFixture.Target.Code;
+            var position = workspaceFixture.Target.Position;
 
             workspace.SetOptions(WithChangedOptions(workspace.Options));
 
-            return VerifyWorkerAsync(
+            await VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
                 matchPriority, hasSuggestionModeItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                matchingFilters, flags).ConfigureAwait(false);
         }
 
         protected async Task<CompletionList> GetCompletionListAsync(string markup, string workspaceKind = null)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
-            var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
-            var position = WorkspaceFixture.Position;
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
+            var currentDocument = workspace.CurrentSolution.GetDocument(workspaceFixture.Target.CurrentDocument.Id);
+            var position = workspaceFixture.Target.Position;
             currentDocument = WithChangedOptions(currentDocument);
 
             return await GetCompletionListAsync(GetCompletionService(currentDocument.Project), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, options: workspace.Options).ConfigureAwait(false);
@@ -243,10 +233,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
         {
-            using (WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider))
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            using (workspaceFixture.Target.GetWorkspace(markupBeforeCommit, ExportProvider))
             {
-                var code = WorkspaceFixture.Code;
-                var position = WorkspaceFixture.Position;
+                var code = workspaceFixture.Target.Code;
+                var position = workspaceFixture.Target.Position;
 
                 if (sourceCodeKind.HasValue)
                 {
@@ -265,23 +256,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string itemToCommit,
             string expectedCodeAfterCommit,
             char? commitChar,
-            string textTypedSoFar,
             SourceCodeKind? sourceCodeKind = null)
         {
-            WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
+            workspaceFixture.Target.GetWorkspace(markupBeforeCommit, ExportProvider);
+
+            var code = workspaceFixture.Target.Code;
+            var position = workspaceFixture.Target.Position;
 
             expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
             if (sourceCodeKind.HasValue)
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, sourceCodeKind.Value);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, sourceCodeKind.Value);
             }
             else
             {
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Regular);
-                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar, SourceCodeKind.Script);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Regular);
+                await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, SourceCodeKind.Script);
             }
         }
 
@@ -390,8 +382,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string inlineDescription,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags)
         {
-            WorkspaceFixture.GetWorkspace(ExportProvider);
-            var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var document1 = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind);
 
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull,
@@ -402,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
                 await CheckResultsAsync(
                     document2, position, expectedItemOrNull, expectedDescriptionOrNull,
                     usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority,
@@ -420,19 +414,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
-            var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
             document = WithChangedOptions(document);
 
             var service = GetCompletionService(document.Project);
@@ -461,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
+        private static Document WithChangedOption(Document document, OptionKey optionKey, object value)
         {
             var workspace = document.Project.Solution.Workspace;
             var newOptions = workspace.Options.WithChangedOption(optionKey, value);
@@ -469,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        internal async Task VerifyCustomCommitWorkerAsync(
+        private async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
@@ -478,10 +473,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -489,16 +486,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
-            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
+            var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, CancellationToken.None);
+            var options = await document.GetOptionsAsync().ConfigureAwait(false);
+            var disallowAddingImports = options.GetOption(CompletionServiceOptions.DisallowAddingImports);
+
+            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, disallowAddingImports, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+            var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
-        internal virtual void VerifyCustomCommitWorker(
+        private void VerifyCustomCommitWorker(
             CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
             RoslynCompletion.CompletionItem completionItem,
@@ -515,10 +515,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
+                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -526,8 +528,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
-            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
-            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
+            var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
+            var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
             customCommitCompletionProvider.Commit(completionItem, textView, textBuffer, textView.TextSnapshot, commitChar);
 
@@ -545,22 +547,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
-        protected virtual async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind sourceCodeKind)
+        private async Task VerifyProviderCommitWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
+            char? commitChar, SourceCodeKind sourceCodeKind)
         {
-            var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
-            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
+            await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
-                var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
+                var document2 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
+                await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
         private async Task VerifyProviderCommitCheckResultsAsync(
-            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
+            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt)
         {
+            document = WithChangedOptions(document);
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
@@ -571,9 +576,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar))
             {
-                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, CancellationToken.None)).TextChange;
+                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, disallowAddingImports: false, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
@@ -615,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
-        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference, string alias = null)
+        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference)
         {
             return isProjectReference
                 ? CreateMarkupForProjectWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
@@ -636,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
-                                                   string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 
@@ -845,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private const char NonBreakingSpace = (char)0x00A0;
 
-        private string GetExpectedOverloadSubstring(int expectedSymbols)
+        private static string GetExpectedOverloadSubstring(int expectedSymbols)
         {
             if (expectedSymbols <= 1)
             {
@@ -1056,13 +1061,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 foreach (var ch in validChars)
                 {
                     Assert.True(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
+                        service.GetRules(), item, ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }
@@ -1070,10 +1075,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<ImmutableArray<RoslynCompletion.CompletionItem>> GetCompletionItemsAsync(
             string markup, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger = false)
         {
-            WorkspaceFixture.GetWorkspace(markup, ExportProvider);
-            var code = WorkspaceFixture.Code;
-            var position = WorkspaceFixture.Position;
-            var document = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            workspaceFixture.Target.GetWorkspace(markup, ExportProvider);
+            var code = workspaceFixture.Target.Code;
+            var position = workspaceFixture.Target.Position;
+            var document = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind);
 
             var trigger = usePreviousCharAsTrigger
                 ? RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1))

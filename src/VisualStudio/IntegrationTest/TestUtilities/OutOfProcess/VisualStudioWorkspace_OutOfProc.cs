@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -15,12 +17,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
         public void SetOptionInfer(string projectName, bool value)
@@ -49,6 +49,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
+
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
 
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();

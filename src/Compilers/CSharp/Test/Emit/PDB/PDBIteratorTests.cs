@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Globalization;
 using System.IO;
 using System.Reflection.Metadata;
@@ -1575,7 +1577,7 @@ public class C
 
             // Since metadata references are captured in pdb debug information make sure to specify
             // the target framework so the test always has the same debug information output
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();

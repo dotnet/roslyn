@@ -12,6 +12,16 @@
         <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">'{0}' 형식을 포함하는 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">변경 내용은 SourceText의 범위 내에 있어야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">디버깅 중에는 어셈블리 참조의 버전 변경이 허용되지 않습니다. '{0}'이(가) 버전을 '{1}'(으)로 변경했습니다.</target>
@@ -20,7 +30,7 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
+        <target state="translated">'{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
         <note />
       </trans-unit>
@@ -37,6 +47,11 @@
       <trans-unit id="HintNameUniquePerGenerator">
         <source>The hintName of the added source file must be unique within a generator.</source>
         <target state="translated">추가된 소스 파일의 hintName은 생성기 내에서 고유해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">추가 파일이 기본 'CompilationWithAnalyzers'에 속하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -108,6 +123,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="translated">SourceText에는 명시적인 인코딩 집합이 있어야 합니다.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -386,7 +406,7 @@
       </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
-        <target state="translated">{0}' 메타데이터 모듈에 잘못된 모듈 이름이 지정되었습니다('{1}').</target>
+        <target state="translated">'{0}' 메타데이터 모듈에 잘못된 모듈 이름이 지정되었습니다('{1}').</target>
         <note />
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
@@ -554,6 +574,16 @@
         <target state="translated">잘못된 문화권 이름입니다('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">전역 분석기 구성 섹션 이름 '{0}'이(가) 절대 경로가 아니므로 잘못되었습니다. 섹션이 무시됩니다. 파일 '{1}'에 섹션이 선언되었습니다.</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">전역 분석기 구성 섹션 이름이 절대 경로가 아니므로 잘못되었습니다. 섹션이 무시됩니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
         <target state="translated">'{2}'의 분석기 구성 파일에 있는 진단 '{0}'에 잘못된 심각도 '{1}'이(가) 지정되었습니다.</target>
@@ -708,12 +738,12 @@
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 역직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
@@ -875,7 +905,7 @@
       </trans-unit>
       <trans-unit id="ReferenceOfTypeIsInvalid1">
         <source>Reference of type '{0}' is not valid for this compilation.</source>
-        <target state="translated">{0}' 형식의 참조를 이 컴파일에 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식의 참조를 이 컴파일에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MetadataRefNotFoundToRemove1">
@@ -955,7 +985,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
+        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

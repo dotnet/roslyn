@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class CastSimplificationTests
@@ -1237,12 +1238,14 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d2")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d2")>
+        Public Async Function TestCSharp_CastInTernaryExpression(languageVersion As LanguageVersion, expectedFalseExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Base { }
 class Derived1 : Base { }
@@ -1261,7 +1264,7 @@ class Test
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Base { }
 class Derived1 : Base { }
 class Derived2 : Base { }
@@ -1270,21 +1273,22 @@ class Test
 {
     public Base F(bool flag, Derived1 d1, Derived2 d2)
     {
-        return flag ? d1 : (Base)d2;
+        return flag ? d1 : <%= expectedFalseExpression %>;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression2() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d1")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d1")>
+        Public Async Function TestCSharp_CastInTernaryExpression2(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Base { }
 class Derived1 : Base { }
@@ -1303,7 +1307,7 @@ class Test
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Base { }
 class Derived1 : Base { }
 class Derived2 : Base { }
@@ -1312,21 +1316,22 @@ class Test
 {
     public Base F(bool flag, Derived1 d1, Derived2 d2)
     {
-        return flag ? (Base)d1 : d2;
+        return flag ? <%= expectedTrueExpression %> : d2;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530085")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression3() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(long?)value")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "value")>
+        Public Async Function TestCSharp_CastInTernaryExpression3(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Program
 {
@@ -1343,17 +1348,16 @@ class Program
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Program
 {
     static void Main(string[] args)
     {
         bool b = true;
         long value = 0;
-        long? a = b ? (long?)value : null;
+        long? a = b ? <%= expectedTrueExpression %> : null;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
@@ -4207,10 +4211,10 @@ class B
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInConditionalExpression() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInConditionalExpression_CSharp8() As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion="8">
         <Document><![CDATA[
 public struct Subject<T>
 {
@@ -4254,6 +4258,91 @@ public struct Subject<T>
     }
 }
 ]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_Remove_CastInConditionalExpression_CSharp9() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="9">
+        <Document><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? {|Simplify:(Subject<TResult>?)|}new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_CastInConditionalExpressionWithDefault() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="9">
+        <Document><![CDATA[
+public struct S
+{
+    void M()
+    {
+        int? x = DateTime.Now.DayOfWeek == DayOfWeek.Tuesday ? {|Simplify:(int?)|}42 : default;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+public struct S
+{
+    void M()
+    {
+        int? x = DateTime.Now.DayOfWeek == DayOfWeek.Tuesday ? (int?)42 : default;
+    }
+}
 </code>
 
             Await TestAsync(input, expected)

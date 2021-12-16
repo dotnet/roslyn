@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed TypeSymbol OriginalTypeSymbolDefinition
+        protected sealed override TypeSymbol OriginalTypeSymbolDefinition
         {
             get
             {
@@ -388,9 +390,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (constraint.TypeKind == TypeKind.TypeParameter)
             {
-                return IsReferenceTypeFromConstraintTypes(((TypeParameterSymbol)constraint).ConstraintTypesNoUseSiteDiagnostics);
+                return ((TypeParameterSymbol)constraint).IsReferenceTypeFromConstraintTypes;
             }
-            else if (!constraint.IsReferenceType)
+
+            return NonTypeParameterConstraintImpliesReferenceType(constraint);
+        }
+
+        internal static bool NonTypeParameterConstraintImpliesReferenceType(TypeSymbol constraint)
+        {
+            Debug.Assert(constraint.TypeKind != TypeKind.TypeParameter);
+
+            if (!constraint.IsReferenceType)
             {
                 return false;
             }
@@ -421,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // > Please note that we do not check the gpReferenceTypeConstraint special constraint here
         // > because this property does not propagate up the constraining hierarchy.
         // > (e.g. "class A<S, T> where S : T, where T : class" does not guarantee that S is ObjRef)
-        internal static bool IsReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        internal static bool CalculateIsReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             foreach (var constraintType in constraintTypes)
             {
@@ -491,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal static bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        internal static bool CalculateIsValueTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             foreach (var constraintType in constraintTypes)
             {
@@ -512,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                return IsReferenceTypeFromConstraintTypes(this.ConstraintTypesNoUseSiteDiagnostics);
+                return IsReferenceTypeFromConstraintTypes;
             }
         }
 
@@ -570,16 +580,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                return IsValueTypeFromConstraintTypes(this.ConstraintTypesNoUseSiteDiagnostics);
+                return IsValueTypeFromConstraintTypes;
             }
         }
 
-        internal sealed override ManagedKind ManagedKind
+        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            get
-            {
-                return HasUnmanagedTypeConstraint ? ManagedKind.Unmanaged : ManagedKind.Managed;
-            }
+            return HasUnmanagedTypeConstraint ? ManagedKind.Unmanaged : ManagedKind.Managed;
         }
 
         public sealed override bool IsRefLikeType
@@ -607,6 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasReferenceTypeConstraint { get; }
 
+        public abstract bool IsReferenceTypeFromConstraintTypes { get; }
+
         /// <summary>
         /// Returns whether the reference type constraint (the 'class' constraint) should also be treated as nullable ('class?') or non-nullable (class!).
         /// In some cases this aspect is unknown (null value is returned). For example, when 'class' constraint is specified in a NonNullTypes(false) context.  
@@ -618,6 +627,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasValueTypeConstraint { get; }
 
+        public abstract bool IsValueTypeFromConstraintTypes { get; }
+
         public abstract bool HasUnmanagedTypeConstraint { get; }
 
         public abstract VarianceKind Variance { get; }
@@ -627,9 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as TypeParameterSymbol, comparison, isValueTypeOverrideOpt);
+            return this.Equals(t2 as TypeParameterSymbol, comparison);
         }
 
         internal bool Equals(TypeParameterSymbol other)
@@ -637,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -650,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Type parameters may be equal but not reference equal due to independent alpha renamings.
-            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, comparison, isValueTypeOverrideOpt);
+            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, comparison);
         }
 
         public override int GetHashCode()
@@ -689,5 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.TypeParameterSymbol(this, nullableAnnotation);
         }
+
+        internal override bool IsRecord => false;
     }
 }

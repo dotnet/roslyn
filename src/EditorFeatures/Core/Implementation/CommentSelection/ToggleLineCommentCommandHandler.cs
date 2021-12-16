@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ICommandHandler<ToggleLineCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
-            new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+            new(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_line_comment;
 
-        internal async override Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
+        internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        private CommentSelectionResult ToggleLineComment(CommentSelectionInfo commentInfo,
+        private static CommentSelectionResult ToggleLineComment(CommentSelectionInfo commentInfo,
             NormalizedSnapshotSpanCollection selectedSpans)
         {
             var textChanges = ArrayBuilder<TextChange>.GetInstance();
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 TextSpan.FromBounds(linesInSelection.First().Start, linesInSelection.Last().End)));
         }
 
-        private List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
+        private static List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
         {
             var lines = new List<ITextSnapshotLine>();
             var startLine = span.Snapshot.GetLineFromPosition(span.Start);
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return lines;
         }
 
-        private bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
+        private static bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
             => linesInSelection.Any(l => !IsLineCommentedOrEmpty(l, commentInfo));
 
         private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)

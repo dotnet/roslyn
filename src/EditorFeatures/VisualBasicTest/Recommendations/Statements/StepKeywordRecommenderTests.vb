@@ -6,46 +6,46 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class StepKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StepInForLoopTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For i = 1 To 10 |</MethodBody>, "Step")
-        End Function
+        Public Sub StepInForLoopTest()
+            VerifyRecommendationsContain(<MethodBody>For i = 1 To 10 |</MethodBody>, "Step")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StepInForLoopAfterLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub StepInForLoopAfterLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>
     For i = 1 To 10 _
 _
 |</MethodBody>, "Step")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StepInForLoopAfterLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub StepInForLoopAfterLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>
     For i = 1 To 10 _ ' Test
 _
 |</MethodBody>, "Step")
-        End Function
+        End Sub
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StepInForLoopNotAfterEOLTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub StepInForLoopNotAfterEOLTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
     For i = 1 To 10 
 |</MethodBody>, "Step")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StepInForLoopNotAfterEOLWithLineContinuationTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub StepInForLoopNotAfterEOLWithLineContinuationTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
     For i = 1 To 10 _
 
 |</MethodBody>, "Step")
-        End Function
+        End Sub
     End Class
 End Namespace

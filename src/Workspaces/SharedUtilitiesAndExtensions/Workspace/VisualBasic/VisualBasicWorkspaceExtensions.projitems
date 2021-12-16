@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContext.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContextExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\VisualBasicSyntaxContextService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.vb" />
@@ -28,7 +29,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectCreationExpressionExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParameterSyntaxExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolDisplayPartExtensions.vb" />

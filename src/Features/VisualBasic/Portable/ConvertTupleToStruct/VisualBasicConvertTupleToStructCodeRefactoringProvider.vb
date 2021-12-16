@@ -30,5 +30,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetArgumentWithChangedName(argument As ArgumentSyntax, name As String) As ArgumentSyntax
+            Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
+
+            If simpleArgument Is Nothing Then
+                Return argument
+            End If
+
+            Dim nameColonEquals = simpleArgument.NameColonEquals
+
+            Return simpleArgument.WithNameColonEquals(ChangeName(nameColonEquals, name))
+        End Function
+
+        Private Shared Function ChangeName(nameColonEquals As NameColonEqualsSyntax, name As String) As NameColonEqualsSyntax
+            If nameColonEquals Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim newName = SyntaxFactory.IdentifierName(name).WithTriviaFrom(nameColonEquals.Name)
+            Return nameColonEquals.WithName(newName)
+        End Function
     End Class
 End Namespace

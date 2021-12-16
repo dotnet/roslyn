@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +11,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -50,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private TypeWithAnnotations.Boxed _lazyReturnType;
+
+        private UnmanagedCallersOnlyAttributeData _lazyUnmanagedAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -219,6 +224,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod.GetReturnTypeAttributes(), ref _lazyReturnTypeCustomAttributes);
         }
 
+#nullable enable
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+        {
+            if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+            {
+                var data = _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+                if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                    || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
+                {
+                    // Underlying hasn't been found yet either, just return it. We'll check again the next
+                    // time this is called
+                    return data;
+                }
+
+                if (data?.CallingConventionTypes.IsEmpty == false)
+                {
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                    foreach (var identifier in data.CallingConventionTypes)
+                    {
+                        builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
+                    }
+
+                    data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet());
+                    builder.Free();
+                }
+
+                Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
+            }
+
+            return _lazyUnmanagedAttributeData;
+        }
+#nullable disable
+
         public override AssemblySymbol ContainingAssembly
         {
             get
@@ -280,6 +318,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// The explicitly overridden method (e.g. as would be declared in the PE method in covariant return scenarios).
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                return
+                    _underlyingMethod.RequiresExplicitOverride(out _)
+                        ? this.RetargetingTranslator.Retarget(_underlyingMethod.OverriddenMethod, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
+                        : null;
+            }
+        }
+
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
@@ -307,5 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

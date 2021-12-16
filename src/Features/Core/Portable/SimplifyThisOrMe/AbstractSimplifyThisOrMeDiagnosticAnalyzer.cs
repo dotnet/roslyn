@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
@@ -32,9 +29,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                   EnforceOnBuildValues.RemoveQualification,
                    ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                   isUnnecessary: true)
         {
             var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             _kindsOfInterest = ImmutableArray.Create(
@@ -97,8 +96,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var severity = optionValue.Notification.Severity;
 
-            RoslynDebug.AssertNotNull(DescriptorId);
-            var descriptor = CreateUnnecessaryDescriptor(DescriptorId);
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
 
@@ -108,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(
-                descriptor, tree.GetLocation(issueSpan), severity,
+                Descriptor, tree.GetLocation(issueSpan), severity,
                 ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);

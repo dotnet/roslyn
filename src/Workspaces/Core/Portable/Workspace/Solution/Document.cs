@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
-        /// 
+        ///
         /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
-        /// 
+        ///
         /// If <see langword="false"/> then that method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
@@ -311,7 +310,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -508,6 +507,37 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
-            => DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
+        {
+            var projectFilePath = Project.FilePath;
+            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+            // as a part of a code action, but haven't been written to disk yet.
+            string? effectiveFilePath = null;
+
+            if (FilePath != null)
+            {
+                effectiveFilePath = FilePath;
+            }
+            else if (Name != null && projectFilePath != null)
+            {
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                {
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
+                }
+            }
+
+            if (effectiveFilePath != null)
+            {
+                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
+            }
+            else
+            {
+                // Really no idea where this is going, so bail
+                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
+                return Task.FromResult(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer));
+            }
+        }
     }
 }

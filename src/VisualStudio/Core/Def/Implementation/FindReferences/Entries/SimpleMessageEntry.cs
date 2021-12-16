@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private Document TryGetDocument()
                 => DefinitionBucket.DefinitionItem.SourceSpans.FirstOrDefault().Document;
 
-            protected override object GetValueWorker(string keyName)
+            protected override object? GetValueWorker(string keyName)
             {
                 switch (keyName)
                 {

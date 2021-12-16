@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -273,7 +275,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             var startOfFirstString = TestString.IndexOf('"');
             var endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
             var startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
-            var lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             // Selects interpolated string start token
             AssertExtent(

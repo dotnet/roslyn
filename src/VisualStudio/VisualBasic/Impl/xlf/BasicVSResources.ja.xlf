@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="translated">貼り付け時に欠落している imports を追加する</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">関係演算子: = &lt;&gt; &lt; &gt; &lt;= &gt;= Like Is</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
+        <source>Insert ' at the start of new lines when writing ' comments</source>
+        <target state="translated">' コメントの記述時に ' を新しい行の先頭に挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -32,14 +42,24 @@
         <target state="translated">行わない</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="translated">'IsNot' 式を優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_New_expressions">
+        <source>Show hints for 'New' expressions</source>
+        <target state="translated">'New' 式のヒントを表示する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">インポートされていない名前空間の項目を表示する (試験段階)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">インポートされていない名前空間の項目を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

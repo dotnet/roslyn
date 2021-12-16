@@ -6,18 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -25,33 +26,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
+        private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
+
+        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
+
+        static SymbolCompletionProvider()
+        {
+            for (var importDirective = 0; importDirective < 2; importDirective++)
+            {
+                for (var preselect = 0; preselect < 2; preselect++)
+                {
+                    for (var tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
+                    {
+                        var context = (importDirective: importDirective == 1, preselect: preselect == 1, tupleLiteral: tupleLiteral == 1);
+                        s_cachedRules[context] = MakeRule(context);
+                    }
+                }
+            }
+
+            return;
+
+            static CompletionItemRules MakeRule((bool importDirective, bool preselect, bool tupleLiteral) context)
+            {
+                // '<' should not filter the completion list, even though it's in generic items like IList<>
+                var generalBaseline = CompletionItemRules.Default.
+                    WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
+                    WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+
+                var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
+                    ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+
+                var rule = context.importDirective ? importDirectiveBaseline : generalBaseline;
+
+                if (context.preselect)
+                    rule = rule.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+                if (context.tupleLiteral)
+                    rule = rule.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+                return rule;
+            }
+        }
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolCompletionProvider()
         {
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                context.SemanticModel, position, context.Workspace, options, cancellationToken);
-        }
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
 
-        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldPreselectInferredTypesAsync(
+            CompletionContext? context,
+            int position,
+            OptionSet options,
+            CancellationToken cancellationToken)
         {
-            var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-            if (ShouldTriggerInArgumentLists(sourceText, options))
+            if (context != null)
             {
-                // Avoid preselection & hard selection when triggered via insertion in an argument list.
-                // If an item is hard selected, then a user trying to type MethodCall() will get
-                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
-                if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
-                    position > 0 &&
-                    await IsTriggerInArgumentListAsync(document, position - 1, CancellationToken.None).ConfigureAwait(false) == true)
+                var document = context.Document;
+                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, options))
                 {
-                    return false;
+                    // Avoid preselection & hard selection when triggered via insertion in an argument list.
+                    // If an item is hard selected, then a user trying to type MethodCall() will get
+                    // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
+                    if (context.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                        position > 0 &&
+                        await IsTriggerInArgumentListAsync(document, position - 1, cancellationToken).ConfigureAwait(false) == true)
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -61,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override bool IsInstrinsic(ISymbol s)
             => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return ShouldTriggerInArgumentLists(text, options)
+            return Workspace.TryGetWorkspace(text.Container, out var workspace) && ShouldTriggerInArgumentLists(workspace, options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -74,17 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var result = await IsTriggerOnDotAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
                 if (result.HasValue)
-                {
                     return result.Value;
-                }
 
                 if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
                 {
                     result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
                     if (result.HasValue)
-                    {
                         return result.Value;
-                    }
                 }
             }
 
@@ -92,24 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
-
-        protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
-        {
-            var result = await IsTriggerOnDotAsync(document, characterPosition, cancellationToken).ConfigureAwait(false);
-            if (result.HasValue)
-            {
-                return result.Value;
-            }
-
-            return true;
-        }
-
-        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
-            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
-                ShouldTriggerInArgumentLists(workspace, options);
-
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
         {
@@ -121,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (_shouldTriggerCompletionInArgumentListsExperiment == null)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
                 _shouldTriggerCompletionInArgumentListsExperiment =
                     experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
             }
@@ -129,23 +154,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return _shouldTriggerCompletionInArgumentListsExperiment.Value;
         }
 
-        private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (text[characterPosition] != '.')
-            {
-                return null;
-            }
+            if (!IsDot(token, characterPosition))
+                return false;
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
-            if (token.Kind() == SyntaxKind.DotToken)
-            {
-                token = token.GetPreviousToken();
-            }
+            return token.GetPreviousToken().Kind() != SyntaxKind.NumericLiteralToken;
+        }
 
-            return token.Kind() != SyntaxKind.NumericLiteralToken;
+        private static bool IsDot(SyntaxToken token, int characterPosition)
+        {
+            if (token.Kind() == SyntaxKind.DotToken)
+                return true;
+
+            // if we're right after the first dot in .. then that's considered completion on dot.
+            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
+                return true;
+
+            return false;
         }
 
         /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
@@ -157,8 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
 
             if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
@@ -183,80 +210,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-        }
-
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, CSharpSyntaxContext context)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            var preselect = symbols.Any(t => t.preselect);
+            s_cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }
 
-        private static readonly Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules> cachedRules = InitCachedRules();
-
-        private static Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules> InitCachedRules()
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            CSharpSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
         {
-            var result = new Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules>();
+            var item = base.CreateItem(
+                completionContext,
+                displayText,
+                displayTextSuffix,
+                insertionText,
+                symbols,
+                context,
+                supportedPlatformData);
 
-            for (var importDirective = 0; importDirective < 2; importDirective++)
+            var symbol = symbols[0].symbol;
+            // If it is a method symbol, also consider appending parenthesis when later, it is committed by using special characters.
+            // 2 cases are excluded.
+            // 1. If it is invoked under Nameof Context.
+            // For example: var a = nameof(Bar$$)
+            // In this case, if later committed by semicolon, we should have
+            // var a = nameof(Bar);
+            // 2. If the inferred type is delegate or function pointer.
+            // e.g. Action c = Bar$$
+            // In this case, if later committed by semicolon, we should have
+            // e.g. Action c = = Bar;
+            if (symbol.IsKind(SymbolKind.Method) && !context.IsNameOfContext)
             {
-                for (var preselect = 0; preselect < 2; preselect++)
+                var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(type => type.IsDelegateType() || type.IsFunctionPointerType());
+                if (!isInferredTypeDelegateOrFunctionPointer)
                 {
-                    for (var tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
-                    {
-                        if (importDirective == 1 && tupleLiteral == 1)
-                        {
-                            // this combination doesn't make sense, we can skip it
-                            continue;
-                        }
-
-                        var context = ValueTuple.Create(importDirective == 1, preselect == 1, tupleLiteral == 1);
-                        result[context] = MakeRule(importDirective, preselect, tupleLiteral);
-                    }
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
+            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            {
+                // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
+                // and the type is used as constructor
+                if (context.IsObjectCreationTypeContext)
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+            }
 
-            return result;
+            return item;
         }
 
-        private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)
-            => MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
-
-        private static CompletionItemRules MakeRule(bool importDirective, bool preselect, bool tupleLiteral)
+        protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            // '<' should not filter the completion list, even though it's in generic items like IList<>
-            var generalBaseline = CompletionItemRules.Default.
-                WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
-                WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
-
-            var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
-                ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
-
-            var rule = importDirective ? importDirectiveBaseline : generalBaseline;
-
-            if (preselect)
+            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                rule = rule.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
             }
 
-            if (tupleLiteral)
-            {
-                rule = rule
-                    .WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
-            }
-
-            return rule;
+            return base.GetInsertionText(item, ch);
         }
-
-        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
     }
 }

@@ -27,6 +27,11 @@
         <target state="translated">A invocação de delegado pode ser simplificada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">O discard pode ser removido</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">A indexação pode ser simplificada</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">Remover operador de supressão desnecessário</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">Remover o discard desnecessário</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -202,6 +212,11 @@
         <target state="translated">Usar função local</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">Usar 'new(...)'</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usar a correspondência de padrão</target>
@@ -260,6 +275,16 @@
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">A instrução 'if' pode ser simplificada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">A expressão 'new' pode ser simplificada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">'typeof' pode ser convertido em 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

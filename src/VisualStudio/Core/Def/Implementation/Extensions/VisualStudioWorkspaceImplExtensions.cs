@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 {
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         // hierarchy we're getting them for.  To do this, we attach them to the hierarchy with a
         // conditional weak table.
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle =
-            new ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>();
+            new();
 
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>.CreateValueCallback s_createValue =
             _ => new Dictionary<uint, IImageHandle>();
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             var hierarchy = workspace.GetHierarchy(id.ProjectId);
             var document = workspace.CurrentSolution.GetDocument(id);
-            if (hierarchy != null)
+            if (hierarchy != null && !RoslynString.IsNullOrEmpty(document?.FilePath))
             {
                 var itemId = hierarchy.TryGetItemId(document.FilePath);
                 return TryGetImageListAndIndex(hierarchy, imageService, itemId, out imageList, out index);

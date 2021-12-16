@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
             bool isPreProcessorDirectiveContext,
+            bool isPreProcessorExpressionContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
             bool isAnyExpressionContext,
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
+            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
             this.IsAnyExpressionContext = isAnyExpressionContext;
@@ -73,7 +77,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
 
+        /// <summary>
+        /// The token to the left of <see cref="Position"/>. This token may be touching the position.
+        /// </summary>
         public SyntaxToken LeftToken { get; }
+
+        /// <summary>
+        /// The first token to the left of <see cref="Position"/> that we're not touching. Equal to <see cref="LeftToken"/>
+        /// if we aren't touching <see cref="LeftToken" />.
+        /// </summary>
         public SyntaxToken TargetToken { get; }
 
         public bool IsTypeContext { get; }
@@ -82,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsNamespaceDeclarationNameContext { get; }
 
         public bool IsPreProcessorDirectiveContext { get; }
+        public bool IsPreProcessorExpressionContext { get; }
 
         public bool IsRightOfNameSeparator { get; }
         public bool IsStatementContext { get; }

@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
             var msbuildWorkspace = MSBuildWorkspace.Create();
+            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading the solution: " + e.Diagnostic.Message);
+
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices);
+                    lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices, project.Solution.Options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var generationStopwatch = Stopwatch.StartNew();
             var lsifGenerator = new Generator(lsifWriter);
 
-            lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices);
+            lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
             await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
     }

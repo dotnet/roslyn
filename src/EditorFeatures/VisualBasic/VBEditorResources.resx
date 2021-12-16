@@ -180,4 +180,12 @@
   <data name="Implement_Abstract_Class_Or_Interface" xml:space="preserve">
     <value>Implement Abstract Class Or Interface</value>
   </data>
+  <data name="Adding_missing_imports" xml:space="preserve">
+    <value>Adding missing imports...</value>
+    <comment>Thread awaited dialog text. "imports" is a language specific term and should not be localized</comment>
+  </data>
+  <data name="Add_Missing_Imports_on_Paste" xml:space="preserve">
+    <value>Add Missing Imports on Paste</value>
+    <comment>"imports" is a language specific term and should not be localized</comment>
+  </data>
 </root>

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString();
+                var metadataName = reader.ReadString()!;
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 Resolve(result, reader, metadataName, delegateInvoke.Parameters);
                             }
+
                             break;
                     }
                 }

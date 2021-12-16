@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -22,10 +24,10 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     [Export(typeof(ICommandHandler))]
-    [ContentType(CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
+    [ContentType(Microsoft.CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
     [Name("CSharp Snippets")]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
+    [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
         ICommandHandler<SurroundWithCommandArgs>
@@ -58,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!CodeAnalysis.Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 return CommandState.Unspecified;
             }

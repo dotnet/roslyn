@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
     {
         public MakeLocalFunctionStaticDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
+                   EnforceOnBuildValues.MakeLocalFunctionStatic,
                    CSharpCodeStyleOptions.PreferStaticLocalFunction,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var semanticModel = context.SemanticModel;
-            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) && captures.Length == 0)
+            if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticBecauseNoCaptures(localFunction, semanticModel))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,

@@ -27,6 +27,11 @@
         <target state="translated">可简化委托调用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">可删除放弃项</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">索引可以简化</target>
@@ -74,12 +79,17 @@
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
-        <target state="translated">请删除禁止使用的运算符</target>
+        <target state="translated">请删除忽略运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
-        <target state="translated">请删除不必要的禁止使用的运算符</target>
+        <target state="translated">请删除不必要的忽略运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">删除不必要的放弃项</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -202,6 +212,11 @@
         <target state="translated">使用本地函数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">使用 "new(...)"</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">使用模式匹配</target>
@@ -260,6 +275,16 @@
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">可简化“If”语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">可简化 "new" 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">"typeof" 可以转换为 "nameof"</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

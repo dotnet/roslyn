@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,12 +13,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyInterpolation)]
     public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyInterpolationTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
@@ -38,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             Assert.Equal(
                 new[] {
                     ("IDE0071", DiagnosticSeverity.Info),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                 },
                 diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
         }
@@ -933,6 +939,127 @@ ref struct RefStruct
 ref struct RefStruct
 {
     public override string ToString() => ""A"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task ShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task OverridenShadowedToString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public new string ToString() => ""Shadow"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideShadow"";
+    static string M(C c) => $""{c[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(46011, "https://github.com/dotnet/roslyn/issues/46011")]
+        public async Task DoubleOverridenToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}} suffix"";
+    }
+}",
+@"class C
+{
+    public override string ToString() => ""Override"";
+}
+
+class B : C
+{
+    public override string ToString() => ""OverrideOverride"";
+
+    void M(B someValue)
+    {
+        _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString()|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2)}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2):g}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""){|Unnecessary:[||].PadLeft(|}3{|Unnecessary:)|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""),3}"";
+    }
 }");
         }
     }

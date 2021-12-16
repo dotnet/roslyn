@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,12 +23,16 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         TExpressionSyntax,
         TInterpolationAlignmentClause,
         TInterpolationFormatClause,
-        TInterpolatedStringExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+        TInterpolatedStringExpressionSyntax,
+        TConditionalExpressionSyntax,
+        TParenthesizedExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TInterpolationAlignmentClause : SyntaxNode
         where TInterpolationFormatClause : SyntaxNode
         where TInterpolatedStringExpressionSyntax : TExpressionSyntax
+        where TConditionalExpressionSyntax : TExpressionSyntax
+        where TParenthesizedExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                         document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
                         out var alignment, out var negate, out var formatString, out _);

@@ -92,9 +92,24 @@
         <target state="translated">Escopo da análise em segundo plano:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="translated">32 bits</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="translated">64 bits</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Build + análise em tempo real (pacote NuGet)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="translated">Cliente da Linguagem de Diagnóstico C#/Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -137,9 +152,19 @@
         <target state="translated">Análise de código terminada antes da conclusão da Solução.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="translated">Dicas com cores</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Colorir expressões regulares</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="translated">Comentários</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -159,7 +184,22 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">Parâmetro atual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="translated">Exibir todas as dicas ao pressionar Alt+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">Exi_bir as dicas embutidas de nome de parâmetro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="translated">Exibir as dicas embutidas de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -187,6 +227,16 @@
         <target state="translated">O elemento é inválido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Habilitar o diagnóstico de 'pull' do Razor (experimental, exige uma reinicialização)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Habilitar o diagnóstico de 'pull' (experimental, exige uma reinicialização)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Insira um valor de site de chamada ou escolha um tipo de injeção de valor diferente</target>
@@ -205,6 +255,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Avaliando ({0} tarefas na fila)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="translated">Extrair a Classe Base</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -245,6 +300,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Indexado no repositório</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints_experimental">
+        <source>Inline Hints (experimental)</source>
+        <target state="translated">Dicas Embutidas (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -337,6 +397,16 @@
         <target state="translated">Mover para o Namespace</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="translated">O nome está em conflito com um nome de tipo existente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="translated">O nome não é um identificador de {0} válido.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
         <target state="translated">Namespace</target>
@@ -404,7 +474,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="translated">Propriedade.</target>
+        <target state="translated">propriedade</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -495,6 +565,11 @@
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca se desnecessário</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="translated">Novo Nome de Tipo:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -737,14 +812,64 @@
         <target state="translated">Mostrar a lista de conclusão</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="translated">Mostrar as dicas para tudo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">Mostrar dicas para a criação de objeto implícito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="translated">Mostrar as dicas para os tipos de parâmetro lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="translated">Mostrar as dicas para os literais</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="translated">Mostrar as dicas para as variáveis com tipos inferidos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Algumas cores do esquema de cores estão sendo substituídas pelas alterações feitas na página de Ambiente &gt; Opções de Fontes e Cores. Escolha 'Usar Padrões' na página Fontes e Cores para reverter todas as personalizações.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="translated">Suprimir as dicas quando o nome do parâmetro corresponder à intenção do método</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="translated">Suprimir as dicas quando os nomes de parâmetros diferirem somente pelo sufixo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Namespace de Destino:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
+        <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
+        <target state="translated">O gerador '{0}' que gerou esse arquivo foi removido do projeto. Esse arquivo não será mais incluído no projeto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
+        <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
+        <target state="translated">O gerador '{0}' que gerou esse arquivo parou de gerá-lo. Esse arquivo não será mais incluído no projeto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
+        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
+        <target state="translated">Esse arquivo é gerado automaticamente pelo gerador '{0}' e não pode ser editado.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
@@ -787,9 +912,9 @@
         <target state="translated">Atualizando a severidade</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="translated">Usar o modo de compatibilidade .editorconfig (exige reinicialização)</target>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="translated">Usar o processo de 64 bits para análise de código (requer reinicialização)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -865,16 +990,6 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Você deve selecionar pelo menos um membro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">O nome da interface conflita com um nome de tipo existente.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">O nome da interface não é um identificador {0} válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -995,6 +1110,16 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' será alterado para público.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_by_0_suffix">
+        <source>[generated by {0}]</source>
+        <target state="translated">[gerado por {0}]</target>
+        <note>{0} is the name of a generator.</note>
+      </trans-unit>
+      <trans-unit id="generated_suffix">
+        <source>[generated]</source>
+        <target state="translated">[gerado]</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1162,16 +1287,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Projeto: {0}
 
 Use a lista suspensa para exibir e mudar entre outros projetos aos quais este arquivo possa pertencer.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Erro ao ler arquivo de conjunto de regras {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -2240,23 +2355,23 @@ Informações adicionais: {1}</target>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="translated">IMPORTANTE: o Visual Studio inclui a funcionalidade de descompilação (“Descompilador”) que habilita a reprodução do código-fonte com base em código binário. Ao acessar e usar o Descompilador, você concorda com os termos de licença do Visual Studio e os termos do Descompilador abaixo. Se você não concorda com esses termos combinados, não acesse nem use o Descompilador.
+        <target state="translated">IMPORTANTE: o Visual Studio inclui a funcionalidade de descompilação (“Descompilador”) que permite a reprodução do código-fonte usando código binário. Ao acessar e usar o Descompilador, você concorda com os termos de licença do Visual Studio e com os termos do Descompilador abaixo. Se você não concorda com esses termos combinados, não acesse nem use o Descompilador.
  
-Você declara-se ciente de que o código binário e o código-fonte podem estar protegidos por leis de direitos autorais e de marca. Antes de usar o Descompilador em qualquer código binário, você deve primeiro:  
-(i) confirmar que os termos da licença que regem o uso do código binário não contêm uma provisão que lhe proíbe de descompilar o software; ou
-(ii) obter permissão para descompilar o código binário do proprietário do software.
+Você reconhece que o código binário e o código-fonte podem estar protegidos por leis de direitos autorais e de marca. Antes de usar o Descompilador em qualquer código binário, você deve primeiro:
+(i) confirmar que os termos da licença que regem o uso do código binário não contenham uma provisão que proíba você de descompilar o software; ou
+(ii) obter permissão do proprietário do software para descompilar o código binário.
  
-Seu uso do Descompilador é opcional. A Microsoft não é responsável e isenta-se de toda obrigação referente ao seu uso do Descompilador que viole quaisquer leis ou termos de licença de software que proíba a descompilação do software.
+O uso que você faz do Descompilador é opcional. A Microsoft não é responsável e isenta-se de toda obrigação referente ao uso que você faz do Descompilador em violação a alguma lei ou termo de licença do software que proíba a descompilação do software.
 
-Eu concordo com todo o conteúdo supracitado:</target>
+Eu concordo com todo o conteúdo citado acima:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">

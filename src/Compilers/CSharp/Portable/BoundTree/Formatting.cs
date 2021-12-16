@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -161,6 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
             => (Type is null) ? MessageID.IDS_FeatureSwitchExpression.Localize() : base.Display;
+    }
+
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

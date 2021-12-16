@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +116,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 new CodeGenerationOptions(
                     contextLocation: classNodeToAddMembersTo.GetLocation(),
                     autoInsertionLocation: groupMembers,
-                    sortMembers: groupMembers));
+                    sortMembers: groupMembers,
+                    options: options));
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(_classNode, updatedClassNode);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 statements: ImmutableArray.Create(statement));
         }
 
-        private bool ShouldGenerateAccessor(IMethodSymbol? method)
+        private bool ShouldGenerateAccessor([NotNullWhen(true)] IMethodSymbol? method)
             => method != null && ClassType.FindImplementationForAbstractMember(method) == null;
 
         public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()

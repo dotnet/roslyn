@@ -52,21 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(simpleAssemblyName, identityComparer, observedMetadata)
             End Sub
 
-            Protected Overrides Function GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol) As AssemblySymbol()
-                Dim refs As New List(Of AssemblySymbol)
-
+            Protected Overrides Sub GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol, referencedAssemblySymbols As List(Of AssemblySymbol))
+                Debug.Assert(referencedAssemblySymbols.IsEmpty())
                 For Each [module] In assemblySymbol.Modules
-                    refs.AddRange([module].GetReferencedAssemblySymbols())
+                    referencedAssemblySymbols.AddRange([module].GetReferencedAssemblySymbols())
                 Next
 
-                For i As Integer = 0 To refs.Count - 1 Step 1
-                    If refs(i).IsMissing Then
-                        refs(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
+                For i As Integer = 0 To referencedAssemblySymbols.Count - 1 Step 1
+                    If referencedAssemblySymbols(i).IsMissing Then
+                        referencedAssemblySymbols(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
                     End If
                 Next
-
-                Return refs.ToArray()
-            End Function
+            End Sub
 
             Protected Overrides Function GetNoPiaResolutionAssemblies(candidateAssembly As AssemblySymbol) As ImmutableArray(Of AssemblySymbol)
                 If TypeOf candidateAssembly Is SourceAssemblySymbol Then

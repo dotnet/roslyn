@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
 
             var doc = emptyProject.AddDocument("test.cs", code);
 
@@ -768,7 +770,7 @@ class C
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
 
             var project = emptyProject
                 .AddMetadataReferences(new[] { otherAssemblyReference })
@@ -821,7 +823,7 @@ class C
             var compilation = CSharpCompilation
                 .Create("test.dll", new[] { tree })
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib);
+                .AddReferences(TestMetadata.Net451.mscorlib);
 
             return compilation.ToMetadataReference();
         }

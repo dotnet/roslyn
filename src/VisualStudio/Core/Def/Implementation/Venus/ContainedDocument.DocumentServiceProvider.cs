@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -47,11 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return excerpter;
                 }
 
-                if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
-                {
-                    return documentPropertiesService;
-                }
-
                 // ask the default document service provider
                 return DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
             }
@@ -59,18 +56,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
                 => sourceText.FindCorrespondingEditorTextSnapshot();
 
-            private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-            {
-                public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                public override bool DesignTimeOnly => true;
-            }
-
             private class SpanMapper : ISpanMappingService
             {
                 private readonly ITextBuffer _primaryBuffer;
 
                 public SpanMapper(ITextBuffer primaryBuffer)
                     => _primaryBuffer = primaryBuffer;
+
+                /// <summary>
+                /// Legacy venus does not support us adding import directives and them mapping them to their own concepts.
+                /// </summary>
+                public bool SupportsMappingImportDirectives => false;
 
                 public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
                 {
@@ -304,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)
-                    => new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
+                    => new(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
             }
         }
     }

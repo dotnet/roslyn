@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,12 +26,12 @@ namespace Roslyn.Utilities
             => task!;
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<T> Default<T>() where T : struct
-            => TasksOfStruct<T>.Default;
+        public static Task<T?> Default<T>()
+            => EmptyTasks<T>.Default;
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<T?> Null<T>() where T : class
-            => TasksOfClass<T>.Null;
+            => Default<T>();
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
@@ -60,7 +58,7 @@ namespace Roslyn.Utilities
         {
             var taskArray = tasks.AsArray();
             if (taskArray.Length == 0)
-                return new ValueTask<T[]>(Array.Empty<T>());
+                return ValueTaskFactory.FromResult(Array.Empty<T>());
 
             var allCompletedSuccessfully = true;
             for (var i = 0; i < taskArray.Length; i++)
@@ -80,7 +78,7 @@ namespace Roslyn.Utilities
                     result[i] = taskArray[i].Result;
                 }
 
-                return new ValueTask<T[]>(result);
+                return ValueTaskFactory.FromResult(result);
             }
             else
             {
@@ -88,18 +86,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static class TasksOfStruct<T> where T : struct
-        {
-            public static readonly Task<T> Default = Task.FromResult<T>(default);
-        }
-
-        private static class TasksOfClass<T> where T : class
-        {
-            public static readonly Task<T?> Null = Task.FromResult<T?>(null);
-        }
-
         private static class EmptyTasks<T>
         {
+            public static readonly Task<T?> Default = Task.FromResult<T?>(default);
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());
@@ -108,7 +97,7 @@ namespace Roslyn.Utilities
 
         private static class FromResultCache<T> where T : class
         {
-            private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new ConditionalWeakTable<T, Task<T>>();
+            private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new();
             private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
 
             [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]

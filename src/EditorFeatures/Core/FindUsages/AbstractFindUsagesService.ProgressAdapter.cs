@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _definition = definition;
             }
 
-            public async Task OnReferenceFoundAsync(Document document, TextSpan span)
+            public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span)
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
@@ -65,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             /// all future callbacks.
             /// </summary>
             private readonly Dictionary<ISymbol, DefinitionItem> _definitionToItem =
-                new Dictionary<ISymbol, DefinitionItem>(MetadataUnifyingEquivalenceComparer.Instance);
+                new(MetadataUnifyingEquivalenceComparer.Instance);
 
-            private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
@@ -82,16 +84,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public Task OnStartedAsync() => Task.CompletedTask;
-            public Task OnCompletedAsync() => Task.CompletedTask;
-            public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-            public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
+            public ValueTask OnStartedAsync() => default;
+            public ValueTask OnCompletedAsync() => default;
+            public ValueTask OnFindInDocumentStartedAsync(Document document) => default;
+            public ValueTask OnFindInDocumentCompletedAsync(Document document) => default;
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
+            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
             {
                 var cancellationToken = _context.CancellationToken;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -112,13 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(ISymbol definition)
+            public async ValueTask OnDefinitionFoundAsync(ISymbol definition)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(

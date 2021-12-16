@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
@@ -14,24 +12,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Private Property IsExpandedCompletion As Boolean = True
-
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
         ' -1 would disable timebox, whereas 0 means always timeout.
         Private Property TimeoutInMilliseconds As Integer = -1
 
+        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
+
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
         End Function
 
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(s_defaultRules)
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
             Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
             Dim isDoubleQuote = text(characterPosition) = """"c
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                    IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
         Public Shared Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return GetCloseTagItem(token.GetPreviousToken())
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
                 Dim symbol As ISymbol = Nothing
 
                 If declaration IsNot Nothing Then
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Return items
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 Return SpecializedCollections.EmptyEnumerable(Of CompletionItem)
             End Try
         End Function

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
             public static void Create(IModuleSymbol symbol, SymbolKeyWriter visitor)
                 => visitor.WriteSymbolKey(symbol.ContainingSymbol);
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
 

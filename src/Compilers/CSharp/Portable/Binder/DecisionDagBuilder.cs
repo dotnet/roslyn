@@ -11,9 +11,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -583,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
                 builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
                 var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.ConvertedType))
+                if (bin.InputType.Equals(bin.NarrowedType))
                 {
                     output = input;
                     return result;
@@ -592,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.ConvertedType, isExplicitTest: false, tests: builder);
+                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
                     return Tests.AndSequence.Create(builder);
                 }
             }
@@ -601,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
                 builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                 output = rightOutput;
-                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
                 return Tests.AndSequence.Create(builder);
             }
         }
@@ -640,15 +637,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDecisionDag MakeBoundDecisionDag(SyntaxNode syntax, ImmutableArray<StateForCase> cases)
         {
-            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
-
             // Build the state machine underlying the decision dag
             DecisionDag decisionDag = MakeDecisionDag(cases);
 
-            // Note: It is useful for debugging the dag state table construction to view `decisionDag.Dump()` here.
+            // Note: It is useful for debugging the dag state table construction to set a breakpoint
+            // here and view `decisionDag.Dump()`.
+            ;
 
             // Compute the bound decision dag corresponding to each node of decisionDag, and store
             // it in node.Dag.
+            var defaultDecision = new BoundLeafDecisionDagNode(syntax, _defaultLabel);
             ComputeBoundDecisionDagNodes(decisionDag, defaultDecision);
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
@@ -679,29 +677,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = new DagState(cases, remainingValues);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
-                    var newRemainingValues = existingState.RemainingValues;
-                    bool changed = false;
+                    // We found an existing state that matches.  Update its set of possible remaining values
+                    // of each temp by taking the union of the sets on each incoming edge.
+                    var newRemainingValues = ImmutableDictionary.CreateBuilder<BoundDagTemp, IValueSet>();
                     foreach (var (dagTemp, valuesForTemp) in remainingValues)
                     {
-                        if (newRemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
+                        // If one incoming edge does not have a set of possible values for the temp,
+                        // that means the temp can take on any value of its type.
+                        if (existingState.RemainingValues.TryGetValue(dagTemp, out var existingValuesForTemp))
                         {
                             var newExistingValuesForTemp = existingValuesForTemp.Union(valuesForTemp);
-                            if (!newExistingValuesForTemp.Equals(existingValuesForTemp))
-                            {
-                                newRemainingValues = newRemainingValues.SetItem(dagTemp, newExistingValuesForTemp);
-                                changed = true;
-                            }
-                        }
-                        else
-                        {
-                            newRemainingValues = newRemainingValues.Add(dagTemp, valuesForTemp);
-                            changed = true;
+                            newRemainingValues.Add(dagTemp, newExistingValuesForTemp);
                         }
                     }
 
-                    if (changed)
+                    if (existingState.RemainingValues.Count != newRemainingValues.Count ||
+                        !existingState.RemainingValues.All(kv => newRemainingValues.TryGetValue(kv.Key, out IValueSet? values) && kv.Value.Equals(values)))
                     {
-                        existingState.UpdateRemainingValues(newRemainingValues);
+                        existingState.UpdateRemainingValues(newRemainingValues.ToImmutable());
                         if (!workList.Contains(existingState))
                             workList.Push(existingState);
                     }
@@ -1005,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 IValueSet fromTestPassing = valueFac.Related(relation.Operator(), value);
                 IValueSet fromTestFailing = fromTestPassing.Complement();
-                if (values.TryGetValue(test.Input, out IValueSet tempValuesBeforeTest))
+                if (values.TryGetValue(test.Input, out IValueSet? tempValuesBeforeTest))
                 {
                     fromTestPassing = fromTestPassing.Intersect(tempValuesBeforeTest);
                     fromTestFailing = fromTestFailing.Intersect(tempValuesBeforeTest);
@@ -1453,6 +1446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return $"t{tempIdentifier(a)}={a.Kind}({tempName(a.Input)} as {a.Type})";
                         case BoundDagFieldEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Field.Name})";
+                        case BoundDagPropertyEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Property.Name})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
@@ -1844,6 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case False f:
+                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
                                 var testsToInsert = seq.RemainingTests;
@@ -1913,6 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case True t:
+                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
                                 remainingTests.RemoveAt(i);

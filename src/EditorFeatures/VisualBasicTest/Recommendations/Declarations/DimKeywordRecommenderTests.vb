@@ -6,200 +6,200 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class DimKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInMethodDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Dim")
-        End Function
+        Public Sub DimInMethodDeclarationTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterStaticInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Static |</MethodBody>, "Dim")
-        End Function
+        Public Sub DimNotAfterStaticInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>Static |</MethodBody>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInMultiLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub DimInMultiLineLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
 |
 End Sub</MethodBody>, "Dim")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "Dim")
-        End Function
+        Public Sub DimNotInSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Sub() |</MethodBody>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInClassDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimInClassDeclarationTest()
+            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotInNamespaceTest() As Task
-            Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotInNamespaceTest()
+            VerifyRecommendationsMissing(<NamespaceDeclaration>|</NamespaceDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotInInterfaceTest() As Task
-            Await VerifyRecommendationsMissingAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotInInterfaceTest()
+            VerifyRecommendationsMissing(<InterfaceDeclaration>|</InterfaceDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotInEnumTest() As Task
-            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotInEnumTest()
+            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInStructureTest() As Task
-            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Dim")
-        End Function
+        Public Sub DimInStructureTest()
+            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInModuleTest() As Task
-            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Dim")
-        End Function
+        Public Sub DimInModuleTest()
+            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterPartialTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Partial |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterPartialTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Partial |</ClassDeclaration>, "Dim")
+        End Sub
 
         <WorkItem(545036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545036")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterDimTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterPublicTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterPublicTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterProtectedTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterProtectedTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Protected |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterFriendTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterFriendTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterPrivateTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterPrivateTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Private |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterProtectedFriendTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterProtectedFriendTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterOverloadsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterOverloadsTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterOverridableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterOverridableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterNotOverridableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterNotOverridableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterMustOverrideTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterMustOverrideTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterMustOverrideOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterMustOverrideOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterNotOverridableOverridesTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterNotOverridableOverridesTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterConstTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterConstTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterDefaultTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterDefaultTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterMustInheritTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterMustInheritTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterNotInheritableTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterNotInheritableTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterNarrowingTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterNarrowingTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterWideningTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterWideningTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterReadOnlyTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterReadOnlyTest()
+            VerifyRecommendationsContain(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterWriteOnlyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterWriteOnlyTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimNotAfterCustomTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimNotAfterCustomTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterSharedTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Dim")
-        End Function
+        Public Sub DimAfterSharedTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Dim")
+        End Sub
 
         <WorkItem(542720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542720")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimInSingleLineIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Di|</MethodBody>, "Dim")
-        End Function
+        Public Sub DimInSingleLineIfTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Di|</MethodBody>, "Dim")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function DimAfterSingleLineLambdaTest() As Task
+        Public Sub DimAfterSingleLineLambdaTest()
             Dim code =
 <MethodBody>
 Dim X = Function() True
 |
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Dim")
-        End Function
+            VerifyRecommendationsContain(code, "Dim")
+        End Sub
 
         <WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotAfterHashTest()
+            VerifyRecommendationsMissing(<File>
 Imports System
 
 #|
@@ -209,6 +209,6 @@ Module Module1
 End Module
 
 </File>, "Dim")
-        End Function
+        End Sub
     End Class
 End Namespace

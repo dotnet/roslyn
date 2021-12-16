@@ -26,7 +26,7 @@
 
   <Target Name="_BeforeVBCSCoreCompile"
           DependsOnTargets="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies">
-    
+
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
       <ReferencePathWithRefAssemblies>
         <EmbedInteropTypes />
@@ -50,6 +50,28 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
+    <!-- First, force clear non-user facing property '_SkipAnalyzers'. -->
+    <PropertyGroup>
+      <_SkipAnalyzers></_SkipAnalyzers>
+    </PropertyGroup>
+
+    <!--
+        Then, determine if '_SkipAnalyzers' needs to be 'true' based on user facing property 'RunAnalyzers'.
+        If 'RunAnalyzers' is not set, then fallback to user facing property 'RunAnalyzersDuringBuild'.
+        Latter property allows users to disable analyzers only for non-design time builds.
+        Design time builds are background builds inside Visual Studio,
+        see details here: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.
+        Setting 'RunAnalyzersDuringBuild' to false, without setting 'RunAnalyzers', allows users to
+        continue running analyzers in the background in Visual Studio while typing (i.e. intellisense),
+        while disabling analyzer execution on explicitly invoked non-design time builds.
+      -->
+    <PropertyGroup Condition="'$(RunAnalyzers)' == 'false' or
+                              ('$(RunAnalyzers)' == '' and '$(RunAnalyzersDuringBuild)' == 'false')">
+      <_SkipAnalyzers>true</_SkipAnalyzers>
+    </PropertyGroup>
+  </Target>
+
   <!--
     ========================
     .editorconfig Support
@@ -57,11 +79,14 @@
     
     -->
   <ItemGroup>
-    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false' or '$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
     <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
          compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
     <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    
+    <GlobalAnalyzerConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.globalconfig'))" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(GlobalAnalyzerConfigFiles->Exists())" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' != 'false'" />
   </ItemGroup>
 
   <!--
@@ -78,17 +103,14 @@
     -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
-  <PropertyGroup>
-    <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
-    <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
-  </PropertyGroup>
-
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
           DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
 
   <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
     <PropertyGroup>
+      <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
+      <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
       <_GeneratedEditorConfigHasItems Condition="'@(CompilerVisibleItemMetadata->Count())' != '0'">true</_GeneratedEditorConfigHasItems>
       <_GeneratedEditorConfigShouldRun Condition="'$(GenerateMSBuildEditorConfigFile)' == 'true' and ('$(_GeneratedEditorConfigHasItems)' == 'true' or '@(CompilerVisibleProperty->Count())' != '0')">true</_GeneratedEditorConfigShouldRun>
     </PropertyGroup>
@@ -234,12 +256,42 @@
     If a user requests that any @(AdditionalFiles) items are copied to the output directory
     we add them to the @(None) group to ensure they will be copied.
  -->
- 
-   <Target Name="CopyAdditionalFiles" 
-           BeforeTargets="AssignTargetPaths">
+
+  <Target Name="CopyAdditionalFiles"
+          BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
     </ItemGroup>
   </Target>
 
+  <!--
+    ========================
+    CompilerGeneratedFilesOutputPath
+    ========================
+    
+    Controls output of generated files.
+    
+    CompilerGeneratedFilesOutputPath controls the location the files will be output to.
+    The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    EmitCompilerGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When EmitCompilerGeneratedFiles is true, we ensure that CompilerGeneatedFilesOutputPath has a value and issue a warning if not.
+    We will create CompilerGeneratedFilesOutputPath if it does not exist.
+    -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles Condition="'$(EmitCompilerGeneratedFiles)' == ''">false</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' != 'true'"></CompilerGeneratedFilesOutputPath>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and '$(CompilerGeneratedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <Target Name="CreateCompilerGeneratedFilesOutputPath"
+        BeforeTargets="CoreCompile"
+        Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+
+    <Warning Condition="'$(CompilerGeneratedFilesOutputPath)' == ''"
+             Text="EmitCompilerGeneratedFiles was true, but no CompilerGeneratedFilesOutputPath was provided. CompilerGeneratedFilesOutputPath must be set in order to emit generated files." />
+    
+    <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
+             Directories="$(CompilerGeneratedFilesOutputPath)"  />
+  </Target>
+  
 </Project>

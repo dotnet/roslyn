@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _subjectBuffer.ReadOnlyRegionsChanged -= OnReadOnlyRegionsChanged;
 
-            private void OnReadOnlyRegionsChanged(object sender, SnapshotSpanEventArgs e)
+            private void OnReadOnlyRegionsChanged(object? sender, SnapshotSpanEventArgs e)
                 => this.RaiseChanged();
         }
     }

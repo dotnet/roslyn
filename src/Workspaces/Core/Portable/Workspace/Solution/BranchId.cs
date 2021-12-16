@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -21,6 +23,6 @@ namespace Microsoft.CodeAnalysis
             => _id = id;
 
         internal static BranchId GetNextId()
-            => new BranchId(Interlocked.Increment(ref s_nextId));
+            => new(Interlocked.Increment(ref s_nextId));
     }
 }

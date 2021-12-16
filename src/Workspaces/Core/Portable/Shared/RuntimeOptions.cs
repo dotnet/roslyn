@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
@@ -11,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     /// </summary>
     internal static class RuntimeOptions
     {
-        public static readonly Option<bool> BackgroundAnalysisSuspendedInfoBarShown = new Option<bool>(nameof(RuntimeOptions), "FullSolutionAnalysisInfoBarShown", defaultValue: false);
+        public static readonly Option<bool> BackgroundAnalysisSuspendedInfoBarShown = new(nameof(RuntimeOptions), "FullSolutionAnalysisInfoBarShown", defaultValue: false);
     }
 }

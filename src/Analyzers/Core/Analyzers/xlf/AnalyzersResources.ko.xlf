@@ -227,9 +227,19 @@
         <target state="translated">불필요한 캐스트 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">중복 같음 제거</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
         <target state="translated">불필요한 괄호 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">불필요한 비표시 오류(Suppression) 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -322,9 +332,19 @@
         <target state="translated">복합형 할당 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">'--' 연산자 사용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="translated">명시적으로 제공된 튜플 이름 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">'++' 연산자 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">

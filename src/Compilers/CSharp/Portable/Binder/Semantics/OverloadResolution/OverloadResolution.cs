@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -125,12 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, receiver, arguments, result,
                 isMethodGroupConversion, allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic,
-                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
+                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, in callingConventionInfo);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
@@ -146,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
-                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                callingConventionInfo: default);
             typeArguments.Free();
         }
 
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             bool isFunctionPointerResolution = false,
-            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
+            in CallingConventionInfo callingConventionInfo = default)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
@@ -172,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
                 results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
-                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
                 ref useSiteDiagnostics, inferWithDynamic, allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PerformMemberOverloadResolution(
                     results, members, typeArguments, receiver, arguments,
                     completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
-                    allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                    allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
                     ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
@@ -233,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType,
             bool allowRefOmittedArguments,
             bool isFunctionPointerResolution,
-            Cci.CallingConvention callingConvention,
+            in CallingConventionInfo callingConventionInfo,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -291,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isFunctionPointerResolution)
             {
-                RemoveCallingConventionMismatches(results, callingConvention);
+                RemoveCallingConventionMismatches(results, callingConventionInfo);
                 RemoveMethodsNotDeclaredStatic(results);
             }
 
@@ -389,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void RemoveMethodsNotDeclaredStatic<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
         {
-            // RemoveStaticInstanceMistmatches allows methods that do not need a reciever but are not declared static,
+            // RemoveStaticInstanceMismatches allows methods that do not need a receiver but are not declared static,
             // such as a local function that is not declared static. This eliminates methods that are not actually
             // declared as static
             for (int f = 0; f < results.Count; f++)
@@ -431,10 +434,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void RemoveCallingConventionMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, Cci.CallingConvention expectedConvention) where TMember : Symbol
+        private void RemoveCallingConventionMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, in CallingConventionInfo expectedConvention) where TMember : Symbol
         {
             if (typeof(TMember) != typeof(MethodSymbol))
             {
+                return;
+            }
+
+            Debug.Assert(!expectedConvention.CallKind.HasUnknownCallingConventionAttributeBits());
+            Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes is not null);
+            Debug.Assert(expectedConvention.UnmanagedCallingConventionTypes.IsEmpty || expectedConvention.CallKind == Cci.CallingConvention.Unmanaged);
+
+            Debug.Assert(!_binder.IsEarlyAttributeBinder);
+            if (_binder.InAttributeArgument || (_binder.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            {
+                // We're at a location where the unmanaged data might not yet been bound. This cannot be valid code
+                // anyway, as attribute arguments can't be method references, so we'll just assume that the conventions
+                // match, as there will be other errors that supersede these anyway
                 return;
             }
 
@@ -444,17 +460,108 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = (MethodSymbol)(Symbol)result.Member;
                 if (result.Result.IsValid)
                 {
-                    if (!member.CallingConvention.IsCallingConvention(expectedConvention)
-                        || member.CallingConvention.HasUnknownCallingConventionAttributeBits())
+                    // We're not in an attribute, so cycles shouldn't be possible
+                    var unmanagedCallersOnlyData = member.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
+
+                    Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound)
+                                 && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized));
+
+                    Cci.CallingConvention actualCallKind;
+                    ImmutableHashSet<INamedTypeSymbolInternal> actualUnmanagedCallingConventionTypes;
+
+                    if (unmanagedCallersOnlyData is null)
                     {
-                        results[i] = new MemberResolutionResult<TMember>(
-                            result.Member, result.LeastOverriddenMember,
-                            MemberAnalysisResult.WrongCallingConvention());
+                        actualCallKind = member.CallingConvention;
+                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                    }
+                    else
+                    {
+                        // There's data from an UnmanagedCallersOnlyAttribute present, which takes precedence over the
+                        // CallKind bit in the method definition. We use the following rules to decode the attribute:
+                        // * If no types are specified, the CallKind is treated as Unmanaged, with no unmanaged calling convention types
+                        // * If there is one type specified, and that type is named CallConvCdecl, CallConvThiscall, CallConvStdcall, or 
+                        //   CallConvFastcall, the CallKind is treated as CDecl, ThisCall, Standard, or FastCall, respectively, with no
+                        //   calling types.
+                        // * If multiple types are specified or the single type is not named one of the specially called out types above,
+                        //   the CallKind is treated as Unmanaged, with the union of the types specified treated as calling convention types.
+
+                        var unmanagedCallingConventionTypes = unmanagedCallersOnlyData.CallingConventionTypes;
+                        Debug.Assert(unmanagedCallingConventionTypes.All(u => FunctionPointerTypeSymbol.IsCallingConventionModifier((NamedTypeSymbol)u)));
+
+                        switch (unmanagedCallingConventionTypes.Count)
+                        {
+                            case 0:
+                                actualCallKind = Cci.CallingConvention.Unmanaged;
+                                actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                break;
+                            case 1:
+                                switch (unmanagedCallingConventionTypes.Single().Name)
+                                {
+                                    case "CallConvCdecl":
+                                        actualCallKind = Cci.CallingConvention.CDecl;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvStdcall":
+                                        actualCallKind = Cci.CallingConvention.Standard;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvThiscall":
+                                        actualCallKind = Cci.CallingConvention.ThisCall;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    case "CallConvFastcall":
+                                        actualCallKind = Cci.CallingConvention.FastCall;
+                                        actualUnmanagedCallingConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+                                        break;
+                                    default:
+                                        goto outerDefault;
+                                }
+                                break;
+
+                            default:
+outerDefault:
+                                actualCallKind = Cci.CallingConvention.Unmanaged;
+                                actualUnmanagedCallingConventionTypes = unmanagedCallingConventionTypes;
+                                break;
+                        }
+                    }
+
+                    // The rules for matching a calling convention are:
+                    // 1. The CallKinds must match exactly
+                    // 2. If the CallKind is Unmanaged, then the set of calling convention types must match exactly, ignoring order
+                    //    and duplicates. We already have both sets in a HashSet, so we can just ensure they're the same length and
+                    //    that everything from one set is in the other set.
+
+                    if (actualCallKind.HasUnknownCallingConventionAttributeBits() || !actualCallKind.IsCallingConvention(expectedConvention.CallKind))
+                    {
+                        results[i] = makeWrongCallingConvention(result);
+                        continue;
+                    }
+
+                    if (expectedConvention.CallKind.IsCallingConvention(Cci.CallingConvention.Unmanaged))
+                    {
+                        if (expectedConvention.UnmanagedCallingConventionTypes.Count != actualUnmanagedCallingConventionTypes.Count)
+                        {
+                            results[i] = makeWrongCallingConvention(result);
+                            continue;
+                        }
+
+                        foreach (var expectedModifier in expectedConvention.UnmanagedCallingConventionTypes)
+                        {
+                            if (!actualUnmanagedCallingConventionTypes.Contains(((CSharpCustomModifier)expectedModifier).ModifierSymbol))
+                            {
+                                results[i] = makeWrongCallingConvention(result);
+                                break;
+                            }
+                        }
                     }
                 }
             }
+
+            static MemberResolutionResult<TMember> makeWrongCallingConvention(MemberResolutionResult<TMember> result)
+                => new MemberResolutionResult<TMember>(result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongCallingConvention());
         }
-#nullable restore
+#nullable disable
 
         private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt)
         {
@@ -751,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (containingTypeMapOpt == null)
             {
-                if (MemberGroupContainsOverride(members, member))
+                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteDiagnostics))
                 {
                     // Don't even add it to the result set.  We'll add only the most-overriding members.
                     return;
@@ -777,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ArrayBuilder<TMember> others = pair.Value;
 
-                        if (MemberGroupContainsOverride(others, member))
+                        if (MemberGroupContainsMoreDerivedOverride(others, member, checkOverrideContainingType: false, ref useSiteDiagnostics))
                         {
                             // Don't even add it to the result set.  We'll add only the most-overriding members.
                             return;
@@ -921,45 +1028,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
-        private static bool IsOverride(Symbol overridden, Symbol overrider)
+        /// <summary>
+        /// Does <paramref name="moreDerivedOverride"/> override <paramref name="member"/> or the
+        /// thing that it originally overrides, but in a more derived class?
+        /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="moreDerivedOverride"/> is in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
+        private static bool IsMoreDerivedOverride(
+            Symbol member,
+            Symbol moreDerivedOverride,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (TypeSymbol.Equals(overridden.ContainingType, overrider.ContainingType, TypeCompareKind.ConsiderEverything2) ||
-                !MemberSignatureComparer.SloppyOverrideComparer.Equals(overridden, overrider))
+            if (!moreDerivedOverride.IsOverride ||
+                checkOverrideContainingType && !moreDerivedOverride.ContainingType.IsDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) ||
+                !MemberSignatureComparer.SloppyOverrideComparer.Equals(member, moreDerivedOverride))
             {
                 // Easy out.
                 return false;
             }
 
-            // Does overrider override overridden?
-            var current = overrider;
-            while (true)
-            {
-                if (!current.IsOverride)
-                {
-                    return false;
-                }
-                current = current.GetOverriddenMember();
-
-                // We could be in error recovery.
-                if ((object)current == null)
-                {
-                    return false;
-                }
-
-                if (current == overridden)
-                {
-                    return true;
-                }
-
-                // Don't search beyond the overridden member.
-                if (TypeSymbol.Equals(current.ContainingType, overridden.ContainingType, TypeCompareKind.ConsiderEverything2))
-                {
-                    return false;
-                }
-            }
+            // Rather than following the member.GetOverriddenMember() chain, we check to see if both
+            // methods ultimately override the same original method.  This addresses issues in binary compat
+            // scenarios where the override chain may skip some steps.
+            // See https://github.com/dotnet/roslyn/issues/45798 for an example.
+            return moreDerivedOverride.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition ==
+                   member.GetLeastOverriddenMember(accessingTypeOpt: null).OriginalDefinition;
         }
 
-        private static bool MemberGroupContainsOverride<TMember>(ArrayBuilder<TMember> members, TMember member)
+        /// <summary>
+        /// Does the member group <paramref name="members"/> contain an override of <paramref name="member"/> or the method it
+        /// overrides, but in a more derived type?
+        /// </summary>
+        /// <param name="checkOverrideContainingType">Set to false if the caller has already checked that
+        /// <paramref name="members"/> are all in a type that derives from the type containing
+        /// <paramref name="member"/>.</param>
+        private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
+            ArrayBuilder<TMember> members,
+            TMember member,
+            bool checkOverrideContainingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             if (!member.IsVirtual && !member.IsAbstract && !member.IsOverride)
@@ -967,9 +1076,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (!member.ContainingType.IsClassType())
+            {
+                return false;
+            }
+
             for (var i = 0; i < members.Count; ++i)
             {
-                if (IsOverride(member, members[i]))
+                if (IsMoreDerivedOverride(member: member, moreDerivedOverride: members[i], checkOverrideContainingType: checkOverrideContainingType, ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -2305,12 +2419,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (t2MatchesExactly)
             {
-                // - E exactly matches T2
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, t1, t2, ref useSiteDiagnostics, false);
                 return BetterResult.Right;
             }
 
-            // - T1 is a better conversion target than T2
+            // - C1 is not a conditional expression conversion and C2 is a conditional expression conversion
+            if (!conv1.IsConditionalExpression && conv2.IsConditionalExpression)
+                return BetterResult.Left;
+            if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
+                return BetterResult.Right;
+
+            // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
+            //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteDiagnostics, out okToDowngradeToNeither);
         }
 
@@ -2554,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BetterResult.Neither;
             }
 
-            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists, 
+            // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).IsImplicit;
             bool type2ToType1 = Conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).IsImplicit;
@@ -2568,13 +2688,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BetterResult.Neither;
                 }
 
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Left, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
                 return BetterResult.Left;
             }
             else if (type2ToType1)
             {
-                // - An implicit conversion from T1 to T2 exists 
+                // - An implicit conversion from T1 to T2 exists
                 okToDowngradeToNeither = lambdaOpt != null && CanDowngradeConversionFromLambdaToNeither(BetterResult.Right, lambdaOpt, type1, type2, ref useSiteDiagnostics, true);
                 return BetterResult.Right;
             }

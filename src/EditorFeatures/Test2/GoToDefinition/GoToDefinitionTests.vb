@@ -15,12 +15,11 @@ Imports Microsoft.VisualStudio.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
     Public Class GoToDefinitionTests
-        Friend Sub Test(
+        Friend Shared Sub Test(
                 workspaceDefinition As XElement,
                 expectedResult As Boolean,
                 executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
-            Using workspace = TestWorkspace.Create(
-                    workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -105,13 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             End Using
         End Sub
 
-        Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
+        Private Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document, cursorPosition, threadingContext, presenter)
-                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(threadingContext, lazyPresenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(threadingContext, lazyPresenter))
+                        DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(threadingContext, presenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -372,6 +370,38 @@ end class
                 }
 
                 partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionExtendedPartialMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial void M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    t.M$$();
+                }
+
+                public partial void [|M|]()
                 {
                     throw new NotImplementedException();
                 }
@@ -1036,7 +1066,7 @@ class Foo : IFoo1, IFoo2
 #End Region
 
 #Region "CSharp TupleTests"
-        Dim tuple2 As XCData =
+        Private ReadOnly tuple2 As XCData =
         <![CDATA[
 namespace System
 {
@@ -2546,7 +2576,7 @@ End Namespace
 
 #Region "CSharp Query expressions Tests"
 
-        Private Function GetExpressionPatternDefinition(highlight As String, Optional index As Integer = 0) As String
+        Private Shared Function GetExpressionPatternDefinition(highlight As String, Optional index As Integer = 0) As String
             Dim definition As String =
 "
 using System;

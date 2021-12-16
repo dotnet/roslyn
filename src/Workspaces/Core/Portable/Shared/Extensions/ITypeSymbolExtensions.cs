@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static ImmutableArray<ISymbol> FindImplementationsForInterfaceMember(
+        public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
             this ITypeSymbol typeSymbol,
             ISymbol interfaceMember,
             Solution solution,
@@ -90,14 +89,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
 
-            // Attempt to find and cache the compilation for the types we're searching for implementations in. This will
-            // be used to try to check equivalence when forwarded types are involved when we call into
-            // OriginalSymbolsMatch.  This is just an optimization as OriginalSymbolsMatch will also do this.  However,
-            // we may be making many different calls to OriginalSymbolsMatch below and there's no need to do this
-            // multiple times.
-            SymbolFinder.TryGetCompilation(typeSymbol, solution, out var typeSymbolCompilation);
-            SymbolFinder.TryGetCompilation(interfaceMember, solution, out var interfaceMemberCompilation);
-
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -105,10 +96,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // OriginalSymbolMatch allows types to be matched across different assemblies if they are considered to
                 // be the same type, which provides a more accurate implementations list for interfaces.
                 var constructedInterfaceMember =
-                    constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefault(
-                        typeSymbol => SymbolFinder.OriginalSymbolsMatch(
-                            typeSymbol, interfaceMember, solution,
-                            typeSymbolCompilation, interfaceMemberCompilation));
+                    await constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefaultAsync(
+                        typeSymbol => SymbolFinder.OriginalSymbolsMatchAsync(solution, typeSymbol, interfaceMember, cancellationToken)).ConfigureAwait(false);
 
                 if (constructedInterfaceMember == null)
                 {

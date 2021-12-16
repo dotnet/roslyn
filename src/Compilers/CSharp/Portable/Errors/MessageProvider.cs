@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -128,6 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               ((CSharpCompilationOptions)options).NullableContextOptions,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions,
+                                                              options.SyntaxTreeOptionsProvider,
+                                                              CancellationToken.None, // We don't have a tree so there's no need to pass cancellation to the SyntaxTreeOptionsProvider
                                                               out hasPragmaSuppression);
         }
 
@@ -148,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_AnalyzerCannotBeCreated => (int)ErrorCode.WRN_AnalyzerCannotBeCreated;
         public override int WRN_NoAnalyzerInAssembly => (int)ErrorCode.WRN_NoAnalyzerInAssembly;
         public override int WRN_UnableToLoadAnalyzer => (int)ErrorCode.WRN_UnableToLoadAnalyzer;
+        public override int WRN_AnalyzerReferencesFramework => (int)ErrorCode.WRN_AnalyzerReferencesFramework;
         public override int INF_UnableToLoadSomeTypesInAnalyzer => (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer;
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;

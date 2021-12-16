@@ -76,13 +76,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Select Case snippetFunctionName
                 Case "SimpleTypeName"
-                    pFunc = New SnippetFunctionSimpleTypeName(Me, TextView, SubjectBuffer, bstrFieldName, param)
+                    pFunc = New SnippetFunctionSimpleTypeName(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case "ClassName"
-                    pFunc = New SnippetFunctionClassName(Me, TextView, SubjectBuffer, bstrFieldName)
+                    pFunc = New SnippetFunctionClassName(Me, SubjectBuffer, bstrFieldName)
                     Return VSConstants.S_OK
                 Case "GenerateSwitchCases"
-                    pFunc = New SnippetFunctionGenerateSwitchCases(Me, TextView, SubjectBuffer, bstrFieldName, param)
+                    pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case Else
                     pFunc = Nothing
@@ -90,11 +90,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End Select
         End Function
 
-        Friend Overrides Function AddImports(document As Document,
-                                             position As Integer,
-                                             snippetNode As XElement,
-                                             placeSystemNamespaceFirst As Boolean,
-                                             cancellationToken As CancellationToken) As Document
+        Friend Overrides Function AddImports(
+                document As Document,
+                position As Integer,
+                snippetNode As XElement,
+                placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
+                cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
                Not importsNode.HasElements() Then

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -11,11 +12,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -32,17 +33,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,5): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 5),
-                // (3,14): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 5),
+                // (3,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 14),
-                // (3,22): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 14),
+                // (3,22): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(3, 22));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     void F1(System.IntPtr x, nint y);
     void F2(System.UIntPtr x, nuint y);
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var type = comp.GetTypeByMetadataName("System.IntPtr");
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     void F1(System.IntPtr x, nint y);
     void F2(System.UIntPtr x, nuint y);
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -139,11 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -642,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 31)
             };
 
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
@@ -651,11 +652,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
             verify(comp);
 
@@ -723,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public static nint F3 = -1;
     public static nuint F4 = 1;
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib40);
             var refA = comp.ToMetadataReference();
 
             var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         System.Console.WriteLine(""{0}, {1}, {2}, {3}"", F1, F2, F3, F4);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
             CompileAndVerify(comp, expectedOutput: $"{int.MinValue}, {int.MaxValue}, -1, 1");
 
             var corLibB = comp.Assembly.CorLibrary;
@@ -794,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public static nint F3 = -2;
     public static nuint F4 = 2;
 }";
-            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var refA = comp.ToMetadataReference();
 
@@ -824,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         _ = F2;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
                 //         _ = F1;
@@ -885,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public static nint F1 = -1;
     public static nuint F2 = 1;
 }";
-            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (3,19): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
                 //     public static nint F1 = -1;
@@ -923,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         _ = F2;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
                 //         _ = F1;
@@ -975,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public static nint F3 = -1;
     public static nuint F4 = 1;
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
             var refB = comp.ToMetadataReference();
             var f0B = comp.GetMember<FieldSymbol>("B.F0");
             var t1B = comp.GetMember<FieldSymbol>("B.F1").Type;
@@ -991,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         _ = F2;
     }
 }";
-            comp = CreateCompilation(sourceC, references: new[] { refA2, refB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            comp = CreateCompilation(sourceC, references: new[] { refA2, refB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             var f0 = comp.GetMember<FieldSymbol>("B.F0");
@@ -1060,7 +1061,7 @@ public class B : A<nint>
 {
     public override void F<U>() { }
 }";
-            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -1072,7 +1073,7 @@ public class B : A<nint>
 @"class C : B
 {
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
                 // class C : B
@@ -1115,7 +1116,7 @@ public class B : A<nint>
 @"public class A : nint
 {
 }";
-            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
 
             var refA = comp.ToMetadataReference();
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
@@ -1126,7 +1127,7 @@ public class B : A<nint>
 @"class B : A
 {
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
                 // class B : A
@@ -1183,7 +1184,7 @@ class Program
         F3((IntPtr)n);
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1357,7 +1358,7 @@ namespace System
     public struct IntPtr : IEquatable<nint> { }
     public struct UIntPtr : IEquatable<nuint> { }
 }",
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: true);
 
             // IEquatable<nuint> and  IEquatable<nint>.
@@ -1383,7 +1384,7 @@ namespace System
     public struct IntPtr : IEquatable<nuint> { }
     public struct UIntPtr : IEquatable<nint> { }
 }",
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: false);
 
             static void verifyAll(bool includesIEquatable, string sourceA)
@@ -1394,7 +1395,7 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
@@ -1403,11 +1404,11 @@ namespace System
                 var ref1 = comp.ToMetadataReference();
                 var ref2 = comp.EmitToImageReference();
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
 
-                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
@@ -1420,7 +1421,7 @@ namespace System
     nint F1();
     nuint F2();
 }";
-                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
@@ -1478,18 +1479,18 @@ namespace System
     public struct IntPtr { }
     public struct UIntPtr { }
 }";
-            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             VerifyCreateNativeIntegerTypeSymbol(comp);
 
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             VerifyCreateNativeIntegerTypeSymbol(comp);
 
-            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             VerifyCreateNativeIntegerTypeSymbol(comp);
         }
@@ -1531,18 +1532,18 @@ namespace System
     public abstract class ValueType { }
     public struct Void { }
 }";
-            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verifyCreateNativeIntegerTypeSymbol(comp);
 
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation("", references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verifyCreateNativeIntegerTypeSymbol(comp);
 
-            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation("", references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verifyCreateNativeIntegerTypeSymbol(comp);
 
@@ -1636,7 +1637,7 @@ namespace System
         return 0;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,18): error CS0117: 'nint' does not contain a definition for 'Zero'
                 //         _ = nint.Zero;
@@ -1800,7 +1801,7 @@ class Program
         _ = u.ToString((string)null, (IFormatProvider)null);
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1061: 'nint' does not contain a definition for 'ToInt32' and no accessible extension method 'ToInt32' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = i.ToInt32();
@@ -1973,7 +1974,7 @@ class Program
         _ = x != y;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (7,17): error CS1729: 'nint' does not contain a constructor that takes 1 arguments
                 //         _ = new nint(1);
@@ -2078,7 +2079,7 @@ class Program
         _ = x.Equals(y);
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
@@ -2172,7 +2173,7 @@ class Program
         _ = y.F();
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (16,15): error CS1061: 'nint' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = x.P;
@@ -2304,7 +2305,7 @@ class Program
         _ = y.F();
     }
 }";
-            var compB = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compB = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics();
 
             var tree = compB.SyntaxTrees[0];
@@ -2388,7 +2389,7 @@ class Program
         }
     }
 }";
-            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (16,22): error CS0117: 'nint' does not contain a definition for 'F1'
                 //             _ = nint.F1();
@@ -2451,7 +2452,7 @@ class Program
         _ = nuint.F3();
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,18): error CS0117: 'nint' does not contain a definition for 'F1'
                 //         _ = nint.F1();
@@ -2545,7 +2546,7 @@ namespace System.Reflection
         _ = y[0];
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,15): error CS1061: 'nint' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = x.M<nint>();
@@ -2697,7 +2698,7 @@ namespace System.Reflection
     }
 }";
 
-            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
@@ -2753,14 +2754,14 @@ namespace System.Reflection
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,15): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,15): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F(new nint());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 15),
-                // (6,15): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 15),
+                // (6,15): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F(new nuint());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 15));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 15));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -2800,14 +2801,14 @@ namespace System.Reflection
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,11): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F<nint>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 11),
-                // (6,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 11),
+                // (6,11): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F<nuint>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 11));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -2840,7 +2841,7 @@ namespace System.Reflection
             System.Console.WriteLine($""{item.GetType().FullName}: {item}"");
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.IntPtr: -2147483648
 System.IntPtr: -1
@@ -2938,18 +2939,18 @@ class A4 : IA
     void IA.F1(System.IntPtr x, nuint y) { }
 }";
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -2990,10 +2991,10 @@ class A4 : IA
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3020,7 +3021,7 @@ class A2 : IA
     void IA.F1(System.IntPtr x, System.UIntPtr y) { }
 }";
 
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
@@ -3079,18 +3080,18 @@ class B4 : A
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(System.IntPtr)").WithLocation(14, 21)
             };
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -3146,10 +3147,10 @@ class B4 : A
                 Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B3.F2(nuint)", "A.F2(System.UIntPtr)").WithLocation(14, 17)
             };
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -3184,7 +3185,7 @@ class B4 : A
     public void F2(System.UIntPtr y) { base.F2(y); }
 }";
 
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
@@ -3228,7 +3229,7 @@ class C
     static void F(nint y) { }
     static void F(nuint y) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,10): error CS0111: Type 'I' already defines a member called 'F' with the same parameter types
                 //     void F(nint y);
@@ -3252,7 +3253,7 @@ class C
     object this[nuint x] => null;
     object this[System.UIntPtr y] { get { return null; } set { } }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0111: Type 'I' already defines a member called 'this' with the same parameter types
                 //     object this[nint y] { get; set; }
@@ -3276,7 +3277,7 @@ public interface IB
     void F1(System.IntPtr i);
     void F2(System.UIntPtr i);
 }";
-            var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular9);
             var ref1 = comp.EmitToImageReference();
 
             var source2 =
@@ -3299,7 +3300,7 @@ class C2 : IA, IB
     public void F1(System.IntPtr i) { }
     public void F2(nuint i) { }
 }";
-            comp = CreateCompilation(source3, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source3, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3314,7 +3315,7 @@ class C2 : IA, IB
     static partial void F1(nint x) { }
     static partial void F2(nuint x);
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3343,18 +3344,18 @@ public class B4 : A<System.UIntPtr> { }
     }
 }";
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3384,10 +3385,10 @@ public class B2 : A<System.UIntPtr> { }
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3412,7 +3413,7 @@ public class B2 : A<nuint> { }
     }
 }";
 
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
@@ -3438,12 +3439,12 @@ interface I
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 22));
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -3471,26 +3472,102 @@ interface I
         {
             var source =
 @"using nint = System.Int16;
-interface I
+using nuint = System.Object;
+class Program
 {
-    nint Add(nint x, nuint y);
+    static @nint F(nint x, nuint y)
+    {
+        System.Console.WriteLine(x.GetType().FullName);
+        System.Console.WriteLine(y.GetType().FullName);
+        return x;
+    }
+    static void Main()
+    {
+        F(new nint(), new nuint());
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Int16
+System.Object");
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
+                Assert.False(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_02()
+        {
+            var source =
+@"using nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(4, 22));
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)
             {
-                var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
+                Assert.True(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_03()
+        {
+            var source =
+@"using @nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3502,23 +3579,231 @@ interface I
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AliasName_02()
+        public void AliasName_04()
         {
             var source =
-@"using N = nint;
+@"using A1 = nint;
+using A2 = nuint;
 class Program
 {
-    N F() => default;
+    A1 F1() => default;
+    A2 F2() => default;
 }";
+            var expectedDiagnostics = new[]
+            {
+                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
+                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
+            };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (1,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using N = nint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(1, 11));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AliasName_05()
+        {
+            var source1 =
+@"using A1 = nint;
+using A2 = nuint;
+class Program
+{
+    A1 F1() => default;
+    A2.B F2() => default;
+}";
+            var source2 =
+@"class nint { }
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_01()
+        {
+            var source =
+@"using nint;
+using nuint;
+class Program
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nint;").WithLocation(1, 1),
+                // (1,7): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using nuint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nuint;").WithLocation(2, 1),
+                // (2,7): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 7)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_02()
+        {
+            var source1 =
+@"using nint;
+using nuint;
+class Program
+{
+    static void Main()
+    {
+        _ = new A();
+        _ = new B();
+    }
+}";
+            var source2 =
+@"namespace nint
+{
+    class A { }
+}
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_01()
+        {
+            var source =
+@"[nint]
+[A, nuint()]
+class Program
+{
+}
+class AAttribute : System.Attribute
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
+                // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
+                // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_02()
+        {
+            var source1 =
+@"[nint]
+[nuint()]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class nint : Attribute { }
+class nuintAttribute : Attribute { }";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_03()
+        {
+            var source1 =
+@"[A(nint: 0)]
+[B(nuint = 2)]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(int nint) { }
+}
+class BAttribute : Attribute
+{
+    public int nuint;
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void GetSpeculativeTypeInfo()
+        {
+            var source =
+@"#pragma warning disable 219
+class Program
+{
+    static void Main()
+    {
+        nint i = 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("nuint");
+            int spanStart = source.IndexOf("nint i = 0;");
+            var type = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            Assert.True(type.IsNativeIntegerType);
         }
 
         [Fact]
@@ -3550,7 +3835,7 @@ class Program
             comp.VerifyDiagnostics();
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -3585,14 +3870,14 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,13): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         _ = nint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 13),
-                // (6,13): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         _ = nuint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(6, 13));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3612,25 +3897,21 @@ class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,34): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
                 //         Console.WriteLine(nameof(nint));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(6, 34),
-                // (7,34): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
                 //         Console.WriteLine(nameof(nuint));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"nint
-nuint");
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax { Identifier: { ValueText: "nint" } });
-            var symbol = (ITypeSymbol)model.GetSymbolInfo(node).Symbol;
-            Assert.Equal("nint", symbol.ToTestDisplayString());
-            Assert.True(symbol.IsNativeIntegerType);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS0103: The name 'nint' does not exist in the current context
+                //         Console.WriteLine(nameof(nint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 34),
+                // (7,34): error CS0103: The name 'nuint' does not exist in the current context
+                //         Console.WriteLine(nameof(nuint));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(7, 34));
         }
 
         [Fact]
@@ -3648,15 +3929,18 @@ nuint");
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (3,19): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,19): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     static void F(nint nint)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 19),
-                // (6,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(3, 19),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
                 //         _ = nameof(nuint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3681,7 +3965,7 @@ nuint");
                 //         _ = nameof(@nuint);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "@nuint").WithArguments("nuint").WithLocation(6, 20));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,20): error CS0103: The name 'nint' does not exist in the current context
                 //         _ = nameof(@nint);
@@ -3707,7 +3991,29 @@ nuint");
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_05()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(nint.Equals);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = nameof(nint.Equals);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(5, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -3728,7 +4034,7 @@ nuint");
         _ = sizeof(nuint);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0233: 'IntPtr' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         _ = sizeof(System.IntPtr);
@@ -3759,7 +4065,7 @@ class Program
         Console.Write(sizeof(nuint));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
             int size = IntPtr.Size;
             var verifier = CompileAndVerify(comp, expectedOutput: $"{size}{size}{size}{size}");
             verifier.VerifyIL("Program.Main",
@@ -3791,7 +4097,7 @@ unsafe class Program
         yield return sizeof(nuint);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,22): error CS1629: Unsafe code may not appear in iterators
                 //         yield return sizeof(nint);
@@ -3812,7 +4118,7 @@ unsafe class Program
     const int C = sizeof(nint);
     const int D = sizeof(nuint);
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (3,19): error CS0133: The expression being assigned to 'Program.A' must be constant
                 //     const int A = sizeof(System.IntPtr);
@@ -3826,6 +4132,97 @@ unsafe class Program
                 // (6,19): error CS0133: The expression being assigned to 'Program.D' must be constant
                 //     const int D = sizeof(nuint);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void TypeOf()
+        {
+            var source =
+@"using static System.Console;
+class Program
+{
+    static void Main()
+    {
+        var t1 = typeof(nint);
+        var t2 = typeof(nuint);
+        var t3 = typeof(System.IntPtr);
+        var t4 = typeof(System.UIntPtr);
+        WriteLine(t1.FullName);
+        WriteLine(t2.FullName);
+        WriteLine((object)t1 == t2);
+        WriteLine((object)t1 == t3);
+        WriteLine((object)t2 == t4);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput:
+@"System.IntPtr
+System.UIntPtr
+False
+True
+True");
+        }
+
+        /// <summary>
+        /// Dynamic binding uses underlying type.
+        /// </summary>
+        [Fact]
+        public void Dynamic()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        nint x = 2;
+        x = x + x;
+        dynamic d = x;
+        _ = d.ToInt32(); // available on System.IntPtr, not nint
+        try
+        {
+            d = d + x; // available on nint, not System.IntPtr
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType().FullName);
+        }
+        Console.WriteLine(d);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp, expectedOutput:
+@"Microsoft.CSharp.RuntimeBinder.RuntimeBinderException
+4");
+        }
+
+        [Fact]
+        public void Volatile()
+        {
+            var source =
+@"class Program
+{
+    static volatile nint F1 = -1;
+    static volatile nuint F2 = 2;
+    static nint F() => F1 + (nint)F2;
+    static void Main()
+    {
+        System.Console.WriteLine(F());
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1");
+            verifier.VerifyIL("Program.F",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  volatile.
+  IL_0002:  ldsfld     ""nint Program.F1""
+  IL_0007:  volatile.
+  IL_0009:  ldsfld     ""nuint Program.F2""
+  IL_000e:  conv.i
+  IL_000f:  add
+  IL_0010:  ret
+}");
         }
 
         // PEVerify should succeed. Previously, PEVerify reported duplicate
@@ -3850,7 +4247,7 @@ unsafe class Program
         System.Console.WriteLine(F2(42));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"-42
 42");
@@ -3910,7 +4307,7 @@ unsafe class Program
         return u;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
             // not because of duplicate TypeRefs in this assembly. Replace the above corlib with the
             // actual corlib when that assembly contains UIntPtr.MaxValue or if we decide to support
@@ -3984,7 +4381,7 @@ class Program
         Console.WriteLine(m.GetHashCodeFromExpr());
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 $@"42
 {42.GetHashCode()}
@@ -4056,7 +4453,7 @@ False
             comp.VerifyDiagnostics();
             verifyOperators(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verifyOperators(comp);
 
@@ -4177,10 +4574,13 @@ False
         F4 = w;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -4286,10 +4686,10 @@ False
         _ = F4 / F2;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
 
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -4352,6 +4752,33 @@ False
   IL_008d:  pop
   IL_008e:  ret
 }");
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 13),
+                // (10,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F2 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 13),
+                // (11,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F3 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 13),
+                // (12,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F4 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 13));
         }
 
         [Fact]
@@ -4410,7 +4837,7 @@ False
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -4469,7 +4896,7 @@ class A
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -4489,7 +4916,7 @@ class A
     public static nint? F3;
     public static nuint? F4;
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var sourceB =
@@ -4510,7 +4937,7 @@ class A
         F4 = w;
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.RegularPreview : TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -4589,11 +5016,9 @@ class A
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
-        [InlineData(false, false)]
-        [InlineData(true, false)]
-        [InlineData(false, true)]
-        [InlineData(true, true)]
-        public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useLatest)
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInOperators_NativeIntegers(bool useCompilationReference)
         {
             var sourceA =
 @"public class A
@@ -4603,8 +5028,9 @@ class A
     public static nint? F3;
     public static nuint? F4;
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
 
             var sourceB =
 @"class B : A
@@ -4621,9 +5047,7 @@ class A
         F4 = F4 / F2;
     }
 }";
-            // https://github.com/dotnet/csharplang/blob/master/meetings/2020/LDM-2020-03-25.md: Errors should
-            // be reported for uses of native integer operators with -langversion:8.
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.RegularPreview : TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -4712,11 +5136,691 @@ class A
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F1 = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 14),
+                // (6,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F2 = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 14),
+                // (7,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F3 = -F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 14),
+                // (8,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F4 = +F4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 14),
+                // (9,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F1 = F1 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 14),
+                // (10,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F2 = F2 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 14),
+                // (11,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F3 = F3 * F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 14),
+                // (12,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F4 = F4 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 14));
         }
 
-        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_01(bool useCompilationReference, bool lifted)
         {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+            string typeSuffix = lifted ? "?" : "";
+            var sourceA =
+$@"public class A
+{{
+    public static nint{typeSuffix} F1;
+    public static nuint{typeSuffix} F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = +F1;
+        _ = -F1;
+        _ = ~F1;
+        _ = +F2;
+        _ = ~F2;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = -F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = ~F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "~F1").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = +F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = ~F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "~F2").WithArguments("native-sized integers", "9.0").WithLocation(9, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_02(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        ++F;
+        F++;
+        --F;
+        F--;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         ++F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "++F").WithArguments("native-sized integers", "9.0").WithLocation(5, 9),
+                // (6,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F++;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F++").WithArguments("native-sized integers", "9.0").WithLocation(6, 9),
+                // (7,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         --F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "--F").WithArguments("native-sized integers", "9.0").WithLocation(7, 9),
+                // (8,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F--").WithArguments("native-sized integers", "9.0").WithLocation(8, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_03(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = F1 + F2;
+        _ = F1 - F2;
+        _ = F1 * F2;
+        _ = F1 / F2;
+        _ = F1 % F2;
+        _ = F1 < F2;
+        _ = F1 <= F2;
+        _ = F1 > F2;
+        _ = F1 >= F2;
+        _ = F1 == F2;
+        _ = F1 != F2;
+        _ = F1 & F2;
+        _ = F1 | F2;
+        _ = F1 ^ F2;
+        _ = F1 << 1;
+        _ = F1 >> 1;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 + F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 + F2").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 - F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 - F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (7,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 * F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F2").WithArguments("native-sized integers", "9.0").WithLocation(7, 13),
+                // (8,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 / F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 / F2").WithArguments("native-sized integers", "9.0").WithLocation(8, 13),
+                // (9,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 % F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 % F2").WithArguments("native-sized integers", "9.0").WithLocation(9, 13),
+                // (10,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 < F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 < F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 13),
+                // (11,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 <= F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 <= F2").WithArguments("native-sized integers", "9.0").WithLocation(11, 13),
+                // (12,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 > F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 > F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 13),
+                // (13,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 >= F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 >= F2").WithArguments("native-sized integers", "9.0").WithLocation(13, 13),
+                // (14,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 == F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 == F2").WithArguments("native-sized integers", "9.0").WithLocation(14, 13),
+                // (15,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 != F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 != F2").WithArguments("native-sized integers", "9.0").WithLocation(15, 13),
+                // (16,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 & F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 & F2").WithArguments("native-sized integers", "9.0").WithLocation(16, 13),
+                // (17,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 | F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 | F2").WithArguments("native-sized integers", "9.0").WithLocation(17, 13),
+                // (18,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 ^ F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 ^ F2").WithArguments("native-sized integers", "9.0").WithLocation(18, 13),
+                // (19,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 << 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 << 1").WithArguments("native-sized integers", "9.0").WithLocation(19, 13),
+                // (20,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = F1 >> 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 >> 1").WithArguments("native-sized integers", "9.0").WithLocation(20, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = (F1, F1) == (F2, F2);
+        _ = (F1, F1) != (F2, F2);
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) == (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) == (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (5,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) == (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) == (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(5, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) != (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) != (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(6, 13),
+                // (6,13): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = (F1, F1) != (F2, F2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(F1, F1) != (F2, F2)").WithArguments("native-sized integers", "9.0").WithLocation(6, 13));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerOperatorsCSharp8_05(bool useCompilationReference, [CombinatorialValues("nint", "nint?", "nuint", "nuint?")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        F += 1;
+        F -= 1;
+        F *= 1;
+        F /= 1;
+        F %= 1;
+        F &= 1;
+        F |= 1;
+        F ^= 1;
+        F <<= 1;
+        F >>= 1;
+    }
+}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F += 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F += 1").WithArguments("native-sized integers", "9.0").WithLocation(5, 9),
+                // (6,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F -= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F -= 1").WithArguments("native-sized integers", "9.0").WithLocation(6, 9),
+                // (7,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F *= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F *= 1").WithArguments("native-sized integers", "9.0").WithLocation(7, 9),
+                // (8,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F /= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F /= 1").WithArguments("native-sized integers", "9.0").WithLocation(8, 9),
+                // (9,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F %= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F %= 1").WithArguments("native-sized integers", "9.0").WithLocation(9, 9),
+                // (10,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F &= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F &= 1").WithArguments("native-sized integers", "9.0").WithLocation(10, 9),
+                // (11,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F |= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F |= 1").WithArguments("native-sized integers", "9.0").WithLocation(11, 9),
+                // (12,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F ^= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F ^= 1").WithArguments("native-sized integers", "9.0").WithLocation(12, 9),
+                // (13,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F <<= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F <<= 1").WithArguments("native-sized integers", "9.0").WithLocation(13, 9),
+                // (14,9): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         F >>= 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F >>= 1").WithArguments("native-sized integers", "9.0").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_01(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        F1 = sbyte.MaxValue;
+        F1 = byte.MaxValue;
+        F1 = char.MaxValue;
+        F1 = short.MaxValue;
+        F1 = ushort.MaxValue;
+        F1 = int.MaxValue;
+        F2 = sbyte.MaxValue;
+        F2 = byte.MaxValue;
+        F2 = char.MaxValue;
+        F2 = short.MaxValue;
+        F2 = ushort.MaxValue;
+        F2 = int.MaxValue;
+    }
+}";
+
+            var expectedDiagnostics = (type == "nuint") ?
+                new DiagnosticDescription[]
+                {
+                    // (5,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(5, 14),
+                    // (8,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(8, 14),
+                    // (11,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint?").WithLocation(11, 14),
+                    // (14,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint?").WithLocation(14, 14)
+                } :
+                new DiagnosticDescription[0];
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_02(bool useCompilationReference, bool signed)
+        {
+            string type = signed ? "nint" : "nuint";
+            string underlyingType = signed ? "System.IntPtr" : "System.UIntPtr";
+
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static T F<T>() => throw null;
+    static void Main()
+    {{
+        F1 = F<byte>();
+        F1 = F<char>();
+        F1 = F<ushort>();
+        F1 = F<{underlyingType}>();
+        F2 = F<byte>();
+        F2 = F<char>();
+        F2 = F<ushort>();
+        F2 = F<byte?>();
+        F2 = F<char?>();
+        F2 = F<ushort?>();
+        F2 = F<{underlyingType}>();
+        F2 = F<{underlyingType}?>();
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_03(bool useCompilationReference, bool signed)
+        {
+            string type = signed ? "nint" : "nuint";
+            string underlyingType = signed ? "System.IntPtr" : "System.UIntPtr";
+
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1;
+    public static {type}? F2;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static void M0()
+    {{
+        object o;
+        o = F1;
+        o = (object)F1;
+        o = F2;
+        o = (object)F2;
+    }}
+    static void M1()
+    {{
+        {underlyingType} ptr;
+        sbyte sb;
+        byte b;
+        char c;
+        short s;
+        ushort us;
+        int i;
+        uint u;
+        long l;
+        ulong ul;
+        float f;
+        double d;
+        decimal dec;
+        ptr = F1;
+        f = F1;
+        d = F1;
+        dec = F1;
+        ptr = ({underlyingType})F1;
+        sb = (sbyte)F1;
+        b = (byte)F1;
+        c = (char)F1;
+        s = (short)F1;
+        us = (ushort)F1;
+        i = (int)F1;
+        u = (uint)F1;
+        l = (long)F1;
+        ul = (ulong)F1;
+        f = (float)F1;
+        d = (double)F1;
+        dec = (decimal)F1;
+        ptr = ({underlyingType})F2;
+        sb = (sbyte)F2;
+        b = (byte)F2;
+        c = (char)F2;
+        s = (short)F2;
+        us = (ushort)F2;
+        i = (int)F2;
+        u = (uint)F2;
+        l = (long)F2;
+        ul = (ulong)F2;
+        f = (float)F2;
+        d = (double)F2;
+        dec = (decimal)F2;
+    }}
+    static void M2()
+    {{
+        {underlyingType}? ptr;
+        sbyte? sb;
+        byte? b;
+        char? c;
+        short? s;
+        ushort? us;
+        int? i;
+        uint? u;
+        long? l;
+        ulong? ul;
+        float? f;
+        double? d;
+        decimal? dec;
+        ptr = F1;
+        f = F1;
+        d = F1;
+        dec = F1;
+        ptr = ({underlyingType}?)F1;
+        sb = (sbyte?)F1;
+        b = (byte?)F1;
+        c = (char?)F1;
+        s = (short?)F1;
+        us = (ushort?)F1;
+        i = (int?)F1;
+        u = (uint?)F1;
+        l = (long?)F1;
+        ul = (ulong?)F1;
+        f = (float?)F1;
+        d = (double?)F1;
+        dec = (decimal?)F1;
+        ptr = F2;
+        f = F2;
+        d = F2;
+        dec = F2;
+        ptr = ({underlyingType}?)F2;
+        sb = (sbyte?)F2;
+        b = (byte?)F2;
+        c = (char?)F2;
+        s = (short?)F2;
+        us = (ushort?)F2;
+        i = (int?)F2;
+        u = (uint?)F2;
+        l = (long?)F2;
+        ul = (ulong?)F2;
+        f = (float?)F2;
+        d = (double?)F2;
+        dec = (decimal?)F2;
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(42941, "https://github.com/dotnet/roslyn/issues/42941")]
+        public void NativeIntegerConversionsCSharp8_04(bool useCompilationReference, [CombinatorialValues("nint", "nuint")] string type)
+        {
+            var sourceA =
+$@"public class A
+{{
+    public static {type} F1, F2;
+    public static {type}? F3, F4;
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+$@"class B : A
+{{
+    static void Main()
+    {{
+        F2 = F1;
+        F4 = F1;
+        F4 = F3;
+    }}
+}}";
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SemanticModel_UnaryOperators(bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F(nint{typeQualifier} x, nuint{typeQualifier} y)
+    {{
+        _ = +x;
+        _ = -x;
+        _ = ~x;
+        _ = +y;
+        _ = ~y;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                "nint nint.op_UnaryPlus(nint value)",
+                "nint nint.op_UnaryNegation(nint value)",
+                "nint nint.op_OnesComplement(nint value)",
+                "nuint nuint.op_UnaryPlus(nuint value)",
+                "nuint nuint.op_OnesComplement(nuint value)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
+        }
+
+        [Theory]
+        [InlineData("nint", false)]
+        [InlineData("nuint", false)]
+        [InlineData("nint", true)]
+        [InlineData("nuint", true)]
+        public void SemanticModel_BinaryOperators(string type, bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F({type}{typeQualifier} x, {type}{typeQualifier} y)
+    {{
+        _ = x + y;
+        _ = x - y;
+        _ = x * y;
+        _ = x / y;
+        _ = x % y;
+        _ = x < y;
+        _ = x <= y;
+        _ = x > y;
+        _ = x >= y;
+        _ = x == y;
+        _ = x != y;
+        _ = x & y;
+        _ = x | y;
+        _ = x ^ y;
+        _ = x << 1;
+        _ = x >> 1;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                $"{type} {type}.op_Addition({type} left, {type} right)",
+                $"{type} {type}.op_Subtraction({type} left, {type} right)",
+                $"{type} {type}.op_Multiply({type} left, {type} right)",
+                $"{type} {type}.op_Division({type} left, {type} right)",
+                $"{type} {type}.op_Modulus({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_Equality({type} left, {type} right)",
+                $"System.Boolean {type}.op_Inequality({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseAnd({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseOr({type} left, {type} right)",
+                $"{type} {type}.op_ExclusiveOr({type} left, {type} right)",
+                $"{type} {type}.op_LeftShift({type} left, System.Int32 right)",
+                $"{type} {type}.op_RightShift({type} left, System.Int32 right)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
         }
 
         [Theory]
@@ -4772,7 +5876,7 @@ class Program
         }}
     }}
 }}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (15,17): error CS0266: Cannot implicitly convert type 'uint' to 'nint'. An explicit conversion exists (are you missing a cast?)
                 //             i = uint.MaxValue;
@@ -4795,6 +5899,12 @@ class Program
                 // (22,17): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
                 //             i = (nuint)uint.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(nuint)uint.MaxValue").WithArguments("nuint", "nint").WithLocation(22, 17),
+                // (30,17): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = sbyte.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(30, 17),
+                // (33,17): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = short.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(33, 17),
                 // (37,17): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
                 //             u = long.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "long.MaxValue").WithArguments("long", "nuint").WithLocation(37, 17),
@@ -4866,7 +5976,7 @@ class Program
         }}
     }}
 }}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,24): error CS0266: Cannot implicitly convert type 'nint' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
                 //             sbyte sb = n;
@@ -4924,6 +6034,216 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "nint").WithLocation(41, 22));
         }
 
+        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
+        [Fact]
+        public void ConstantConversions_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        const nint y = checked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nint y = checked((nint)x);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked((nint)x)").WithArguments("y").WithLocation(7, 24),
+                // (7,32): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //         const nint y = checked((nint)x);
+                Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(7, 32));
+
+            source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        try
+        {
+            nint y = checked((nint)x);
+            Console.WriteLine(y);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,30): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //             nint y = checked((nint)x);
+                Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(9, 30));
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975");
+        }
+
+        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [Fact]
+        public void ConstantConversions_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        const nint y = unchecked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nint y = unchecked((nint)x);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked((nint)x)").WithArguments("y").WithLocation(7, 24));
+
+            source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        nint y = unchecked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-1" : "1152921504606846975");
+        }
+
+        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
+        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [Fact]
+        public void ConstantConversions_03()
+        {
+            using var _ = new EnsureInvariantCulture();
+
+            constantConversions("sbyte", "nint", "-1", null, "-1", "-1", null, "-1", "-1");
+            constantConversions("sbyte", "nint", "sbyte.MinValue", null, "-128", "-128", null, "-128", "-128");
+            constantConversions("sbyte", "nint", "sbyte.MaxValue", null, "127", "127", null, "127", "127");
+            constantConversions("byte", "nint", "byte.MaxValue", null, "255", "255", null, "255", "255");
+            constantConversions("short", "nint", "-1", null, "-1", "-1", null, "-1", "-1");
+            constantConversions("short", "nint", "short.MinValue", null, "-32768", "-32768", null, "-32768", "-32768");
+            constantConversions("short", "nint", "short.MaxValue", null, "32767", "32767", null, "32767", "32767");
+            constantConversions("ushort", "nint", "ushort.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("char", "nint", "char.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("int", "nint", "int.MinValue", null, "-2147483648", "-2147483648", null, "-2147483648", "-2147483648");
+            constantConversions("int", "nint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("uint", "nint", "(int.MaxValue + 1U)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("uint", "nint", "uint.MaxValue", warningOutOfRangeChecked("nint", "4294967295"), "System.OverflowException", "4294967295", null, "-1", "4294967295");
+            constantConversions("long", "nint", "(int.MinValue - 1L)", warningOutOfRangeChecked("nint", "-2147483649"), "System.OverflowException", "-2147483649", null, "2147483647", "-2147483649");
+            constantConversions("long", "nint", "(int.MaxValue + 1L)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("long", "nint", "long.MinValue", warningOutOfRangeChecked("nint", "-9223372036854775808"), "System.OverflowException", "-9223372036854775808", null, "0", "-9223372036854775808");
+            constantConversions("long", "nint", "long.MaxValue", warningOutOfRangeChecked("nint", "9223372036854775807"), "System.OverflowException", "9223372036854775807", null, "-1", "9223372036854775807");
+            constantConversions("ulong", "nint", "(int.MaxValue + 1UL)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("ulong", "nint", "ulong.MaxValue", errorOutOfRangeChecked("nint", "18446744073709551615"), "System.OverflowException", "System.OverflowException", null, "-1", "-1");
+            constantConversions("decimal", "nint", "(int.MinValue - 1M)", errorOutOfRange("nint", "-2147483649M"), "System.OverflowException", "-2147483649", errorOutOfRange("nint", "-2147483649M"), "2147483647", "-2147483649");
+            constantConversions("decimal", "nint", "(int.MaxValue + 1M)", errorOutOfRange("nint", "2147483648M"), "System.OverflowException", "2147483648", errorOutOfRange("nint", "2147483648M"), "-2147483648", "2147483648");
+            constantConversions("decimal", "nint", "decimal.MinValue", errorOutOfRange("nint", "-79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nint", "-79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("decimal", "nint", "decimal.MaxValue", errorOutOfRange("nint", "79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nint", "79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("nint", "nint", "int.MinValue", null, "-2147483648", "-2147483648", null, "-2147483648", "-2147483648");
+            constantConversions("nint", "nint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("nuint", "nint", "(int.MaxValue + (nuint)1)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("sbyte", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("sbyte", "nuint", "sbyte.MinValue", errorOutOfRangeChecked("nuint", "-128"), "System.OverflowException", "System.OverflowException", null, "4294967168", "18446744073709551488");
+            constantConversions("sbyte", "nuint", "sbyte.MaxValue", null, "127", "127", null, "127", "127");
+            constantConversions("byte", "nuint", "byte.MaxValue", null, "255", "255", null, "255", "255");
+            constantConversions("short", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("short", "nuint", "short.MinValue", errorOutOfRangeChecked("nuint", "-32768"), "System.OverflowException", "System.OverflowException", null, "4294934528", "18446744073709518848");
+            constantConversions("short", "nuint", "short.MaxValue", null, "32767", "32767", null, "32767", "32767");
+            constantConversions("ushort", "nuint", "ushort.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("char", "nuint", "char.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("int", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("int", "nuint", "int.MinValue", errorOutOfRangeChecked("nuint", "-2147483648"), "System.OverflowException", "System.OverflowException", null, "2147483648", "18446744071562067968");
+            constantConversions("int", "nuint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("uint", "nuint", "uint.MaxValue", null, "4294967295", "4294967295", null, "4294967295", "4294967295");
+            constantConversions("long", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("long", "nuint", "uint.MaxValue + 1L", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("long", "nuint", "long.MinValue", errorOutOfRangeChecked("nuint", "-9223372036854775808"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("long", "nuint", "long.MaxValue", warningOutOfRangeChecked("nuint", "9223372036854775807"), "System.OverflowException", "9223372036854775807", null, "4294967295", "9223372036854775807");
+            constantConversions("ulong", "nuint", "uint.MaxValue + 1UL", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("ulong", "nuint", "ulong.MaxValue", warningOutOfRangeChecked("nuint", "18446744073709551615"), "System.OverflowException", "18446744073709551615", null, "4294967295", "18446744073709551615");
+            constantConversions("decimal", "nuint", "-1", errorOutOfRange("nuint", "-1M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "-1M"), "System.OverflowException", "System.OverflowException");
+            constantConversions("decimal", "nuint", "(uint.MaxValue + 1M)", errorOutOfRange("nuint", "4294967296M"), "System.OverflowException", "4294967296", errorOutOfRange("nuint", "4294967296M"), "-1", "4294967296");
+            constantConversions("decimal", "nuint", "decimal.MinValue", errorOutOfRange("nuint", "-79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "-79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("decimal", "nuint", "decimal.MaxValue", errorOutOfRange("nuint", "79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("nint", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("nuint", "nuint", "uint.MaxValue", null, "4294967295", "4294967295", null, "4294967295", "4294967295");
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                // There are differences in floating point precision across platforms
+                // so floating point tests are limited to one platform.
+                return;
+            }
+            constantConversions("float", "nint", "(int.MinValue - 10000F)", warningOutOfRangeChecked("nint", "-2.147494E+09"), "System.OverflowException", "-2147493632", null, "-2147483648", "-2147493632");
+            constantConversions("float", "nint", "(int.MaxValue + 10000F)", warningOutOfRangeChecked("nint", "2.147494E+09"), "System.OverflowException", "2147493632", null, "-2147483648", "2147493632");
+            constantConversions("float", "nint", "float.MinValue", errorOutOfRangeChecked("nint", "-3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("float", "nint", "float.MaxValue", errorOutOfRangeChecked("nint", "3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("double", "nint", "(int.MinValue - 1D)", warningOutOfRangeChecked("nint", "-2147483649"), "System.OverflowException", "-2147483649", null, "-2147483648", "-2147483649");
+            constantConversions("double", "nint", "(int.MaxValue + 1D)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("double", "nint", "double.MinValue", errorOutOfRangeChecked("nint", "-1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("double", "nint", "double.MaxValue", errorOutOfRangeChecked("nint", "1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("float", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("float", "nuint", "(uint.MaxValue + 1F)", warningOutOfRangeChecked("nuint", "4.294967E+09"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("float", "nuint", "float.MinValue", errorOutOfRangeChecked("nuint", "-3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("float", "nuint", "float.MaxValue", errorOutOfRangeChecked("nuint", "3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "0", "0");
+            constantConversions("double", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("double", "nuint", "(uint.MaxValue + 1D)", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("double", "nuint", "double.MinValue", errorOutOfRangeChecked("nuint", "-1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("double", "nuint", "double.MaxValue", errorOutOfRangeChecked("nuint", "1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "0", "0");
+
+            static DiagnosticDescription errorOutOfRangeChecked(string destinationType, string value) => Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, $"({destinationType})x").WithArguments(value, destinationType);
+            static DiagnosticDescription errorOutOfRange(string destinationType, string value) => Diagnostic(ErrorCode.ERR_ConstOutOfRange, $"({destinationType})x").WithArguments(value, destinationType);
+            static DiagnosticDescription warningOutOfRangeChecked(string destinationType, string value) => Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, $"({destinationType})x").WithArguments(value, destinationType);
+
+            void constantConversions(string sourceType, string destinationType, string sourceValue, DiagnosticDescription checkedError, string checked32, string checked64, DiagnosticDescription uncheckedError, string unchecked32, string unchecked64)
+            {
+                constantConversion(sourceType, destinationType, sourceValue, useChecked: true, checkedError, IntPtr.Size == 4 ? checked32 : checked64);
+                constantConversion(sourceType, destinationType, sourceValue, useChecked: false, uncheckedError, IntPtr.Size == 4 ? unchecked32 : unchecked64);
+            }
+
+            void constantConversion(string sourceType, string destinationType, string sourceValue, bool useChecked, DiagnosticDescription expectedError, string expectedOutput)
+            {
+                var source =
+$@"using System;
+class Program
+{{
+    static void Main()
+    {{
+        const {sourceType} x = {sourceValue};
+        object y;
+        try
+        {{
+            y = {(useChecked ? "checked" : "unchecked")}(({destinationType})x);
+        }}
+        catch (Exception e)
+        {{
+            y = e.GetType();
+        }}
+        Console.Write(y);
+    }}
+}}";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
+                if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
+                {
+                    CompileAndVerify(comp, expectedOutput: expectedOutput);
+                }
+            }
+        }
+
         [Fact]
         public void Constants_NInt()
         {
@@ -4962,7 +6282,7 @@ $@"class Program
         System.Console.WriteLine(n);
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             string expectedOutput =
 @"0
 -2147483648
@@ -5089,9 +6409,7 @@ $@"class Program
         F(7);
         F(8);
         F(9);
-        F(sbyte.MaxValue);
         F(byte.MaxValue);
-        F(short.MaxValue);
         F(char.MaxValue);
         F(ushort.MaxValue);
         F(int.MaxValue);
@@ -5103,7 +6421,7 @@ $@"class Program
         System.Console.WriteLine(n);
     }}
 }}";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             string expectedOutput =
 @"0
 0
@@ -5116,9 +6434,7 @@ $@"class Program
 7
 8
 9
-127
 255
-32767
 65535
 65535
 2147483647
@@ -5127,7 +6443,7 @@ $@"class Program
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             string expectedIL =
 @"{
-  // Code size      160 (0xa0)
+  // Code size      141 (0x8d)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
@@ -5162,33 +6478,96 @@ $@"class Program
   IL_0046:  ldc.i4.s   9
   IL_0048:  conv.i
   IL_0049:  call       ""void Program.F(nuint)""
-  IL_004e:  ldc.i4.s   127
-  IL_0050:  conv.i
-  IL_0051:  call       ""void Program.F(nuint)""
-  IL_0056:  ldc.i4     0xff
-  IL_005b:  conv.i
-  IL_005c:  call       ""void Program.F(nuint)""
-  IL_0061:  ldc.i4     0x7fff
-  IL_0066:  conv.i
-  IL_0067:  call       ""void Program.F(nuint)""
-  IL_006c:  ldc.i4     0xffff
-  IL_0071:  conv.i
-  IL_0072:  call       ""void Program.F(nuint)""
-  IL_0077:  ldc.i4     0xffff
-  IL_007c:  conv.i
-  IL_007d:  call       ""void Program.F(nuint)""
-  IL_0082:  ldc.i4     0x7fffffff
-  IL_0087:  conv.i
-  IL_0088:  call       ""void Program.F(nuint)""
-  IL_008d:  ldc.i4     0x80000000
-  IL_0092:  conv.u
-  IL_0093:  call       ""void Program.F(nuint)""
-  IL_0098:  ldc.i4.m1
-  IL_0099:  conv.u
-  IL_009a:  call       ""void Program.F(nuint)""
-  IL_009f:  ret
+  IL_004e:  ldc.i4     0xff
+  IL_0053:  conv.i
+  IL_0054:  call       ""void Program.F(nuint)""
+  IL_0059:  ldc.i4     0xffff
+  IL_005e:  conv.i
+  IL_005f:  call       ""void Program.F(nuint)""
+  IL_0064:  ldc.i4     0xffff
+  IL_0069:  conv.i
+  IL_006a:  call       ""void Program.F(nuint)""
+  IL_006f:  ldc.i4     0x7fffffff
+  IL_0074:  conv.i
+  IL_0075:  call       ""void Program.F(nuint)""
+  IL_007a:  ldc.i4     0x80000000
+  IL_007f:  conv.u
+  IL_0080:  call       ""void Program.F(nuint)""
+  IL_0085:  ldc.i4.m1
+  IL_0086:  conv.u
+  IL_0087:  call       ""void Program.F(nuint)""
+  IL_008c:  ret
 }";
             verifier.VerifyIL("Program.Main", expectedIL);
+        }
+
+        [Fact]
+        public void Constants_ConvertToUnsigned()
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        F<ushort>(sbyte.MaxValue);
+        F<ushort>(short.MaxValue);
+        F<ushort>(int.MaxValue);
+        F<ushort>(long.MaxValue);
+        F<uint>(sbyte.MaxValue);
+        F<uint>(short.MaxValue);
+        F<uint>(int.MaxValue);
+        F<uint>(long.MaxValue);
+        F<nuint>(sbyte.MaxValue);
+        F<nuint>(short.MaxValue);
+        F<nuint>(int.MaxValue);
+        F<nuint>(long.MaxValue);
+        F<ulong>(sbyte.MaxValue);
+        F<ulong>(short.MaxValue);
+        F<ulong>(int.MaxValue);
+        F<ulong>(long.MaxValue);
+    }
+    static void F<T>(T n)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ushort'
+                //         F<ushort>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ushort").WithLocation(5, 19),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'short' to 'ushort'
+                //         F<ushort>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ushort").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'int' to 'ushort'
+                //         F<ushort>(int.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "int.MaxValue").WithArguments("1", "int", "ushort").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from 'long' to 'ushort'
+                //         F<ushort>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "ushort").WithLocation(8, 19),
+                // (9,17): error CS1503: Argument 1: cannot convert from 'sbyte' to 'uint'
+                //         F<uint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "uint").WithLocation(9, 17),
+                // (10,17): error CS1503: Argument 1: cannot convert from 'short' to 'uint'
+                //         F<uint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "uint").WithLocation(10, 17),
+                // (12,17): error CS1503: Argument 1: cannot convert from 'long' to 'uint'
+                //         F<uint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "uint").WithLocation(12, 17),
+                // (13,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'nuint'
+                //         F<nuint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "nuint").WithLocation(13, 18),
+                // (14,18): error CS1503: Argument 1: cannot convert from 'short' to 'nuint'
+                //         F<nuint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "nuint").WithLocation(14, 18),
+                // (16,18): error CS1503: Argument 1: cannot convert from 'long' to 'nuint'
+                //         F<nuint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "nuint").WithLocation(16, 18),
+                // (17,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ulong'
+                //         F<ulong>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ulong").WithLocation(17, 18),
+                // (18,18): error CS1503: Argument 1: cannot convert from 'short' to 'ulong'
+                //         F<ulong>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ulong").WithLocation(18, 18));
         }
 
         [Fact]
@@ -5206,7 +6585,7 @@ class Program
         const nuint d = default;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'IntPtr' cannot be declared const
                 //         const System.IntPtr a = default;
@@ -5227,7 +6606,7 @@ class Program
     const System.UIntPtr C = default(System.UIntPtr);
     const nuint D = default(nuint);
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (3,5): error CS0283: The type 'IntPtr' cannot be declared const
                 //     const System.IntPtr A = default(System.IntPtr);
@@ -5252,7 +6631,7 @@ class Program
     public const nint C1 = -42;
     public const nuint C2 = 42;
 }";
-            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9);
             var ref0 = comp.EmitToImageReference();
             var source1 =
 @"using System;
@@ -5264,7 +6643,7 @@ class B
         Console.WriteLine(A.C2);
     }
 }";
-            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"-42
 42");
@@ -5281,7 +6660,7 @@ class B
     public static System.UIntPtr F3(System.UIntPtr u = default) => u;
     public static nuint F4(nuint u = 42) => u;
 }";
-            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9);
             var ref0 = comp.EmitToImageReference();
             var source1 =
 @"using System;
@@ -5295,7 +6674,7 @@ class B
         Console.WriteLine(A.F4());
     }
 }";
-            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"0
 -42
@@ -5314,7 +6693,7 @@ class B
     public const nuint NUIntMin = uint.MinValue;
     public const nuint NUIntMax = uint.MaxValue;
 }";
-            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9);
             var ref0 = comp.EmitToImageReference();
 
             var source1 =
@@ -5333,7 +6712,7 @@ class Program
         Console.WriteLine(nuintMax);
     }
 }";
-            comp = CreateCompilation(source1, references: new[] { ref0 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source1, references: new[] { ref0 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput:
 @"-2147483648
 2147483647
@@ -5353,7 +6732,7 @@ class Program
     const nuint D = 0;
     const nuint E = uint.MaxValue;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             verify((FieldSymbol)comp.GetMember("Program.A"), int.MinValue, signed: true, negative: true);
             verify((FieldSymbol)comp.GetMember("Program.B"), 0, signed: true, negative: false);
@@ -5393,7 +6772,7 @@ class Program
 class B
 {
 }";
-            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A((nint)1)]
@@ -5427,7 +6806,7 @@ class B
 class B
 {
 }";
-            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,2): error CS0181: Attribute constructor parameter 'value' has type 'nint', which is not a valid attribute parameter type
                 // [A(1)]
@@ -5525,17 +6904,17 @@ null
 -3
 4";
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
@@ -5598,7 +6977,7 @@ class Program
         Console.WriteLine(M(6));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"case 6: 5
 case 2: 4
@@ -5765,7 +7144,7 @@ class Program
         Console.WriteLine(M(6));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"case 6: 5
 case 2: 4
@@ -6135,16 +7514,9 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null,
-// https://github.com/dotnet/roslyn/issues/42457: Investigate whether this conversion (and other
-// conversions to/from void*) can use conv.i or conv.u instead of explicit operators on System.[U]IntPtr.
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "delegate*<void>", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "E", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"));
             conversions(sourceType: "bool", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "sbyte", destType: "nint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"));
@@ -6178,6 +7550,7 @@ $@"{{
 }");
             conversions(sourceType: "System.IntPtr", destType: "nint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "System.UIntPtr", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "E?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"));
             conversions(sourceType: "bool?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
             conversions(sourceType: "sbyte?", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"));
@@ -6238,13 +7611,37 @@ $@"{{
             conversions(sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
 @"{
-  // Code size       12 (0xc)
+  // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
-  IL_0006:  newobj     ""nint?..ctor(nint)""
-  IL_000b:  ret
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newobj     ""nint?..ctor(nint)""
+  IL_0007:  ret
 }");
+            conversions(sourceType: "delegate*<void>", destType: "nint?", expectedImplicitIL: null,
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newobj     ""nint?..ctor(nint)""
+  IL_0007:  ret
+}");
+            conversions(sourceType: "E", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"));
             conversions(sourceType: "bool", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nint?", expectedImplicitIL: convToNullableT("conv.u", "nint"), expectedExplicitIL: convToNullableT("conv.u", "nint"));
             conversions(sourceType: "sbyte", destType: "nint?", expectedImplicitIL: convToNullableT("conv.i", "nint"), expectedExplicitIL: convToNullableT("conv.i", "nint"));
@@ -6308,6 +7705,7 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "System.UIntPtr", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "E?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nint"));
             conversions(sourceType: "bool?", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nint"));
             conversions(sourceType: "sbyte?", destType: "nint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nint"));
@@ -6383,14 +7781,9 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "E", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
             conversions(sourceType: "nint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2"));
             conversions(sourceType: "nint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1"));
@@ -6400,8 +7793,6 @@ $@"{{
             conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
             conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
             conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            // https://github.com/dotnet/roslyn/issues/42457: Investigate why this conversion (and other conversions from nint to ulong and from nuint to long)
-            // use differently signed opcodes for unchecked and checked conversions. (Why conv.i8 but conv.ovf.u8 here for instance?)
             conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
             conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
@@ -6424,6 +7815,7 @@ $@"{{
 }");
             conversions(sourceType: "nint", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "nint", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
+            conversions(sourceType: "nint", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "E"));
             conversions(sourceType: "nint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2", "char"));
             conversions(sourceType: "nint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1", "sbyte"));
@@ -6487,15 +7879,9 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size       13 (0xd)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nint nint?.Value.get""
-  IL_0007:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
-  IL_000c:  ret
-}");
+            conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nint?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
             conversions(sourceType: "nint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2", "nint"));
             conversions(sourceType: "nint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1", "nint"));
@@ -6527,6 +7913,7 @@ $@"{{
   IL_0007:  ret
 }");
             conversions(sourceType: "nint?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nint to UIntPtr.
+            conversions(sourceType: "nint?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "E"));
             conversions(sourceType: "nint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2", "nint", "char"));
             conversions(sourceType: "nint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1", "nint", "sbyte"));
@@ -6593,19 +7980,14 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "delegate*<void>", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "E", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
@@ -6634,6 +8016,7 @@ $@"{{
 }");
             conversions(sourceType: "System.IntPtr", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "nuint", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "E?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "E"));
             conversions(sourceType: "bool?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "char"));
             conversions(sourceType: "sbyte?", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "sbyte"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "sbyte"));
@@ -6694,18 +8077,26 @@ $@"{{
             conversions(sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
 @"{
-  // Code size       12 (0xc)
+  // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(void*)""
-  IL_0006:  newobj     ""nuint?..ctor(nuint)""
-  IL_000b:  ret
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
 }");
+            conversions(sourceType: "delegate*<void>", destType: "nuint?", expectedImplicitIL: null,
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}");
+            conversions(sourceType: "E", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
             conversions(sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
@@ -6764,11 +8155,12 @@ $@"{{
   IL_0001:  newobj     ""nuint?..ctor(nuint)""
   IL_0006:  ret
 }");
+            conversions(sourceType: "E?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "E", "nuint"));
             conversions(sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
-            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
+            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
             conversions(sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
-            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
+            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
             conversions(sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
             conversions(sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
             conversions(sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
@@ -6839,14 +8231,9 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_0006:  ret
-}");
+            conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "E", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
             conversions(sourceType: "nuint", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint", destType: "char", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
             conversions(sourceType: "nuint", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i1"), expectedCheckedIL: conv("conv.ovf.i1.un"));
@@ -6878,6 +8265,7 @@ $@"{{
 }");
             conversions(sourceType: "nuint", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null); // https://github.com/dotnet/roslyn/issues/42560: Allow explicitly casting nuint to IntPtr.
             conversions(sourceType: "nuint", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nuint", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "E"));
             conversions(sourceType: "nuint", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "char"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "char"));
             conversions(sourceType: "nuint", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i1", "sbyte"), expectedCheckedIL: convToNullableT("conv.ovf.i1.un", "sbyte"));
@@ -6941,15 +8329,9 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
-            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null,
-@"{
-  // Code size       13 (0xd)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""nuint nuint?.Value.get""
-  IL_0007:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
-  IL_000c:  ret
-}");
+            conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "nuint?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i1", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i1.un", "nuint"));
@@ -6981,6 +8363,7 @@ $@"{{
   IL_0002:  call       ""nuint nuint?.Value.get""
   IL_0007:  ret
 }");
+            conversions(sourceType: "nuint?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "E"));
             conversions(sourceType: "nuint?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "char"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "char"));
             conversions(sourceType: "nuint?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i1", "nuint", "sbyte"), expectedCheckedIL: convFromToNullableT("conv.ovf.i1.un", "nuint", "sbyte"));
@@ -7055,6 +8438,8 @@ $@"{{
 }");
             conversions(sourceType: "System.IntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.IntPtr.op_Explicit(System.IntPtr)"));
+            conversions(sourceType: "System.IntPtr", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)"));
             conversions(sourceType: "System.IntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
             conversions(sourceType: "System.IntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
@@ -7078,6 +8463,7 @@ $@"{{
 }");
             conversions(sourceType: "System.IntPtr", destType: "System.IntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
             conversions(sourceType: "System.IntPtr", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
             conversions(sourceType: "System.IntPtr", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
@@ -7116,6 +8502,7 @@ $@"{{
   IL_0006:  ret
 }");
             conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)"));
             conversions(sourceType: "System.IntPtr?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
             conversions(sourceType: "System.IntPtr?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.IntPtr", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
@@ -7147,6 +8534,7 @@ $@"{{
   IL_0007:  ret
 }");
             conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
+            conversions(sourceType: "System.IntPtr?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "E", "int System.IntPtr.op_Explicit(System.IntPtr)"));
             conversions(sourceType: "System.IntPtr?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.IntPtr?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "char", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.u2"));
             conversions(sourceType: "System.IntPtr?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.IntPtr", "sbyte", "int System.IntPtr.op_Explicit(System.IntPtr)", "conv.ovf.i1"));
@@ -7192,6 +8580,8 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "E", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "bool", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "sbyte", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.IntPtr System.IntPtr.op_Explicit(int)"));
@@ -7213,6 +8603,7 @@ $@"{{
   IL_0006:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
   IL_000b:  ret
 }");
+            conversions(sourceType: "E", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "bool", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "sbyte", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
@@ -7235,6 +8626,7 @@ $@"{{
   IL_000b:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
   IL_0010:  ret
 }");
+            conversions(sourceType: "E?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "bool?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "sbyte?", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.IntPtr System.IntPtr.op_Explicit(int)"));
@@ -7257,6 +8649,7 @@ $@"{{
   IL_000c:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
   IL_0011:  ret
 }");
+            conversions(sourceType: "E?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "bool?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
             conversions(sourceType: "sbyte?", destType: "System.IntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.IntPtr", "System.IntPtr System.IntPtr.op_Explicit(int)"));
@@ -7307,6 +8700,8 @@ $@"{{
 }");
             conversions(sourceType: "System.UIntPtr", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "void*", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "delegate*<void>", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("void* System.UIntPtr.op_Explicit(System.UIntPtr)"));
+            conversions(sourceType: "System.UIntPtr", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
             conversions(sourceType: "System.UIntPtr", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
             conversions(sourceType: "System.UIntPtr", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicit("uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
@@ -7348,6 +8743,7 @@ $@"{{
 }");
             conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr", expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "System.UIntPtr", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitToNullableT("E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
             conversions(sourceType: "System.UIntPtr", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitToNullableT("char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
             conversions(sourceType: "System.UIntPtr", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitToNullableT("sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
@@ -7406,6 +8802,7 @@ $@"{{
   IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0006:  ret
 }");
+            conversions(sourceType: "System.UIntPtr?", destType: "E", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
             conversions(sourceType: "System.UIntPtr?", destType: "bool", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr?", destType: "char", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
             conversions(sourceType: "System.UIntPtr?", destType: "sbyte", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromNullableT("System.UIntPtr", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
@@ -7457,6 +8854,7 @@ $@"{{
   IL_0002:  call       ""System.UIntPtr System.UIntPtr?.Value.get""
   IL_0007:  ret
 }");
+            conversions(sourceType: "System.UIntPtr?", destType: "E?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "E", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i4.un"));
             conversions(sourceType: "System.UIntPtr?", destType: "bool?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "System.UIntPtr?", destType: "char?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.u2"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "char", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.u2.un"));
             conversions(sourceType: "System.UIntPtr?", destType: "sbyte?", expectedImplicitIL: null, expectedExplicitIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.i1"), expectedCheckedIL: convAndExplicitFromToNullableT("System.UIntPtr", "sbyte", "uint System.UIntPtr.op_Explicit(System.UIntPtr)", "conv.ovf.i1.un"));
@@ -7502,6 +8900,8 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "delegate*<void>", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(void*)"));
+            conversions(sourceType: "E", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
             conversions(sourceType: "bool", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
             conversions(sourceType: "sbyte", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConv("System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
@@ -7523,6 +8923,7 @@ $@"{{
   IL_0006:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
   IL_000b:  ret
 }");
+            conversions(sourceType: "E", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
             conversions(sourceType: "bool", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
             conversions(sourceType: "sbyte", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvToNullableT("System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
@@ -7545,6 +8946,7 @@ $@"{{
   IL_000b:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
   IL_0010:  ret
 }");
+            conversions(sourceType: "E?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("E", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
             conversions(sourceType: "bool?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("char", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
             conversions(sourceType: "sbyte?", destType: "System.UIntPtr", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromNullableT("sbyte", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
@@ -7567,6 +8969,7 @@ $@"{{
   IL_000c:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
   IL_0011:  ret
 }");
+            conversions(sourceType: "E?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("E", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
             conversions(sourceType: "bool?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("char", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(uint)"));
             conversions(sourceType: "sbyte?", destType: "System.UIntPtr?", expectedImplicitIL: null, expectedExplicitIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.i8"), expectedCheckedIL: explicitAndConvFromToNullableT("sbyte", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Explicit(ulong)", "conv.ovf.u8"));
@@ -7626,14 +9029,16 @@ $@"{{
                     value = $"checked({value})";
                 }
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}{destType} Convert({sourceType} value)
     {{
         return {value};
     }}
-}}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
+}}
+enum E {{ }}
+";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -7653,7 +9058,7 @@ $@"{{
                     verifier.VerifyIL("Program.Convert", expectedIL);
                 }
 
-                static bool useUnsafe(string type) => type == "void*";
+                static bool useUnsafe(string type) => type == "void*" || type == "delegate*<void>";
             }
         }
 
@@ -7851,7 +9256,7 @@ $@"{{
             void unaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {resultType} Evaluate({opType} operand)
     {{
@@ -7862,7 +9267,7 @@ $@"{{
         System.Console.WriteLine(Evaluate({operand}));
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -8236,7 +9641,7 @@ class Program
         }}
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -8431,7 +9836,7 @@ class Program
             void incrementOperator(string op, string opType, string expectedSymbol, string values, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static void Evaluate(ref {opType} operand)
@@ -8463,7 +9868,7 @@ class Program
         }}
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -8513,7 +9918,7 @@ class Program
     static System.IntPtr F1(System.IntPtr i) => -i;
     static nint F2(nint i) => -i;
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, emitOptions: EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"), verify: Verification.Skipped);
             verifier.VerifyIL("Program.F1",
@@ -8566,7 +9971,7 @@ $@"class MyInt
         _ = x << 1;
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0023: Operator '++' cannot be applied to operand of type 'MyInt'
                 //         ++x;
@@ -8754,9 +10159,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -8771,9 +10176,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -8791,9 +10196,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -8808,9 +10213,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9054,9 +10459,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9071,9 +10476,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9091,9 +10496,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9108,9 +10513,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9354,9 +10759,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9371,9 +10776,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9391,9 +10796,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9408,9 +10813,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9954,9 +11359,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9971,9 +11376,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9991,9 +11396,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10008,9 +11413,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10254,9 +11659,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte");
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short");
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int");
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10271,9 +11676,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?");
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?");
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?");
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10291,9 +11696,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte");
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short");
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int");
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10308,9 +11713,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?");
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?");
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?");
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10477,14 +11882,14 @@ $@"class MyInt
             {
                 bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}object Evaluate({leftType} x, {rightType} y)
     {{
         return x {op} y;
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var tree = comp.SyntaxTrees[0];
@@ -10545,7 +11950,7 @@ class Program
         Console.WriteLine(ShiftRight(35, 4));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"7
 -1
@@ -10758,7 +12163,7 @@ class Program
         Console.WriteLine(ShiftRight(35, 4));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"7
 1
@@ -10949,7 +12354,7 @@ class Program
         Console.WriteLine(Mod(5, 2));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"7
 -1
@@ -11024,7 +12429,7 @@ class Program
         Console.WriteLine(Mod(5, 2));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"7
 1
@@ -11188,15 +12593,14 @@ class Program
             binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
             binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            // https://github.com/dotnet/roslyn/issues/42460: Results of `<<` should be dependent on platform.
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
-            binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
+            binaryOperatorNotConstant("nint", "<<", "nint", intMinValue, "int", "1", IntPtr.Size == 4 ? "0" : "-4294967296");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
-            binaryOperator("nint", "<<", "nint", "-1", "int", "32", "-1");
+            binaryOperatorNotConstant("nint", "<<", "nint", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : "-4294967296");
             binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
-            binaryOperator("nuint", "<<", "nuint", uintMaxValue, "int", "1", "4294967294");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", uintMaxValue, "int", "1", IntPtr.Size == 4 ? "4294967294" : "8589934590");
             binaryOperator("nuint", "<<", "nuint", "1", "int", "31", "2147483648");
-            binaryOperator("nuint", "<<", "nuint", "1", "int", "32", "1");
+            binaryOperatorNotConstant("nuint", "<<", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "4294967296");
 
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "1", "-1073741824");
@@ -11311,6 +12715,20 @@ class Program
                 constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
             }
 
+            void binaryOperatorNotConstant(string opType, string op, string leftType, string leftOperand, string rightType, string rightOperand, string expectedResult)
+            {
+                var declarations = $"const {leftType} A = {leftOperand}; const {rightType} B = {rightOperand};";
+                var expr = $"A {op} B";
+                constantDeclaration(opType, declarations, expr, null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"checked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F") });
+                constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
+
+                expr = $"(({leftType})({leftOperand})) {op} (({rightType})({rightOperand}))";
+                constantExpression(opType, expr, expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"checked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+                constantExpression(opType, $"unchecked({expr})", expectedResult, Array.Empty<DiagnosticDescription>());
+            }
+
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string sourceA =
@@ -11319,7 +12737,7 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 if (expectedDiagnostics.Length > 0) return;
@@ -11333,7 +12751,7 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }
 
@@ -11360,7 +12778,7 @@ class Program
         Console.WriteLine(result);
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 if (expectedDiagnostics.Length > 0) return;
@@ -11404,7 +12822,7 @@ class Program
     static nint NativeIntDivision(nint x, nint y) => unchecked(x / y);
     static nint NativeIntRemainder(nint x, nint y) => unchecked(x % y);
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput:
 $@"2147483647
 System.OverflowException
@@ -11414,6 +12832,1353 @@ System.OverflowException
 {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}
 0
 {(IntPtr.Size == 4 ? "System.OverflowException" : "0")}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_01()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nint x = 0x7fffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nint LeftShift(nint x, int y) => unchecked(x << y);
+    static void Report(long l) => Console.WriteLine(""{0:x}"", l);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffffffffffe" : "fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
+        }
+
+        [WorkItem(42460, "https://github.com/dotnet/roslyn/issues/42460")]
+        [Fact]
+        public void UncheckedLeftShift_02()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const nuint x = 0xffffffff;
+        Report(x << 1);
+        Report(LeftShift(x, 1));
+    }
+    static nuint LeftShift(nuint x, int y) => unchecked(x << y);
+    static void Report(ulong u) => Console.WriteLine(""{0:x}"", u);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var expectedValue = IntPtr.Size == 4 ? "fffffffe" : "1fffffffe";
+            CompileAndVerify(comp, expectedOutput:
+$@"{expectedValue}
+{expectedValue}");
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void ExplicitImplementationReturnTypeDifferences()
+        {
+            string source =
+@"struct S<T>
+{
+}
+interface I
+{
+    S<nint> F1();
+    S<System.IntPtr> F2();
+    S<nint> F3();
+    S<System.IntPtr> F4();
+}
+class C : I
+{
+    S<System.IntPtr> I.F1() => default;
+    S<nint> I.F2() => default;
+    S<nint> I.F3() => default;
+    S<System.IntPtr> I.F4() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("I");
+            Assert.Equal("S<nint> I.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> I.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("S<nint> I.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> I.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("C");
+            Assert.Equal("S<System.IntPtr> C.I.F1()", type.GetMember("I.F1").ToTestDisplayString());
+            Assert.Equal("S<nint> C.I.F2()", type.GetMember("I.F2").ToTestDisplayString());
+            Assert.Equal("S<nint> C.I.F3()", type.GetMember("I.F3").ToTestDisplayString());
+            Assert.Equal("S<System.IntPtr> C.I.F4()", type.GetMember("I.F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [WorkItem(44358, "https://github.com/dotnet/roslyn/issues/44358")]
+        [Fact]
+        public void OverrideReturnTypeDifferences()
+        {
+            string source =
+@"class A
+{
+    public virtual nint[] F1() => null;
+    public virtual System.IntPtr[] F2() => null;
+    public virtual nint[] F3() => null;
+    public virtual System.IntPtr[] F4() => null;
+}
+class B : A
+{
+    public override System.IntPtr[] F1() => null;
+    public override nint[] F2() => null;
+    public override nint[] F3() => null;
+    public override System.IntPtr[] F4() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint[] A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr[] B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void OverrideParameterTypeCustomModifierDifferences()
+        {
+            var sourceA =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public virtual void F1(native int modopt(int32) i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public virtual void F2(native int modopt(int32) i)
+  {
+    ret
+  }
+  .method public virtual void F3(native int modopt(int32) i)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ret
+  }
+  .method public virtual void F4(native int modopt(int32) i)
+  {
+    ret
+  }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B : A
+{
+    public override void F1(System.IntPtr i) { }
+    public override void F2(nint i) { }
+    public override void F3(nint i) { }
+    public override void F4(System.IntPtr i) { }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("void A.F1(nint modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("void A.F2(System.IntPtr modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void A.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void A.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("void B.F1(System.IntPtr modopt(System.Int32) i)", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("void B.F2(nint modopt(System.Int32) i)", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("void B.F3(nint modopt(System.Int32) i)", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("void B.F4(System.IntPtr modopt(System.Int32) i)", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42500, "https://github.com/dotnet/roslyn/issues/42500")]
+        [Fact]
+        public void OverrideReturnTypeCustomModifierDifferences()
+        {
+            var sourceA =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public virtual native int[] modopt(int32) F1()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F2()
+  {
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F3()
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) 
+    ldnull
+    throw
+  }
+  .method public virtual native int[] modopt(int32) F4()
+  {
+    ldnull
+    throw
+  }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B : A
+{
+    public override System.IntPtr[] F1() => default;
+    public override nint[] F2() => default;
+    public override nint[] F3() => default;
+    public override System.IntPtr[] F4() => default;
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var type = comp.GetTypeByMetadataName("A");
+            Assert.Equal("nint[] modopt(System.Int32) A.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) A.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) A.F4()", type.GetMember("F4").ToTestDisplayString());
+
+            type = comp.GetTypeByMetadataName("B");
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F1()", type.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F2()", type.GetMember("F2").ToTestDisplayString());
+            Assert.Equal("nint[] modopt(System.Int32) B.F3()", type.GetMember("F3").ToTestDisplayString());
+            Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
+        }
+
+        [WorkItem(42457, "https://github.com/dotnet/roslyn/issues/42457")]
+        [Fact]
+        public void Int64Conversions()
+        {
+            convert(fromType: "nint", toType: "ulong", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", "conv.u", "2147483647", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+
+            string nintMinValue = IntPtr.Size == 4 ? int.MinValue.ToString() : long.MinValue.ToString();
+            string nintMaxValue = IntPtr.Size == 4 ? int.MaxValue.ToString() : long.MaxValue.ToString();
+            string nuintMaxValue = IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString();
+
+            convert(fromType: "nint", toType: "ulong", nintMinValue, IntPtr.Size == 4 ? "18446744071562067968" : "9223372036854775808", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.i8", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", nuintMaxValue, IntPtr.Size == 4 ? "4294967295" : "-1", "conv.u8", IntPtr.Size == 4 ? "4294967295" : "System.OverflowException", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+
+            void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
+            {
+                string source =
+$@"using System;
+class Program
+{{
+    static {toType} Convert({fromType} value) => ({toType})(value);
+    static {toType} ConvertChecked({fromType} value) => checked(({toType})(value));
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Main()
+    {{
+        {fromType} value = ({fromType})({fromValue});
+        Console.WriteLine(Execute(() => Convert(value)));
+        Console.WriteLine(Execute(() => ConvertChecked(value)));
+    }}
+}}";
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+$@"{toValueUnchecked}
+{toValueChecked}");
+                verifier.VerifyIL("Program.Convert",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvUnchecked}
+  IL_0002:  ret
+}}");
+                verifier.VerifyIL("Program.ConvertChecked",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvChecked}
+  IL_0002:  ret
+}}");
+            }
+        }
+
+        [WorkItem(44810, "https://github.com/dotnet/roslyn/issues/44810")]
+        [Theory]
+        [InlineData("void*")]
+        [InlineData("byte*")]
+        [InlineData("delegate*<void>")]
+        public void PointerConversions(string pointerType)
+        {
+            string source =
+$@"using System;
+unsafe class Program
+{{
+    static {pointerType} ToPointer1(nint i) => ({pointerType})i;
+    static {pointerType} ToPointer2(nuint u) => ({pointerType})u;
+    static {pointerType} ToPointer3(nint i) => checked(({pointerType})i);
+    static {pointerType} ToPointer4(nuint u) => checked(({pointerType})u);
+    static nint FromPointer1({pointerType} p) => (nint)p;
+    static nuint FromPointer2({pointerType} p) => (nuint)p;
+    static nint FromPointer3({pointerType} p) => checked((nint)p);
+    static nuint FromPointer4({pointerType} p) => checked((nuint)p);
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Execute({pointerType} p)
+    {{
+        Console.WriteLine((int)p);
+        Console.WriteLine(Execute(() => FromPointer1(p)));
+        Console.WriteLine(Execute(() => FromPointer2(p)));
+        Console.WriteLine(Execute(() => FromPointer3(p)));
+        Console.WriteLine(Execute(() => FromPointer4(p)));
+    }}
+    static void Main()
+    {{
+        Execute(ToPointer1(-42));
+        Execute(ToPointer2(42));
+        Execute(ToPointer1(int.MinValue));
+        Execute(ToPointer2(uint.MaxValue));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(-42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(42)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer3(int.MinValue)));
+        Console.WriteLine(Execute(() => (ulong)ToPointer4(uint.MaxValue)));
+    }}
+}}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            string expectedOutput =
+$@"-42
+-42
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
+System.OverflowException
+{(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
+42
+42
+42
+42
+42
+-2147483648
+-2147483648
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+System.OverflowException
+{(IntPtr.Size == 4 ? "2147483648" : "18446744071562067968")}
+-1
+{(IntPtr.Size == 4 ? "-1" : "4294967295")}
+4294967295
+{(IntPtr.Size == 4 ? "System.OverflowException" : "4294967295")}
+4294967295
+System.OverflowException
+42
+System.OverflowException
+4294967295";
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.ToPointer1",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer2",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.ToPointer4",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer1",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer2",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  ret
+}");
+            verifier.VerifyIL("Program.FromPointer4",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        public void EnumConversions_01(string baseType)
+        {
+            if (baseType != null) baseType = " : " + baseType;
+            string sourceA =
+$@"enum E{baseType} {{ A = 0, B = 1 }}";
+            string sourceB =
+@"#pragma warning disable 219
+class Program
+{
+    static void F1()
+    {
+        E e;
+        const nint i0 = 0;
+        const nint i1 = 1;
+        e = i0;
+        e = i1;
+    }
+    static void F2()
+    {
+        E e;
+        const nuint u0 = 0;
+        const nuint u1 = 1;
+        e = u0;
+        e = u1;
+    }
+    static void F3()
+    {
+        nint i;
+        i = default(E);
+        i = E.A;
+        i = E.B;
+    }
+    static void F4()
+    {
+        nuint u;
+        u = default(E);
+        u = E.A;
+        u = E.B;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0266: Cannot implicitly convert type 'nint' to 'E'. An explicit conversion exists (are you missing a cast?)
+                //         e = i1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("nint", "E").WithLocation(10, 13),
+                // (18,13): error CS0266: Cannot implicitly convert type 'nuint' to 'E'. An explicit conversion exists (are you missing a cast?)
+                //         e = u1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u1").WithArguments("nuint", "E").WithLocation(18, 13),
+                // (23,13): error CS0266: Cannot implicitly convert type 'E' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //         i = default(E);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(E)").WithArguments("E", "nint").WithLocation(23, 13),
+                // (24,13): error CS0266: Cannot implicitly convert type 'E' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //         i = E.A;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "E.A").WithArguments("E", "nint").WithLocation(24, 13),
+                // (25,13): error CS0266: Cannot implicitly convert type 'E' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //         i = E.B;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "E.B").WithArguments("E", "nint").WithLocation(25, 13),
+                // (30,13): error CS0266: Cannot implicitly convert type 'E' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //         u = default(E);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(E)").WithArguments("E", "nuint").WithLocation(30, 13),
+                // (31,13): error CS0266: Cannot implicitly convert type 'E' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //         u = E.A;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "E.A").WithArguments("E", "nuint").WithLocation(31, 13),
+                // (32,13): error CS0266: Cannot implicitly convert type 'E' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //         u = E.B;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "E.B").WithArguments("E", "nuint").WithLocation(32, 13));
+        }
+
+        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("sbyte")]
+        [InlineData("short")]
+        [InlineData("int")]
+        [InlineData("long")]
+        public void EnumConversions_02(string baseType)
+        {
+            if (baseType != null) baseType = " : " + baseType;
+            string sourceA =
+$@"enum E{baseType} {{ A = -1, B = 1 }}";
+            string sourceB =
+@"using static System.Console;
+class Program
+{
+    static E F1(nint i) => (E)i;
+    static E F2(nuint u) => (E)u;
+    static nint F3(E e) => (nint)e;
+    static nuint F4(E e) => (nuint)e;
+    static void Main()
+    {
+        WriteLine(F1(-1));
+        WriteLine(F2(1));
+        WriteLine(F3(E.A));
+        WriteLine(F4(E.B));
+    }
+}";
+            CompileAndVerify(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9, expectedOutput:
+@"A
+B
+-1
+1");
+        }
+
+        [WorkItem(48035, "https://github.com/dotnet/roslyn/issues/48035")]
+        [Fact]
+        public void EnumConversions_03()
+        {
+            convert(baseType: null, fromType: "E", toType: "nint", "int.MinValue", "-2147483648", "conv.i", "-2147483648", "conv.i");
+            convert(baseType: null, fromType: "E", toType: "nint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.i");
+            convert(baseType: null, fromType: "E", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: null, fromType: "E", toType: "nuint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.ovf.u");
+            convert(baseType: null, fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i4", "-2147483648", "conv.ovf.i4");
+            convert(baseType: null, fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i4", "2147483647", "conv.ovf.i4");
+            convert(baseType: null, fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i4", "System.OverflowException", "conv.ovf.i4.un");
+
+            convert(baseType: "sbyte", fromType: "E", toType: "nint", "sbyte.MinValue", "-128", "conv.i", "-128", "conv.i");
+            convert(baseType: "sbyte", fromType: "E", toType: "nint", "sbyte.MaxValue", "127", "conv.i", "127", "conv.i");
+            convert(baseType: "sbyte", fromType: "E", toType: "nuint", "sbyte.MinValue", IntPtr.Size == 4 ? "4294967168" : "18446744073709551488", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "sbyte", fromType: "E", toType: "nuint", "sbyte.MaxValue", "127", "conv.i", "127", "conv.ovf.u");
+            convert(baseType: "sbyte", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.i1", "System.OverflowException", "conv.ovf.i1");
+            convert(baseType: "sbyte", fromType: "nint", toType: "E", "int.MaxValue", "-1", "conv.i1", "System.OverflowException", "conv.ovf.i1");
+            convert(baseType: "sbyte", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i1", "System.OverflowException", "conv.ovf.i1.un");
+
+            convert(baseType: "byte", fromType: "E", toType: "nint", "byte.MaxValue", "255", "conv.u", "255", "conv.u");
+            convert(baseType: "byte", fromType: "E", toType: "nuint", "byte.MaxValue", "255", "conv.u", "255", "conv.u");
+            convert(baseType: "byte", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.u1", "System.OverflowException", "conv.ovf.u1");
+            convert(baseType: "byte", fromType: "nint", toType: "E", "int.MaxValue", "255", "conv.u1", "System.OverflowException", "conv.ovf.u1");
+            convert(baseType: "byte", fromType: "nuint", toType: "E", "uint.MaxValue", "255", "conv.u1", "System.OverflowException", "conv.ovf.u1.un");
+
+            convert(baseType: "short", fromType: "E", toType: "nint", "short.MinValue", "-32768", "conv.i", "-32768", "conv.i");
+            convert(baseType: "short", fromType: "E", toType: "nint", "short.MaxValue", "32767", "conv.i", "32767", "conv.i");
+            convert(baseType: "short", fromType: "E", toType: "nuint", "short.MinValue", IntPtr.Size == 4 ? "4294934528" : "18446744073709518848", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "short", fromType: "E", toType: "nuint", "short.MaxValue", "32767", "conv.i", "32767", "conv.ovf.u");
+            convert(baseType: "short", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.i2", "System.OverflowException", "conv.ovf.i2");
+            convert(baseType: "short", fromType: "nint", toType: "E", "int.MaxValue", "-1", "conv.i2", "System.OverflowException", "conv.ovf.i2");
+            convert(baseType: "short", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i2", "System.OverflowException", "conv.ovf.i2.un");
+
+            convert(baseType: "ushort", fromType: "E", toType: "nint", "ushort.MaxValue", "65535", "conv.u", "65535", "conv.u");
+            convert(baseType: "ushort", fromType: "E", toType: "nuint", "ushort.MaxValue", "65535", "conv.u", "65535", "conv.u");
+            convert(baseType: "ushort", fromType: "nint", toType: "E", "int.MinValue", "A", "conv.u2", "System.OverflowException", "conv.ovf.u2");
+            convert(baseType: "ushort", fromType: "nint", toType: "E", "int.MaxValue", "65535", "conv.u2", "System.OverflowException", "conv.ovf.u2");
+            convert(baseType: "ushort", fromType: "nuint", toType: "E", "uint.MaxValue", "65535", "conv.u2", "System.OverflowException", "conv.ovf.u2.un");
+
+            convert(baseType: "int", fromType: "E", toType: "nint", "int.MinValue", "-2147483648", "conv.i", "-2147483648", "conv.i");
+            convert(baseType: "int", fromType: "E", toType: "nint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.i");
+            convert(baseType: "int", fromType: "E", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.i", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "int", fromType: "E", toType: "nuint", "int.MaxValue", "2147483647", "conv.i", "2147483647", "conv.ovf.u");
+            convert(baseType: "int", fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i4", "-2147483648", "conv.ovf.i4");
+            convert(baseType: "int", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i4", "2147483647", "conv.ovf.i4");
+            convert(baseType: "int", fromType: "nuint", toType: "E", "uint.MaxValue", "-1", "conv.i4", "System.OverflowException", "conv.ovf.i4.un");
+
+            convert(baseType: "uint", fromType: "E", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+            convert(baseType: "uint", fromType: "E", toType: "nuint", "uint.MaxValue", "4294967295", "conv.u", "4294967295", "conv.u");
+            convert(baseType: "uint", fromType: "nint", toType: "E", "int.MinValue", "2147483648", "conv.u4", "System.OverflowException", "conv.ovf.u4");
+            convert(baseType: "uint", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.u4", "2147483647", "conv.ovf.u4");
+            convert(baseType: "uint", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u4", "4294967295", "conv.ovf.u4.un");
+
+            convert(baseType: "long", fromType: "E", toType: "nint", "long.MinValue", IntPtr.Size == 4 ? "0" : "-9223372036854775808", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "-9223372036854775808", "conv.ovf.i");
+            convert(baseType: "long", fromType: "E", toType: "nint", "long.MaxValue", IntPtr.Size == 4 ? "-1" : "9223372036854775807", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.i");
+            convert(baseType: "long", fromType: "E", toType: "nuint", "long.MinValue", IntPtr.Size == 4 ? "0" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(baseType: "long", fromType: "E", toType: "nuint", "long.MaxValue", IntPtr.Size == 4 ? "4294967295" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "9223372036854775807", "conv.ovf.u");
+            convert(baseType: "long", fromType: "nint", toType: "E", "int.MinValue", "-2147483648", "conv.i8", "-2147483648", "conv.i8");
+            convert(baseType: "long", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.i8");
+            convert(baseType: "long", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
+
+            convert(baseType: "ulong", fromType: "E", toType: "nint", "ulong.MaxValue", "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+            convert(baseType: "ulong", fromType: "E", toType: "nuint", "ulong.MaxValue", IntPtr.Size == 4 ? "4294967295" : "18446744073709551615", "conv.u", IntPtr.Size == 4 ? "System.OverflowException" : "18446744073709551615", "conv.ovf.u.un");
+            convert(baseType: "ulong", fromType: "nint", toType: "E", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(baseType: "ulong", fromType: "nint", toType: "E", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
+            convert(baseType: "ulong", fromType: "nuint", toType: "E", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.u8");
+
+            void convert(string baseType, string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
+            {
+                if (baseType != null) baseType = " : " + baseType;
+                string source =
+$@"using System;
+enum E{baseType} {{ A, B }}
+class Program
+{{
+    static {toType} Convert({fromType} value) => ({toType})(value);
+    static {toType} ConvertChecked({fromType} value) => checked(({toType})(value));
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Main()
+    {{
+        {fromType} value = ({fromType})({fromValue});
+        Console.WriteLine(Execute(() => Convert(value)));
+        Console.WriteLine(Execute(() => ConvertChecked(value)));
+    }}
+}}";
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+$@"{toValueUnchecked}
+{toValueChecked}");
+                verifier.VerifyIL("Program.Convert",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvUnchecked}
+  IL_0002:  ret
+}}");
+                verifier.VerifyIL("Program.ConvertChecked",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvChecked}
+  IL_0002:  ret
+}}");
+            }
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void IdentityConversions(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"#pragma warning disable 219
+class A<T> {{ }}
+class Program
+{{
+    static void F1({nativeIntegerType} x1, {nativeIntegerType}? x2, {nativeIntegerType}[] x3, A<{nativeIntegerType}> x4)
+    {{
+        {underlyingType} y1 = x1;
+        {underlyingType}? y2 = x2;
+        {underlyingType}[] y3 = x3;
+        A<{underlyingType}> y4 = x4;
+        ({underlyingType}, {underlyingType}[]) y = (x1, x3);
+    }}
+    static void F2({underlyingType} y1, {underlyingType}? y2, {underlyingType}[] y3, A<{underlyingType}> y4)
+    {{
+        {nativeIntegerType} x1 = y1;
+        {nativeIntegerType}? x2 = y2;
+        {nativeIntegerType}[] x3 = y3;
+        A<{nativeIntegerType}> x4 = y4;
+        ({nativeIntegerType}, {nativeIntegerType}[]) x = (y1, y3);
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_01(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+class Program
+{{
+    static T F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType} x, {underlyingType} y)
+    {{
+        {nativeIntegerType} z = y;
+        (new[] {{ x, z }})[0].ToPointer();
+        (new[] {{ x, y }})[0].ToPointer();
+        (new[] {{ y, x }})[0].ToPointer();
+        (b ? x : z).ToPointer();
+        (b ? x : y).ToPointer();
+        (b ? y : x).ToPointer();
+        F0(() => {{ if (b) return x; return z; }}).ToPointer();
+        F0(() => {{ if (b) return x; return y; }}).ToPointer();
+        F0(() => {{ if (b) return y; return x; }}).ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (new[] { x, z })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(8, 29),
+                // (9,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { x, y })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(9, 10),
+                // (10,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { y, x })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y, x }").WithLocation(10, 10),
+                // (11,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (b ? x : z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 21),
+                // (12,10): error CS0172: Type of conditional expression cannot be determined because 'nint' and 'IntPtr' implicitly convert to one another
+                //         (b ? x : y).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}", $"{underlyingType}").WithLocation(12, 10),
+                // (13,10): error CS0172: Type of conditional expression cannot be determined because 'IntPtr' and 'nint' implicitly convert to one another
+                //         (b ? y : x).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? y : x").WithArguments($"{underlyingType}", $"{nativeIntegerType}").WithLocation(13, 10),
+                // (14,50): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(() => { if (b) return x; return z; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(14, 50),
+                // (15,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return y; return x; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_02(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+interface I<T> {{ }}
+class Program
+{{
+    static void F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+    static void F2(bool b, I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(8, 13),
+                // (9,13): error CS0172: Type of conditional expression cannot be determined because 'nint[]' and 'IntPtr[]' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}[]", $"{underlyingType}[]").WithLocation(9, 13),
+                // (10,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(10, 9),
+                // (14,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(14, 13),
+                // (15,13): error CS0172: Type of conditional expression cannot be determined because 'I<nint>' and 'I<IntPtr>' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"I<{nativeIntegerType}>", $"I<{underlyingType}>").WithLocation(15, 13),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void MethodTypeInference(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"interface I<T>
+{{
+    T P {{ get; }}
+}}
+unsafe class Program
+{{
+    static T F0<T>(T x, T y) => x;
+    static void F1({nativeIntegerType} x, {underlyingType} y)
+    {{
+        var z = ({nativeIntegerType})y;
+        F0(x, z).ToPointer();
+        F0(x, y).ToPointer();
+        F0(y, x).ToPointer();
+        F0<{nativeIntegerType}>(x, y).
+            ToPointer();
+        F0<{underlyingType}>(x, y).
+            ToPointer();
+    }}
+    static void F2({nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        var z = ({nativeIntegerType}[])y;
+        F0(x, z)[0].ToPointer();
+        F0(x, y)[0].ToPointer();
+        F0(y, x)[0].ToPointer();
+        F0<{nativeIntegerType}[]>(x, y)[0].
+            ToPointer();
+        F0<{underlyingType}[]>(x, y)[0].
+            ToPointer();
+    }}
+    static void F3(I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        var z = (I<{nativeIntegerType}>)y;
+        F0(x, z).P.ToPointer();
+        F0(x, y).P.ToPointer();
+        F0(y, x).P.ToPointer();
+        F0<I<{nativeIntegerType}>>(x, y).P.
+            ToPointer();
+        F0<I<{underlyingType}>>(x, y).P.
+            ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,18): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 18),
+                // (12,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(13, 9),
+                // (15,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(15, 13),
+                // (22,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(22, 21),
+                // (23,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(23, 9),
+                // (24,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(24, 9),
+                // (26,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(26, 13),
+                // (33,20): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(33, 20),
+                // (34,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(34, 9),
+                // (35,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(35, 9),
+                // (37,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(37, 13));
+        }
+
+        [Fact]
+        public void DuplicateConstraint()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> where U : I<nint>, I<nint> { }
+class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
+                // class C1<T, U> where U : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nint>").WithArguments("I<nint>", "U").WithLocation(2, 35),
+                // (3,35): error CS0405: Duplicate constraint 'I<IntPtr>' for type parameter 'U'
+                // class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<System.IntPtr>").WithArguments("I<System.IntPtr>", "U").WithLocation(3, 35),
+                // (4,63): error CS0405: Duplicate constraint 'I<nuint>' for type parameter 'U'
+                // class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nuint>").WithArguments("I<nuint>", "U").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void DuplicateInterface_01()
+        {
+            var source =
+@"interface I<T> { }
+class C1 : I<nint>, I<nint> { }
+class C2 : I<nint>, I<System.IntPtr> { }
+class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS0528: 'I<nint>' is already listed in interface list
+                // class C1 : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nint>").WithArguments("I<nint>").WithLocation(2, 21),
+                // (3,7): error CS8779: 'I<IntPtr>' is already listed in the interface list on type 'C2' as 'I<nint>'.
+                // class C2 : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<System.IntPtr>", "I<nint>", "C2").WithLocation(3, 7),
+                // (4,7): error CS8779: 'I<nuint>' is already listed in the interface list on type 'C3' as 'I<UIntPtr>'.
+                // class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint>", "I<System.UIntPtr>", "C3").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_02()
+        {
+            var source =
+@"interface I<T> { }
+#nullable enable
+class C1 :
+    I<nint[]>,
+    I<System.IntPtr[]?>
+{ }
+class C2 :
+    I<System.IntPtr[]>,
+#nullable disable
+    I<nint[]>
+{ }
+class C3 :
+    I<System.UIntPtr[]>,
+#nullable enable
+    I<nuint[]?>
+{ }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS8779: 'I<IntPtr[]?>' is already listed in the interface list on type 'C1' as 'I<nint[]>'.
+                // class C1 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("I<System.IntPtr[]?>", "I<nint[]>", "C1").WithLocation(3, 7),
+                // (7,7): error CS8779: 'I<nint[]>' is already listed in the interface list on type 'C2' as 'I<IntPtr[]>'.
+                // class C2 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<nint[]>", "I<System.IntPtr[]>", "C2").WithLocation(7, 7),
+                // (12,7): error CS8779: 'I<nuint[]?>' is already listed in the interface list on type 'C3' as 'I<UIntPtr[]>'.
+                // class C3 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint[]?>", "I<System.UIntPtr[]>", "C3").WithLocation(12, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_03()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0528: 'I<(IntPtr, object)>' is already listed in interface list
+                // class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<(System.IntPtr, object)>").WithArguments("I<(System.IntPtr, object)>").WithLocation(3, 40),
+                // (4,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I<(IntPtr X, object Y)>'.
+                // class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object Y)>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C2' as 'I<(IntPtr, object)>'.
+                // class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object)>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C3' as 'I<(IntPtr, object)>'.
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr, object)>", "C3").WithLocation(6, 7),
+                // (6,40): error CS1966: 'C3': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C3", "I<(System.IntPtr, dynamic)>").WithLocation(6, 40),
+                // (7,7): warning CS8645: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C4' with different nullability of reference types.
+                // class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C4").WithArguments("I<(System.IntPtr, object)>", "C4").WithLocation(7, 7),
+                // (8,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C5' as 'I<(IntPtr X, object Y)>'.
+                // class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C5").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object Y)>", "C5").WithLocation(8, 7),
+                // (9,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C6' as 'I<(IntPtr X, object Y)>'.
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C6").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr X, object Y)>", "C6").WithLocation(9, 7),
+                // (9,44): error CS1966: 'C6': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C6", "I<(System.IntPtr, dynamic)>").WithLocation(9, 44),
+                // (10,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C7' with different tuple element names, as 'I<(IntPtr X, object? Y)>'.
+                // class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C7").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object? Y)>", "C7").WithLocation(10, 7),
+                // (11,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'C8' as 'I<(IntPtr, object)>'.
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C8").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object)>", "C8").WithLocation(11, 7),
+                // (11,40): error CS1966: 'C8': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("C8", "I<(nint, dynamic)>").WithLocation(11, 40),
+                // (12,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C9' as 'I<(IntPtr, object?)>'.
+                // class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C9").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object?)>", "C9").WithLocation(12, 7),
+                // (13,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CA' as 'I<(IntPtr, object?)>'.
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CA").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CA").WithLocation(13, 7),
+                // (13,41): error CS1966: 'CA': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CA", "I<(nint, dynamic)>").WithLocation(13, 41),
+                // (14,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CB' as 'I<(IntPtr X, object Y)>'.
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CB").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object Y)>", "CB").WithLocation(14, 7),
+                // (14,44): error CS1966: 'CB': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CB", "I<(nint, dynamic)>").WithLocation(14, 44),
+                // (15,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'CC' as 'I<(IntPtr X, object? Y)>'.
+                // class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CC").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object? Y)>", "CC").WithLocation(15, 7),
+                // (16,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CD' as 'I<(IntPtr, object?)>'.
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CD").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CD").WithLocation(16, 7),
+                // (16,41): error CS1966: 'CD': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CD", "I<(nint, dynamic)>").WithLocation(16, 41),
+                // (17,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CE' as 'I<(IntPtr X, object? Y)>'.
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CE").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CE").WithLocation(17, 7),
+                // (17,45): error CS1966: 'CE': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CE", "I<(nint, dynamic)>").WithLocation(17, 45),
+                // (18,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CF' as 'I<(IntPtr X, object? Y)>'.
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CF").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CF").WithLocation(18, 7),
+                // (18,45): error CS1966: 'CF': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CF", "I<(nint, dynamic)>").WithLocation(18, 45));
+        }
+
+        [Fact]
+        public void DuplicateInterface_04()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+class C1 : IA<System.IntPtr>, IB1 { }
+class C2 : IB2<nint>, IA<System.IntPtr> { }
+class C3 : IB1, IB2<System.IntPtr> { }
+class C4 : IB1, IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // class C1 : IA<System.IntPtr>, IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // class C2 : IB2<nint>, IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // class C3 : IB1, IB2<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_05()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+partial class C1 : IA<System.IntPtr> { }
+partial class C1 : IB1 { }
+partial class C2 : IB2<nint> { }
+partial class C2 : IA<System.IntPtr> { }
+partial class C3 : IB1 { }
+partial class C3 : IB2<System.IntPtr> { }
+partial class C4 : IB1 { }
+partial class C4 : IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // partial class C1 : IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 15),
+                // (6,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // partial class C2 : IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(6, 15),
+                // (8,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // partial class C3 : IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_01()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T> : I<nint>, I<T> { }
+class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T>' cannot implement both 'I<nint>' and 'I<T>' because they may unify for some type parameter substitutions
+                // class C1<T> : I<nint>, I<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "I<nint>", "I<T>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T>' cannot implement both 'I<(nint, T)>' and 'I<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "I<(nint, T)>", "I<(T, System.IntPtr)>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T>' cannot implement both 'I<(T, T)>' and 'I<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "I<(T, T)>", "I<(System.UIntPtr, nuint)>").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_02()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+class C1<T> : IB1<T>, IB2<nint> { }
+class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+class C4<T> : IB1<(T, T)>, IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // class C1<T> : IB1<T>, IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(5, 7),
+                // (6,7): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_03()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+partial class C1<T> : IB1<T> { }
+partial class C1<T> : IB2<nint> { }
+partial class C2<T> : IB1<(nint, T)> { }
+partial class C2<T> : IB2<(T, System.IntPtr)> { }
+partial class C3<T> : IB1<(T, T)> { }
+partial class C3<T> : IB2<(System.UIntPtr, nuint)> { }
+partial class C4<T> : IB1<(T, T)> { }
+partial class C4<T> : IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // partial class C1<T> : IB1<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 15),
+                // (6,15): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // partial class C2<T> : IB1<(nint, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(6, 15),
+                // (8,15): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // partial class C3<T> : IB1<(T, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_04()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C1 : I<nint> { }
+class C2 : I<nuint> { }
+class C3 : I<System.IntPtr> { }
+class C4 : I<(nint, nuint[])> { }
+class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            var type1 = getInterface(comp, "C1");
+            var type2 = getInterface(comp, "C2");
+            var type3 = getInterface(comp, "C3");
+            var type4 = getInterface(comp, "C4");
+            var type5 = getInterface(comp, "C5");
+
+            Assert.False(TypeUnification.CanUnify(type1, type2));
+            Assert.True(TypeUnification.CanUnify(type1, type3));
+            Assert.True(TypeUnification.CanUnify(type4, type5));
+
+            static TypeSymbol getInterface(CSharpCompilation comp, string typeName) =>
+                comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
+        }
+
+        [WorkItem(49596, "https://github.com/dotnet/roslyn/issues/49596")]
+        [Fact]
+        public void SignedToUnsignedConversions_Implicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Implicit1(sbyte x) => x;
+    static nuint Implicit2(short x) => x;
+    static nuint Implicit3(int x) => x;
+    static nuint Implicit4(long x) => x;
+    static nuint Implicit5(nint x) => x;
+    static nuint Checked1(sbyte x) => checked(x);
+    static nuint Checked2(short x) => checked(x);
+    static nuint Checked3(int x) => checked(x);
+    static nuint Checked4(long x) => checked(x);
+    static nuint Checked5(nint x) => checked(x);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit1(sbyte x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(3, 40),
+                // (4,40): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit2(short x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(4, 40),
+                // (5,38): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit3(int x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(5, 38),
+                // (6,39): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit4(long x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(6, 39),
+                // (7,39): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit5(nint x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(7, 39),
+                // (8,47): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked1(sbyte x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(8, 47),
+                // (9,47): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked2(short x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(9, 47),
+                // (10,45): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked3(int x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(10, 45),
+                // (11,46): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked4(long x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(11, 46),
+                // (12,46): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked5(nint x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(12, 46));
+        }
+
+        [Fact]
+        public void SignedToUnsignedConversions_Explicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Explicit1(sbyte x) => (nuint)x;
+    static nuint Explicit2(short x) => (nuint)x;
+    static nuint Explicit3(int x) => (nuint)x;
+    static nuint Explicit4(long x) => (nuint)x;
+    static nuint Explicit5(nint x) => (nuint)x;
+    static nuint Checked1(sbyte x) => checked((nuint)x);
+    static nuint Checked2(short x) => checked((nuint)x);
+    static nuint Checked3(int x) => checked((nuint)x);
+    static nuint Checked4(long x) => checked((nuint)x);
+    static nuint Checked5(nint x) => checked((nuint)x);
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source);
+            string expectedExplicitILA =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  ret
+}";
+            string expectedExplicitILB =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}";
+            string expectedCheckedIL =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}";
+            verifier.VerifyIL("NativeInts.Explicit1", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit2", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit3", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit4", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Checked1", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked2", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
         }
     }
 }

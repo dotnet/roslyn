@@ -16,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicProjectExistsUIContext : AbstractIntegrationTest
     {
-        public BasicProjectExistsUIContext(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public BasicProjectExistsUIContext(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

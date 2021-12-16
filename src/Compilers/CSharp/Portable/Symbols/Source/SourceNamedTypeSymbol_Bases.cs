@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -91,12 +93,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
-            {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                Debug.Assert(baseLocation != null);
+            Location baseLocation = null;
+            bool baseContainsErrorTypes = localBase.ContainsErrorType();
 
+            if (!baseContainsErrorTypes)
+            {
+                baseLocation = FindBaseRefSyntax(localBase);
+                Debug.Assert(!this.IsClassType() || localBase.IsObjectType() || baseLocation != null);
+            }
+
+            // you need to know all bases before you can ask this question... (asking this causes a cycle)
+            if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
+            {
                 // A generic type cannot derive from '{0}' because it is an attribute class
                 diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
             }
@@ -113,18 +121,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Records can only inherit from other records or object
-            if (declaration.Kind == DeclarationKind.Record &&
-                localBase.SpecialType != SpecialType.System_Object &&
-                SynthesizedRecordClone.FindValidCloneMethod(localBase) is null)
+            if (this.IsClassType() && !localBase.IsObjectType() && !baseContainsErrorTypes)
             {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
-            }
-            else if (declaration.Kind != DeclarationKind.Record &&
-                     SynthesizedRecordClone.FindValidCloneMethod(localBase) is object)
-            {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null ||
+                        SynthesizedRecordPrintMembers.FindValidPrintMembersMethod(localBase, DeclaringCompilation) is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                    }
+                }
+                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is object)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+                }
+
+                diagnostics.Add(baseLocation, useSiteDiagnostics);
             }
         }
 
@@ -169,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            // InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics populates the set with interfaces that match by CLR signature.
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
+                            Debug.Assert(other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions));
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
@@ -181,6 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, location, @interface, other, this);
                             }
                         }
                     }

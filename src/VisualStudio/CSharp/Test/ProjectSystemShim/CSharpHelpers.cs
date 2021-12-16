@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -82,8 +85,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 hierarchy,
                 binOutputPath);
 
-            var commandLineForOptions = string.Join(" ", commandLineArguments);
-            cpsProject.SetOptions(commandLineForOptions);
+            cpsProject.SetOptions(ImmutableArray.Create(commandLineArguments));
 
             return cpsProject;
         }

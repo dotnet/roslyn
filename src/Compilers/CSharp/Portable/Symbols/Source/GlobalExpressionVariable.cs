@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
         /// </summary>
-        private SyntaxReference _typeSyntaxOpt;
+        private readonly SyntaxReference _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,

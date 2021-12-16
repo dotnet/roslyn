@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
-            new HashSet<AbstractTableDataSourceFindUsagesContext>();
+            new();
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         [ImportingConstructor]
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             foreach (var columnState in window.TableControl.ColumnStates)
             {
                 var columnState2 = columnState as ColumnState2;
-                if (columnState?.Name == StandardTableColumnDefinitions2.Definition)
+                if (columnState2?.Name == StandardTableColumnDefinitions2.Definition)
                 {
                     newColumns.Add(new ColumnState2(
                         columnState2.Name,

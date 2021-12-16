@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Op
     Public Class OptionNamesRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionNamesAfterOptionTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>Option |</File>, "Compare", "Explicit", "Infer", "Strict")
-        End Function
+        Public Sub OptionNamesAfterOptionTest()
+            VerifyRecommendationsAreExactly(<File>Option |</File>, "Compare", "Explicit", "Infer", "Strict")
+        End Sub
     End Class
 End Namespace

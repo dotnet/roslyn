@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             return ProduceTagsAsync(context, caretPosition, document);
         }
 
-        internal async Task ProduceTagsAsync(
+        internal static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document)
@@ -145,8 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(
-                                    context, document.Project.Solution, documentHighlights).ConfigureAwait(false);
+                                await AddTagSpansAsync(context, documentHighlights).ConfigureAwait(false);
                             }
                         }
                     }
@@ -154,9 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
         }
 
-        private async Task AddTagSpansAsync(
+        private static async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
-            Solution solution,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // report NFW and continue.
                 // also, rather than return partial results, return nothing

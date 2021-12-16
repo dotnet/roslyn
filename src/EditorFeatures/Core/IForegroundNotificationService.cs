@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -13,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     internal interface IForegroundNotificationService
     {
-        void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
-        void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Action action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
         /// <summary>
         /// if action return true, the service will call it back again when it has time.
         /// </summary>
-        void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken);
 
-        void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default);
+        void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken);
     }
 }

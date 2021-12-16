@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -59,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.UnconvertedObjectCreationExpression:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.DefaultLiteral:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -117,6 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => base.TopLevelNullability;
             set => base.TopLevelNullability = value;
         }
+
+        public CodeAnalysis.ITypeSymbol? GetPublicTypeSymbol()
+            => Type?.GetITypeSymbol(TopLevelNullability.FlowState.ToAnnotation());
     }
 
     internal partial class BoundPassByCopy
@@ -229,9 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
-            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
-
         public override LookupResultKind ResultKind
         {
             get
@@ -283,6 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Symbol? ExpressionSymbol
         {
             get { return this.MethodOpt; }
+        }
+    }
+
+    internal partial class BoundInterpolatedString
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get { return this.ConstantValueOpt; }
         }
     }
 
@@ -427,9 +435,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
-                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -491,6 +499,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsTrue dynamic operator is invoked at runtime if the condition is of the type dynamic.
                 // The type of the operator itself is Boolean, so we need to check its kind.
                 return this.Condition.Kind == BoundKind.UnaryOperator && ((BoundUnaryOperator)this.Condition).OperatorKind.IsDynamic();
+            }
+        }
+    }
+
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get
+            {
+                return this.ConstantValueOpt;
             }
         }
     }

@@ -47,6 +47,13 @@ End Structure")
         End Function
 
         <Fact>
+        Public Async Function NotOfferedOnModule() As Task
+            Await TestMissingInRegularAndScriptAsync("
+[||]Module Foo
+End Module")
+        End Function
+
+        <Fact>
         Public Async Function NotOfferedOnInterfaceWithToString() As Task
             Await TestMissingInRegularAndScriptAsync("
 [||]Interface IFoo

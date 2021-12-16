@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,14 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SimpleProgramNamedTypeSymbol : SourceMemberContainerTypeSymbol
     {
-        internal const string UnspeakableName = "$Program";
-
         internal SimpleProgramNamedTypeSymbol(NamespaceSymbol globalNamespace, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
             : base(globalNamespace, declaration, diagnostics)
         {
             Debug.Assert(globalNamespace.IsGlobalNamespace);
             Debug.Assert(declaration.Kind == DeclarationKind.SimpleProgram);
-            Debug.Assert(declaration.Name == UnspeakableName);
+            Debug.Assert(declaration.Name == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
 
             state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
         }
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static SimpleProgramNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
         {
-            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(UnspeakableName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault();
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault();
         }
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
@@ -220,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               staticInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
-                                              staticInitializersSyntaxLength: 0,
-                                              instanceInitializersSyntaxLength: 0);
+                                              isNullableEnabledForInstanceConstructorsAndFields: false,
+                                              isNullableEnabledForStaticConstructorsAndFields: false);
         }
 
         public override bool IsImplicitlyDeclared => false;

@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,21 +81,22 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Kapatılan dosyalara ilişkin tanılamaları göster;
+        <target state="translated">Satır içi ipuçlarını göster;
+Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
-İmlecin altında ilgili bileşenleri vurgula; 
+İmlecin altındaki ilgili bileşenleri vurgula; 
 Geçersiz normal ifadeleri bildir;
 Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
 Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
 Using yönergeleri;
-using yönergelerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
-using yönerge gruplarını ayır;
-Başvuru bütünleştirilmiş kodlarında türler için using öner;
-NuGet paketlerinde türler için using öner;
+Using yönergelerini sıralarken sistem yönergelerini en başa yerleştir;
+Using yönerge gruplarını ayır;
+Başvuru bütünleştirilmiş kodlarında türler için using yönergeleri öner;
+NuGet paketlerinde türler için using yönergeleri öner;
 Vurgulama;
 İmlecin altındaki sembole yönelik başvuruları vurgula;
-İmlecin altında ilgili anahtar sözcükleri vurgula;
+İmlecin altındaki ilgili anahtar sözcükleri vurgula;
 Ana Hat Oluşturma;
 Dosyalar açılırken ana hat oluşturma moduna gir;
 Yordam satır ayırıcılarını göster;
@@ -110,18 +112,18 @@ Bildirim düzeyinde yapılar için kılavuzları göster;
 Kod düzeyinde yapılar için kılavuzları göster;
 Düzenleyici Yardımı;
 /// için XML belge açıklamaları oluştur;
-/* */ açıklamaları yazarken her yeni satırın başına * ekle;
+/* */ açıklamaları yazılırken her yeni satırın başına * ekle;
 Yeniden adlandırma izlemesi için önizleme göster;
 Enter tuşuna basıldığında dize sabit değerlerini böl;
 string.Format çağrılarındaki geçersiz yer tutucuları bildir;
 Ayıklama Metodu;
 Özel yapıya ref veya out koyma;
-Arabirim veya Soyut Sınıfı Uygula;
-Özellik, olay ve metot eklerken, bunları;
-aynı türden başka üyelerle birlikte;
+Arabirim veya Soyut Sınıfı uygula;
+Özellik, olay ve metot eklerken bunları;
+aynı türdeki başka üyelerle birlikte;
 sona yerleştir;
 Özellik oluştururken;
-oluşturma özelliklerini tercih et;
+özel durum oluşturan özellikleri tercih et;
 otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
@@ -137,7 +139,7 @@ Automatically format on return;
 Automatically format on paste;</source>
         <target state="translated">Yazarken otomatik biçimlendir;
 Noktalı virgül girildiğinde deyimi otomatik biçimlendir;
-Kapama küme ayracı girildiğinde otomatik biçimlendir
+Kapama küme ayracı girildiğinde otomatik biçimlendir;
 Return tuşuna basıldığında otomatik biçimlendir;
 Yapıştırma sonrasında otomatik biçimlendir;</target>
         <note>C# Formatting &gt; General options page keywords</note>

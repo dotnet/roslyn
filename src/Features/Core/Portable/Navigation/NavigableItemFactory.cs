@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
             => new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
 
-        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
+        public static ImmutableArray<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol,
             ImmutableArray<TaggedText>? displayTaggedParts,
             CancellationToken cancellationToken)
         {
             var locations = GetPreferredSourceLocations(solution, symbol, cancellationToken);
-            return locations.Select(loc => GetItemFromSymbolLocation(
+            return locations.SelectAsArray(loc => GetItemFromSymbolLocation(
                 solution, symbol, loc, displayTaggedParts));
         }
 

@@ -1,11 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -52,8 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : class? => true
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
+        /// T where T : notnull => true
         /// </summary>
-        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        /// <remarks>
+        /// In C#9, annotations are allowed regardless of constraints.
+        /// </remarks>
+        public static bool IsTypeParameterDisallowingAnnotationInCSharp8(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.SpecialType == SpecialType.System_Void;
         }
 
-        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
+        public static bool IsNullableTypeOrTypeParameter(this TypeSymbol? type)
         {
             if (type is null)
             {
@@ -373,6 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
         }
 
+        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol type)
+        {
+            return (TypeSymbol?)GetDelegateType(type) ?? type as FunctionPointerTypeSymbol;
+        }
+
         /// <summary>
         /// return true if the type is constructed from System.Linq.Expressions.Expression`1
         /// </summary>
@@ -440,6 +449,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<ParameterSymbol>);
             }
             return invokeMethod.Parameters;
+        }
+
+        public static ImmutableArray<ParameterSymbol> DelegateOrFunctionPointerParameters(this TypeSymbol type)
+        {
+            Debug.Assert(type is FunctionPointerTypeSymbol || type.IsDelegateType());
+            if (type is FunctionPointerTypeSymbol { Signature: { Parameters: var functionPointerParameters } })
+            {
+                return functionPointerParameters;
+            }
+            else
+            {
+                return type.DelegateParameters();
+            }
         }
 
         public static bool TryGetElementTypesWithAnnotationsIfTupleType(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
@@ -1861,13 +1883,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsWellKnownCompilerServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
-            if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
+            if (typeSymbol.Name != name)
             {
                 return false;
             }
 
-            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+            return IsCompilerServicesTopLevelType(typeSymbol);
         }
+
+        internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
 
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
         {

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [DebuggerDisplay("{Value,nq}")]
         private struct Element
         {
-            internal T Value;
+            internal T? Value;
         }
 
         /// <remarks>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T _firstItem;
+        private T? _firstItem;
         private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal void ForgetTrackedObject(T old, T replacement = null)
+        internal void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -43,8 +45,11 @@ void M()
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
-                CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentFormattingName,
+                           CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
             => new LSP.DocumentFormattingParams()

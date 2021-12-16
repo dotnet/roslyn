@@ -25,7 +25,7 @@
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SequentialOnPartialClass:
                 case ErrorCode.WRN_MainCantBeGeneric:
@@ -152,6 +152,7 @@
                 case ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation:
                 case ErrorCode.WRN_MainIgnored:
+                case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_InvalidVersionFormat:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
@@ -187,6 +188,7 @@
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
                 case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
@@ -239,11 +241,33 @@
                 case ErrorCode.WRN_MemberNotNullWhen:
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_ConstOutOfRangeChecked:
                 case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                 case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
+                case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_AnalyzerReferencesFramework:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
+                case ErrorCode.WRN_RecordNamedDisallowed:
+                case ErrorCode.WRN_UnassignedThisAutoProperty:
+                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_ParamUnassigned:
+                case ErrorCode.WRN_UseDefViolationProperty:
+                case ErrorCode.WRN_UseDefViolationField:
+                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationOut:
+                case ErrorCode.WRN_UseDefViolation:
+                case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                case ErrorCode.WRN_ParameterIsStaticClass:
+                case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_UnreadRecordParameter:
+                case ErrorCode.WRN_DoNotCompareFunctionPointers:
                     return true;
                 default:
                     return false;

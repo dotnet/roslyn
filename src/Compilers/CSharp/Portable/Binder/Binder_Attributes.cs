@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -197,8 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeConstructor = boundAttribute.Constructor;
 
             RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
 
-            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 
@@ -379,6 +378,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+
+                    if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
+                    {
+                        // an error would have already been reported on declaring an init-only setter
+                        CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                    }
                 }
             }
 
@@ -1056,6 +1061,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         typedConstantKind = TypedConstantKind.Error;
                     }
+
+                    ConstantValueUtils.CheckLangVersionForConstantValue(node, diagnostics);
 
                     return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: constantValue.Value);
                 }

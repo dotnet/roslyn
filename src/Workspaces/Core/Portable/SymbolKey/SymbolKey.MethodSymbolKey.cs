@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var reducedFromResolution = reader.ReadSymbolKey(out var reducedFromFailureReason);
                 if (reducedFromFailureReason != null)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
                 if (constructedFromFailureReason != null)
@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis
                 visitor.PopMethod(symbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString();
+                var metadataName = reader.ReadString()!;
 
                 var containingType = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 var arity = reader.ReadInteger();
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
                 // point.
                 var beforeParametersPosition = reader.Position;
 
-                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingType, metadataNameOpt: null);
+                using var methods = GetMembersOfNamedType<IMethodSymbol>(containingType, metadataName: null);
                 using var result = PooledArrayBuilder<IMethodSymbol>.GetInstance();
 
                 foreach (var candidate in methods)
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
 
                     // Push an null-method to our stack so that any method-type-parameters
                     // can at least be read (if not resolved) properly.
-                    reader.PushMethod(methodOpt: null);
+                    reader.PushMethod(method: null);
 
                     // read out the values.  We don't actually need to use them, but we have
                     // to effectively read past them in the string.
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
                         _ = reader.ReadSymbolKey(out _);
                     }
 
-                    reader.PopMethod(methodOpt: null);
+                    reader.PopMethod(method: null);
                 }
 
                 if (containingTypeFailureReason != null)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
                 return CreateResolution(result, $"({nameof(MethodSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
 
-            private static IMethodSymbol Resolve(
+            private static IMethodSymbol? Resolve(
                 SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
                 PooledArrayBuilder<RefKind> parameterRefKinds, int beforeParametersPosition,
                 IMethodSymbol method)
@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private static IMethodSymbol Resolve(
+            private static IMethodSymbol? Resolve(
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
                 using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out _);
-                var returnType = (ITypeSymbol)reader.ReadSymbolKey(out _).GetAnySymbol();
+                var returnType = (ITypeSymbol?)reader.ReadSymbolKey(out _).GetAnySymbol();
 
                 if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
                 {

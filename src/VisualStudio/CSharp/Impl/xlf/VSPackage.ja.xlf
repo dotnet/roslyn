@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,21 +81,22 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">閉じているファイルの診断結果を表示する;
+        <target state="translated">インラインのヒントを表示する;
+閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
-カーソルの下にある関連コンポーネントをハイライトする;
+カーソルの下にある関連コンポーネントを強調表示する;
 無効な正規表現を報告する;
 完全ソリューション解析を有効にする;
 外部プロセスでエディター機能解析を実行する;
 逆コンパイルされたソースへのナビゲーションを有効にする;
 ディレクティブを使用する;
 using を並べ替える際に、system ディレクティブを先頭に配置する;
-ディレクティブ グループを使用して分離する;
+using ディレクティブ グループを分離する;
 参照アセンブリの型に using を提案する;
 NuGet パッケージの型に using を提案する;
 強調表示;
-カーソルの下にあるシンボルへの参照をハイライトする;
-カーソルの下にある関連キーワードをハイライトする;
+カーソルの下にあるシンボルへの参照を強調表示する;
+カーソルの下にある関連キーワードを強調表示する;
 アウトライン;
 ファイルを開くときにアウトライン モードに入る;
 プロシージャ行の区切り記号を表示する;

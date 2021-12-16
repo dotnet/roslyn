@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -23,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             CSharpEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
-                description.OldTrackingSpans,
                 description.NewSpans,
-                description.OldRegions,
                 description.NewRegions);
         }
 
@@ -113,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
-            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp30 })
+            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp })
             {
                 new CSharpEditAndContinueTestHelpers(targetFramework).VerifySemantics(
                     editScript,

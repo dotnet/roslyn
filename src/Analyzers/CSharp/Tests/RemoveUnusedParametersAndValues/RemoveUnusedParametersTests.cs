@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,12 +17,18 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnusedParametersTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
@@ -1367,8 +1375,7 @@ public sealed class C : IDisposable
 }", options);
         }
 
-#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch
-        // an editorconfig string representation for this invalid option fails.
+#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
         [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
@@ -1530,6 +1537,50 @@ class C
     }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_PrimaryConstructorParameter()
+        {
+            await TestMissingAsync(
+@"record A(int [|X|]);"
+);
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_NonPrimaryConstructorParameter()
+        {
+            await TestDiagnosticsAsync(
+@"record A
+{
+    public A(int [|X|])
+    {
+    }
+}
+",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(47142, "https://github.com/dotnet/roslyn/issues/47142")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Record_DelegatingPrimaryConstructorParameter()
+        {
+            await TestDiagnosticMissingAsync(
+@"record A(int X);
+record B(int X, int [|Y|]) : A(X);
+");
+        }
+
+        [WorkItem(47174, "https://github.com/dotnet/roslyn/issues/47174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RecordPrimaryConstructorParameter_PublicRecord()
+        {
+            await TestDiagnosticMissingAsync(
+@"public record Base(int I) { }
+public record Derived(string [|S|]) : Base(42) { }
+");
         }
     }
 }

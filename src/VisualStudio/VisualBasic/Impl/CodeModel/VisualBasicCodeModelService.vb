@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
@@ -33,13 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
-        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
+        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory, threadingContext As IThreadingContext)
             MyBase.New(
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
                 LineAdjustmentFormattingRule.Instance,
-                EndRegionFormattingRule.Instance)
+                EndRegionFormattingRule.Instance,
+                threadingContext)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
@@ -1263,8 +1265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Private Function DeleteMember(document As Document, node As SyntaxNode) As Document
-            Dim text = document.GetTextAsync(CancellationToken.None) _
-                               .WaitAndGetResult_CodeModel(CancellationToken.None)
+            Dim text = document.GetTextSynchronously(CancellationToken.None)
 
             Dim deletionEnd = node.FullSpan.End
             Dim deletionStart = node.SpanStart
@@ -1319,7 +1320,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declarator)
             Else
                 Dim newDeclarator = declarator.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declarator, newDeclarator, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(declarator, newDeclarator, CancellationToken.None)
             End If
         End Function
 
@@ -1332,7 +1333,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declaration)
             Else
                 Dim newDeclaration = declaration.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declaration, newDeclaration, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(declaration, newDeclaration, CancellationToken.None)
             End If
         End Function
 
@@ -1345,8 +1346,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim spanStart = attributeList.SpanStart
                 Dim spanEnd = attributeList.FullSpan.End
 
-                Dim text = document.GetTextAsync(CancellationToken.None) _
-                                   .WaitAndGetResult_CodeModel(CancellationToken.None)
+                Dim text = document.GetTextSynchronously(CancellationToken.None)
 
                 text = text.Replace(TextSpan.FromBounds(spanStart, spanEnd), String.Empty)
 
@@ -1354,8 +1354,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Else
                 Dim newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine)
 
-                Return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None) _
-                               .WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(attributeList, newAttributeList, CancellationToken.None)
             End If
         End Function
 
@@ -1363,16 +1362,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim argumentList = node.FirstAncestorOrSelf(Of ArgumentListSyntax)()
             Dim newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None) _
-                           .WaitAndGetResult_CodeModel(CancellationToken.None)
+            Return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None)
         End Function
 
         Private Overloads Function Delete(document As Document, node As ParameterSyntax) As Document
             Dim parameterList = node.FirstAncestorOrSelf(Of ParameterListSyntax)()
             Dim newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None) _
-                           .WaitAndGetResult_CodeModel(CancellationToken.None)
+            Return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None)
         End Function
 
         Public Overrides Function IsValidExternalSymbol(symbol As ISymbol) As Boolean
@@ -1459,7 +1456,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Dim flags = member.GetModifierFlags()
 
-            Dim access As EnvDTE.vsCMAccess = 0
+            Dim access As EnvDTE.vsCMAccess
 
             If (flags And ModifierFlags.Public) <> 0 Then
                 access = EnvDTE.vsCMAccess.vsCMAccessPublic
@@ -2138,8 +2135,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetClassKind(typeNode As SyntaxNode, typeSymbol As INamedTypeSymbol) As EnvDTE80.vsCMClassKind
             Debug.Assert(TypeOf typeNode Is ClassBlockSyntax OrElse
                          TypeOf typeNode Is ModuleBlockSyntax)
-
-            Dim result As EnvDTE80.vsCMClassKind = 0
 
             Dim typeBlock = DirectCast(typeNode, TypeBlockSyntax)
             If TypeOf typeBlock Is ModuleBlockSyntax Then
@@ -3767,46 +3762,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Shared Function GetMember(container As SyntaxNode, index As Integer) As StatementSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Return DirectCast(container, CompilationUnitSyntax).Members(index)
-            ElseIf TypeOf container Is NamespaceBlockSyntax Then
-                Return DirectCast(container, NamespaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ClassBlockSyntax Then
-                Return DirectCast(container, ClassBlockSyntax).Members(index)
-            ElseIf TypeOf container Is InterfaceBlockSyntax Then
-                Return DirectCast(container, InterfaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is StructureBlockSyntax Then
-                Return DirectCast(container, StructureBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ModuleBlockSyntax Then
-                Return DirectCast(container, ModuleBlockSyntax).Members(index)
-            ElseIf TypeOf container Is EnumBlockSyntax Then
-                Return DirectCast(container, EnumBlockSyntax).Members(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
-        Private Shared Function GetAttribute(container As SyntaxNode, index As Integer) As AttributeListSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Dim compilationUnit = DirectCast(container, CompilationUnitSyntax).Attributes(index).AttributeLists(0)
-            ElseIf TypeOf container Is TypeBlockSyntax Then
-                Return DirectCast(container, TypeBlockSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is EnumMemberDeclarationSyntax Then
-                Return DirectCast(container, EnumMemberDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is MethodBlockBaseSyntax Then
-                Return DirectCast(container, MethodBlockBaseSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is PropertyBlockSyntax Then
-                Return DirectCast(container, PropertyBlockSyntax).PropertyStatement.AttributeLists(index)
-            ElseIf TypeOf container Is FieldDeclarationSyntax Then
-                Return DirectCast(container, FieldDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is ParameterSyntax Then
-                Return DirectCast(container, ParameterSyntax).AttributeLists(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
         Protected Overrides Function InsertAttributeArgumentIntoContainer(index As Integer, attributeArgument As SyntaxNode, container As SyntaxNode) As SyntaxNode
             If TypeOf container Is AttributeSyntax Then
                 Dim attribute = DirectCast(container, AttributeSyntax)
@@ -4112,8 +4067,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 textToInsert = ", " & newEventName
             End If
 
-            Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult_CodeModel(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
 
             text = text.Replace(position, 0, textToInsert)
 
@@ -4157,8 +4111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult_CodeModel(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
 
             If methodStatement.HandlesClause.Events.Count = 1 Then
                 ' Easy case, delete the whole clause
@@ -4327,16 +4280,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim inheritsStatements = typeBlock.Inherits
-            Dim foundType = False
 
             For Each inheritsStatement In inheritsStatements
                 For Each inheritsType In inheritsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If inheritsStatement.Types.Count = 1 Then
                             inheritsStatements = inheritsStatements.Remove(inheritsStatement)
                         Else
@@ -4403,16 +4352,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim implementsStatements = typeBlock.Implements
-            Dim foundType = False
 
             For Each implementsStatement In implementsStatements
                 For Each inheritsType In implementsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If implementsStatement.Types.Count = 1 Then
                             implementsStatements = implementsStatements.Remove(implementsStatement)
                         Else

@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4987,6 +4988,58 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [Fact]
+        public void InaccessibleMethodGroup_Constructors_ImplicitObjectCreationExpressionSyntax()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Class1 x = /*<bind>*/new(3, 7)/*</bind>*/;
+    }
+}
+
+class Class1
+{
+    protected Class1() { }
+    protected Class1(int x) { }
+    private Class1(int a, long b) { }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("Class1", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.Equal(3, semanticInfo.MethodGroup.Length);
+            sortedCandidates = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
         [WorkItem(542782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542782")]
         [Fact]
         public void InaccessibleMethodGroup_Constructors_IdentifierNameSyntax()
@@ -8485,7 +8538,7 @@ public class Test
             Assert.Equal(true, semanticInfo.ConstantValue);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_Constant02()
         {
@@ -8513,11 +8566,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8531,7 +8584,7 @@ public class Test
             Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_NotConstant()
         {
@@ -8558,11 +8611,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 

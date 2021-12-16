@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -20,47 +22,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
-            this.ProgressTracker = new StreamingProgressTracker((current, max) =>
+            ProgressTracker = new StreamingProgressTracker((current, max) =>
             {
                 _progress.ReportProgress(current, max);
-                return Task.CompletedTask;
+                return default;
             });
         }
 
-        public Task OnCompletedAsync()
+        public ValueTask OnCompletedAsync()
         {
             _progress.OnCompleted();
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnDefinitionFoundAsync(ISymbol symbol)
+        public ValueTask OnDefinitionFoundAsync(ISymbol symbol)
         {
             _progress.OnDefinitionFound(symbol);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnFindInDocumentCompletedAsync(Document document)
+        public ValueTask OnFindInDocumentCompletedAsync(Document document)
         {
             _progress.OnFindInDocumentCompleted(document);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnFindInDocumentStartedAsync(Document document)
+        public ValueTask OnFindInDocumentStartedAsync(Document document)
         {
             _progress.OnFindInDocumentStarted(document);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+        public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
         {
             _progress.OnReferenceFound(symbol, location);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnStartedAsync()
+        public ValueTask OnStartedAsync()
         {
             _progress.OnStarted();
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,8 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     /// <summary>
-    /// The result of the conflict engine. Once this object is returned from the engine, it is
-    /// immutable.
+    /// The result of the conflict engine. Can be made immutable by calling <see cref="ToConflictResolution()"/>.
     /// </summary>
     internal sealed class MutableConflictResolution
     {

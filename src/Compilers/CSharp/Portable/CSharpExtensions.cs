@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -202,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         /// </summary>
-        public static SyntaxKind Kind([NotNull] this SyntaxNode node)
+        public static SyntaxKind Kind(this SyntaxNode node)
         {
             var rawKind = node.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
@@ -506,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public static SymbolInfo GetCollectionInitializerSymbolInfo(this SemanticModel? semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -788,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
+                return (Conversion)((ConversionOperation)conversionExpression).ConversionConvertible;
             }
             else
             {
@@ -814,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -840,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
             }
             else
             {

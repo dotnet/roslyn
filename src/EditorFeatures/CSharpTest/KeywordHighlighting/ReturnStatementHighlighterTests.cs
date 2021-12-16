@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
@@ -311,6 +313,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return 0;
         }
         set
+        {
+            {|Cursor:[|return|]|};
+            [|return|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInInit()
+        {
+            await TestAsync(
+@"class C
+{
+    int P
+    {
+        get
+        {
+            return 0;
+            return 0;
+        }
+        init
         {
             {|Cursor:[|return|]|};
             [|return|];

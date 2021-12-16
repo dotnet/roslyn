@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 context.IsExclusive = True
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 ' nop
             End Try
         End Function
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)

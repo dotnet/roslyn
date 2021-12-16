@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -167,6 +169,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (kind & BindValueKind.RefOrOut) == BindValueKind.RefOrOut;
         }
 
+#nullable enable
+
+        private BoundIndexerAccess BindIndexerDefaultArguments(BoundIndexerAccess indexerAccess, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
+            var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
+            var accessorForDefaultArguments = useSetAccessor
+                ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
+                : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
+            if (accessorForDefaultArguments is not null)
+            {
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArguments.ParameterCount);
+                argumentsBuilder.AddRange(indexerAccess.Arguments);
+
+                ArrayBuilder<RefKind>? refKindsBuilderOpt;
+                if (!indexerAccess.ArgumentRefKindsOpt.IsDefaultOrEmpty)
+                {
+                    refKindsBuilderOpt = ArrayBuilder<RefKind>.GetInstance(accessorForDefaultArguments.ParameterCount);
+                    refKindsBuilderOpt.AddRange(indexerAccess.ArgumentRefKindsOpt);
+                }
+                else
+                {
+                    refKindsBuilderOpt = null;
+                }
+                var argsToParams = indexerAccess.ArgsToParamsOpt;
+
+                // It is possible for the indexer 'value' parameter from metadata to have a default value, but the compiler will not use it.
+                // However, we may still use any default values from the preceding parameters.
+                var parameters = accessorForDefaultArguments.Parameters;
+                if (useSetAccessor)
+                {
+                    parameters = parameters.RemoveAt(parameters.Length - 1);
+                }
+
+                BitVector defaultArguments = default;
+                Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
+
+                // If OriginalIndexersOpt is set, there was an overload resolution failure, and we don't want to make guesses about the default
+                // arguments that will end up being reflected in the SemanticModel/IOperation
+                if (indexerAccess.OriginalIndexersOpt.IsDefault)
+                {
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                }
+
+                indexerAccess = indexerAccess.Update(
+                    indexerAccess.ReceiverOpt,
+                    indexerAccess.Indexer,
+                    argumentsBuilder.ToImmutableAndFree(),
+                    indexerAccess.ArgumentNamesOpt,
+                    refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
+                    indexerAccess.Expanded,
+                    argsToParams,
+                    defaultArguments,
+                    indexerAccess.Type);
+
+                refKindsBuilderOpt?.Free();
+            }
+
+            return indexerAccess;
+        }
+
+#nullable disable
+
         /// <summary>
         /// Check the expression is of the required lvalue and rvalue specified by valueKind.
         /// The method returns the original expression if the expression is of the required
@@ -180,6 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
+                    if (expr is BoundIndexerAccess indexerAccess)
+                    {
+                        expr = BindIndexerDefaultArguments(indexerAccess, valueKind, diagnostics);
+                    }
                     break;
 
                 case BoundKind.Local:
@@ -196,15 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    {
-                        // Assigning to a non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
-                        // This is for IOperation purpose.
-                        var indexerAccess = (BoundIndexerAccess)expr;
-                        if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
-                        {
-                            expr = indexerAccess.Update(useSetterForDefaultArgumentGeneration: true);
-                        }
-                    }
+                    expr = BindIndexerDefaultArguments((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
@@ -1024,11 +1084,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (setMethod.IsInitOnly &&
-                        !isAllowedInitOnlySet(receiver))
+                    if (setMethod.IsInitOnly)
                     {
-                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
-                        return false;
+                        if (!isAllowedInitOnlySet(receiver))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                            return false;
+                        }
+
+                        if (setMethod.DeclaringCompilation != this.Compilation)
+                        {
+                            // an error would have already been reported on declaring an init-only setter
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                        }
                     }
 
                     var accessThroughType = this.GetAccessThroughType(receiver);
@@ -1123,9 +1191,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isAllowedInitOnlySet(BoundExpression receiver)
             {
                 // ok: new C() { InitOnlyProperty = ... }
-                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                // bad: { ... = { InitOnlyProperty = ... } }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder placeholder)
                 {
-                    return true;
+                    return placeholder.IsNewInstance;
                 }
 
                 // bad: other.InitOnlyProperty = ...
@@ -1358,6 +1427,11 @@ moreArguments:
                         {
                             var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                             parameterName = parameters[paramIndex].Name;
+
+                            if (string.IsNullOrEmpty(parameterName))
+                            {
+                                parameterName = paramIndex.ToString();
+                            }
                         }
                         else
                         {
@@ -1377,7 +1451,12 @@ moreArguments:
             //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
-                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
+                var parameterName = unmatchedInParameter.Name;
+                if (string.IsNullOrEmpty(parameterName))
+                {
+                    parameterName = unmatchedInParameter.Ordinal.ToString();
+                }
+                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, parameterName);
                 return false;
             }
 
@@ -1645,7 +1724,7 @@ moreArguments:
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        static private ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
+        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
         {
             switch (kind)
             {
@@ -1717,7 +1796,7 @@ moreArguments:
             return ErrorCode.ERR_AssgReadonlyLocalCause;
         }
 
-        static private ErrorCode GetStandardLvalueError(BindValueKind kind)
+        private static ErrorCode GetStandardLvalueError(BindValueKind kind)
         {
             switch (kind)
             {
@@ -1750,7 +1829,7 @@ moreArguments:
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        static private ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
+        private static ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
         {
             if (escapeTo == Binder.ExternalScope)
             {
@@ -1991,6 +2070,25 @@ moreArguments:
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: true);
+
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+
+                    methodSymbol = ptrInvocation.FunctionPointer.Signature;
+                    if (methodSymbol.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return GetInvocationEscapeScope(
+                        methodSymbol,
+                        receiverOpt: null,
+                        methodSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
                         scopeOfTheContainingExpression,
                         isRefEscape: true);
 
@@ -2239,6 +2337,29 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
+                case BoundKind.FunctionPointerInvocation:
+                    var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
+
+                    FunctionPointerMethodSymbol signature = functionPointerInvocation.FunctionPointer.Signature;
+                    if (signature.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        functionPointerInvocation.Syntax,
+                        signature,
+                        functionPointerInvocation.InvokedExpression,
+                        signature.Parameters,
+                        functionPointerInvocation.Arguments,
+                        functionPointerInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: true);
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
                     var propertySymbol = propertyAccess.PropertySymbol;
@@ -2414,6 +2535,20 @@ moreArguments:
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
+
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+                    var ptrSymbol = ptrInvocation.FunctionPointer.Signature;
+
+                    return GetInvocationEscapeScope(
+                        ptrSymbol,
+                        receiverOpt: null,
+                        ptrSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
@@ -2717,19 +2852,29 @@ moreArguments:
                     }
                     return true;
 
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-
-                    var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                    if (!consValid || conditional.IsRef)
+                case BoundKind.UnconvertedConditionalOperator:
                     {
-                        // ref conditional defers to one operand. 
-                        // the other one is the same or we will be reporting errors anyways.
-                        return consValid;
+                        var conditional = (BoundUnconvertedConditionalOperator)expr;
+                        return
+                            CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
-                    return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                case BoundKind.ConditionalOperator:
+                    {
+                        var conditional = (BoundConditionalOperator)expr;
+
+                        var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        if (!consValid || conditional.IsRef)
+                        {
+                            // ref conditional defers to one operand. 
+                            // the other one is the same or we will be reporting errors anyways.
+                            return consValid;
+                        }
+
+                        return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    }
 
                 case BoundKind.NullCoalescingOperator:
                     var coalescingOp = (BoundNullCoalescingOperator)expr;
@@ -2761,6 +2906,24 @@ moreArguments:
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: false);
+
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+                    var ptrSymbol = ptrInvocation.FunctionPointer.Signature;
+
+                    return CheckInvocationEscape(
+                        ptrInvocation.Syntax,
+                        ptrSymbol,
+                        receiverOpt: null,
+                        ptrSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
@@ -3350,11 +3513,10 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
-
 
             if (field.IsStatic)
             {
@@ -3362,7 +3524,7 @@ moreArguments:
             }
             else
             {
-                return method.MethodKind == MethodKind.Constructor &&
+                return (method.MethodKind == MethodKind.Constructor || method.IsInitOnly) &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }

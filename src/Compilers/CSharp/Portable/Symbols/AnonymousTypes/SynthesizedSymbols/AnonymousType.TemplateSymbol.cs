@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -439,6 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
+            internal override bool IsRecord => false;
+
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -504,6 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                         new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

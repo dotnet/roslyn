@@ -67,6 +67,11 @@
         <target state="translated">Перейти к базовому</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Встроенные подсказки</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Недопустимое имя сборки</target>
@@ -107,11 +112,6 @@
         <target state="translated">Пунктуация</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Удаление документа не поддерживается</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Переименовать фай_л (тип не соответствует имени файла)</target>
@@ -126,6 +126,11 @@
         <source>Rename symbol's _file</source>
         <target state="translated">Переименовать _файл с символом</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">Разделительный комментарий</target>
+        <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -235,6 +240,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Пользовательские типы — интерфейсы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">Пользовательские типы — записи</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -1186,17 +1196,12 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
         <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'"{0}" не поддерживает операцию "{1}", но может содержать вложенные "{2}" (см. "{2}.{3}"), которые поддерживают эту операцию.</target>
+        <target state="translated">"{0}" не поддерживает операцию "{1}", но может содержать вложенные "{2}" (см. "{2}.{3}"), которые поддерживают эту операцию.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Завершение скобок</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Исправить все случаи в</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

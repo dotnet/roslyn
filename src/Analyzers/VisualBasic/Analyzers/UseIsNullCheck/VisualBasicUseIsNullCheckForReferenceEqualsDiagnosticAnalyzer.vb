@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             Return True
         End Function
 
+        Protected Overrides Function IsUnconstrainedGenericSupported(options As ParseOptions) As Boolean
+            Return True
+        End Function
+
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function

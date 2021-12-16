@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _textView.Caret.PositionChanged -= OnCaretPositionChanged;
 
-            private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            private void OnCaretPositionChanged(object? sender, CaretPositionChangedEventArgs e)
                 => this.RaiseChanged();
         }
     }

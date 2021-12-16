@@ -66,17 +66,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
-            If _constantTuple Is Nothing Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim constantTuple = MakeConstantTuple(inProgress, diagnostics)
-                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
-                diagnostics.Free()
-            End If
-
-            Return _constantTuple.Value
+        Protected NotOverridable Overrides Function GetLazyConstantTuple() As EvaluatedConstant
+            Return _constantTuple
         End Function
+
+        Friend NotOverridable Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
+            Return GetConstantValueImpl(inProgress)
+        End Function
+
+        Protected NotOverridable Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+            Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+            sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+        End Sub
 
         Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
             Get
@@ -84,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected MustOverride Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
+        Protected MustOverride Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
 
         ' There are implementations for:
         ' 1) enum constant that is zero
@@ -99,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
                 Dim underlyingType = ContainingType.EnumUnderlyingType
                 Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType)
             End Function
@@ -115,8 +116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me._equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me._equalsValueNodeRef, inProgress, diagnostics)
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me._equalsValueNodeRef, dependencies, diagnostics)
             End Function
         End Class
 
@@ -134,28 +135,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me._otherConstantOffset = otherConstantOffset
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-                Return EvaluateImplicitEnumConstant(Me, inProgress, diagnostics)
-            End Function
-
-            Private Shared Function EvaluateImplicitEnumConstant(symbol As ImplicitValuedEnumConstantSymbol, inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-                Debug.Assert(inProgress IsNot Nothing)
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+#If DEBUG Then
+                Debug.Assert(dependencies IsNot Nothing)
+#End If
                 Dim value As ConstantValue = Microsoft.CodeAnalysis.ConstantValue.Bad
-                Dim errorField = inProgress.GetStartOfCycleIfAny(symbol)
-
-                If errorField IsNot Nothing Then
-                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, errorField.Locations(0), errorField)
-                Else
-                    Dim otherValue = symbol._otherConstant.GetConstantValue(inProgress.Add(symbol))
-                    If Not otherValue.IsBad Then
-                        Dim overflowKind = EnumConstantHelper.OffsetValue(otherValue, symbol._otherConstantOffset, value)
-                        If overflowKind = EnumOverflowKind.OverflowReport Then
-                            diagnostics.Add(ERRID.ERR_ExpressionOverflow1, symbol.Locations(0), symbol)
-                        End If
+                Dim otherValue = _otherConstant.GetConstantValue(New ConstantFieldsInProgress(Me, dependencies))
+                If Not otherValue.IsBad Then
+                    Dim overflowKind = EnumConstantHelper.OffsetValue(otherValue, _otherConstantOffset, value)
+                    If overflowKind = EnumOverflowKind.OverflowReport Then
+                        diagnostics.Add(ERRID.ERR_ExpressionOverflow1, Locations(0), Me)
                     End If
                 End If
 
-                Return New EvaluatedConstant(value, symbol.Type)
+                Return New EvaluatedConstant(value, Type)
             End Function
         End Class
 

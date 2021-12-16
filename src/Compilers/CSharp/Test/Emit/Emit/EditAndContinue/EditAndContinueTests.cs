@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -220,7 +223,7 @@ class Bad : Bad
             // All declaration errors are reported regardless of what member do we emit.
 
             diff.EmitResult.Diagnostics.Verify(
-                // (10,7): error CS0146: Circular base class dependency involving 'Bad' and 'Bad'
+                // (10,7): error CS0146: Circular base type dependency involving 'Bad' and 'Bad'
                 // class Bad : Bad
                 Diagnostic(ErrorCode.ERR_CircularBase, "Bad").WithArguments("Bad", "Bad").WithLocation(10, 7));
         }
@@ -1984,7 +1987,7 @@ interface I
 
     interface J { }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2076,7 +2079,7 @@ interface I
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Field, EditAndContinueOperation.Default),

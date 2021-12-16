@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -315,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var module = this.EmitModule;
             if (module != null)
             {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
+                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
             }
 
             if (result != null)

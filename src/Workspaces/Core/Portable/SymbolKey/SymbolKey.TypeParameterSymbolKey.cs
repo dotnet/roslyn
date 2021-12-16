@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var isCref = reader.ReadBoolean();
 
                 if (isCref)
                 {
-                    var location = reader.ReadLocation(out var locationFailureReason);
+                    var location = reader.ReadLocation(out var locationFailureReason)!;
                     if (locationFailureReason != null)
                     {
                         failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";

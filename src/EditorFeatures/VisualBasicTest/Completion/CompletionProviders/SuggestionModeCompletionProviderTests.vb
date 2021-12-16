@@ -5,19 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SuggestionModeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFieldDeclaration1() As Task
@@ -377,21 +372,22 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                Try
-                    Dim options = If(useDebuggerOptions,
-                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options.WithDebuggerCompletionOptions(),
-                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options)
+                Dim options = workspaceFixture.GetWorkspace(ExportProvider).Options
 
-                    Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                    Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
+                If useDebuggerOptions Then
+                    options = options.
+                        WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, False).
+                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False).
+                        WithChangedOption(CompletionServiceOptions.DisallowAddingImports, True)
+                End If
 
-                    If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
-                        Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                        Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
-                    End If
-                Finally
-                    workspaceFixture.DisposeAfterTest()
-                End Try
+                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
+                Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
+
+                If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
+                    Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
+                    Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
+                End If
             End Using
         End Function
 

@@ -227,9 +227,19 @@
         <target state="translated">不要なキャストの削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">冗長な等値を削除</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
         <target state="translated">不要なかっこの削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">不要な抑制を削除します</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -322,9 +332,19 @@
         <target state="translated">複合代入を使用</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">'--' 演算子を使用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="translated">明示的に提供されたタプル名を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">'++' 演算子を使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">

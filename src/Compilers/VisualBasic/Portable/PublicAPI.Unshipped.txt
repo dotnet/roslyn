@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16_9 = 1609 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicGeneratorDriver
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicGeneratorDriver.Create(generators As System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.ISourceGenerator), additionalTexts As System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.AdditionalText) = Nothing, parseOptions As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, analyzerConfigOptionsProvider As Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicGeneratorDriver

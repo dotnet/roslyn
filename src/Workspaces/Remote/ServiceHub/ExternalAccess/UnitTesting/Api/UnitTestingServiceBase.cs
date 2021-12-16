@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -12,8 +11,11 @@ using Microsoft.CodeAnalysis.Remote;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+#pragma warning disable CS0618 // Type or member is obsolete - this should become error once we provide infra for migrating to ISB (https://github.com/dotnet/roslyn/issues/44326)
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal abstract class UnitTestingServiceBase : ServiceBase
     {
         protected UnitTestingServiceBase(
@@ -35,12 +37,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         protected new Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
             => base.RunServiceAsync(callAsync, cancellationToken);
 
-        protected Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments,
-            CancellationToken cancellationToken)
+        protected Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => EndPoint.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-        protected Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments,
-            CancellationToken cancellationToken)
+        protected Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => EndPoint.InvokeAsync(targetName, arguments, cancellationToken);
+
+        public UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
+            => UnitTestingIncrementalAnalyzerProvider.TryRegister(GetWorkspace(), analyzerName, provider);
     }
 }

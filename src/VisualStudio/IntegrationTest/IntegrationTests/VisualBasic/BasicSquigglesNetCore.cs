@@ -13,13 +13,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSquigglesNetCore : BasicSquigglesCommon
     {
-        public BasicSquigglesNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
+        public BasicSquigglesNetCore(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
         {
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySyntaxErrorSquiggles()
@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         }
 
         [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/39588")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySemanticErrorSquiggles()

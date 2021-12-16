@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -9,8 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
@@ -23,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         private readonly IEditAndContinueWorkspaceService _encService;
         private readonly Workspace _workspace;
+        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,18 +36,26 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             _workspace = workspace;
             _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
         }
+
+        private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+            => new((documentId, cancellationToken) =>
+                _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
         /// </summary>
         public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
+            var solution = _workspace.CurrentSolution;
+
             try
             {
-                return await _encService.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                return await _encService.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return true;
             }
@@ -53,10 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 _encService.ReportApplyChangesException(solution, e.Message);
                 return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
@@ -69,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 _encService.CommitSolutionUpdate();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }
@@ -80,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 _encService.DiscardSolutionUpdate();
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

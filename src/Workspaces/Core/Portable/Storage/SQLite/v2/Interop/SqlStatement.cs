@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// then be used in the future with new bound parameters.
     /// 
     /// Finalization/destruction of the underlying raw sqlite statement is handled
-    /// by <see cref="SqlConnection.Close_OnlyForUseBySqlPersistentStorage"/>.
+    /// by <see cref="SqlConnection.Close_OnlyForUseBySQLiteConnectionPool"/>.
     /// </summary>
     internal struct SqlStatement
     {

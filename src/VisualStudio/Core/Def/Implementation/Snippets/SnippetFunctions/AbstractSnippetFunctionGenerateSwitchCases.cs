@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,8 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         protected abstract string CaseFormat { get; }
         protected abstract string DefaultCase { get; }
 
-        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
             this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')

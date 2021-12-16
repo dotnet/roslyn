@@ -2,21 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
     Friend NotInheritable Class MockTextPoint
         Implements EnvDTE.TextPoint
 
         Private ReadOnly _point As VirtualTreePoint
-        Private ReadOnly _tabSize As Integer
 
-        Public Sub New(point As VirtualTreePoint, tabSize As Integer)
+        Public Sub New(point As VirtualTreePoint)
             _point = point
-            _tabSize = tabSize
         End Sub
 
         Public ReadOnly Property AbsoluteCharOffset As Integer Implements EnvDTE.TextPoint.AbsoluteCharOffset

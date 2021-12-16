@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,7 +81,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Mostra diagnostica per file chiusi;
+        <target state="translated">Visualizza suggerimenti inline;
+Mostra diagnostica per file chiusi;
 Colora espressione regolare; 
 Evidenzia i componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
@@ -108,12 +110,12 @@ Applica dissolvenza a codice non eseguibile;
 Guide per strutture a blocchi;
 Mostra le guide per i costrutti a livello di dichiarazione;
 Mostra le guide per i costrutti a livello di codice;
-Guida Editor;
+Guida dell'editor;
 Genera commenti relativi alla documentazione XML per ///;
 Inserisci * all'inizio di nuove righe quando si scrivono commenti /* */;
 Mostra anteprima per verifica ridenominazione;
 Dividi valori letterali stringa dopo INVIO;
-Segnala segnaposto non validi in chiamate String.Format;
+Segnala segnaposto non validi in chiamate string.Format;
 Estrai metodo;
 Non inserire out o ref in struct personalizzato;
 Implementa interfaccia o classe astratta;

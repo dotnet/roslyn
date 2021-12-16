@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,11 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of FieldDeclarationSyntax)
 
         Protected Overrides Sub CollectBlockSpans(fieldDeclaration As FieldDeclarationSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  isMetadataAsSource As Boolean,
-                                                  options As OptionSet,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(fieldDeclaration, spans, isMetadataAsSource)
+            CollectCommentsRegions(fieldDeclaration, spans, optionProvider)
         End Sub
     End Class
 End Namespace

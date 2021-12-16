@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
-        private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
-
-        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
+        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement? statement)
         {
             if (statement == null)
             {
@@ -32,47 +31,29 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, TypeSymbol type) =>
-            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), constantValue: null, isImplicit: true);
+            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type.GetPublicSymbol(), isImplicit: true);
 
-        internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
+        internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol? parameter, BoundExpression expression)
         {
             // put argument syntax to argument operation
-
-            if (expression.Syntax?.Parent is ArgumentSyntax argument)
-            {
-                // if argument syntax doesn't exist, this operation is implicit
-                return new CSharpLazyArgumentOperation(this,
-                    expression,
-                    kind,
-                    s_boxedIdentityConversion,
-                    s_boxedIdentityConversion,
-                    parameter,
-                    semanticModel: _semanticModel,
-                    syntax: argument,
-                    isImplicit: expression.WasCompilerGenerated);
-            }
-            else
-            {
-                // We have to create the argument child eagerly here, as we need to use its syntax for this node, but the BoundExpression
-                // syntax may not be the correct syntax in certain scenarios (such as query clauses that need to be skipped).
-                IOperation value = Create(expression);
-                return new ArgumentOperation(
-                    value,
-                    kind,
-                    parameter,
-                    s_boxedIdentityConversion,
-                    s_boxedIdentityConversion,
-                    _semanticModel,
-                    value.Syntax,
-                    isImplicit: true);
-            }
+            IOperation value = Create(expression);
+            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax parent } ? (parent, expression.WasCompilerGenerated) : (value.Syntax, true);
+            return new ArgumentOperation(
+                kind,
+                parameter,
+                value,
+                OperationFactory.IdentityConversion,
+                OperationFactory.IdentityConversion,
+                _semanticModel,
+                syntax,
+                isImplicit);
         }
 
-        internal IVariableInitializerOperation CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        internal IVariableInitializerOperation? CreateVariableDeclaratorInitializer(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             if (boundLocalDeclaration.InitializerOpt != null)
             {
-                SyntaxNode initializerSyntax = null;
+                SyntaxNode? initializerSyntax = null;
                 bool initializerIsImplicit = false;
                 if (syntax is VariableDeclaratorSyntax variableDeclarator)
                 {
@@ -90,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     initializerIsImplicit = true;
                 }
 
-                return new CSharpLazyVariableInitializerOperation(this, boundLocalDeclaration.InitializerOpt, _semanticModel, initializerSyntax, type: null, constantValue: null, initializerIsImplicit);
+                IOperation value = Create(boundLocalDeclaration.InitializerOpt);
+                return new VariableInitializerOperation(locals: ImmutableArray<ILocalSymbol>.Empty, value, _semanticModel, initializerSyntax, initializerIsImplicit);
             }
 
             return null;
@@ -99,20 +81,21 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableDeclaratorOperation CreateVariableDeclaratorInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol.GetPublicSymbol();
-            SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
-            ITypeSymbol type = null;
-            ConstantValue constantValue = null;
             bool isImplicit = false;
 
-            return new CSharpLazyVariableDeclaratorOperation(this, boundLocalDeclaration, symbol, _semanticModel, syntax, type, constantValue, isImplicit);
+            IVariableInitializerOperation? initializer = CreateVariableDeclaratorInitializer(boundLocalDeclaration, syntax);
+            ImmutableArray<IOperation> ignoredDimensions = CreateFromArray<BoundExpression, IOperation>(boundLocalDeclaration.ArgumentsOpt);
+
+            return new VariableDeclaratorOperation(symbol, initializer, ignoredDimensions, _semanticModel, syntax, isImplicit);
         }
 
-        internal IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
+        [return: NotNullIfNotNull("boundLocal")]
+        internal IVariableDeclaratorOperation? CreateVariableDeclarator(BoundLocal? boundLocal)
         {
-            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: null, isImplicit: false);
+            return boundLocal == null ? null : new VariableDeclaratorOperation(boundLocal.LocalSymbol.GetPublicSymbol(), initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, isImplicit: false);
         }
 
-        internal IOperation CreateReceiverOperation(BoundNode instance, Symbol symbol)
+        internal IOperation? CreateReceiverOperation(BoundNode? instance, Symbol? symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -128,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(instance);
         }
 
-        private bool IsCallVirtual(MethodSymbol targetMethod, BoundExpression receiver)
+        private bool IsCallVirtual(MethodSymbol? targetMethod, BoundExpression? receiver)
         {
-            return (object)targetMethod != null && receiver != null &&
+            return (object?)targetMethod != null && receiver != null &&
                    (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
                    !receiver.SuppressVirtualCalls;
         }
@@ -147,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event.GetPublicSymbol();
-            BoundNode instance = boundEventAssignmentOperator.ReceiverOpt;
+            IOperation? instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, boundEventAssignmentOperator.Event);
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, constantValue: null, isImplicit);
+            return new EventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, isImplicit);
         }
 
         internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
@@ -163,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                     // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                     // hide the resolved method.
+                    Debug.Assert(boundConversion.SymbolOpt is not null);
                     return CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
                                                                        boundConversion.SymbolOpt,
                                                                        boundConversion.SuppressVirtualCalls);
@@ -195,14 +179,12 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IOperation CreateMemberInitializerInitializedMember(BoundNode initializedMember)
         {
 
-            switch (initializedMember.Kind)
+            switch (initializedMember)
             {
-                case BoundKind.ObjectInitializerMember:
-                    return _nodeMap.GetOrAdd(initializedMember, key =>
-                        CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
-                case BoundKind.DynamicObjectInitializerMember:
-                    return _nodeMap.GetOrAdd(initializedMember, key =>
-                        CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)key));
+                case BoundObjectInitializerMember objectInitializer:
+                    return CreateBoundObjectInitializerMemberOperation(objectInitializer, isObjectOrCollectionInitializer: true);
+                case BoundDynamicObjectInitializerMember dynamicInitializer:
+                    return CreateBoundDynamicObjectInitializerMemberOperation(dynamicInitializer);
                 default:
                     return Create(initializedMember);
             }
@@ -215,18 +197,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ObjectInitializerMember:
                     {
                         var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
-                        var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
-                        MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
+                        Debug.Assert(property is not null);
                         return DeriveArguments(
-                                    boundObjectInitializerMember,
-                                    boundObjectInitializerMember.BinderOpt,
                                     property,
-                                    accessor,
                                     boundObjectInitializerMember.Arguments,
-                                    boundObjectInitializerMember.ArgumentNamesOpt,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
-                                    boundObjectInitializerMember.ArgumentRefKindsOpt,
-                                    property.Parameters,
+                                    boundObjectInitializerMember.DefaultArguments,
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
                     }
@@ -243,46 +220,30 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;
-                        return DeriveArguments(boundIndexer,
-                                               boundIndexer.BinderOpt,
-                                               boundIndexer.Indexer,
-                                               boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
-                                                                                                    boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
+                        return DeriveArguments(boundIndexer.Indexer,
                                                boundIndexer.Arguments,
-                                               boundIndexer.ArgumentNamesOpt,
                                                boundIndexer.ArgsToParamsOpt,
-                                               boundIndexer.ArgumentRefKindsOpt,
-                                               boundIndexer.Indexer.Parameters,
+                                               boundIndexer.DefaultArguments,
                                                boundIndexer.Expanded,
                                                boundIndexer.Syntax);
                     }
                 case BoundKind.ObjectCreationExpression:
                     {
                         var objectCreation = (BoundObjectCreationExpression)containingExpression;
-                        return DeriveArguments(objectCreation,
-                                               objectCreation.BinderOpt,
-                                               objectCreation.Constructor,
-                                               objectCreation.Constructor,
+                        return DeriveArguments(objectCreation.Constructor,
                                                objectCreation.Arguments,
-                                               objectCreation.ArgumentNamesOpt,
                                                objectCreation.ArgsToParamsOpt,
-                                               objectCreation.ArgumentRefKindsOpt,
-                                               objectCreation.Constructor.Parameters,
+                                               objectCreation.DefaultArguments,
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
                     }
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
-                        return DeriveArguments(boundCall,
-                                               boundCall.BinderOpt,
-                                               boundCall.Method,
-                                               boundCall.Method,
+                        return DeriveArguments(boundCall.Method,
                                                boundCall.Arguments,
-                                               boundCall.ArgumentNamesOpt,
                                                boundCall.ArgsToParamsOpt,
-                                               boundCall.ArgumentRefKindsOpt,
-                                               boundCall.Method.Parameters,
+                                               boundCall.DefaultArguments,
                                                boundCall.Expanded,
                                                boundCall.Syntax,
                                                boundCall.InvokedAsExtensionMethod);
@@ -290,15 +251,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.CollectionElementInitializer:
                     {
                         var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
-                        return DeriveArguments(boundCollectionElementInitializer,
-                                               boundCollectionElementInitializer.BinderOpt,
-                                               boundCollectionElementInitializer.AddMethod,
-                                               boundCollectionElementInitializer.AddMethod,
+                        return DeriveArguments(boundCollectionElementInitializer.AddMethod,
                                                boundCollectionElementInitializer.Arguments,
-                                               argumentNamesOpt: default,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
-                                               argumentRefKindsOpt: default,
-                                               boundCollectionElementInitializer.AddMethod.Parameters,
+                                               boundCollectionElementInitializer.DefaultArguments,
                                                boundCollectionElementInitializer.Expanded,
                                                boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
@@ -310,15 +266,10 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private ImmutableArray<IArgumentOperation> DeriveArguments(
-            BoundNode boundNode,
-            Binder binder,
             Symbol methodOrIndexer,
-            MethodSymbol optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
-            ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<int> argumentsToParametersOpt,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<ParameterSymbol> parameters,
+            BitVector defaultArguments,
             bool expanded,
             SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
@@ -326,24 +277,24 @@ namespace Microsoft.CodeAnalysis.Operations
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
             // - if only parameters is empty, there's error in code but we still need to return provided expression.
             // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters.
-            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
+            if (methodOrIndexer.GetParameters().IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
-                 binder: binder,
+                 compilation: (CSharpCompilation)_semanticModel.Compilation,
                  syntax: invocationSyntax,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,
-                 optionalParametersMethod: optionalParametersMethod,
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
+                 defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
-        internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt = null)
+        internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode? receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression? additionalNodeOpt = null)
         {
             var builder = ArrayBuilder<BoundNode>.GetInstance();
 
@@ -388,12 +339,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         semanticModel: _semanticModel,
                         syntax: syntax,
                         type: type,
-                        constantValue: null,
                         isImplicit: true);
 
                 // Find matching declaration for the current argument.
                 PropertySymbol property = AnonymousTypeManager.GetAnonymousTypeProperty(type.GetSymbol<NamedTypeSymbol>(), i);
-                BoundAnonymousPropertyDeclaration anonymousProperty = getDeclaration(declarations, property, ref currentDeclarationIndex);
+                BoundAnonymousPropertyDeclaration? anonymousProperty = getDeclaration(declarations, property, ref currentDeclarationIndex);
                 if (anonymousProperty is null)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
@@ -404,7 +354,6 @@ namespace Microsoft.CodeAnalysis.Operations
                         semanticModel: _semanticModel,
                         syntax: value.Syntax,
                         type: property.Type.GetPublicSymbol(),
-                        constantValue: null,
                         isImplicit: true);
                     isImplicitAssignment = true;
                 }
@@ -415,14 +364,13 @@ namespace Microsoft.CodeAnalysis.Operations
                                                             instance,
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
-                                                            anonymousProperty.Type.GetPublicSymbol(),
-                                                            anonymousProperty.ConstantValue,
+                                                            anonymousProperty.GetPublicTypeSymbol(),
                                                             anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;
                 }
 
                 var assignmentSyntax = value.Syntax?.Parent ?? syntax;
-                ITypeSymbol assignmentType = target.Type;
+                ITypeSymbol? assignmentType = target.Type;
                 bool isRef = false;
                 var assignment = new SimpleAssignmentOperation(isRef, target, value, _semanticModel, assignmentSyntax, assignmentType, value.GetConstantValue(), isImplicitAssignment);
                 builder.Add(assignment);
@@ -431,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(currentDeclarationIndex == declarations.Length);
             return builder.ToImmutableAndFree();
 
-            static BoundAnonymousPropertyDeclaration getDeclaration(ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, PropertySymbol currentProperty, ref int currentDeclarationIndex)
+            static BoundAnonymousPropertyDeclaration? getDeclaration(ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, PropertySymbol currentProperty, ref int currentDeclarationIndex)
             {
                 if (currentDeclarationIndex >= declarations.Length)
                 {

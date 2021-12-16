@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -338,7 +340,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },

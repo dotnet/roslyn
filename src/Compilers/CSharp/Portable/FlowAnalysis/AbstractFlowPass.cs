@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _symbol;
 
         /// <summary>
-        /// Reflects the enclosing member or lambda at the current location (in the bound tree).
+        /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
         /// </summary>
         protected Symbol CurrentSymbol;
 
@@ -960,13 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
 
-            var pattern = node.Pattern;
-            bool negated = false;
-            while (pattern is BoundNegatedPattern n)
-            {
-                negated = !negated;
-                pattern = n.Negated;
-            }
+            bool negated = node.Pattern.IsNegated(out var pattern);
+            Debug.Assert(negated == node.IsNegated);
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;
@@ -1180,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
             VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
 
-            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
                 VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
@@ -1637,6 +1634,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Optional<TLocalState> NonMonotonicState;
 
+        /// <summary>
+        /// Join state from other try block, potentially in a nested method.
+        /// </summary>
+        protected virtual void JoinTryBlockState(ref TLocalState self, ref TLocalState other)
+        {
+            Join(ref self, ref other);
+        }
+
         private void VisitTryBlockWithAnyTransferFunction(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
             if (_nonMonotonicTransfer)
@@ -1649,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1678,7 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1695,6 +1700,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (catchBlock.ExceptionSourceOpt != null)
             {
                 VisitLvalue(catchBlock.ExceptionSourceOpt);
+            }
+
+            if (catchBlock.ExceptionFilterPrologueOpt is { })
+            {
+                VisitStatementList(catchBlock.ExceptionFilterPrologueOpt);
             }
 
             if (catchBlock.ExceptionFilterOpt != null)
@@ -1718,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1865,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
             throw ExceptionUtilities.Unreachable;
@@ -2585,31 +2595,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            return VisitConditionalOperatorCore(node, isByRef: false, node.Condition, node.Consequence, node.Alternative);
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var isByRef = node.IsRef;
+            return VisitConditionalOperatorCore(node, node.IsRef, node.Condition, node.Consequence, node.Alternative);
+        }
 
-            VisitCondition(node.Condition);
+        protected virtual BoundNode VisitConditionalOperatorCore(
+            BoundExpression node,
+            bool isByRef,
+            BoundExpression condition,
+            BoundExpression consequence,
+            BoundExpression alternative)
+        {
+            VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
-            if (IsConstantTrue(node.Condition))
+            if (IsConstantTrue(condition))
             {
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
                 // it may be a boolean state at this point.
             }
-            else if (IsConstantFalse(node.Condition))
+            else if (IsConstantFalse(condition))
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
                 // it may be a boolean state at this point.
             }
             else
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(consequenceState, consequence, isByRef);
                 Unsplit();
                 consequenceState = this.State;
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(alternativeState, alternative, isByRef);
                 Unsplit();
                 Join(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)
@@ -3000,7 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
+        public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
         }

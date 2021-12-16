@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.Cci;
 using Roslyn.Utilities;
 using System;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _baseType = baseType;
         }
 
-        public abstract new ImmutableArray<MethodSymbol> Constructors { get; }
+        public new abstract ImmutableArray<MethodSymbol> Constructors { get; }
 
         public override int Arity => 0;
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Managed;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
@@ -197,6 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor

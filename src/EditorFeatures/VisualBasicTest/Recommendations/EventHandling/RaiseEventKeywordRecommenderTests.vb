@@ -4,9 +4,10 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RaiseEventKeywordRecommenderTests
+        <Fact>
         <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function RaiseEventInCustomEventTest() As Task
+        Public Sub RaiseEventInCustomEventTest()
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -14,12 +15,13 @@ Public Class Z
     End Event
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
-        End Function
+            VerifyRecommendationsContain(code, "RaiseEvent")
+        End Sub
 
+        <Fact>
         <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function RaiseEventInSingleLineLambdaTest() As Task
+        Public Sub RaiseEventInSingleLineLambdaTest()
             Dim code = <File>
 Public Class Z
     Public Sub Main()
@@ -27,13 +29,13 @@ Public Class Z
     End Sub
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "RaiseEvent")
-        End Function
+            VerifyRecommendationsContain(code, "RaiseEvent")
+        End Sub
 
         <Fact>
         <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotRaiseEventInCustomEventWithRaiseEventTest() As Task
+        Public Sub NotRaiseEventInCustomEventWithRaiseEventTest()
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -43,7 +45,7 @@ Public Class Z
     End Event
 End Class</File>
 
-            Await VerifyRecommendationsMissingAsync(code, "RaiseEvent")
-        End Function
+            VerifyRecommendationsMissing(code, "RaiseEvent")
+        End Sub
     End Class
 End Namespace

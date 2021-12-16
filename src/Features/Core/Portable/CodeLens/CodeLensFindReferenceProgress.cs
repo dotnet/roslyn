@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -124,13 +126,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
         private bool FilterReference(ISymbol definition, ReferenceLocation reference)
         {
             var isImplicitlyDeclared = definition.IsImplicitlyDeclared || definition.IsAccessor();
-            // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
-            // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
-            // reference location for the invocation while computing references count for the named type symbol. 
-            var isImplicitReference = _queriedSymbol.Kind == SymbolKind.NamedType &&
-                                      (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
-            return isImplicitlyDeclared ||
-                   isImplicitReference ||
+            // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it and
+            // so should we. Otherwise named types may have a reference count of 0, even if there are calls to its constructors, which might cause
+            // people think the class is not in use (#49636).
+            // Invocations to implicit parameterless constructors need to be included too.
+            var isConstructorInvocation = _queriedSymbol.Kind == SymbolKind.NamedType &&
+                                          (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return (isImplicitlyDeclared && !isConstructorInvocation) ||
                    !reference.Location.IsInSource ||
                    !definition.Locations.Any(loc => loc.IsInSource);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AbstractKeyword),
             SyntaxFacts.GetText(SyntaxKind.SealedKeyword),
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword));
+            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
+            SyntaxFacts.GetText(SyntaxKind.BaseKeyword),
+            SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

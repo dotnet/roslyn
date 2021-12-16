@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,15 +18,15 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.IsTupleType);
 
-                var isError = symbol.TupleUnderlyingType.TypeKind == TypeKind.Error;
+                var isError = symbol.TupleUnderlyingType!.TypeKind == TypeKind.Error;
 
-                var friendlyNames = ArrayBuilder<string>.GetInstance();
+                var friendlyNames = ArrayBuilder<string?>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
 
                 foreach (var element in symbol.TupleElements)
                 {
                     friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
-                    locations.Add(FirstOrDefault(element.Locations) ?? Location.None);
+                    locations.Add(element.Locations.FirstOrDefault() ?? Location.None);
                 }
 
                 visitor.WriteBoolean(isError);
@@ -49,14 +50,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var isError = reader.ReadBoolean();
 
                 return isError ? ResolveErrorTuple(reader, out failureReason) : ResolveNormalTuple(reader, out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveNormalTuple(SymbolKeyReader reader, out string failureReason)
+            private static SymbolKeyResolution ResolveNormalTuple(SymbolKeyReader reader, out string? failureReason)
             {
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
@@ -73,14 +74,15 @@ namespace Microsoft.CodeAnalysis
                 var elementNamesArray = elementNames.ToImmutable();
                 foreach (var namedType in underlyingTypeResolution.OfType<INamedTypeSymbol>())
                 {
+                    // Suppression on elementLocations due to https://github.com/dotnet/roslyn/issues/46527
                     result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
-                        namedType, elementNamesArray, elementLocations));
+                        namedType, elementNamesArray, elementLocations!));
                 }
 
                 return CreateResolution(result, $"({nameof(TupleTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveErrorTuple(SymbolKeyReader reader, out string failureReason)
+            private static SymbolKeyResolution ResolveErrorTuple(SymbolKeyReader reader, out string? failureReason)
             {
                 using var elementNames = reader.ReadStringArray();
                 var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
@@ -104,13 +106,14 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
+                // Suppression on elementLocations due to https://github.com/dotnet/roslyn/issues/46527
                 var result = reader.Compilation.CreateTupleTypeSymbol(
-                    elementTypes.ToImmutable(), elementNames.ToImmutable(), elementLocations);
+                    elementTypes.ToImmutable(), elementNames.ToImmutable(), elementLocations!);
                 failureReason = null;
                 return new SymbolKeyResolution(result);
             }
 
-            private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader, out string failureReason)
+            private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader, out string? failureReason)
             {
                 using var elementLocations = reader.ReadLocationArray(out failureReason);
                 if (failureReason != null)
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                 if (elementLocations.Builder.All(loc => loc == null))
                     return default;
 
-                return elementLocations.ToImmutable();
+                return elementLocations.ToImmutable()!;
             }
         }
     }

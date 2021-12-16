@@ -1293,6 +1293,12 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
             If IsShared Then
                 meParameter = Nothing
@@ -1721,6 +1727,8 @@ lReportErrorOnTwoTokens:
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+                arguments.Diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 

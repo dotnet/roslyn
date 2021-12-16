@@ -649,6 +649,9 @@ Do you want to continue?</value>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>
+  <data name="No_valid_location_to_insert_method_call" xml:space="preserve">
+    <value>No valid location to insert method call.</value>
+  </data>
   <data name="Available" xml:space="preserve">
     <value>Available</value>
   </data>
@@ -1199,7 +1202,18 @@ This version used in: {2}</value>
     <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
-    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+    <value>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big" xml:space="preserve">
+    <value>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</value>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</value>
   </data>
   <data name="Change_namespace_to_0" xml:space="preserve">
     <value>Change namespace to '{0}'</value>
@@ -1392,31 +1406,6 @@ This version used in: {2}</value>
   </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>
-  </data>
-  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
-    <value>Dispose objects before losing scope</value>
-  </data>
-  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
-    <value>Disposable object created by '{0}' is never disposed</value>
-  </data>
-  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
-    <value>Use recommended dispose pattern</value>
-  </data>
-  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
-    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
-    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
-    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
-  </data>
-  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
-    <value>Disposable fields should be disposed</value>
-  </data>
-  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
-    <value>Disposable field '{0}' is never disposed</value>
-  </data>
-  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
-    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
   </data>
   <data name="Wrap_and_align_call_chain" xml:space="preserve">
     <value>Wrap and align call chain</value>
@@ -2745,10 +2734,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>inline options</value>
   </data>
   <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
-    <value>'{0}' cannot be null or empty</value>
+    <value>'{0}' cannot be null or empty.</value>
   </data>
   <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
-    <value>'{0}' cannot be null or whitespace</value>
+    <value>'{0}' cannot be null or whitespace.</value>
   </data>
   <data name="_0_is_not_null_here" xml:space="preserve">
     <value>'{0}' is not null here.</value>
@@ -2779,5 +2768,44 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
+  </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
+  <data name="Inline_0" xml:space="preserve">
+    <value>Inline '{0}'</value>
+  </data>
+  <data name="Remove_async_modifier" xml:space="preserve">
+    <value>Remove 'async' modifier</value>
+  </data>
+  <data name="Extract_base_class" xml:space="preserve">
+    <value>Extract base class...</value>
+  </data>
+  <data name="Inline_and_keep_0" xml:space="preserve">
+    <value>Inline and keep '{0}'</value>
+  </data>
+  <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
+    <value>Pull member(s) up to new base class...</value>
+  </data>
+  <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
+  <data name="in_0_1_2" xml:space="preserve">
+    <value>in {0} ({1} - {2})</value>
+  </data>
+  <data name="_0_dash_1" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="Convert_to_record" xml:space="preserve">
+    <value>Convert to record</value>
   </data>
 </root>

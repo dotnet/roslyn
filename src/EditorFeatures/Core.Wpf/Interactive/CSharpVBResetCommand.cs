@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+extern alias InteractiveHost;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -15,6 +19,8 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -27,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     {
         private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
+        private const string PlatformCore = "core";
+        private const string PlatformDesktop32 = "32";
+        private const string PlatformDesktop64 = "64";
+        private const string PlatformNames = PlatformCore + "|" + PlatformDesktop32 + "|" + PlatformDesktop64;
+
         private static readonly int s_noConfigParameterNameLength = NoConfigParameterName.Length;
         private readonly IStandardClassificationService _registry;
 
@@ -36,44 +47,36 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             => _registry = registry;
 
         public string Description
-        {
-            get { return InteractiveEditorFeaturesResources.Reset_the_execution_environment_to_the_initial_state_keep_history; }
-        }
+            => InteractiveEditorFeaturesResources.Reset_the_execution_environment_to_the_initial_state_keep_history;
 
         public IEnumerable<string> DetailedDescription
-        {
-            get { return null; }
-        }
+            => null;
 
         public IEnumerable<string> Names
-        {
-            get { yield return CommandName; }
-        }
+            => SpecializedCollections.SingletonEnumerable(CommandName);
 
         public string CommandLine
-        {
-            get { return "[" + NoConfigParameterName + "] [32|64]"; }
-        }
+            => "[" + NoConfigParameterName + "] [" + PlatformNames + "]";
 
         public IEnumerable<KeyValuePair<string, string>> ParametersDescription
         {
             get
             {
                 yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveEditorFeaturesResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
-                yield return new KeyValuePair<string, string>("32|64", $"Interactive host process bitness.");
+                yield return new KeyValuePair<string, string>(PlatformNames, InteractiveEditorFeaturesResources.Interactive_host_process_platform);
             }
         }
 
         public Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
-            if (!TryParseArguments(arguments, out var initialize, out var is64bit))
+            if (!TryParseArguments(arguments, out var initialize, out var platform))
             {
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }
 
             var evaluator = (InteractiveEvaluator)window.Evaluator;
-            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(is64bit);
+            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             return window.Operations.ResetAsync(initialize);
         }
 
@@ -112,33 +115,42 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <remarks>
         /// Accessibility is internal for testing.
         /// </remarks>
-        internal static bool TryParseArguments(string arguments, out bool initialize, out bool? is64bit)
+        internal static bool TryParseArguments(string arguments, out bool initialize, out InteractiveHostPlatform? platform)
         {
-            is64bit = null;
+            platform = null;
             initialize = true;
 
             var noConfigSpecified = false;
 
             foreach (var argument in arguments.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                switch (argument)
+                switch (argument.ToLowerInvariant())
                 {
-                    case "32":
-                        if (is64bit != null)
+                    case PlatformDesktop32:
+                        if (platform != null)
                         {
                             return false;
                         }
 
-                        is64bit = false;
+                        platform = InteractiveHostPlatform.Desktop32;
                         break;
 
-                    case "64":
-                        if (is64bit != null)
+                    case PlatformDesktop64:
+                        if (platform != null)
                         {
                             return false;
                         }
 
-                        is64bit = true;
+                        platform = InteractiveHostPlatform.Desktop64;
+                        break;
+
+                    case PlatformCore:
+                        if (platform != null)
+                        {
+                            return false;
+                        }
+
+                        platform = InteractiveHostPlatform.Core;
                         break;
 
                     case NoConfigParameterName:
@@ -159,8 +171,15 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return true;
         }
 
-        internal static string GetCommandLine(bool initialize, bool? is64bit)
-            => CommandName + (initialize ? "" : " " + NoConfigParameterName) + (is64bit == null ? "" : is64bit.Value ? " 64" : " 32");
+        internal static string GetCommandLine(bool initialize, InteractiveHostPlatform? platform)
+            => CommandName + (initialize ? "" : " " + NoConfigParameterName) + platform switch
+            {
+                null => "",
+                InteractiveHostPlatform.Core => " " + PlatformCore,
+                InteractiveHostPlatform.Desktop64 => " " + PlatformDesktop64,
+                InteractiveHostPlatform.Desktop32 => " " + PlatformDesktop32,
+                _ => throw ExceptionUtilities.Unreachable
+            };
 
         private void ReportInvalidArguments(IInteractiveWindow window)
         {

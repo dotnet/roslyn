@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +14,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.Build.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -315,6 +314,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(SharedCompilationId)]; }
         }
 
+        public bool SkipAnalyzers
+        {
+            set { _store[nameof(SkipAnalyzers)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipAnalyzers), false); }
+        }
+
         public bool SkipCompilerExecution
         {
             set { _store[nameof(SkipCompilerExecution)] = value; }
@@ -471,7 +476,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var workingDir = CurrentDirectoryToUse();
+                string workingDir = CurrentDirectoryToUse();
                 string? tempDir = BuildServerConnection.GetTempPath(workingDir);
 
                 if (!UseSharedCompilation ||
@@ -481,11 +486,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
+                using var logger = new CompilerServerLogger();
                 using (_sharedCompileCts = new CancellationTokenSource())
                 {
 
-                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+                    logger.Log($"CommandLine = '{commandLineCommands}'");
+                    logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
                     var clientDir = Path.GetDirectoryName(PathToManagedTool);
                     if (clientDir is null || tempDir is null)
@@ -500,9 +506,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
+                        workingDir: workingDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
-                        workingDir: workingDir,
                         tempDir: tempDir);
 
                     // Note: using ToolArguments here (the property) since
@@ -515,6 +521,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
+                        logger: logger,
                         cancellationToken: _sharedCompileCts.Token);
 
                     responseTask.Wait(_sharedCompileCts.Token);
@@ -522,10 +529,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var response = responseTask.Result;
                     if (response != null)
                     {
-                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands, logger);
                     }
                     else
                     {
+                        logger.LogError($"Server compilation failed, falling back to {pathToTool}");
                         Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
 
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
@@ -538,8 +546,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                LogErrorOutput(e.ToString());
+                var util = new TaskLoggingHelper(this);
+                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 ExitCode = -1;
             }
 
@@ -608,7 +617,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
             if (response.Type != BuildResponse.ResponseType.Completed)
             {
@@ -623,7 +632,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     if (LogStandardErrorAsError)
                     {
-                        LogErrorOutput(completedResponse.ErrorOutput);
+                        LogErrorMultiline(completedResponse.ErrorOutput);
                     }
                     else
                     {
@@ -633,29 +642,42 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    logMessage("Roslyn compiler server reports different protocol version than build task.", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
+                    logMessage("Roslyn compiler server reports different hash version than build task.", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
+                    var rejectedResponse = (RejectedBuildResponse)response;
+                    logMessage($"Request rejected: {rejectedResponse.Reason}", isError: false);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    logMessage($"Server rejected request due to analyzer inconsistency", isError: false);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogErrorOutput($"Received an unrecognized response from the server: {response.Type}");
+                    logMessage($"Received an unrecognized response from the server: {response.Type}", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+
+            void logMessage(string message, bool isError)
+            {
+                logger.LogError(message);
+                if (isError)
+                {
+                    Log.LogError(message);
+                }
+                else
+                {
+                    Log.LogMessage(MessageImportance.Low, message);
+                }
             }
         }
 
-        private void LogErrorOutput(string output)
-        {
-            LogErrorOutput(output, Log);
-        }
-
-        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
+        private void LogErrorMultiline(string output)
         {
             string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
@@ -663,7 +685,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string trimmedMessage = line.Trim();
                 if (trimmedMessage != "")
                 {
-                    log.LogError(trimmedMessage);
+                    Log.LogError(trimmedMessage);
                 }
             }
         }
@@ -825,6 +847,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
             commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
+            commandLine.AppendPlusOrMinusSwitch("/skipanalyzers", _store, nameof(SkipAnalyzers));
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);

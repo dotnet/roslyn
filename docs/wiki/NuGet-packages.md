@@ -2,7 +2,7 @@
 
 A number of NuGet packages are published from the Roslyn repo:
 * Official released packages are published to [nuget.org](https://www.nuget.org/profiles/RoslynTeam), when Visual Studio releases a new RTM or Preview version.
-* Pre-release packages are published daily to [myget.org](https://dotnet.myget.org/gallery/roslyn).
+* Pre-release packages are published daily to [Azure Devops](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools).
 
 ### Microsoft.Net.Compilers.Toolset
 
@@ -31,6 +31,8 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `3.2` includes a preview of C# 8.0 (Visual Studio 2019 version 16.2)
 - Version `3.3` includes C# 8.0 (Visual Studio 2019 version 16.3, .NET Core 3.0)
 - Version `3.4` includes C# 8.0 (Visual Studio 2019 version 16.4, .NET Core 3.1)
+- ...
+- Version `3.8` includes C# 9.0 (Visual Studio 2019 version 16.8, .NET 5)
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md) for more details.
 

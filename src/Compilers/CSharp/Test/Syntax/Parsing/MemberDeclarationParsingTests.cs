@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ParsePrivate()
         {
             UsingDeclaration("private", options: null,
-                // (1,8): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // (1,8): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
                 // private
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 8)
                 );
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
                 UsingDeclaration("x = x + 1;", offset: 0, options: options, consumeFullText: true,
-                    // (1,3): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                    // (1,3): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
                     // x = x + 1;
                     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(1, 3),
                     // (1,1): error CS1073: Unexpected token '='

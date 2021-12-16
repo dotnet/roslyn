@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
         public static CSharpCommandLineParser Script { get; } = new CSharpCommandLineParser(isScriptCommandLineParser: true);
 
-        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
+        private static readonly char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptCommandLineParser = false)
             : base(CSharp.MessageProvider.Instance, isScriptCommandLineParser)
@@ -79,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputFileName = null;
             string? outputRefFilePath = null;
             bool refOnly = false;
+            string? generatedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
-            int warningLevel = 4;
+            int warningLevel = Diagnostic.DefaultWarningLevel;
             bool highEntropyVA = false;
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
@@ -127,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            bool skipAnalyzers = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo? preferredUILang = null;
             string? touchedFilesPath = null;
@@ -614,6 +614,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
+                        case "generatedfilesout":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrWhiteSpace(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                            }
+                            else
+                            {
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+                            continue;
+
                         case "doc":
                             parseDocumentationComments = true;
                             if (RoslynString.IsNullOrEmpty(value))
@@ -895,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
-                            else if (newWarningLevel < 0 || newWarningLevel > 4)
+                            else if (newWarningLevel < 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
                             }
@@ -1179,6 +1191,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             reportAnalyzer = true;
                             continue;
 
+                        case "skipanalyzers":
+                        case "skipanalyzers+":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = true;
+                            continue;
+
+                        case "skipanalyzers-":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = false;
+                            continue;
+
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
@@ -1456,6 +1483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
 
+            pathMap = SortPathMap(pathMap);
+
             return new CSharpCommandLineArguments
             {
                 IsScriptRunner = IsScriptCommandLineParser,
@@ -1473,6 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
@@ -1503,6 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
+                SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }

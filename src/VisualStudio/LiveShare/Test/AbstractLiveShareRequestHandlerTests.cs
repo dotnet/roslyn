@@ -2,27 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
-using RoslynHandlers = Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {
+        private static readonly TestComposition s_composition = LiveShareTestCompositions.Features.AddParts(
+            typeof(MockDocumentNavigationServiceFactory),
+            typeof(TestLspWorkspaceRegistrationService));
+
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
             private readonly Func<Uri, Uri> _uriConversionFunction;
@@ -44,26 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             public bool TryGetExternalUris(string exernalUri, out Uri uri) => throw new NotImplementedException();
         }
 
-        protected override ExportProvider GetExportProvider()
-        {
-            // Get all the liveshare request handlers in this assembly.
-            var liveShareRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(LiveShareConstants).Assembly, typeof(ILspRequestHandler));
-            // Get all of the roslyn request helpers in M.CA.LanguageServer
-            var roslynRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(RoslynHandlers.IRequestHandler).Assembly, typeof(RoslynHandlers.IRequestHandler));
-            // Get all of the execute workspace command handlers in M.CA.LanguageServer
-            var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(MockDocumentNavigationServiceFactory))
-                .WithParts(liveShareRequestHelperTypes)
-                .WithParts(roslynRequestHelperTypes)
-                .WithParts(executeCommandHandlerTypes)
-                .WithPart(typeof(TestLspSolutionProvider)));
-            return exportProviderFactory.CreateExportProvider();
-        }
+        protected override TestComposition Composition => s_composition;
 
         protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request, string methodName)
         {

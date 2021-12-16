@@ -11,8 +11,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
     internal interface IExecuteWorkspaceCommandHandler
     {
         /// <summary>
+        /// Gets the <see cref="TextDocumentIdentifier"/> from the request, if the request provides one.
+        /// </summary>
+        TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request);
+
+        /// <summary>
         /// Handles a specific command from a <see cref="Methods.WorkspaceExecuteCommandName"/> request.
         /// </summary>
-        Task<object> HandleRequestAsync(ExecuteCommandParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
+        Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);
     }
 }

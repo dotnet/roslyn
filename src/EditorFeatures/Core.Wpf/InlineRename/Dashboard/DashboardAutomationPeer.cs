@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     /// </summary>
     internal class DashboardAutomationPeer : UserControlAutomationPeer
     {
-        private string _identifier;
+        private readonly string _identifier;
 
         public DashboardAutomationPeer(UserControl owner, string identifier) : base(owner)
             => _identifier = identifier;

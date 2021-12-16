@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,13 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generate return statements from the state machine method body.
         /// </summary>
         protected abstract BoundStatement GenerateReturn(bool finished);
-
-        /// <summary>
-        /// Signal the transition from `try`/`catch` blocks to the `finally` block.
-        /// </summary>
-        protected virtual void CloseTryCatchBlocks()
-        {
-        }
 
         protected readonly SyntheticBoundNodeFactory F;
 
@@ -851,12 +846,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
 
-            CloseTryCatchBlocks();
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
                     condition: ShouldEnterFinallyBlock(),
-                    thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
+                    thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
 
@@ -871,6 +865,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        protected virtual BoundBlock VisitFinally(BoundBlock finallyBlock)
+        {
+            return (BoundBlock)this.Visit(finallyBlock);
         }
 
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()

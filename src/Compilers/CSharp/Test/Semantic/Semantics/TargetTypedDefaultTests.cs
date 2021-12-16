@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
@@ -953,9 +954,9 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8310: Operator '.' cannot be applied to operand 'default'
+                // (6,9): error CS8716: There is no target type for the default literal.
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, ".").WithArguments(".", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 9),
                 // (7,9): error CS8716: There is no target type for the default literal.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
@@ -975,9 +976,9 @@ class C
                 // (6,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default.ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 9),
-                // (6,16): error CS8310: Operator '.' cannot be applied to operand 'default'
+                // (6,9): error CS8716: There is no target type for the default literal.
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, ".").WithArguments(".", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 9),
                 // (7,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 9),
@@ -1576,7 +1577,7 @@ struct S
 
             var defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("s += default", defaultLiteral.Parent.ToString());
-            Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
+            Assert.Equal("?", model.GetTypeInfo(defaultLiteral).Type.ToTestDisplayString());
         }
 
         [Fact]

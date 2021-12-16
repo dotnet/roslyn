@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Text;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1412,186 +1413,186 @@ public static class C {
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => throw null! })").WithArguments("C").WithLocation(8, 12)
             };
             string expectedFlowGraph = @"
-    Block[B0] - Entry
-        Statements (0)
-        Next (Regular) Block[B1]
-            Entering: {R1} {R2}
-    .locals {R1}
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [0]
+    .locals {R2}
     {
-        CaptureIds: [0]
-        .locals {R2}
-        {
-            CaptureIds: [1]
-            Block[B1] - Block
-                Predecessors: [B0]
-                Statements (1)
-                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
-                      Value: 
-                        IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                          Instance Receiver: 
-                            null
-                Jump if False (Regular) to Block[B3]
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => default')
-                      Value: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
-                      Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
-                    Leaving: {R2}
-                Next (Regular) Block[B2]
-            Block[B2] - Block
-                Predecessors: [B1]
-                Statements (1)
-                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                      Value: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (DefaultLiteral)
-                          Operand: 
-                            IDefaultValueOperation (OperationKind.DefaultValue, Type: C, Constant: null, IsInvalid) (Syntax: 'default')
-                Next (Regular) Block[B4]
-                    Leaving: {R2}
-        }
-        Block[B3] - Block
-            Predecessors: [B1]
-            Statements (0)
-            Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
-                  Arguments(0)
-                  Initializer: 
-                    null
-        Block[B4] - Block
-            Predecessors: [B2]
+        CaptureIds: [1]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
-                      Left: 
-                        IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C) (Syntax: '_')
-                      Right: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
-            Next (Regular) Block[B5]
-                Leaving: {R1}
-                Entering: {R3} {R4}
-    }
-    .locals {R3}
-    {
-        CaptureIds: [2]
-        .locals {R4}
-        {
-            CaptureIds: [3]
-            Block[B5] - Block
-                Predecessors: [B4]
-                Statements (1)
-                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
-                      Value: 
-                        IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                          Instance Receiver: 
-                            null
-                Jump if False (Regular) to Block[B8]
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => throw null!')
-                      Value: 
-                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
-                      Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
-                    Leaving: {R4}
-                Next (Regular) Block[B6]
-            Block[B6] - Block
-                Predecessors: [B5]
-                Statements (0)
-                Next (Throw) Block[null]
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitReference)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
+                  Value: 
+                    IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                      Instance Receiver: 
+                        null
+            Jump if False (Regular) to Block[B3]
+                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => default')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
+                  Pattern: 
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                Leaving: {R2}
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                  Value: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (DefaultLiteral)
                       Operand: 
-                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-            Block[B7] - Block [UnReachable]
-                Predecessors (0)
-                Statements (1)
-                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                      Value: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitThrow)
-                          Operand: 
-                            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                Next (Regular) Block[B9]
-                    Leaving: {R4}
-        }
-        Block[B8] - Block
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
+              Arguments(0)
+              Initializer: 
+                null
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C?, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+                  Left: 
+                    IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C?) (Syntax: '_')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+            Entering: {R3} {R4}
+}
+.locals {R3}
+{
+    CaptureIds: [2]
+    .locals {R4}
+    {
+        CaptureIds: [3]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
+                  Value: 
+                    IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                      Instance Receiver: 
+                        null
+            Jump if False (Regular) to Block[B8]
+                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => throw null!')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
+                  Pattern: 
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                Leaving: {R4}
+            Next (Regular) Block[B6]
+        Block[B6] - Block
             Predecessors: [B5]
             Statements (0)
             Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
-                  Arguments(0)
-                  Initializer: 
-                    null
-        Block[B9] - Block [UnReachable]
-            Predecessors: [B7]
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+        Block[B7] - Block [UnReachable]
+            Predecessors (0)
             Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
-                      Left: 
-                        IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
-                      Right: 
-                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
-            Next (Regular) Block[B10]
-                Leaving: {R3}
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                  Value: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitThrow)
+                      Operand: 
+                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+            Next (Regular) Block[B9]
+                Leaving: {R4}
     }
-    Block[B10] - Exit [UnReachable]
-        Predecessors: [B9]
+    Block[B8] - Block
+        Predecessors: [B5]
         Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+              Arguments(0)
+              Initializer: 
+                null
+    Block[B9] - Block [UnReachable]
+        Predecessors: [B7]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
+                  Left: 
+                    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+        Next (Regular) Block[B10]
+            Leaving: {R3}
+}
+Block[B10] - Exit [UnReachable]
+    Predecessors: [B9]
+    Statements (0)
 ";
             string expectedOperationTree = @"
-    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'static void ... }')
-      BlockBody: 
-        IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
-            Expression: 
-              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
-                Left: 
-                  IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C) (Syntax: '_')
-                Right: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... > default }')
-                    Value: 
-                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                        Instance Receiver: 
-                          null
-                    Arms(1):
-                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
-                          Pattern: 
-                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
-                          Value: 
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand: 
-                                IDefaultValueOperation (OperationKind.DefaultValue, Type: C, Constant: null, IsInvalid) (Syntax: 'default')
-          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
-            Expression: 
-              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
-                Left: 
-                  IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
-                Right: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
-                    Value: 
-                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                        Instance Receiver: 
-                          null
-                    Arms(1):
-                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
-                          Pattern: 
-                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
-                          Value: 
-                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand: 
-                                IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null!')
-                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                    Operand: 
-                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-      ExpressionBody: 
-        null
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'static void ... }')
+  BlockBody: 
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C?, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+            Left: 
+              IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C?) (Syntax: '_')
+            Right: 
+              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
+                Value: 
+                  IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                    Instance Receiver: 
+                      null
+                Arms(1):
+                    ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                      Pattern: 
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                      Value: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
+            Left: 
+              IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+            Right: 
+              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
+                Value: 
+                  IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                    Instance Receiver: 
+                      null
+                Arms(1):
+                    ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
+                      Pattern: 
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                      Value: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null!')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                Operand: 
+                                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+  ExpressionBody: 
+    null
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(expectedDiagnostics);
@@ -1982,7 +1983,7 @@ class Point
 }
 class Animal { }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
@@ -2078,7 +2079,7 @@ N.G<B>[]
 N.G<B>[]
 N.G<B>[]
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2150,7 +2151,7 @@ G<B>[]
 N.G<B>[]
 N.G<B>[]
 N.G<B>[]";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2222,7 +2223,7 @@ G<B>[]
 N.G<B>[]
 N.G<B>[]
 N.G<B>[]";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2271,7 +2272,7 @@ namespace N
 G<B>.D
 N.G<B>.D
 System.Int32";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2320,7 +2321,7 @@ namespace N
 G<B>.D
 N.G<B>.D
 System.Int32";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2351,7 +2352,7 @@ class C
     }
 }";
             var expectedOutput = @"111121";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2409,7 +2410,7 @@ class C
     }
 }";
             var expectedOutput = @"121212";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2455,7 +2456,7 @@ class C
         };
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1L or 2L: Console.Write(2); break;
@@ -2486,7 +2487,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (8,13): error CS8781: Relational patterns may not be used for a value of type 'string'.
                 //             <"0" => "negative",
@@ -2526,7 +2527,7 @@ class C
     @"negative
 zero
 positive";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2564,7 +2565,7 @@ class C
 less
 same
 more";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2593,7 +2594,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (14,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case >= 0m: // error: subsumed
@@ -2635,7 +2636,7 @@ less
 same
 more
 incomparable";
-                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
                 var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2651,7 +2652,7 @@ class C
     bool M1(object o) => o is < (0.0d / 0.0d);
     bool M2(object o) => o is < (0.0f / 0.0f);
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (4,33): error CS8782: Relational patterns may not be used for a floating-point NaN.
                 //     bool M1(object o) => o is < (0.0d / 0.0d);
@@ -2677,7 +2678,7 @@ class C
         _                                      => false,
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         'a'                                    => true, // error 1
@@ -2705,7 +2706,7 @@ class C
         _ => 7,
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (12,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7,
@@ -2728,7 +2729,7 @@ class C
         _ => 7
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (5,6): error CS1525: Invalid expression term '|'
                 //     {
@@ -2799,7 +2800,7 @@ class C
 1
 1
 7";
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2858,7 +2859,7 @@ class C
 1
 1
 1";
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2899,7 +2900,7 @@ class C
 " : "")
 + @"    };
 }";
-                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                     if (withExhaustive)
                     {
                         compilation.VerifyDiagnostics(
@@ -2955,7 +2956,7 @@ class C
 " : "")
 + @"    };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             if (withExhaustive)
             {
                 compilation.VerifyEmitDiagnostics(
@@ -2977,14 +2978,14 @@ class C
             var source = @"
 class C
 {
-    public int M(uint c) => c switch
+    public int M(uint c) => /*<bind>*/c switch
     {
         == 0 => 1,
         != 2 => 2,
         _ => 7
-    };
+    }/*</bind>*/;
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1525: Invalid expression term '=='
                 //         == 0 => 1,
@@ -2993,6 +2994,38 @@ class C
                 //         != 2 => 2,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
                 );
+
+            VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
+ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+  Value: 
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
+  Arms(3):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '== 0 => 1')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '== 0') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 0, IsImplicit) (Syntax: '0')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '!= 2 => 2')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '!= 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 7')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.UInt32, NarrowedType: System.UInt32)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+");
         }
 
         [Fact]
@@ -3023,7 +3056,7 @@ class C
         _ => 7, // 1
     };
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 // (23,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7, // 1
@@ -3092,7 +3125,7 @@ class C
 106.12 => A
 110 => A
 111111111 => A";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -3230,7 +3263,7 @@ System.Object
 System.Object
 System.Int64
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -3318,7 +3351,7 @@ Base
 Base
 Base
 ";
-            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4567,7 +4600,7 @@ enum LifeStage
 70 -> LateAdult
 80 -> LateAdult
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4733,7 +4766,7 @@ enum LifeStage
 70 -> LateAdult
 80 -> LateAdult
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -4825,7 +4858,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
         }
@@ -4919,7 +4952,7 @@ CASES
             {
                 var casesString = string.Join("\n", cases);
                 var source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5203,7 +5236,7 @@ static class Assert
 }
 ";
             source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
@@ -5272,7 +5305,7 @@ static class Assert
 }
 ";
             source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
@@ -5564,7 +5597,7 @@ enum Color { Red, Greed, Blue }
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_04()
+        public void NonexhaustiveWithUnnamedEnumValue_01()
         {
             var source =
 @"
@@ -5581,9 +5614,84 @@ enum Color { Red, Greed, Blue }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                    // (4,33): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Color)3' is not covered.
-                    //     int M(Color color) => color switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Color)3").WithLocation(4, 33)
+                // (4,33): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Color)3' is not covered.
+                //     int M(Color color) => color switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(Color)3").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_02()
+        {
+            var source =
+@"
+class C
+{
+    int M() => this switch
+    {
+        (_, Color.Red) => 0,
+        (_, Color.Greed) => 1,
+        (_, Color.Blue) => 2,
+    };
+    public void Deconstruct(out int X, out Color Color) => throw null;
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
+                //     int M() => this switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(_, (Color)3)").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_03()
+        {
+            var source =
+@"
+class C
+{
+    int M() => this switch
+    {
+        { X: _, Color: Color.Red } => 0,
+        { X: _, Color: Color.Greed } => 1,
+        { X: _, Color: Color.Blue } => 2,
+    };
+    public int X => 1;
+    public Color Color => Color.Red;
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{ Color: (Color)3 }' is not covered.
+                //     int M() => this switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("{ Color: (Color)3 }").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveWithUnnamedEnumValue_04()
+        {
+            var source =
+@"
+class C
+{
+    int M(int i, Color c) => (i, c) switch
+    {
+        (_, Color.Red) => 0,
+        (_, Color.Greed) => 1,
+        (_, Color.Blue) => 2,
+    };
+}
+enum Color { Red, Greed, Blue }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyDiagnostics(
+                // (4,37): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
+                //     int M(int i, Color c) => (i, c) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch", isSuppressed: false).WithArguments("(_, (Color)3)").WithLocation(4, 37)
                 );
         }
 
@@ -5609,7 +5717,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_06()
+        public void NonexhaustiveSwitchDiagnostic_06()
         {
             var source =
 @"#nullable enable
@@ -5649,7 +5757,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_07()
+        public void NonexhaustiveSwitchDiagnostic_07()
         {
             var source =
 @"#nullable enable
@@ -5681,7 +5789,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_08()
+        public void NonexhaustiveSwitchDiagnostic_08()
         {
             var source =
 @"
@@ -5719,7 +5827,7 @@ class C
         }
 
         [Fact]
-        public void NonexhaustiveEnumDiagnostic_09()
+        public void NonexhaustiveSwitchDiagnostic_09()
         {
             var source =
 @"
@@ -6070,6 +6178,524 @@ class C
                 //                 _ = s; // 4
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
                 );
+        }
+
+        [Theory]
+        [InlineData("!(o is C c1)")]
+        [InlineData("o is not C c1")]
+        public void IsNot_06(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(object o)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+    }}
+    int F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000b
+  IL_000a:  ret
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int C.F""
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is C)")]
+        [InlineData("!(c is { })")]
+        [InlineData("c is not C")]
+        [InlineData("c is not { }")]
+        [InlineData("c is (not C)")]
+        [InlineData("c is (not { })")]
+        public void IsNot_07(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c.F);
+    }}
+    int F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0004
+  IL_0003:  ret
+  IL_0004:  ldarg.0
+  IL_0005:  ldfld      ""int C.F""
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is C c1)")]
+        [InlineData("!(c is (C c1))")]
+        [InlineData("!(c is { } c1)")]
+        [InlineData("c is not C c1")]
+        [InlineData("c is not (C c1)")]
+        [InlineData("c is not (not not C c1)")]
+        [InlineData("c is not not (not C c1)")]
+        [InlineData("c is not { } c1")]
+        [InlineData("!(c is not not { } c1)")]
+        public void IsNot_08(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+    }}
+    int F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int C.F""
+  IL_000e:  call       ""void System.Console.WriteLine(int)""
+  IL_0013:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { F: 42 } c1)")]
+        [InlineData("c is not { F: 42 } c1")]
+        public void IsNot_09(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+    }}
+    int F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0011
+  IL_0003:  ldarg.0
+  IL_0004:  ldfld      ""int C.F""
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  bne.un.s   IL_0011
+  IL_000d:  ldarg.0
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ret
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""int C.F""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { F: var f } c1)")]
+        [InlineData("c is not { F: var f } c1")]
+        public void IsNot_10(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(f);
+        WriteLine(c1.F);
+    }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                object V_1) //f
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000e
+  IL_0003:  ldarg.0
+  IL_0004:  ldfld      ""object C.F""
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  stloc.0
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.1
+  IL_0010:  call       ""void System.Console.WriteLine(object)""
+  IL_0015:  ldloc.0
+  IL_0016:  ldfld      ""object C.F""
+  IL_001b:  call       ""void System.Console.WriteLine(object)""
+  IL_0020:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(o is (41 or 42))")]
+        [InlineData("o is not (41 or 42)")]
+        public void IsNot_11(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        object o = 42;
+        M(o);
+    }}
+    static void M(object o)
+    {{
+        if ({pattern}) return;
+        WriteLine(o);
+    }}
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_001a
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.s   41
+  IL_0012:  sub
+  IL_0013:  ldc.i4.1
+  IL_0014:  bgt.un.s   IL_001a
+  IL_0016:  ldc.i4.1
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001c
+  IL_001a:  ldc.i4.0
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brtrue.s   IL_0020
+  IL_001f:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  call       ""void System.Console.WriteLine(object)""
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_12()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    const string s = null;
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        if (!(s is string t)) return;
+        WriteLine(t.Length);
+    }
+    static void M2()
+    {
+        if (s is not string t) return;
+        WriteLine(t.Length);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8519: The given expression never matches the provided pattern.
+                //         if (!(s is string t)) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string t").WithLocation(12, 15),
+                // (17,13): warning CS8793: The given expression always matches the provided pattern.
+                //         if (s is not string t) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "s is not string t").WithLocation(17, 13));
+            var verifier = CompileAndVerify(source, expectedOutput: "");
+            var expectedIL =
+@"{
+  // Code size        1 (0x1)
+  .maxstack  1
+  .locals init (string V_0) //t
+  IL_0000:  ret
+}";
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Theory]
+        [InlineData("!(o is (C c1 and C c2))")]
+        [InlineData("o is not (C c1 and C c2)")]
+        public void IsNot_13(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(object o)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0011
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_0011
+  IL_000d:  ldloc.0
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ret
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""object C.F""
+  IL_0018:  call       ""void System.Console.WriteLine(object)""
+  IL_001d:  ldloc.1
+  IL_001e:  ldfld      ""object C.F""
+  IL_0023:  call       ""void System.Console.WriteLine(object)""
+  IL_0028:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { P: C c1, Q: C c2 })")]
+        [InlineData("c is not { P: C c1, Q: C c2 }")]
+        public void IsNot_14(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C() {{ P = new C(), Q = new C() }});
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object P {{ get; set; }}
+    object Q {{ get; set; }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0021
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C.P.get""
+  IL_0009:  isinst     ""C""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_0021
+  IL_0012:  ldarg.0
+  IL_0013:  callvirt   ""object C.Q.get""
+  IL_0018:  isinst     ""C""
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  brtrue.s   IL_0022
+  IL_0021:  ret
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      ""object C.F""
+  IL_0028:  call       ""void System.Console.WriteLine(object)""
+  IL_002d:  ldloc.1
+  IL_002e:  ldfld      ""object C.F""
+  IL_0033:  call       ""void System.Console.WriteLine(object)""
+  IL_0038:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { P: C c1, P: C c2 })")]
+        [InlineData("c is not { P: C c1, P: C c2 }")]
+        public void IsNot_15(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C() {{ P = new C() }});
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object P {{ get; set; }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0016
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C.P.get""
+  IL_0009:  isinst     ""C""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldloc.0
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""object C.F""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ldloc.1
+  IL_0023:  ldfld      ""object C.F""
+  IL_0028:  call       ""void System.Console.WriteLine(object)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_16()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    static void M1(C? c)
+    {
+        if (!(c is C)) _ = c.ToString(); // 1
+        else _ = c.ToString();
+    }
+    static void M2(C? c)
+    {
+        if (c is not C) _ = c.ToString(); // 2
+        else _ = c.ToString();
+    }
+    static void M3(C? c)
+    {
+        if (c is not not C) _ = c.ToString();
+        else _ = c.ToString(); // 3
+    }
+    static void M4(C? c)
+    {
+        if (c is not not not C) _ = c.ToString(); // 4
+        else _ = c.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,28): warning CS8602: Dereference of a possibly null reference.
+                //         if (!(c is C)) _ = c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(6, 28),
+                // (11,29): warning CS8602: Dereference of a possibly null reference.
+                //         if (c is not C) _ = c.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(11, 29),
+                // (17,18): warning CS8602: Dereference of a possibly null reference.
+                //         else _ = c.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(17, 18),
+                // (21,37): warning CS8602: Dereference of a possibly null reference.
+                //         if (c is not not not C) _ = c.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(21, 37));
         }
 
         [Fact]
@@ -6615,6 +7241,163 @@ namespace System
                 //     static int M((int x, int y) s) => s switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ x: 1,  y: 2,  Extra: 3 }").WithLocation(3, 41)
                 );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_30()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((bool, bool, bool, bool) t) => t switch
+    {
+        (false, true, true, true) => 3,
+        (false, true, false, true) when b => 4,
+        (false, false, false, true) => 5,
+        (false, false, true, true) => 6,
+        (true, _, false, _) => 1,
+        (true, _, true, _) => 2,
+        (false, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,44): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(false, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+
+                //     int M((bool, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("(false, true, false, true)").WithLocation(4, 44)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_31()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M((object?, bool, bool, bool) t) => t switch
+    {
+        (null, true, true, true) => 3,
+        (null, true, false, true) when b => 4,
+        (null, false, false, true) => 5,
+        (null, false, true, true) => 6,
+        ({ }, _, false, _) => 1,
+        ({ }, _, true, _) => 2,
+        (null, _, _, false) => 7,
+    };
+    bool b => true;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //     int M((object?, bool, bool, bool) t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_01()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_02()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            0 => 0,
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '1' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("1").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_03()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            < red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
         }
     }
 }

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -37,6 +38,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 format,
                 "A",
                 SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public void TestRecordNameOnlySimple()
+        {
+            var text = "record A {}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("A", 0).Single();
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "A",
+                SymbolDisplayPartKind.RecordClassName);
+        }
+
+        [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public void TestRecordNameOnlyComplex()
+        {
+            var text = @"
+namespace N1 {
+    namespace N2.N3 {
+        record R1 {
+            record R2 {} } } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetNestedNamespace("N1").
+                GetNestedNamespace("N2").
+                GetNestedNamespace("N3").
+                GetTypeMembers("R1").Single().
+                GetTypeMembers("R2").Single();
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "R2",
+                SymbolDisplayPartKind.RecordClassName);
         }
 
         [Fact]
@@ -2827,7 +2875,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
                     TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -2956,7 +3004,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -3017,7 +3065,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -3078,7 +3126,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -5716,6 +5764,103 @@ class C
                 "void C.Method(CancellationToken cancellationToken = default)");
         }
 
+        [Fact]
+        public void TypeParameterAnnotations_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    T F0<T>() => default;
+    T? F1<T>() => default;
+    T F2<T>() where T : class => default;
+    T? F3<T>() where T : class => default;
+    T F4<T>() where T : class? => default;
+    T? F5<T>() where T : class? => default;
+    T F6<T>() where T : struct => default;
+    T? F7<T>() where T : struct => default;
+    T F8<T>() where T : notnull => default;
+    T F9<T>() where T : unmanaged => default;
+}";
+            var comp = (Compilation)CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var formatWithoutModifiers = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var formatWithNullableModifier = formatWithoutModifiers.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            var formatWithBothModifiers = formatWithNullableModifier.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
+
+            verify("C.F0", "T F0<T>()", "T F0<T>()", "T F0<T>()");
+            verify("C.F1", "T F1<T>()", "T? F1<T>()", "T? F1<T>()");
+            verify("C.F2", "T F2<T>() where T : class", "T F2<T>() where T : class", "T! F2<T>() where T : class!");
+            verify("C.F3", "T F3<T>() where T : class", "T? F3<T>() where T : class", "T? F3<T>() where T : class!");
+            verify("C.F4", "T F4<T>() where T : class", "T F4<T>() where T : class?", "T F4<T>() where T : class?");
+            verify("C.F5", "T F5<T>() where T : class", "T? F5<T>() where T : class?", "T? F5<T>() where T : class?");
+            verify("C.F6", "T F6<T>() where T : struct", "T F6<T>() where T : struct", "T F6<T>() where T : struct");
+            verify("C.F7", "T? F7<T>() where T : struct", "T? F7<T>() where T : struct", "T? F7<T>() where T : struct");
+            verify("C.F8", "T F8<T>() where T : notnull", "T F8<T>() where T : notnull", "T F8<T>() where T : notnull");
+            verify("C.F9", "T F9<T>() where T : unmanaged", "T F9<T>() where T : unmanaged", "T F9<T>() where T : unmanaged");
+
+            void verify(string memberName, string withoutModifiers, string withNullableModifier, string withBothModifiers)
+            {
+                var member = comp.GetMember(memberName);
+                Verify(SymbolDisplay.ToDisplayParts(member, formatWithoutModifiers), withoutModifiers);
+                Verify(SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier), withNullableModifier);
+                Verify(SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers), withBothModifiers);
+            }
+        }
+
+        [Fact]
+        public void TypeParameterAnnotations_02()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C
+{
+    T? F<T>(T?[] x, I<T?> y) => default;
+}";
+            var comp = (Compilation)CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            var method = (IMethodSymbol)comp.GetMember("C.F");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, format),
+                "T? F<T>(T?[] x, I<T?> y)",
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            var type = method.GetSymbol<MethodSymbol>().ReturnTypeWithAnnotations;
+            Assert.Equal("T?", type.ToDisplayString(format));
+        }
+
         [Theory]
         [InlineData("int", "0")]
         [InlineData("string", "null")]
@@ -7414,7 +7559,7 @@ class B
     static void F3(nint? x, UIntPtr? y) { }
     static void F4(nint[] x, A<nuint> y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular9);
             var formatWithoutOptions = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
@@ -7485,6 +7630,27 @@ class B
             Verify(
                 method.ToDisplayParts(formatWithoutOptions),
                 "static void F4(nint[] x, A<nuint> y)");
+        }
+
+        [Fact]
+        public void RecordDeclaration()
+        {
+            var text = @"
+record Person(string First, string Last);
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("Person").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                "record Person",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RecordClassName);
         }
     }
 }

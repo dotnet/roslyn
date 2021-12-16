@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Inherits EditAndContinueTestBase
 
         <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <MemberData(NameOf(ExternalPdbFormats))>
+        <InlineData(DebugInformationFormat.PortablePdb)> '<MemberData(NameOf(ExternalPdbFormats))>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub MethodExtents(format As DebugInformationFormat)
             Dim source0 = MarkedSource("
 Imports System
@@ -185,80 +186,65 @@ End Class", fileName:="C:\Enc1.vb")
             End If
 
             diff1.VerifyPdb(Enumerable.Range(&H6000001, 20),
-<symbols>
-    <files>
-        <file id="1" name="C:\F\A.vb" language="VB"/>
-        <file id="2" name="C:\F\C.vb" language="VB"/>
-        <file id="3" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="E2-3A-75-D7-B2-2D-78-1C-0E-F7-75-E2-8C-09-4B-4E-E1-68-2E-9D"/>
-    </files>
-    <methods>
-        <method token="0x600000b">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" startLine="10" startColumn="9" endLine="10" endColumn="28" document="1"/>
-                <entry offset="0x7" startLine="10" startColumn="9" endLine="10" endColumn="28" document="2"/>
-                <entry offset="0xd" hidden="true" document="2"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xe">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
-        </method>
-        <method token="0x600000d">
-            <sequencePoints>
-                <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="3"/>
-                <entry offset="0x1" startLine="21" startColumn="13" endLine="21" endColumn="35" document="3"/>
-                <entry offset="0x26" startLine="23" startColumn="13" endLine="26" endColumn="16" document="3"/>
-                <entry offset="0x4b" startLine="27" startColumn="5" endLine="27" endColumn="12" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x4c">
-                <importsforward token="0x600000b"/>
-                <local name="H1" il_index="2" il_start="0x0" il_end="0x4c" attributes="0"/>
-                <local name="H2" il_index="3" il_start="0x0" il_end="0x4c" attributes="0"/>
-            </scope>
-        </method>
-        <method token="0x6000010">
-            <sequencePoints>
-                <entry offset="0x0" startLine="21" startColumn="23" endLine="21" endColumn="33" document="3"/>
-                <entry offset="0x1" startLine="21" startColumn="34" endLine="21" endColumn="35" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000b"/>
-            </scope>
-        </method>
-        <method token="0x6000011">
-            <sequencePoints>
-                <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="3"/>
-                <entry offset="0x1" startLine="24" startColumn="17" endLine="24" endColumn="39" document="3"/>
-                <entry offset="0x26" startLine="25" startColumn="17" endLine="25" endColumn="39" document="3"/>
-                <entry offset="0x4b" startLine="26" startColumn="9" endLine="26" endColumn="16" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x4c">
-                <importsforward token="0x600000b"/>
-                <local name="H3" il_index="0" il_start="0x0" il_end="0x4c" attributes="0"/>
-                <local name="H4" il_index="1" il_start="0x0" il_end="0x4c" attributes="0"/>
-            </scope>
-        </method>
-        <method token="0x6000012">
-            <sequencePoints>
-                <entry offset="0x0" startLine="24" startColumn="27" endLine="24" endColumn="37" document="3"/>
-                <entry offset="0x1" startLine="24" startColumn="38" endLine="24" endColumn="39" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000b"/>
-            </scope>
-        </method>
-        <method token="0x6000013">
-            <sequencePoints>
-                <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="3"/>
-                <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000b"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
+    <symbols>
+        <files>
+            <file id="1" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="E2-3A-75-D7-B2-2D-78-1C-0E-F7-75-E2-8C-09-4B-4E-E1-68-2E-9D"/>
+            <file id="2" name="C:\F\A.vb" language="VB"/>
+            <file id="3" name="C:\F\C.vb" language="VB"/>
+        </files>
+        <methods>
+            <method token="0x600000b">
+                <sequencePoints>
+                    <entry offset="0x0" hidden="true" document="2"/>
+                    <entry offset="0x1" startLine="10" startColumn="9" endLine="10" endColumn="28" document="2"/>
+                    <entry offset="0x7" startLine="10" startColumn="9" endLine="10" endColumn="28" document="3"/>
+                    <entry offset="0xd" hidden="true" document="3"/>
+                </sequencePoints>
+            </method>
+            <method token="0x600000d">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="1"/>
+                    <entry offset="0x1" startLine="21" startColumn="13" endLine="21" endColumn="35" document="1"/>
+                    <entry offset="0x26" startLine="23" startColumn="13" endLine="26" endColumn="16" document="1"/>
+                    <entry offset="0x4b" startLine="27" startColumn="5" endLine="27" endColumn="12" document="1"/>
+                </sequencePoints>
+                <scope startOffset="0x0" endOffset="0x4c">
+                    <local name="H1" il_index="2" il_start="0x0" il_end="0x4c" attributes="0"/>
+                    <local name="H2" il_index="3" il_start="0x0" il_end="0x4c" attributes="0"/>
+                </scope>
+            </method>
+            <method token="0x6000010">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="21" startColumn="23" endLine="21" endColumn="33" document="1"/>
+                    <entry offset="0x1" startLine="21" startColumn="34" endLine="21" endColumn="35" document="1"/>
+                </sequencePoints>
+            </method>
+            <method token="0x6000011">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="1"/>
+                    <entry offset="0x1" startLine="24" startColumn="17" endLine="24" endColumn="39" document="1"/>
+                    <entry offset="0x26" startLine="25" startColumn="17" endLine="25" endColumn="39" document="1"/>
+                    <entry offset="0x4b" startLine="26" startColumn="9" endLine="26" endColumn="16" document="1"/>
+                </sequencePoints>
+                <scope startOffset="0x0" endOffset="0x4c">
+                    <local name="H3" il_index="0" il_start="0x0" il_end="0x4c" attributes="0"/>
+                    <local name="H4" il_index="1" il_start="0x0" il_end="0x4c" attributes="0"/>
+                </scope>
+            </method>
+            <method token="0x6000012">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="24" startColumn="27" endLine="24" endColumn="37" document="1"/>
+                    <entry offset="0x1" startLine="24" startColumn="38" endLine="24" endColumn="39" document="1"/>
+                </sequencePoints>
+            </method>
+            <method token="0x6000013">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="1"/>
+                    <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="1"/>
+                </sequencePoints>
+            </method>
+        </methods>
+    </symbols>, format:=DebugInformationFormat.PortablePdb)
 
             Dim syntaxMap2 = GetSyntaxMapFromMarkers(source1, source2)
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
@@ -298,58 +284,49 @@ End Class", fileName:="C:\Enc1.vb")
             End If
 
             diff2.VerifyPdb(Enumerable.Range(&H6000001, 20),
-<symbols>
-    <files>
-        <file id="1" name="C:\F\A.vb" language="VB"/>
-        <file id="2" name="C:\F\E.vb" language="VB"/>
-        <file id="3" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-81-EA-11-DD-DE-3B-51-F3-07-C3-A7-7E-0B-41-D3-D4-12-86-93"/>
-    </files>
-    <methods>
-        <method token="0x600000b">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" startLine="10" startColumn="9" endLine="10" endColumn="28" document="1"/>
-                <entry offset="0x7" startLine="10" startColumn="9" endLine="10" endColumn="28" document="2"/>
-                <entry offset="0xd" hidden="true" document="2"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xe">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
-        </method>
-        <method token="0x600000d">
-            <sequencePoints>
-                <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="3"/>
-                <entry offset="0x1" startLine="23" startColumn="13" endLine="26" endColumn="16" document="3"/>
-                <entry offset="0x27" startLine="27" startColumn="5" endLine="27" endColumn="12" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x28">
-                <importsforward token="0x600000b"/>
-                <local name="H2" il_index="4" il_start="0x0" il_end="0x28" attributes="0"/>
-            </scope>
-        </method>
-        <method token="0x6000011">
-            <sequencePoints>
-                <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="3"/>
-                <entry offset="0x1" startLine="25" startColumn="17" endLine="25" endColumn="39" document="3"/>
-                <entry offset="0x26" startLine="26" startColumn="9" endLine="26" endColumn="16" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x27">
-                <importsforward token="0x600000b"/>
-                <local name="H4" il_index="0" il_start="0x0" il_end="0x27" attributes="0"/>
-            </scope>
-        </method>
-        <method token="0x6000013">
-            <sequencePoints>
-                <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="3"/>
-                <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="3"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000b"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
+    <symbols>
+        <files>
+            <file id="1" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-81-EA-11-DD-DE-3B-51-F3-07-C3-A7-7E-0B-41-D3-D4-12-86-93"/>
+            <file id="2" name="C:\F\A.vb" language="VB"/>
+            <file id="3" name="C:\F\E.vb" language="VB"/>
+        </files>
+        <methods>
+            <method token="0x600000b">
+                <sequencePoints>
+                    <entry offset="0x0" hidden="true" document="2"/>
+                    <entry offset="0x1" startLine="10" startColumn="9" endLine="10" endColumn="28" document="2"/>
+                    <entry offset="0x7" startLine="10" startColumn="9" endLine="10" endColumn="28" document="3"/>
+                    <entry offset="0xd" hidden="true" document="3"/>
+                </sequencePoints>
+            </method>
+            <method token="0x600000d">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="1"/>
+                    <entry offset="0x1" startLine="23" startColumn="13" endLine="26" endColumn="16" document="1"/>
+                    <entry offset="0x27" startLine="27" startColumn="5" endLine="27" endColumn="12" document="1"/>
+                </sequencePoints>
+                <scope startOffset="0x0" endOffset="0x28">
+                    <local name="H2" il_index="4" il_start="0x0" il_end="0x28" attributes="0"/>
+                </scope>
+            </method>
+            <method token="0x6000011">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="1"/>
+                    <entry offset="0x1" startLine="25" startColumn="17" endLine="25" endColumn="39" document="1"/>
+                    <entry offset="0x26" startLine="26" startColumn="9" endLine="26" endColumn="16" document="1"/>
+                </sequencePoints>
+                <scope startOffset="0x0" endOffset="0x27">
+                    <local name="H4" il_index="0" il_start="0x0" il_end="0x27" attributes="0"/>
+                </scope>
+            </method>
+            <method token="0x6000013">
+                <sequencePoints>
+                    <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="1"/>
+                    <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="1"/>
+                </sequencePoints>
+            </method>
+        </methods>
+    </symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
     End Class
 End Namespace

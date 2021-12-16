@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -813,7 +814,7 @@ public class A
 
             var typeA = mems.Where(s => s.Name == "A").Select(s => s);
             Assert.Equal(1, typeA.Count());
-            var invalid = mems.Where(s => s.Name == SimpleProgramNamedTypeSymbol.UnspeakableName).Select(s => s);
+            var invalid = mems.Where(s => s.Name == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).Select(s => s);
             Assert.Equal(1, invalid.Count());
         }
 
@@ -3719,6 +3720,41 @@ class Derived : Test
             Assert.Equal(stringType, identifierInfo.ConvertedType);
         }
 
+        [Fact, WorkItem(45825, "https://github.com/dotnet/roslyn/issues/45825")]
+        public void LambdaReturnSpeculation()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public static implicit operator C(string s) => null!;
+    C M()
+    {
+        string s = """";
+        System.Func<string> local = () =>
+        {
+            s.ToString();
+            return s;
+        };
+        local();
+        return null!;
+    }
+}");
+            comp.VerifyDiagnostics(
+            );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionBody = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(localFunctionBody.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!);
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
+            var @return = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return s;");
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunctionBody.Block!.Statements[0].SpanStart + 1, @return, out var specModel));
+            typeInfo = specModel!.GetTypeInfo(@return.Expression!);
+
+            // This behavior is broken. The return type here should be 'System.String' because we are speculating within the lambda.
+            // https://github.com/dotnet/roslyn/issues/45825
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
+        }
+
         [WorkItem(850907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850907")]
         [Fact]
         public void ExtensionMethodViability()
@@ -4006,10 +4042,67 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
-            {
-                Assert.False(model.GetConstantValue(interp).HasValue);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Equal("Hello, world!", model.GetConstantValue(actual[0]).Value);
+            Assert.False(model.GetConstantValue(actual[1]).HasValue);
+        }
+
+        [Fact]
+        public void ConstantValueOfInterpolatedStringComplex()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        const string S1 = $""Number 3"";
+        Console.WriteLine($""{""Level 5""} {S1}"");
+        Console.WriteLine($""Level {5} {S1}"");
+    }
+
+    void M(string S1 = $""Testing"", Namae n = null)
+    {
+        if (n is Namae { X : $""ConstantInterpolatedString""}){
+            switch(S1){
+                case $""Level 5"":
+                    break;
+                case $""Radio Noise"":
+                    goto case $""Level 5"";
             }
+        }
+        S1 = S0;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.Equal(@"$""Number 3""", actual[0].ToString());
+            Assert.Equal("Number 3", model.GetConstantValue(actual[0]).Value);
+
+            Assert.Equal(@"$""{""Level 5""} {S1}""", actual[1].ToString());
+            Assert.Equal("Level 5 Number 3", model.GetConstantValue(actual[1]).Value);
+
+            Assert.False(model.GetConstantValue(actual[2]).HasValue);
+
+            Assert.Equal(@"$""Testing""", actual[3].ToString());
+            Assert.Equal("Testing", model.GetConstantValue(actual[3]).Value);
+
+            Assert.Equal(@"$""ConstantInterpolatedString""", actual[4].ToString());
+            Assert.Equal("ConstantInterpolatedString", model.GetConstantValue(actual[4]).Value);
+
+            Assert.Equal(@"$""Level 5""", actual[5].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[5]).Value);
+
+            Assert.Equal(@"$""Radio Noise""", actual[6].ToString());
+            Assert.Equal("Radio Noise", model.GetConstantValue(actual[6]).Value);
+
+            Assert.Equal(@"$""Level 5""", actual[7].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[7]).Value);
         }
 
         [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]

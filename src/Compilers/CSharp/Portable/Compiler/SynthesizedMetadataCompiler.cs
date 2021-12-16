@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // generate MethodDef entries for them.
                     foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
                     {
-                        _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
+                        _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl.GetCciAdapter());
                     }
                 }
             }
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
-                    _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                    _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetCciAdapter());
                 }
             }
         }

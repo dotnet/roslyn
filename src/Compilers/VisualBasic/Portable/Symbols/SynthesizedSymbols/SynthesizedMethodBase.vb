@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return False
             End Get
@@ -199,6 +199,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides ReadOnly Property IsIterator As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
             Get
                 Return False
             End Get

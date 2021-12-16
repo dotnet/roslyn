@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 _glyphService,
                 document.Project.Solution,
                 selectedMember.ContainingType,
-                cancellationTokenSource.Token).BaseTypeNodes;
+                cancellationTokenSource.Token);
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
             var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
             var dialog = new PullMemberUpDialog(viewModel);

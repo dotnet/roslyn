@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
         }
 
         /// <summary>
@@ -399,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node!.CreateList(list.Select(n => n.RequiredUnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));

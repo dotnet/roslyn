@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _textView.Selection.SelectionChanged -= OnSelectionChanged;
 
-            private void OnSelectionChanged(object sender, EventArgs args)
+            private void OnSelectionChanged(object? sender, EventArgs args)
                 => RaiseChanged();
         }
     }

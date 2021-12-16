@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var smartTokenformattingRules = _formattingRules;
             var common = startToken.GetCommonRoot(endToken);
+            RoslynDebug.AssertNotNull(common);
 
             // if there are errors, do not touch lines
             // Exception 1: In the case of try-catch-finally block, a try block without a catch/finally block is considered incomplete
@@ -105,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 indentStyle != FormattingOptions.IndentStyle.Smart)
             {
+                RoslynDebug.AssertNotNull(token.SyntaxTree);
                 var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (token.IsFirstTokenOnLine(text))
                 {
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
                 var lineOperation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var spaceOperation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
 

@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await GetCodeRefactoringAsync(provider, workspace));
         }
 
-        private async Task<CodeRefactoring> GetCodeRefactoringAsync(
+        private static async Task<CodeRefactoring> GetCodeRefactoringAsync(
             CodeRefactoringProvider provider,
             TestWorkspace workspace)
         {
@@ -114,33 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static Document GetDocument(TestWorkspace workspace)
             => workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-        private class TestPickMembersService : IPickMembersService
-        {
-            private readonly ImmutableArray<string> _memberNames;
-            private readonly Action<ImmutableArray<PickMembersOption>> _optionsCallback;
-
-            public TestPickMembersService(
-                ImmutableArray<string> memberNames,
-                Action<ImmutableArray<PickMembersOption>> optionsCallback)
-            {
-                _memberNames = memberNames;
-                _optionsCallback = optionsCallback;
-            }
-
-            public PickMembersResult PickMembers(
-                string title, ImmutableArray<ISymbol> members,
-                ImmutableArray<PickMembersOption> options)
-            {
-                _optionsCallback?.Invoke(options);
-                return new PickMembersResult(
-                    _memberNames.IsDefault
-                        ? members
-                        : _memberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                    options);
-            }
-        }
-
-        internal void EnableOptions(
+        internal static void EnableOptions(
             ImmutableArray<PickMembersOption> options,
             params string[] ids)
         {
@@ -150,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal void EnableOption(ImmutableArray<PickMembersOption> options, string id)
+        internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
         {
             var option = options.FirstOrDefault(o => o.Id == id);
             if (option != null)
@@ -172,6 +150,41 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 initialMarkup, expectedMarkup,
                 index,
                 parameters.WithFixProviderData(pickMembersService));
+        }
+    }
+
+    [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared, PartNotDiscoverable]
+    internal class TestPickMembersService : IPickMembersService
+    {
+        public ImmutableArray<string> MemberNames;
+        public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestPickMembersService()
+        {
+        }
+
+#pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
+        public TestPickMembersService(
+            ImmutableArray<string> memberNames,
+            Action<ImmutableArray<PickMembersOption>> optionsCallback)
+        {
+            MemberNames = memberNames;
+            OptionsCallback = optionsCallback;
+        }
+#pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
+
+        public PickMembersResult PickMembers(
+            string title, ImmutableArray<ISymbol> members,
+            ImmutableArray<PickMembersOption> options)
+        {
+            OptionsCallback?.Invoke(options);
+            return new PickMembersResult(
+                MemberNames.IsDefault
+                    ? members
+                    : MemberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
+                options);
         }
     }
 }

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -29,6 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
-            => new CommitManager(textView, _recentItemsManager, _threadingContext);
+        {
+            if (textView.TextBuffer.IsInLspEditorContext())
+            {
+                return null;
+            }
+
+            return new CommitManager(textView, _recentItemsManager, _threadingContext);
+        }
     }
 }

@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CallingConventionTypeIsInvalid">
+        <source>Cannot use '{0}' as a calling convention modifier.</source>
+        <target state="translated">{0} se nedá použít jako modifikátor konvence volání.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CallingConventionTypesRequireUnmanaged">
+        <source>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</source>
+        <target state="translated">Pokud {1} není SignatureCallingConvention.Unmanaged, předání hodnoty {0} není platné.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">Konstruovaný obecný typ nejde vytvořit z jiného konstruovaného obecného typu.</target>
@@ -24,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfToNonFunctionPointer">
         <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
-        <target state="translated">Skupina &amp;metody {0} se nedá převést na typ ukazatele, který neukazuje na funkci ({1}).</target>
+        <target state="translated">Skupina &amp;method {0} se nedá převést na typ ukazatele, který neukazuje na funkci ({1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -78,18 +88,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje vhodnou veřejnou definici instance pro {1}.</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje vhodnou veřejnou definici instance nebo rozšíření pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}. Měli jste v úmyslu foreach místo await foreach?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance nebo rozšíření pro {1}. Měli jste v úmyslu foreach místo await foreach?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">V asynchronním příkazu foreach nejde použít kolekce dynamického typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">Typ {0} se nedá použít pro pole záznamu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -137,11 +152,6 @@
         <target state="translated">Záznamy můžou dědit jenom z objektu nebo jiného záznamu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">Poziční záznam musí mít modifikátor data a neprázdný seznam parametrů.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
@@ -157,10 +167,20 @@
         <target state="translated">Skupina &amp;metody {0} se nedá převést na typ delegáta {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
+        <source>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</source>
+        <target state="translated">Konvence volání managed se nedá kombinovat se specifikátory konvence nespravovaného volání.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
         <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
         <target state="translated">Lokální proměnná deklarovaná v příkazu fixed nemůže být typu ukazatel na funkci.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseManagedTypeInUnmanagedCallersOnly">
+        <source>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">V metodě, která má atribut UnmanagedCallersOnly, se nedá jako typ {1} použít {0}.</target>
+        <note>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
@@ -175,6 +195,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist nemůže mít argument předávaný pomocí in nebo out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloneDisallowedInRecord">
+        <source>Members named 'Clone' are disallowed in records.</source>
+        <target state="translated">Členy s názvem Clone se v záznamech nepovolují.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -202,9 +227,19 @@
         <target state="translated">Kopírovací konstruktor v záznamu musí volat kopírovací konstruktor základní třídy, případně konstruktor objektu bez parametrů, pokud záznam dědí z objektu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorWrongAccessibility">
+        <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
+        <target state="translated">Kopírovací konstruktor {0} musí být veřejný nebo chráněný, protože záznam není zapečetěný.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Název {0} neodpovídá příslušnému parametru Deconstruct {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultConstraintOverrideOnly">
+        <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
+        <target state="translated">Omezení default je platné jen v přepsaných metodách a metodách explicitní implementace rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -232,9 +267,19 @@
         <target state="translated">Tento vzor discard není povolený jako návěstí příkazu case v příkazu switch. Použijte „case var _:“ pro vzor discard nebo „case @_:“ pro konstantu s názvem „_“.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
+        <source>'{0}' does not override expected property from '{1}'.</source>
+        <target state="translated">{0} nepřepisuje očekávanou vlastnost z {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="translated">{0} nepřepisuje očekávanou metodu z {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
-        <source>'{0}' does not override the method from 'object'.</source>
-        <target state="translated">{0} nepřepisuje metodu z object.</target>
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="translated">{0} nepřepisuje očekávanou metodu z object.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
@@ -247,6 +292,11 @@
         <target state="translated">Položka {0} je explicitně implementována více než jednou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">{0} je již uvedeno v seznamu rozhraní u typu {2} jako {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Duplicitní operátor potlačení hodnoty null (!)</target>
@@ -257,14 +307,19 @@
         <target state="translated">Pro přístupové objekty vlastnosti i indexeru {0} nelze zadat modifikátory readonly. Místo toho zadejte modifikátor readonly jenom pro vlastnost.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DuplicateRecordConstructor">
-        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
-        <target state="translated">Nemůže existovat primární konstruktor a konstruktor členu se stejnými typy parametrů.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">Příkaz nemůže začínat na else.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
+        <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Vstupní body aplikací nemůžou mít atribut UnmanagedCallersOnly.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">Vlastnost kontraktu rovnosti záznamu {0} musí mít přístupový objekt get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -358,8 +413,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}. Měli jste v úmyslu await foreach místo foreach?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance nebo rozšíření pro {1}. Měli jste v úmyslu await foreach místo foreach?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
@@ -370,6 +425,11 @@
       <trans-unit id="ERR_FuncPtrRefMismatch">
         <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
         <target state="translated">Mezi {0} a ukazatelem na funkci {1} se neshoduje odkaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">Ukazatel na funkci se nedá zavolat s pojmenovanými argumenty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -392,6 +452,21 @@
         <target state="translated">Volání implicitního indexeru indexů nemůže pojmenovat argument.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">Typ {0} se nedá použít jako cílový typ příkazu new().</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">Není k dispozici žádný cílový typ pro {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">Použití new() není v tomto kontextu platné</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">Volání implicitního indexeru rozsahů nemůže pojmenovat argument.</target>
@@ -400,6 +475,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="translated">Přístupové objekty init se nedají označit jako jen pro čtení. Místo toho označte jako jen pro čtení {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -423,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
-        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
-        <target state="translated">{0} není platná konvence volání pro ukazatel na funkci. Platné konvence jsou cdecl, managed, thiscall a stdcall.</target>
+        <source>'{0}' is not a valid calling convention specifier for a function pointer.</source>
+        <target state="translated">{0} není platný specifikátor konvence volání pro ukazatel na funkci.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -446,6 +526,11 @@
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="translated">Specifikátor rozsahu je neplatný. Očekávala se pravá hranatá závorka ].</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidUnmanagedCallersOnlyCallConv">
+        <source>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</source>
+        <target state="translated">{0} není platný typ konvence volání pro UnmanagedCallersOnly.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InvalidWithReceiverType">
         <source>The receiver of a `with` expression must have a non-void type.</source>
@@ -480,6 +565,31 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Chybějící vzor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
+        <source>Module initializer cannot be attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">Inicializátor modulu nemůže mít atribut UnmanagedCallersOnly.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric">
+        <source>Module initializer method '{0}' must not be generic and must not be contained in a generic type</source>
+        <target state="translated">Inicializační metoda modulu {0} nemůže být obecná a nesmí obsahovat obecný typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType">
+        <source>Module initializer method '{0}' must be accessible at the module level</source>
+        <target state="translated">Inicializační metoda modulu {0} musí být přístupná na úrovni modulu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeOrdinary">
+        <source>A module initializer must be an ordinary member method</source>
+        <target state="translated">Inicializátor modulu musí být běžná členská metoda.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
+        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
+        <target state="translated">Inicializační metoda modulu {0} musí být statická, nesmí mít žádné parametry a musí vracet void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -527,6 +637,26 @@
         <target state="translated">Typ příjemce {0} není platný typ záznamu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPrivateAPIInRecord">
+        <source>Record member '{0}' must be private.</source>
+        <target state="translated">Člen záznamu {0} musí být privátní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonProtectedAPIInRecord">
+        <source>Record member '{0}' must be protected.</source>
+        <target state="translated">Člen záznamu {0} musí být chráněný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="translated">Člen záznamu {0} musí být veřejný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' must allow overriding because the containing record is not sealed.</source>
+        <target state="translated">{0} musí povolovat přepisování, protože obsahující záznam není zapečetěný.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">Očekávala se hodnota enable, disable nebo restore.</target>
@@ -543,8 +673,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
-        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
-        <target state="translated">Parametr typu s možnou hodnotou null musí být známou hodnotou nebo musí jít o typ odkazu, který nemůže mít hodnotu null. Zvažte přidání 'class', 'struct' nebo omezení typu.</target>
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.</source>
+        <target state="translated">Pokud se nepoužívá verze jazyka {0} nebo novější, musí být pro parametr typu s možnou hodnotou null známo, že má typ hodnoty nebo typ odkazu, který není možné nastavit na null. Zvažte možnost změnit verzi jazyka nebo přidat class, struct nebo omezení typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedTypeArgument">
@@ -555,6 +685,11 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Výstupní proměnná nemůže být deklarovaná jako lokální proměnná podle odkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
+        <target state="translated">Metoda {0} určuje omezení default pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není omezený na typ odkazu nebo hodnoty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -642,6 +777,11 @@
         <target state="translated">{0}: U přístupových objektů se modifikátor readonly může použít jenom v případě, že vlastnost nebo indexer má přístupový objekt get i set.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">Primární konstruktor je v konfliktu se syntetizovaně zkopírovaným konstruktorem.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>
@@ -657,9 +797,34 @@
         <target state="translated">Relační vzory se nedají použít pro hodnotu Není číslo s plovoucí desetinnou čárkou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">{0}: Cílový modul runtime nepodporuje v přepisech kovariantní typy. Typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="translated">{0}: Cílový modul runtime nepodporuje v přepisech kovariantní návratové typy. Návratový typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
+        <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
+        <target state="translated">Cílový modul runtime nepodporuje rozšiřitelné konvence volání ani konvence volání výchozí pro prostředí modulu runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SealedAPIInRecord">
+        <source>'{0}' cannot be sealed because containing record is not sealed.</source>
+        <target state="translated">Typ {0} nemůže být zapečetěný, protože není zapečetěný obsahující záznam.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="translated">Člen záznamu {0} musí vracet {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
@@ -685,6 +850,21 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Vzor deconstruct s jedním elementem vyžaduje určitou další syntaxi pro zajištění jednoznačnosti. Doporučuje se přidat označení discard „_“ za koncovou závorku „)“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAPIInRecord">
+        <source>Record member '{0}' may not be static.</source>
+        <target state="translated">Člen záznamu {0} nemůže být statický.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="translated">Statická anonymní funkce nemůže obsahovat odkaz na this nebo base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="translated">Statická anonymní funkce nemůže obsahovat odkaz na {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -748,23 +928,118 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeConstraintsMustBeUniqueAndFirst">
-        <source>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
-        <target state="translated">Omezení class, struct, unmanaged a notnull se nedají kombinovat ani použít více než jednou a v seznamu omezení se musí zadat jako první.</target>
+        <source>The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</source>
+        <target state="translated">Omezení class, struct, unmanaged, notnull a default se nedají kombinovat ani použít více než jednou a v seznamu omezení se musí zadat jako první.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">Typ {0} se nedá použít jako cílový typ příkazu new().</target>
+      <trans-unit id="ERR_TypeMustBePublic">
+        <source>Type '{0}' must be public to be used as a calling convention.</source>
+        <target state="translated">Aby se typ {0} dal použít jako konvence volání, musí být veřejný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">Není k dispozici žádný cílový typ pro {0}</target>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
+        <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se volat napřímo. Pro tuto metodu získejte ukazatel na funkci.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate">
+        <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
+        <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">kovariantní návratové hodnoty</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">Použití new() není v tomto kontextu platné</target>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="translated">discards</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">Vytvoření objektu s cílovým typem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">Porovnání ukazatelů funkcí může přinést neočekávaný výsledek, protože ukazatele na stejnou funkci můžou být rozdílné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">Neporovnávat hodnoty ukazatelů funkcí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="translated">Parametr {0} musí mít při ukončení hodnotu jinou než null, protože parametr {1} není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="translated">Parametr musí mít při ukončení hodnotu jinou než null, protože parametr, na který se odkazuje NotNullIfNotNull není null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="translated">{0} definuje Equals, ale ne GetHashCode.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="translated">Záznam definuje Equals, ale ne GetHashCode</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">Typy a aliasy by neměly mít název record.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="translated">Typy a aliasy by neměly mít název record</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="translated">Návratová hodnota musí být jiná než null, protože parametr {0} není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="translated">Návratová hodnota musí být jiná než null, protože parametr není null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="translated">Výraz switch nezachycuje některé hodnoty vstupního typu (není úplný) včetně nepojmenované hodnoty výčtu. Nezachycuje například vzor {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="translated">Výraz switch nezachycuje některé hodnoty vstupního typu (není úplný) včetně nepojmenované hodnoty výčtu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
+        <target state="translated">Metoda {0} se nepoužije jako vstupní bod, protože se našel synchronní vstupní bod {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeNotFound">
+        <source>Type '{0}' is not defined.</source>
+        <target state="translated">Typ {0} není definovaný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -773,14 +1048,29 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="translated">Konstruktor deklarovaný v záznamu s parametry musí mít inicializátor konstruktoru this.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="translated">Konstruktor deklarovaný v záznamu se seznamem parametrů musí mít inicializátor konstruktoru this.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="translated">Neplatná odchylka: Parametr typu {1} musí být {3} platný v {0}, pokud není použita verze jazyka {4} nebo vyšší. {1} je {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">{0}: Nejde zadat třídu omezení a zároveň omezení unmanaged.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</source>
+        <target state="translated">Metody, které mají atribut UnmanagedCallersOnly, nemůžou mít obecné typy parametrů a nedají se deklarovat v obecném typu.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
+        <target state="translated">UnmanagedCallersOnly se dá použít jen pro běžné statické metody nebo statické místní funkce.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
@@ -899,12 +1189,12 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
                               (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
                               (use "nullable" for all nullability warnings)
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
@@ -916,6 +1206,7 @@
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -985,12 +1276,14 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="translated">
                              Parametry kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -
--out:&lt;soubor&gt;                   Určuje název výstupního souboru (výchozí: základní název
+-out:&lt;file&gt;                   Určuje název výstupního souboru (výchozí: základní název
                                souboru s hlavní třídou nebo prvního souboru)
 -target:exe                   Vytvoří spustitelný soubor konzoly (výchozí). (Krátký
                               formát: -t:exe)
@@ -1003,40 +1296,40 @@
                               -t:appcontainerexe)
 -target:winmdobj              Sestaví pomocný soubor modulu Windows Runtime, který
                               využívá knihovna WinMDExp. (Krátký formát: -t:winmdobj)
--doc:&lt;soubor&gt;                   Soubor dokumentace XML, který má být vygenerován
--refout:&lt;soubor&gt;                Výstup referenčního sestavení, který má být vygenerován
--platform:&lt;řetězec&gt;            Omezuje platformy, na kterých lze tento kód spustit: x86,
+-doc:&lt;file&gt;                   Soubor dokumentace XML, který má být vygenerován
+-refout:&lt;file&gt;                Výstup referenčního sestavení, který má být vygenerován
+-platform:&lt;string&gt;            Omezuje platformy, na kterých lze tento kód spustit: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred nebo
                               anycpu. Výchozí nastavení je anycpu.
 
                        - VSTUPNÍ SOUBORY -
--recurse:&lt;zástupný znak&gt;           Zahrne všechny soubory v aktuálním adresáři
+-recurse:&lt;wildcard&gt;           Zahrne všechny soubory v aktuálním adresáři
                                a jeho podadresářích podle zadaného
                                zástupného znaku.
--reference:&lt;alias&gt;=&lt;soubor&gt;     Odkazuje na metadata ze zadaného souboru sestavení
+-reference:&lt;alias&gt;=&lt;file&gt;     Odkazuje na metadata ze zadaného souboru sestavení
                               pomocí daného aliasu. (Krátký formát: -r)
--reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů
+-reference:&lt;file list&gt;        Odkazuje na metadata ze zadaných souborů
                               sestavení (Krátký formát: -r)
--addmodule:&lt;seznam souborů&gt;        Připojí zadané moduly k tomuto sestavení.
--link:&lt;seznam souborů&gt;             Vloží metadata ze zadaných souborů
+-addmodule:&lt;file list&gt;        Připojí zadané moduly k tomuto sestavení.
+-link:&lt;file list&gt;             Vloží metadata ze zadaných souborů
                               sestavení spolupráce (Krátký formát: -l)
--analyzer:&lt;seznam souborů&gt;         Spustí analyzátory z tohoto sestavení.
+-analyzer:&lt;file list&gt;         Spustí analyzátory z tohoto sestavení.
                               (Krátký formát: -a)
--additionalfile:&lt;seznam souborů&gt;   Další soubory, které přímo neovlivňují generování
+-additionalfile:&lt;file list&gt;   Další soubory, které přímo neovlivňují generování
                               kódu, ale analyzátory můžou jejich pomocí
                               produkovat chyby nebo upozornění.
 -embed                        Vloží všechny zdrojové soubory do PDB.
--embed:&lt;seznam souborů&gt;            Vloží konkrétní soubory do PDB.
+-embed:&lt;file list&gt;            Vloží konkrétní soubory do PDB.
 
                        - PROSTŘEDKY -
--win32res:&lt;soubor&gt;              Určuje soubor prostředků Win32 (.res).
--win32icon:&lt;soubor&gt;             Použije pro výstup zadanou ikonu.
--win32manifest:&lt;soubor&gt;         Určuje soubor manifestu Win32 (.xml).
+-win32res:&lt;file&gt;              Určuje soubor prostředků Win32 (.res).
+-win32icon:&lt;file&gt;             Použije pro výstup zadanou ikonu.
+-win32manifest:&lt;file&gt;         Určuje soubor manifestu Win32 (.xml).
 -nowin32manifest              Nezahrne výchozí manifest Win32.
--resource:&lt;prostředek&gt;           Vloží zadaný prostředek. (Krátký formát: -res)
--linkresource:&lt;prostředek&gt;       Propojí zadaný prostředek s tímto sestavením.
+-resource:&lt;resinfo&gt;           Vloží zadaný prostředek. (Krátký formát: -res)
+-linkresource:&lt;resinfo&gt;       Propojí zadaný prostředek s tímto sestavením.
                               (Krátký formát: -linkres) Prostředek má formát
-                              is &lt;soubor&gt;[,&lt;název řetězce&gt;[,public|private]].
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]].
 
                        - GENEROVÁNÍ KÓDU -
 -debug[+|-]                   Generuje ladicí informace.
@@ -1051,32 +1344,33 @@
 -refonly                      Vytvoří referenční sestavení na místě hlavního výstupu.
 -instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
                               informací o pokrytí.
--sourcelink:&lt;soubor&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
+-sourcelink:&lt;file&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
  
                        - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
--warnaserror[+|-]:&lt;seznam upozornění&gt; Hlásí zadaná upozornění jako chyby.
+-warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
                               (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
--warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0–4). (Krátký formát: -w)
--nowarn:&lt;seznam upozornění&gt;           Zakáže zadaná upozornění.
+-warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0 a více). (Krátký formát: -w)
+-nowarn:&lt;warn list&gt;           Zakáže zadaná upozornění.
                               (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
--ruleset:&lt;soubor&gt;               Určuje soubor sady pravidel, která zakazuje
+-ruleset:&lt;file&gt;               Určuje soubor sady pravidel, která zakazuje
                               specifickou diagnostiku.
--errorlog:&lt;soubor&gt;&gt;[,version=&lt;verze_sarif&gt;]
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
                               Určuje soubor pro protokolování veškeré
                               diagnostiky kompilátoru a analyzátoru.
                               verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
                               Obojí znamená SARIF verze 2.1.0.
 -reportanalyzer               Hlásí další informace analyzátoru, např.
                               dobu spuštění.
+-skipanalyzers[+|-]           Přeskočí spouštění diagnostických analyzátorů.
 
                        - JAZYK -
 -checked[+|-]                 Generuje kontroly přetečení.
 -unsafe[+|-]                  Povoluje nezabezpečený kód.
--define:&lt;seznam symbolů&gt;         Definuje symboly podmíněné kompilace. (Krátký
+-define:&lt;symbol list&gt;         Definuje symboly podmíněné kompilace. (Krátký
                               formát: -d)
 -langversion:?                Zobrazuje povolené hodnoty pro verzi jazyka.
--langversion:&lt;řetězec&gt;         Určuje verzi jazyka, například:
+-langversion:&lt;string&gt;         Určuje verzi jazyka, například:
                               latest (poslední verze včetně podverzí),
                               default (stejné jako latest),
                               latestmajor (poslední verze bez podverzí),
@@ -1091,12 +1385,12 @@
                               jenom veřejné části klíče silného názvu.
 -publicsign[+|-]              Vytvoří veřejný podpis sestavení s využitím jenom veřejné
                               části klíče silného názvu.
--keyfile:&lt;soubor&gt;               Určuje soubor klíče se silným názvem.
--keycontainer:&lt;řetězec&gt;        Určuje kontejner klíče se silným názvem.
+-keyfile:&lt;file&gt;               Určuje soubor klíče se silným názvem.
+-keycontainer:&lt;string&gt;        Určuje kontejner klíče se silným názvem.
 -highentropyva[+|-]           Povolí ASLR s vysokou entropií.
 
                        - RŮZNÉ -
-@&lt;soubor&gt;                       Načte další možnosti ze souboru odpovědí.
+@&lt;file&gt;                       Načte další možnosti ze souboru odpovědí.
 -help                         Zobrazí tuto zprávu o použití. (Krátký formát: -?)
 -nologo                       Potlačí zprávu o autorských právech kompilátoru.
 -noconfig                     Nezahrnuje automaticky soubor CSC.RSP.
@@ -1104,7 +1398,7 @@
 -version                      Zobrazí číslo verze kompilátoru a ukončí se.
 
                        - POKROČILÉ -
--baseaddress:&lt;adresa&gt;        Základní adresa pro knihovnu, která se má sestavit.
+-baseaddress:&lt;address&gt;        Základní adresa pro knihovnu, která se má sestavit.
 -checksumalgorithm:&lt;alg&gt;      Určuje algoritmus pro výpočet kontrolního součtu
                               zdrojového souboru uloženého v PDB. Podporované hodnoty:
                               SHA1 nebo SHA256 (výchozí).
@@ -1120,7 +1414,7 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Určuje mapování pro výstup zdrojových názvů cest
                               kompilátorem.
--pdb:&lt;soubor&gt;                   Určuje název souboru ladicích informací (výchozí:
+-pdb:&lt;file&gt;                   Určuje název souboru ladicích informací (výchozí:
                               název výstupního souboru s příponou .pdb).
 -errorendlocation             Vypíše řádek a sloupec koncového umístění
                               jednotlivých chyb.
@@ -1128,16 +1422,18 @@
 -nosdkpath                    Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
 -nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
 -subsystemversion:&lt;string&gt;    Určuje verzi subsystému tohoto sestavení.
--lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají
+-lib:&lt;file list&gt;              Určuje další adresáře, ve kterých se mají
                               hledat reference.
 -errorreport:&lt;řetězec&gt;         Určuje způsob zpracování interních chyb kompilátoru:
                               prompt, send, queue nebo none. Výchozí možnost je
                               queue (zařadit do fronty).
--appconfig:&lt;soubor&gt;             Určuje konfigurační soubor aplikace,
+-appconfig:&lt;file&gt;             Určuje konfigurační soubor aplikace,
                               který obsahuje nastavení vazby sestavení.
--moduleassemblyname:&lt;řetězec&gt;  Určuje název sestavení, jehož součástí bude
+-moduleassemblyname:&lt;string&gt;  Určuje název sestavení, jehož součástí bude
                               tento modul.
--modulename:&lt;řetězec&gt;          Určuje název zdrojového modulu.
+-modulename:&lt;string&gt;          Určuje název zdrojového modulu.
+-generatedfilesout:&lt;dir&gt;      Umístí soubory vygenerované během kompilace
+                              do zadaného adresáře.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -1171,6 +1467,16 @@
         <target state="translated">slučovací přiřazení</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">konstantní interpolované řetězce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
+        <source>default type parameter constraints</source>
+        <target state="translated">výchozí omezení parametru typu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">delegovat obecná omezení typu</target>
@@ -1194,6 +1500,16 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">rozšiřitelný příkaz fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="translated">rozšíření GetAsyncEnumerator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="translated">rozšíření GetEnumerator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
@@ -1234,6 +1550,11 @@
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
         <target state="translated">Atribut MemberNotNull</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureModuleInitializers">
+        <source>module initializers</source>
+        <target state="translated">inicializátory modulů</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1341,6 +1662,11 @@
         <target state="translated">inicializátor výrazu stackalloc</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAnonymousFunction">
+        <source>static anonymous function</source>
+        <target state="translated">statická anonymní funkce</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">statické místní funkce</target>
@@ -1351,9 +1677,9 @@
         <target state="translated">&lt;výraz přepínače&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">Vytvoření objektu s cílovým typem</target>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>target-typed conditional expression</source>
+        <target state="translated">podmíněný výraz s typem cíle</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1386,6 +1712,11 @@
         <target state="translated">deklarace using</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="translated">zabezpečení odchylky pro statické členy rozhraní</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
@@ -1394,6 +1725,16 @@
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">omezení pro metody přepsání a explicitní implementace rozhraní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Parameter">
+        <source>parameter</source>
+        <target state="translated">parametr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Return">
+        <source>return</source>
+        <target state="translated">návratový</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -1796,6 +2137,16 @@
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Konstantní hodnota {0} může při běhu přetéct {1} (pro přepis použijte syntaxi unchecked).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Konstantní hodnota může při běhu přetéct (pro přepis použijte syntaxi unchecked)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ, který nemůže mít hodnotu null.</target>
@@ -1837,9 +2188,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup.</target>
-        <note />
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Generátor vyvolal následující výjimku:
+{0}.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -1847,9 +2205,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup.</target>
-        <note />
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Generátor vyvolal následující výjimku:
+{0}.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -2097,13 +2462,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">Typ odkazu s možnou hodnotu null v typu parametru {0} metody {1} neodpovídá cílovému delegátovi {2}.</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="translated">Typy odkazů s možnou hodnotou null v typu parametru {0} z {1} neodpovídají cílovému delegátu {2} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá cílovému delegátovi.</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">Typy odkazů s možnou hodnotou null v typu parametru neodpovídají cílovému delegátu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2147,13 +2512,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu {0} neodpovídá cílovému delegátovi {1}.</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="translated">Typy odkazů s možnou hodnotou null v návratovém typu {0} neodpovídají cílovému delegátu {1} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá cílovému delegátovi.</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="translated">Typy odkazů s možnou hodnotou null v návratovém typu neodpovídají cílovému delegátu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
@@ -2266,6 +2631,16 @@
         <target state="translated">Typ hodnoty, která připouští hodnotu null, nemůže být null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned">
+        <source>The out parameter '{0}' must be assigned to before control leaves the current method</source>
+        <target state="translated">Parametr out {0} se musí přiřadit ještě předtím, než aktuální metoda předá řízení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned_Title">
+        <source>An out parameter must be assigned to before control leaves the method</source>
+        <target state="translated">Parametr out se musí přiřadit ještě předtím, než metoda předá řízení</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
         <target state="translated">Parametr {0} musí mít při ukončení s návratovou hodnotou {1} hodnotu jinou než null.</target>
@@ -2286,6 +2661,46 @@
         <target state="translated">Parametr musí mít při ukončení hodnotu jinou než null</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass">
+        <source>'{0}': static types cannot be used as parameters</source>
+        <target state="translated">{0}: Statické typy nejde používat jako parametry.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="translated">Statické typy se nedají používat jako parametry</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="translated">Operátor {0} se tady nedá použít kvůli prioritám. Odstraňte nejednoznačnost pomocí závorek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="translated">Operátor se tady nedá použít kvůli prioritám</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</source>
+        <target state="translated">{0} neimplementuje vzor {1}. {2} není veřejná metoda instance nebo rozšíření.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
+        <target state="translated">Typ neimplementuje vzor kolekce. Člen není veřejná metoda instance nebo rozšíření</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass">
+        <source>'{0}': static types cannot be used as return types</source>
+        <target state="translated">{0}: Statické typy nejde používat jako typy vracených hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="translated">Statické typy se nedají používat jako typy vracených hodnot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
@@ -2294,6 +2709,16 @@
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Metoda označená jako [DoesNotReturn] by se neměla ukončit standardním způsobem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs">
+        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
+        <target state="translated">Druhý operand operátoru is nebo as nesmí být statického typu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_StaticInAsOrIs_Title">
+        <source>The second operand of an 'is' or 'as' operator may not be a static type</source>
+        <target state="translated">Druhý operand operátoru is nebo as nesmí být statického typu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -2306,9 +2731,29 @@
         <target state="translated">Výraz switch nezachycuje všechny některé vstupy null (není úplný). Nezachycuje například vzor {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Výraz switch nezpracovává některé vstupy null (není úplný). Například vzor {0} není vyřešený. Vzor s klauzulí when však může této hodnotě úspěšně odpovídat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="translated">Výraz switch nezpracovává některé vstupy s hodnotou null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
         <target state="translated">Výraz switch nezpracovává některé vstupy s hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="translated">Výraz switch nezpracovává všechny možné hodnoty typu svého vstupu (není úplný). Například vzor {0} není vyřešený. Vzor s klauzulí when však může této hodnotě úspěšně odpovídat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen_Title">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="translated">Výraz switch nezpracovává všechny možné hodnoty svého vstupního typu (není úplný).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -2406,6 +2851,26 @@
         <target state="translated">Parametr typu má stejný typ jako parametr typu z vnější metody.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedThis">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
+        <target state="translated">Před předáním řízení volající proceduře musí být pole {0} plně přiřazené.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">Před vrácením řízení volajícímu modulu musí být plně přiřazená automaticky implementovaná vlastnost {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
+        <target state="translated">Před vrácením řízení volajícímu se musí plně přiřadit automaticky implementovaná vlastnost</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThis_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
+        <target state="translated">Před vrácením řízení volajícímu se musí v konstruktoru plně přiřadit pole struktury</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
         <target state="translated">Rozbalení možné hodnoty null</target>
@@ -2437,13 +2902,73 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Není inicializovaný prvek {0} ({1}) bez možnosti zadání hodnoty null. Zvažte možnost deklarovat prvek {0} jako umožňující hodnotu null.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="translated">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte možnost deklarovat {0} jako proměnnou s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Není inicializované pole, které nemůže mít hodnotu null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="translated">Pole, které nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte možnost deklarovat ho jako pole s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Parametr {0} se nepřečetl. Nezapomněli jste ho použít k inicializaci vlastnosti s daným názvem?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Parametr se nepřečetl. Nezapomněli jste ho použít k inicializaci vlastnosti s daným názvem?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation">
+        <source>Use of unassigned local variable '{0}'</source>
+        <target state="translated">Použila se nepřiřazená lokální proměnná {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField">
+        <source>Use of possibly unassigned field '{0}'</source>
+        <target state="translated">Použila se možná nepřiřazené pole {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField_Title">
+        <source>Use of possibly unassigned field</source>
+        <target state="translated">Použilo se pravděpodobně nepřiřazené pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut">
+        <source>Use of unassigned out parameter '{0}'</source>
+        <target state="translated">Použil se nepřiřazený parametr out {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut_Title">
+        <source>Use of unassigned out parameter</source>
+        <target state="translated">Použil se nepřiřazený parametr out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty">
+        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
+        <target state="translated">Použití pravděpodobně nepřiřazené automaticky implementované vlastnosti {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty_Title">
+        <source>Use of possibly unassigned auto-implemented property</source>
+        <target state="translated">Použily se pravděpodobně nepřiřazené automaticky implementované vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis">
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="translated">Objekt this se nedá použít, dokud se nepřiřadí všechna jeho pole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
+        <target state="translated">Objekt this se v konstruktoru nedá použít, dokud se nepřiřadí všechna jeho pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation_Title">
+        <source>Use of unassigned local variable</source>
+        <target state="translated">Použila se nepřiřazená lokální proměnná</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2618,7 +3143,7 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig">
         <source>'{0}' has the wrong signature to be an entry point</source>
-        <target state="translated">'{0} nemá správný podpis, takže nemůže být vstupním bodem.</target>
+        <target state="translated">{0} nemá správný podpis, takže nemůže být vstupním bodem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidMainSig_Title">
@@ -2733,12 +3258,12 @@
       </trans-unit>
       <trans-unit id="ERR_EventNeedsBothAccessors">
         <source>'{0}': event property must have both add and remove accessors</source>
-        <target state="translated">'{0}: Vlastnost události musí obsahovat přistupující objekty add i remove.</target>
+        <target state="translated">{0}: Vlastnost události musí obsahovat přistupující objekty add i remove.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventNotDelegate">
         <source>'{0}': event must be of a delegate type</source>
-        <target state="translated">'{0}: Událost musí být typu delegát.</target>
+        <target state="translated">{0}: Událost musí být typu delegát.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreferencedEvent">
@@ -2768,7 +3293,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonEvent">
         <source>'{0}': cannot override; '{1}' is not an event</source>
-        <target state="translated">'{0}: Nejde přepsat; {1} není událost.</target>
+        <target state="translated">{0}: Nejde přepsat; {1} není událost.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddRemoveMustHaveBody">
@@ -2778,7 +3303,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventInitializer">
         <source>'{0}': abstract event cannot have initializer</source>
-        <target state="translated">'{0}: Abstraktní událost nemůže mít inicializátor.</target>
+        <target state="translated">{0}: Abstraktní událost nemůže mít inicializátor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReservedAssemblyName">
@@ -2853,7 +3378,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigContext">
         <source>'{0}' is an ambiguous reference between '{1}' and '{2}'</source>
-        <target state="translated">'{0} je nejednoznačný odkaz mezi {1} a {2}.</target>
+        <target state="translated">{0} je nejednoznačný odkaz mezi {1} a {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateUsing">
@@ -2878,7 +3403,7 @@
       </trans-unit>
       <trans-unit id="WRN_NewRequired">
         <source>'{0}' hides inherited member '{1}'. Use the new keyword if hiding was intended.</source>
-        <target state="translated">'{0} skryje zděděný člen {1}. Pokud je skrytí úmyslné, použijte klíčové slovo new.</target>
+        <target state="translated">{0} skryje zděděný člen {1}. Pokud je skrytí úmyslné, použijte klíčové slovo new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Title">
@@ -2887,8 +3412,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">Proměnná byla deklarovaná se stejným názvem jako proměnná v základní třídě. Klíčové slovo new se ale nepoužilo. Toto varování vás informuje, že byste měli použít new; proměnná je deklarovaná, jako by se v deklaraci používalo new.</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="translated">Proměnná se deklarovala se stejným názvem jako proměnná v základním typu. Klíčové slovo new se ale nepoužilo. Toto varování vás informuje, že byste měli použít new; proměnná je deklarovaná, jako by se v deklaraci používalo new.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -2933,7 +3458,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideNotExpected">
         <source>'{0}': no suitable method found to override</source>
-        <target state="translated">'{0}: Nenašla se vhodná metoda k přepsání.</target>
+        <target state="translated">{0}: Nenašla se vhodná metoda k přepsání.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
@@ -2943,17 +3468,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
         <source>'{0}' does not contain a definition for '{1}'</source>
-        <target state="translated">'{0} neobsahuje definici pro {1}.</target>
+        <target state="translated">{0} neobsahuje definici pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKknown">
         <source>'{0}' is a {1} but is used like a {2}</source>
-        <target state="translated">'{0} je {1}, ale používá se jako {2}.</target>
+        <target state="translated">{0} je {1}, ale používá se jako {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSKunknown">
         <source>'{0}' is a {1}, which is not valid in the given context</source>
-        <target state="translated">'{0} je {1}, což není platné v daném kontextu.</target>
+        <target state="translated">{0} je {1}, což není platné v daném kontextu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectRequired">
@@ -2998,7 +3523,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticConstParam">
         <source>'{0}': a static constructor must be parameterless</source>
-        <target state="translated">'{0}: Statický konstruktor musí být bez parametrů.</target>
+        <target state="translated">{0}: Statický konstruktor musí být bez parametrů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotConstantExpression">
@@ -3008,7 +3533,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstRefField">
         <source>'{0}' is of type '{1}'. A const field of a reference type other than string can only be initialized with null.</source>
-        <target state="translated">'{0} je typu {1}. Pole const s jiným než řetězcovým typem odkazu jde inicializovat jenom hodnotou null.</target>
+        <target state="translated">{0} je typu {1}. Pole const s jiným než řetězcovým typem odkazu jde inicializovat jenom hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalIllegallyOverrides">
@@ -3047,8 +3572,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">Nejde vytvořit instanci abstraktní třídy nebo rozhraní {0}.</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="translated">Nejde vytvořit instanci abstraktního typu nebo rozhraní {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3057,8 +3582,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">Prvky {0} a {1} jsou součástí cyklické závislosti základních tříd.</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="translated">Prvky {0} a {1} jsou součástí cyklické závislosti základního typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3143,7 +3668,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReturnExpected">
         <source>'{0}': not all code paths return a value</source>
-        <target state="translated">'{0}: Ne všechny cesty kódu vrací hodnotu.</target>
+        <target state="translated">{0}: Ne všechny cesty kódu vrací hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableCode">
@@ -3248,17 +3773,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExternHasBody">
         <source>'{0}' cannot be extern and declare a body</source>
-        <target state="translated">'{0} nemůže být extern a deklarovat tělo.</target>
+        <target state="translated">{0} nemůže být extern a deklarovat tělo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternHasConstructorInitializer">
         <source>'{0}' cannot be extern and have a constructor initializer</source>
-        <target state="translated">'{0} nemůže být extern a mít inicializátor konstruktoru.</target>
+        <target state="translated">{0} nemůže být extern a mít inicializátor konstruktoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAndExtern">
         <source>'{0}' cannot be both extern and abstract</source>
-        <target state="translated">'{0} nemůže být extern i abstract.</target>
+        <target state="translated">{0} nemůže být extern i abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeParamType">
@@ -3298,7 +3823,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockNeedsReference">
         <source>'{0}' is not a reference type as required by the lock statement</source>
-        <target state="translated">'{0} není typu odkaz, jak vyžaduje příkaz lock</target>
+        <target state="translated">{0} není typu odkaz, jak vyžaduje příkaz lock</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullNotValid">
@@ -3312,8 +3837,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields are assigned to</source>
-        <target state="translated">Objekt this nejde použít, dokud není provedeno přiřazení do všech jeho polí.</target>
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="translated">Objekt this se nedá použít, dokud se nepřiřadí všechna jeho pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -3508,12 +4033,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">'{0} nejde zapečetit, protože to není přepis.</target>
+        <target state="translated">{0} nejde zapečetit, protože to není přepis.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
+        <target state="translated">{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -3557,8 +4082,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">Nevolejte přímo metodu Finalize základní třídy. Tuto metodu volá automaticky destruktor.</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="translated">Nevolejte přímo metodu Finalize základního typu. Tuto metodu volá automaticky destruktor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3642,13 +4167,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Modifikátor partial se smí objevit jenom bezprostředně před klíčovým slovem class, struct, interface nebo void.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">Modifikátor partial se může objevit jen bezprostředně před klíčovými slovy class, record, struct, interface nebo návratovým typem metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">Importovaný typ {0} je neplatný. Obsahuje cyklickou závislost základních tříd.</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="translated">Importovaný typ {0} je neplatný. Obsahuje cyklickou závislost základních typů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -3683,17 +4208,17 @@
       </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">'{0}: Modifikátory přístupnosti u přistupujících objektů se můžou používat, jenom pokud vlastnost nebo indexeru má přistupující objekt get i set.</target>
+        <target state="translated">{0}: Modifikátory přístupnosti u přistupujících objektů se můžou používat, jenom pokud vlastnost nebo indexeru má přistupující objekt get i set.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceAccessor">
         <source>'{0}' does not implement interface member '{1}'. '{2}' is not public.</source>
-        <target state="translated">'{0} neimplementuje člen rozhraní {1}. {2} není veřejný.</target>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} není veřejný.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' is ambiguous with '{3}'.</source>
-        <target state="translated">'{0} neimplementuje vzorek {1}. {2} je nejednoznačný vzhledem k: {3}.</target>
+        <target state="translated">{0} neimplementuje vzorek {1}. {2} je nejednoznačný vzhledem k: {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
@@ -3701,19 +4226,9 @@
         <target state="translated">Typ neimplementuje vzorek kolekce. Členové nejsou jednoznační.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'{0} neimplementuje vzorek {1}. {2} je buď statický, nebo neveřejný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">Typ neimplementuje vzorek kolekce. Člen je buď statický, nebo neveřejný.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="translated">'{0} neimplementuje vzorek {1}. {2} nemá správný podpis.</target>
+        <target state="translated">{0} neimplementuje vzorek {1}. {2} nemá správný podpis.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
@@ -3818,7 +4333,7 @@
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
         <source>'{0}': an entry point cannot be generic or in a generic type</source>
-        <target state="translated">'{0}: Vstupní bod nemůže být obecný nebo v obecném typu.</target>
+        <target state="translated">{0}: Vstupní bod nemůže být obecný nebo v obecném typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric_Title">
@@ -3848,7 +4363,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'{1} {0} má nesprávný návratový typ.</target>
+        <target state="translated">{1} {0} má nesprávný návratový typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
@@ -3868,7 +4383,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsTypeParam">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter</source>
-        <target state="translated">'{0}: Parametr, místní proměnná nebo místní funkce nemůžou mít stejný název jako parametr typů metod.</target>
+        <target state="translated">{0}: Parametr, místní proměnná nebo místní funkce nemůžou mít stejný název jako parametr typů metod.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsWithTypeVar">
@@ -3893,17 +4408,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttrArgWithTypeVars">
         <source>'{0}': an attribute argument cannot use type parameters</source>
-        <target state="translated">'{0}: Argument atributu nemůže používat parametry typů.</target>
+        <target state="translated">{0}: Argument atributu nemůže používat parametry typů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewTyvarWithArgs">
         <source>'{0}': cannot provide arguments when creating an instance of a variable type</source>
-        <target state="translated">'{0}: Při vytváření instance typu proměnné nejde zadat argumenty.</target>
+        <target state="translated">{0}: Při vytváření instance typu proměnné nejde zadat argumenty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}: Abstraktní třída nemůže být sealed nebo static.</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="translated">{0}: Abstraktní typ nemůže být sealed ani static.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -3918,7 +4433,7 @@
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef">
         <source>'{0}': a reference to a volatile field will not be treated as volatile</source>
-        <target state="translated">'{0}: Odkaz na pole s modifikátorem volatile se nezpracuje jako volatile.</target>
+        <target state="translated">{0}: Odkaz na pole s modifikátorem volatile se nezpracuje jako volatile.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VolatileByRef_Title">
@@ -3938,7 +4453,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComImportWithBase">
         <source>'{0}': a class with the ComImport attribute cannot specify a base class</source>
-        <target state="translated">'{0}: Třída s atributem ComImport nemůže určovat základní třídu.</target>
+        <target state="translated">{0}: Třída s atributem ComImport nemůže určovat základní třídu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplBadConstraints">
@@ -4037,13 +4552,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'{0}: Třída nemůže být zároveň statická i zapečetěná.</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="translated">{0}: Typ nemůže být zároveň statický i zapečetěný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
         <source>'{0}': abstract properties cannot have private accessors</source>
-        <target state="translated">'{0}: Abstraktní vlastnosti nemůžou mít privátní přistupující objekty.</target>
+        <target state="translated">{0}: Abstraktní vlastnosti nemůžou mít privátní přistupující objekty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueExpected">
@@ -4068,7 +4583,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefValBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</source>
-        <target state="translated">'{0}: Nejde zadat třídu omezení a zároveň omezení class nebo struct.</target>
+        <target state="translated">{0}: Nejde zadat třídu omezení a zároveň omezení class nebo struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithVal">
@@ -4222,17 +4737,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_AbstractHasBody">
         <source>'{0}' cannot declare a body because it is marked abstract</source>
-        <target state="translated">'{0} nemůže deklarovat tělo, protože je označené jako abstraktní.</target>
+        <target state="translated">{0} nemůže deklarovat tělo, protože je označené jako abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConcreteMissingBody">
         <source>'{0}' must declare a body because it is not marked abstract, extern, or partial</source>
-        <target state="translated">'{0} musí deklarovat tělo, protože je označené jako abstraktní, externí nebo částečné.</target>
+        <target state="translated">{0} musí deklarovat tělo, protože je označené jako abstraktní, externí nebo částečné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'{0} nemůže být extern i sealed.</target>
+        <target state="translated">{0} nemůže být extern i sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -4247,47 +4762,47 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonFunction">
         <source>'{0}': cannot override because '{1}' is not a function</source>
-        <target state="translated">'{0}: Nejde přepsat, protože {1} není funkce.</target>
+        <target state="translated">{0}: Nejde přepsat, protože {1} není funkce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonVirtual">
         <source>'{0}': cannot override inherited member '{1}' because it is not marked virtual, abstract, or override</source>
-        <target state="translated">'{0}: Nejde přepsat zděděný člen {1}, protože není označený jako virtuální, abstraktní nebo přepis.</target>
+        <target state="translated">{0}: Nejde přepsat zděděný člen {1}, protože není označený jako virtuální, abstraktní nebo přepis.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeAccessOnOverride">
         <source>'{0}': cannot change access modifiers when overriding '{1}' inherited member '{2}'</source>
-        <target state="translated">'{0}: Při přepsání {1} zděděného členu {2} nejde měnit modifikátory přístupu.</target>
+        <target state="translated">{0}: Při přepsání {1} zděděného členu {2} nejde měnit modifikátory přístupu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeTupleNamesOnOverride">
         <source>'{0}': cannot change tuple element names when overriding inherited member '{1}'</source>
-        <target state="translated">'{0}: při přepisu zděděného člena {1} nelze změnit prvek řazené kolekce členů.</target>
+        <target state="translated">{0}: při přepisu zděděného člena {1} nelze změnit prvek řazené kolekce členů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeReturnTypeOnOverride">
         <source>'{0}': return type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'{0}: Návratový typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
+        <target state="translated">{0}: Návratový typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
+        <target state="translated">{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0} je abstrakní, ale je obsažená v neabstraktní třídě {1}.</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="translated">{0} je abstraktní, ale je obsažená v neabstraktním typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
         <source>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</source>
-        <target state="translated">'{0}: Statický konstruktor nemůže používat explicitní volání konstruktoru this nebo base.</target>
+        <target state="translated">{0}: Statický konstruktor nemůže používat explicitní volání konstruktoru this nebo base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithAccessModifiers">
         <source>'{0}': access modifiers are not allowed on static constructors</source>
-        <target state="translated">'{0}: Modifikátory přístupu nejsou povolené pro statické konstruktory.</target>
+        <target state="translated">{0}: Modifikátory přístupu nejsou povolené pro statické konstruktory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecursiveConstructorCall">
@@ -4302,7 +4817,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ObjectCallingBaseConstructor">
         <source>'{0}' has no base class and cannot call a base constructor</source>
-        <target state="translated">'{0} nemá žádnou základní třídu a nemůže volat konstruktor base.</target>
+        <target state="translated">{0} nemá žádnou základní třídu a nemůže volat konstruktor base.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeNotFound">
@@ -4322,7 +4837,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">'{0}: Struktury nemůžou volat konstruktor základní třídy.</target>
+        <target state="translated">{0}: Struktury nemůžou volat konstruktor základní třídy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -4347,12 +4862,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceInBaseList">
         <source>'{0}' is already listed in interface list</source>
-        <target state="translated">'{0} je už uvedené v seznamu rozhraní.</target>
+        <target state="translated">{0} je už uvedené v seznamu rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithTupleNamesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</source>
-        <target state="translated">'{0} je již uvedeno v seznamu rozhraní u typu {2} s jinými názvy prvků řazené kolekce členů jako {1}.</target>
+        <target state="translated">{0} je již uvedeno v seznamu rozhraní u typu {2} s jinými názvy prvků řazené kolekce členů jako {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CycleInInterfaceInheritance">
@@ -4362,17 +4877,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
         <source>'{0}' hides inherited abstract member '{1}'</source>
-        <target state="translated">'{0} skryje zděděný abstraktní člen {1}.</target>
+        <target state="translated">{0} skryje zděděný abstraktní člen {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedAbstractMethod">
         <source>'{0}' does not implement inherited abstract member '{1}'</source>
-        <target state="translated">'{0} neimplementuje zděděný abstraktní člen {1}.</target>
+        <target state="translated">{0} neimplementuje zděděný abstraktní člen {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'</source>
-        <target state="translated">'{0} neimplementuje člen rozhraní {1}.</target>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectCantHaveBases">
@@ -4382,7 +4897,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationNotInterface">
         <source>'{0}' in explicit interface declaration is not an interface</source>
-        <target state="translated">'{0} v explicitní deklaraci rozhraní není rozhraní.</target>
+        <target state="translated">{0} v explicitní deklaraci rozhraní není rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
@@ -4392,57 +4907,57 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
         <source>'{0}': containing type does not implement interface '{1}'</source>
-        <target state="translated">'{0}: Nadřazený typ neimplementuje rozhraní {1}.</target>
+        <target state="translated">{0}: Nadřazený typ neimplementuje rozhraní {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">{0}: Explicitní deklaraci rozhraní jde použít jenom ve třídě, struktuře nebo rozhraní.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="translated">{0}: Explicitní deklaraci rozhraní se dá použít jen ve třídě, záznamu, struktuře nebo rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
         <source>'{0}': member names cannot be the same as their enclosing type</source>
-        <target state="translated">'{0}: Názvy členů nemůžou být stejné jako názvy jejich nadřazených typů.</target>
+        <target state="translated">{0}: Názvy členů nemůžou být stejné jako názvy jejich nadřazených typů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumeratorOverflow">
         <source>'{0}': the enumerator value is too large to fit in its type</source>
-        <target state="translated">'{0}: Hodnota výčtu je pro příslušný typ moc velká.</target>
+        <target state="translated">{0}: Hodnota výčtu je pro příslušný typ moc velká.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonProperty">
         <source>'{0}': cannot override because '{1}' is not a property</source>
-        <target state="translated">'{0}: Nejde přepsat, protože {1} není vlastnost.</target>
+        <target state="translated">{0}: Nejde přepsat, protože {1} není vlastnost.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoGetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable get accessor</source>
-        <target state="translated">'{0}: Nejde přepsat, protože {1} neobsahuje přepsatelný přistupující objekt get.</target>
+        <target state="translated">{0}: Nejde přepsat, protože {1} neobsahuje přepsatelný přistupující objekt get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSetToOverride">
         <source>'{0}': cannot override because '{1}' does not have an overridable set accessor</source>
-        <target state="translated">'{0}: Nejde přepsat, protože {1} neobsahuje přepsatelný přistupující objekt set.</target>
+        <target state="translated">{0}: Nejde přepsat, protože {1} neobsahuje přepsatelný přistupující objekt set.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyCantHaveVoidType">
         <source>'{0}': property or indexer cannot have void type</source>
-        <target state="translated">'{0}: Vlastnost nebo indexer nemůže být typu void.</target>
+        <target state="translated">{0}: Vlastnost nebo indexer nemůže být typu void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyWithNoAccessors">
         <source>'{0}': property or indexer must have at least one accessor</source>
-        <target state="translated">'{0}: Vlastnost nebo indexer musí obsahovat aspoň jeden přistupující objekt.</target>
+        <target state="translated">{0}: Vlastnost nebo indexer musí obsahovat aspoň jeden přistupující objekt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0} je nový virtuální člen v zapečetěné třídě {1}.</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="translated">{0} je nový virtuální člen v zapečetěném typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
         <source>'{0}' adds an accessor not found in interface member '{1}'</source>
-        <target state="translated">'{0} přidává přistupující objekt, který se nenašel v členu rozhraní {1}.</target>
+        <target state="translated">{0} přidává přistupující objekt, který se nenašel v členu rozhraní {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMissingAccessor">
@@ -4452,17 +4967,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ConversionWithInterface">
         <source>'{0}': user-defined conversions to or from an interface are not allowed</source>
-        <target state="translated">'{0}: Uživatelem definované převody na rozhraní nebo z něho nejsou povolené.</target>
+        <target state="translated">{0}: Uživatelem definované převody na rozhraní nebo z něho nejsou povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}: Uživatelem definované převody na základní třídu nebo z ní nejsou povolené.</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="translated">{0}: Uživatelem definované převody na základní typ nebo z něj nejsou povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}: Uživatelem definované převody na odvozenou třídu nebo z ní nejsou povolené.</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="translated">{0}: Uživatelem definované převody na odvozený typ nebo z něj nejsou povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4517,32 +5032,32 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_CantOverrideBogusMethod">
         <source>'{0}': cannot override '{1}' because it is not supported by the language</source>
-        <target state="translated">'{0} nemůže přepsat {1}, protože ho tento jazyk nepodporuje.</target>
+        <target state="translated">{0} nemůže přepsat {1}, protože ho tento jazyk nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogus">
         <source>'{0}' is not supported by the language</source>
-        <target state="translated">'{0} není tímto jazykem podporovaný.</target>
+        <target state="translated">{0} není tímto jazykem podporovaný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallSpecialMethod">
         <source>'{0}': cannot explicitly call operator or accessor</source>
-        <target state="translated">'{0}: Nejde explicitně volat operátor nebo přistupující objekt.</target>
+        <target state="translated">{0}: Nejde explicitně volat operátor nebo přistupující objekt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
-        <target state="translated">'{0}: Nemůže odkazovat na typ prostřednictvím výrazu. Místo toho zkuste {1}.</target>
+        <target state="translated">{0}: Nemůže odkazovat na typ prostřednictvím výrazu. Místo toho zkuste {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldInitializerInStruct">
         <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}: Vlastnosti instancí nebo inicializátory polí nemůžou být ve strukturách.</target>
+        <target state="translated">{0}: Vlastnosti instancí nebo inicializátory polí nemůžou být ve strukturách.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">Název destruktoru musí odpovídat názvu třídy.</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="translated">Název destruktoru musí odpovídat názvu typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4592,7 +5107,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_BadDynamicConversion">
         <source>'{0}': user-defined conversions to or from the dynamic type are not allowed</source>
-        <target state="translated">'{0}: Uživatelsky definované převody na dynamický typ nebo z dynamického typu nejsou povolené.</target>
+        <target state="translated">{0}: Uživatelsky definované převody na dynamický typ nebo z dynamického typu nejsou povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAttributeArgument">
@@ -4687,17 +5202,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_NotAnAttributeClass">
         <source>'{0}' is not an attribute class</source>
-        <target state="translated">'{0} není třída atributu.</target>
+        <target state="translated">{0} není třída atributu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgument">
         <source>'{0}' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.</source>
-        <target state="translated">'{0} není platný argument pojmenovaného atributu. Argumenty pojmenovaného atributu musí být pole, pro která nebyla použitá deklarace readonly, static ani const, nebo vlastnosti pro čtení i zápis, které jsou veřejné a nejsou statické.</target>
+        <target state="translated">{0} není platný argument pojmenovaného atributu. Argumenty pojmenovaného atributu musí být pole, pro která nebyla použitá deklarace readonly, static ani const, nebo vlastnosti pro čtení i zápis, které jsou veřejné a nejsou statické.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'{0} je zastaralá: {1}.</target>
+        <target state="translated">{0} je zastaralá: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedSymbolStr_Title">
@@ -4707,7 +5222,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_DeprecatedSymbolStr">
         <source>'{0}' is obsolete: '{1}'</source>
-        <target state="translated">'{0} je zastaralá: {1}.</target>
+        <target state="translated">{0} je zastaralá: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerCantHaveVoidType">
@@ -4717,7 +5232,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_VirtualPrivate">
         <source>'{0}': virtual or abstract members cannot be private</source>
-        <target state="translated">'{0}: Virtuální nebo abstraktní členy nemůžou být privátní.</target>
+        <target state="translated">{0}: Virtuální nebo abstraktní členy nemůžou být privátní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitToNonArrayType">
@@ -4746,13 +5261,13 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}: V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="translated">{0}: V zapečetěném typu je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="translated">V zapečetěném typu je deklarovaný nový chráněný člen</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -4802,7 +5317,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_DeriveFromEnumOrValueType">
         <source>'{0}' cannot derive from special class '{1}'</source>
-        <target state="translated">'{0} se nemůže odvozovat ze speciální třídy {1}.</target>
+        <target state="translated">{0} se nemůže odvozovat ze speciální třídy {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberOnIndexedType">
@@ -4847,7 +5362,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_BadNamedAttributeArgumentType">
         <source>'{0}' is not a valid named attribute argument because it is not a valid attribute parameter type</source>
-        <target state="translated">'{0} není platný argument pojmenovaného atributu, protože se nejedná o platný typ parametru atributu.</target>
+        <target state="translated">{0} není platný argument pojmenovaného atributu, protože se nejedná o platný typ parametru atributu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPredefinedMember">
@@ -4857,7 +5372,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration">
         <source>'{0}' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'{0} není platné umístění atributu pro tuto deklaraci. Platnými umístěními atributů pro tuto deklaraci jsou {1}. Všechny atributy v tomto bloku se budou ignorovat.</target>
+        <target state="translated">{0} není platné umístění atributu pro tuto deklaraci. Platnými umístěními atributů pro tuto deklaraci jsou {1}. Všechny atributy v tomto bloku se budou ignorovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeLocationOnBadDeclaration_Title">
@@ -4867,7 +5382,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation">
         <source>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</source>
-        <target state="translated">'{0} není známé umístění atributu. Platná umístění atributu pro tuto deklaraci jsou {1}. Všechny atributy v tomto bloku se budou ignorovat.</target>
+        <target state="translated">{0} není známé umístění atributu. Platná umístění atributu pro tuto deklaraci jsou {1}. Všechny atributy v tomto bloku se budou ignorovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidAttributeLocation_Title">
@@ -4877,7 +5392,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode">
         <source>'{0}' overrides Object.Equals(object o) but does not override Object.GetHashCode()</source>
-        <target state="translated">'{0} přepisuje Object.Equals(object o), ale nepřepisuje Object.GetHashCode().</target>
+        <target state="translated">{0} přepisuje Object.Equals(object o), ale nepřepisuje Object.GetHashCode().</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualsWithoutGetHashCode_Title">
@@ -4887,7 +5402,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals">
         <source>'{0}' defines operator == or operator != but does not override Object.Equals(object o)</source>
-        <target state="translated">'{0} definuje operátor == nebo !=, ale nepřepisuje funkci Object.Equals(object o).</target>
+        <target state="translated">{0} definuje operátor == nebo !=, ale nepřepisuje funkci Object.Equals(object o).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutEquals_Title">
@@ -4897,7 +5412,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode">
         <source>'{0}' defines operator == or operator != but does not override Object.GetHashCode()</source>
-        <target state="translated">'{0} definuje operátor == nebo !=, ale nepřepisuje funkci Object.GetHashCode().</target>
+        <target state="translated">{0} definuje operátor == nebo !=, ale nepřepisuje funkci Object.GetHashCode().</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EqualityOpWithoutGetHashCode_Title">
@@ -4912,7 +5427,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_OverloadRefKind">
         <source>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</source>
-        <target state="translated">'{0} nemůže definovat přetíženou {1}, která se liší jenom v modifikátorech parametrů {2} a {3}.</target>
+        <target state="translated">{0} nemůže definovat přetíženou {1}, která se liší jenom v modifikátorech parametrů {2} a {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LiteralDoubleCast">
@@ -4932,7 +5447,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStruct">
         <source>'{0}': new protected member declared in struct</source>
-        <target state="translated">'{0}: Ve struktuře je deklarovaný nový chráněný člen.</target>
+        <target state="translated">{0}: Ve struktuře je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InconsistentIndexerNames">
@@ -4987,12 +5502,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_VolatileStruct">
         <source>'{0}': a volatile field cannot be of the type '{1}'</source>
-        <target state="translated">'{0}: Pole s modifikátorem volatile nemůže být {1}.</target>
+        <target state="translated">{0}: Pole s modifikátorem volatile nemůže být {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VolatileAndReadonly">
         <source>'{0}': a field cannot be both volatile and readonly</source>
-        <target state="translated">'{0}: U pole nejde použít současně volatile i readonly.</target>
+        <target state="translated">{0}: U pole nejde použít současně volatile i readonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractField">
@@ -5002,7 +5517,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_BogusExplicitImpl">
         <source>'{0}' cannot implement '{1}' because it is not supported by the language</source>
-        <target state="translated">'{0} nemůže implementovat {1}, protože ho tento jazyk nepodporuje.</target>
+        <target state="translated">{0} nemůže implementovat {1}, protože ho tento jazyk nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitMethodImplAccessor">
@@ -5062,7 +5577,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
-        <target state="translated">'{0} nemůže implementovat {1} a zároveň {2}, protože u některých náhrad parametrů typu může dojít k jejich sjednocení.</target>
+        <target state="translated">{0} nemůže implementovat {1} a zároveň {2}, protože u některých náhrad parametrů typu může dojít k jejich sjednocení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericDerivingFromAttribute">
@@ -5072,12 +5587,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
         <source>'{1}' does not define type parameter '{0}'</source>
-        <target state="translated">'{1} nedefinuje parametr typu {0}.</target>
+        <target state="translated">{1} nedefinuje parametr typu {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'{0} není platné omezení. Typ použitý jako omezení musí být rozhraní, nezapečetěná třída nebo parametr typu.</target>
+        <target state="translated">{0} není platné omezení. Typ použitý jako omezení musí být rozhraní, nezapečetěná třída nebo parametr typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -5102,12 +5617,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
         <source>'{0}': cannot declare instance members in a static class</source>
-        <target state="translated">'{0}: Nejde deklarovat členy instance ve statické třídě.</target>
+        <target state="translated">{0}: Nejde deklarovat členy instance ve statické třídě.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
         <source>'{1}': cannot derive from static class '{0}'</source>
-        <target state="translated">'{1}: Nejde odvodit ze statické třídy {0}.</target>
+        <target state="translated">{1}: Nejde odvodit ze statické třídy {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorInStaticClass">
@@ -5132,17 +5647,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
-        <target state="translated">'{0}: Statické třídy nemůžou implementovat rozhraní.</target>
+        <target state="translated">{0}: Statické třídy nemůžou implementovat rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructInterfaceImpl">
         <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'{0}: Struktury REF nemůžou implementovat rozhraní.</target>
+        <target state="translated">{0}: Struktury REF nemůžou implementovat rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">
         <source>'{0}': static classes cannot contain user-defined operators</source>
-        <target state="translated">'{0}: Statické třídy nemůžou obsahovat operátory definované uživatelem.</target>
+        <target state="translated">{0}: Statické třídy nemůžou obsahovat operátory definované uživatelem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConvertToStaticClass">
@@ -5152,32 +5667,32 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsStaticClass">
         <source>'{0}': static classes cannot be used as constraints</source>
-        <target state="translated">'{0}: Statické třídy nejde používat jako omezení.</target>
+        <target state="translated">{0}: Statické třídy nejde používat jako omezení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericArgIsStaticClass">
         <source>'{0}': static types cannot be used as type arguments</source>
-        <target state="translated">'{0}: Statické typy nejde používat jako argumenty typu.</target>
+        <target state="translated">{0}: Statické typy nejde používat jako argumenty typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayOfStaticClass">
         <source>'{0}': array elements cannot be of static type</source>
-        <target state="translated">'{0}: Prvky pole nemůžou být statického typu.</target>
+        <target state="translated">{0}: Prvky pole nemůžou být statického typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
         <source>'{0}': cannot declare indexers in a static class</source>
-        <target state="translated">'{0}: Nejde deklarovat indexery ve statické třídě.</target>
+        <target state="translated">{0}: Nejde deklarovat indexery ve statické třídě.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">
         <source>'{0}': static types cannot be used as parameters</source>
-        <target state="translated">'{0}: Statické typy nejde používat jako parametry.</target>
+        <target state="translated">{0}: Statické typy nejde používat jako parametry.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReturnTypeIsStaticClass">
         <source>'{0}': static types cannot be used as return types</source>
-        <target state="translated">'{0}: Statické typy nejde používat jako typy vracených hodnot.</target>
+        <target state="translated">{0}: Statické typy nejde používat jako typy vracených hodnot.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarDeclIsStaticClass">
@@ -5192,7 +5707,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_InvalidSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0} není platným specifikátorem formátu.</target>
+        <target state="translated">{0} není platným specifikátorem formátu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AssignmentToLockOrDispose">
@@ -5237,17 +5752,17 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">'{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen rozhraní, protože je statické.</target>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen rozhraní, protože je statické.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not public.</source>
-        <target state="translated">'{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen rozhraní, protože není veřejné.</target>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen rozhraní, protože není veřejné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongReturnType">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have the matching return type of '{3}'.</source>
-        <target state="translated">'{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen {1}, protože nemá odpovídající návratový typ {3}.</target>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat člen {1}, protože nemá odpovídající návratový typ {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateTypeForwarder">
@@ -5296,8 +5811,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy, částečné struktury nebo částečného rozhraní.</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečného typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -5747,7 +6262,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_ProtectedInStatic">
         <source>'{0}': static classes cannot contain protected members</source>
-        <target state="translated">'{0}: Statické třídy nemůžou obsahovat chráněné členy.</target>
+        <target state="translated">{0}: Statické třídy nemůžou obsahovat chráněné členy.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreachableGeneralCatch">
@@ -5781,7 +6296,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
         <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</source>
-        <target state="translated">'{0} neobsahuje definici pro {1} a nenašla se žádná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechybí direktiva using pro {2}?)</target>
+        <target state="translated">{0} neobsahuje definici pro {1} a nenašla se žádná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechybí direktiva using pro {2}?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadThisParam">
@@ -5920,8 +6435,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">Neplatný token {0} v deklaraci člena rozhraní, třídy nebo struktury</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="translated">Neplatný token {0} v deklaraci člena rozhraní, třídy, záznamu nebo struktury</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6001,7 +6516,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AddModuleAssembly">
         <source>'{0}' cannot be added to this assembly because it already is an assembly</source>
-        <target state="translated">'{0} se nemůže přidat do tohoto sestavení, protože už to sestavení je.</target>
+        <target state="translated">{0} se nemůže přidat do tohoto sestavení, protože už to sestavení je.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BindToBogusProp2">
@@ -6040,13 +6555,13 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">{0} zadaný pro metodu Main musí být neobecná třída, struktura nebo rozhraní.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="translated">Typ {0} zadaný pro metodu Main musí být neobecná třída, záznam, struktura nebo rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
         <source>'{0}' does not have a suitable static 'Main' method</source>
-        <target state="translated">'{0} nemá vhodnou statickou metodu Main.</target>
+        <target state="translated">{0} nemá vhodnou statickou metodu Main.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -6165,8 +6680,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance nebo rozšíření pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -6331,7 +6846,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
         <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">'{0} je nejednoznačné mezi {1} a {2}; použijte buď @{0}, nebo {0}Attribute.</target>
+        <target state="translated">{0} je nejednoznačné mezi {1} a {2}; použijte buď @{0}, nebo {0}Attribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">
@@ -6520,8 +7035,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Do pole jen pro čtení není možné přiřazovat hodnoty (kromě případu, kdy je v konstruktoru nebo v metodě setter jenom pro inicializaci třídy, ve které je pole definované, nebo v inicializátoru proměnné).</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="translated">Do pole jen pro čtení není možné přiřazovat hodnoty (kromě případu, kdy je v konstruktoru nebo v metodě setter jen pro inicializaci typu, ve kterém je pole definované, nebo v inicializátoru proměnné).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6791,7 +7306,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
         <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0} není platné číslo upozornění.</target>
+        <target state="translated">{0} není platné číslo upozornění.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber_Title">
@@ -6961,7 +7476,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_CantChangeTypeOnOverride">
         <source>'{0}': type must be '{2}' to match overridden member '{1}'</source>
-        <target state="translated">'{0}: Typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
+        <target state="translated">{0}: Typ musí být {2}, aby odpovídal přepsanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttr">
@@ -7041,7 +7556,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_BadCtorArgCount">
         <source>'{0}' does not contain a constructor that takes {1} arguments</source>
-        <target state="translated">'{0} neobsahuje konstruktor, který přebírá tento počet argumentů: {1}.</target>
+        <target state="translated">{0} neobsahuje konstruktor, který přebírá tento počet argumentů: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
@@ -7065,8 +7580,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWarningLevel">
-        <source>Warning level must be in the range 0-4</source>
-        <target state="translated">Úroveň upozornění musí být v rozsahu 0 až 4.</target>
+        <source>Warning level must be zero or greater</source>
+        <target state="translated">Úroveň upozornění musí být nula nebo větší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDebugType">
@@ -7151,7 +7666,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'{0} neobsahuje definici pro {1} a přetížení optimální metody rozšíření {2} vyžaduje přijímač typu {3}.</target>
+        <target state="translated">{0} neobsahuje definici pro {1} a přetížení optimální metody rozšíření {2} vyžaduje přijímač typu {3}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -7175,8 +7690,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Nenašla se implementace vzorku dotazu pro typ zdroje {0}. Nenašel se prvek {1}. Nechybí odkaz na System.Core.dll nebo na direktivu using pro System.Linq?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?</source>
+        <target state="translated">Nenašla se implementace vzorku dotazu pro typ zdroje {0}. Nenašel se prvek {1}. Nechybí odkazy na požadovaná sestavení nebo direktiva using pro System.Linq?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
@@ -7303,8 +7818,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Člen {1} potlačuje člen {0}. Za běhu existuje víc kandidátů na potlačení. Volaná metoda závisí na konkrétní implementaci.</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="translated">Člen {1} přepisuje člen {0}. Za běhu existuje více kandidátů na přepis. Volaná metoda závisí na konkrétní implementaci. Použijte prosím novější modul runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
@@ -7319,7 +7834,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="ERR_InvalidConstantDeclarationType">
         <source>'{0}' is of type '{1}'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.</source>
-        <target state="translated">'{0} je typu {1}. V deklaraci konstanty musí být uvedený typ sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, výčtový typ nebo typ odkazu.</target>
+        <target state="translated">{0} je typu {1}. V deklaraci konstanty musí být uvedený typ sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, výčtový typ nebo typ odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
@@ -7384,7 +7899,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="ERR_BinaryFile">
         <source>'{0}' is a binary file instead of a text file</source>
-        <target state="translated">'{0} je binární, ne textový soubor.</target>
+        <target state="translated">{0} je binární, ne textový soubor.</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_BadCodepage">
@@ -7574,7 +8089,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase">
         <source>'{0}': base type '{1}' is not CLS-compliant</source>
-        <target state="translated">'{0}: Základní typ {1} není kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0}: Základní typ {1} není kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadBase_Title">
@@ -7589,7 +8104,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember">
         <source>'{0}': CLS-compliant interfaces must have only CLS-compliant members</source>
-        <target state="translated">'{0}: Rozhraní kompatibilní se specifikací CLS musí obsahovat jenom členy kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0}: Rozhraní kompatibilní se specifikací CLS musí obsahovat jenom členy kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterfaceMember_Title">
@@ -7599,7 +8114,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers">
         <source>'{0}': only CLS-compliant members can be abstract</source>
-        <target state="translated">'{0}: Jenom členy kompatibilní se specifikací CLS můžou být abstraktní.</target>
+        <target state="translated">{0}: Jenom členy kompatibilní se specifikací CLS můžou být abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_NoAbstractMembers_Title">
@@ -7629,7 +8144,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS">
         <source>'{0}' cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute</source>
-        <target state="translated">'{0} nejde označit jako kompatibilní se specifikací CLS, protože sestavení nemá atribut CLSCompliant.</target>
+        <target state="translated">{0} nejde označit jako kompatibilní se specifikací CLS, protože sestavení nemá atribut CLSCompliant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS_Title">
@@ -7639,7 +8154,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType">
         <source>'{0}' has no accessible constructors which use only CLS-compliant types</source>
-        <target state="translated">'{0} nemá žádné přístupné konstruktory, které používají jenom typy kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0} nemá žádné přístupné konstruktory, které používají jenom typy kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadAttributeType_Title">
@@ -7669,7 +8184,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse">
         <source>'{0}' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type '{1}'</source>
-        <target state="translated">'{0} nejde označit jako kompatibilní se specifikací CLS, protože se jedná o člen typu {1}, který není kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0} nejde označit jako kompatibilní se specifikací CLS, protože se jedná o člen typu {1}, který není kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_IllegalTrueInFalse_Title">
@@ -7689,7 +8204,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS2">
         <source>'{0}' does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute</source>
-        <target state="translated">'{0} nepotřebuje atribut CLSCompliant, protože sestavení nemá atribut CLSCompliant.</target>
+        <target state="translated">{0} nepotřebuje atribut CLSCompliant, protože sestavení nemá atribut CLSCompliant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_AssemblyNotCLS2_Title">
@@ -7739,7 +8254,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface">
         <source>'{0}' is not CLS-compliant because base interface '{1}' is not CLS-compliant</source>
-        <target state="translated">'{0} není kompatibilní se specifikací CLS, protože základní rozhraní {1} není kompatibilní se specifikací CLS.</target>
+        <target state="translated">{0} není kompatibilní se specifikací CLS, protože základní rozhraní {1} není kompatibilní se specifikací CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadInterface_Title">
@@ -7779,7 +8294,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface">
         <source>'{0}' does not implement '{1}'</source>
-        <target state="translated">'{0} neimplementuje {1}.</target>
+        <target state="translated">{0} neimplementuje {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TaskRetNoObjectRequired">
@@ -8091,12 +8606,12 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_DeriveFromDynamic">
         <source>'{0}': cannot derive from the dynamic type</source>
-        <target state="translated">'{0}: Nejde odvozovat z dynamického typu.</target>
+        <target state="translated">{0}: Nejde odvozovat z dynamického typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeriveFromConstructedDynamic">
         <source>'{0}': cannot implement a dynamic interface '{1}'</source>
-        <target state="translated">'{0}: Nemůže implementovat dynamické rozhraní {1}.</target>
+        <target state="translated">{0}: Nemůže implementovat dynamické rozhraní {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DynamicTypeAsBound">
@@ -8167,11 +8682,6 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       <trans-unit id="WRN_MainIgnored_Title">
         <source>The entry point of the program is global code; ignoring entry point</source>
         <target state="translated">Vstupním bodem programu je globální kód. Vstupní bod se ignoruje</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticInAsOrIs">
-        <source>The second operand of an 'is' or 'as' operator may not be static type '{0}'</source>
-        <target state="translated">Druhý operand operátoru is nebo as nesmí být statického typu {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisEventType">
@@ -8251,7 +8761,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_NotNullRefDefaultParameter">
         <source>'{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null</source>
-        <target state="translated">'{0} je typu {1}. Výchozí hodnotu parametru s jiným než řetězcovým typem odkazu jde inicializovat jenom hodnotou null.</target>
+        <target state="translated">{0} je typu {1}. Výchozí hodnotu parametru s jiným než řetězcovým typem odkazu jde inicializovat jenom hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultValueForUnconsumedLocation">
@@ -8546,7 +9056,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_BadArgTypeDynamicExtension">
         <source>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</source>
-        <target state="translated">'{0} nemá žádnou použitelnou metodu s názvem {1}, ale zřejmě má metodu rozšíření s tímto názvem. Metody rozšíření se nedají volat dynamicky. Zvažte použití dynamických argumentů nebo volání metody rozšíření bez syntaxe metody rozšíření.</target>
+        <target state="translated">{0} nemá žádnou použitelnou metodu s názvem {1}, ale zřejmě má metodu rozšíření s tímto názvem. Metody rozšíření se nedají volat dynamicky. Zvažte použití dynamických argumentů nebo volání metody rozšíření bez syntaxe metody rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerMemberName">
@@ -8586,7 +9096,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
-        <target state="translated">'{0} nemůže implementovat {1}, protože {2} je událost Windows Runtimu a {3} je normální událost .NET.</target>
+        <target state="translated">{0} nemůže implementovat {1}, protože {2} je událost Windows Runtimu a {3} je normální událost .NET.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
@@ -9214,7 +9724,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
-        <target state="translated">'{0}: Třída s atributem ComImport nemůže určovat inicializátory polí.</target>
+        <target state="translated">{0}: Třída s atributem ComImport nemůže určovat inicializátory polí.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9564,7 +10074,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_CantChangeRefReturnOnOverride">
         <source>'{0}' must match by reference return of overridden member '{1}'</source>
-        <target state="translated">'{0} musí odpovídat návratu pomocí odkazu přepsaného člena {1}.</target>
+        <target state="translated">{0} musí odpovídat návratu pomocí odkazu přepsaného člena {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustNotHaveRefReturn">
@@ -9584,7 +10094,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</source>
-        <target state="translated">'{0} neimplementuje člena rozhraní {1}. {2} nemůže implementovat {1}, protože nemá odpovídající návrat pomocí odkazu.</target>
+        <target state="translated">{0} neimplementuje člena rozhraní {1}. {2} nemůže implementovat {1}, protože nemá odpovídající návrat pomocí odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturnRef">
@@ -10094,7 +10604,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
+        <target state="translated">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

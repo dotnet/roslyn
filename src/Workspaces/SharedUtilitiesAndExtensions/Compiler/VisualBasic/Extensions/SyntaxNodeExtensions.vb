@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -205,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return multiLineLambdaExpression.Statements
             End If
 
-            throw ExceptionUtilities.UnexpectedValue(node)
+            Throw ExceptionUtilities.UnexpectedValue(node)
         End Function
 
         <Extension()>
@@ -997,58 +998,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
         End Function
 
-        ''' <summary>
-        ''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
-        ''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
-        ''' </summary>
-        ''' <param name="node"></param>
-        ''' <returns></returns>
         <Extension>
-        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
-            Dim access As SyntaxNode = node
-            Dim parent As SyntaxNode = access.Parent
+        Friend Function GetParentConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            ' Walk upwards based on the grammar/parser rules around ?. expressions (can be seen in
+            ' ParseExpression.vb (.ParsePostFixExpression).
+            '
+            ' These are the parts of the expression that the ?... expression can end with.  Specifically
+            '
+            '  1.      x?.y.M()             // invocation
+            '  2.      x?.y and x?.y.z      // member access (covered under MemberAccessExpressionSyntax below)
+            '  3.      x?!y                 // dictionary access (covered under MemberAccessExpressionSyntax below)
+            '  4.      x?.y<...>            // xml access
 
-            While parent IsNot Nothing
-                Select Case parent.Kind
-                    Case SyntaxKind.DictionaryAccessExpression,
-                         SyntaxKind.SimpleMemberAccessExpression
+            If node.IsAnyMemberAccessExpressionName() Then
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
 
-                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
-                            Return Nothing
-                        End If
+            ' Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
+            ' conditional access.
 
-                    Case SyntaxKind.XmlElementAccessExpression,
-                         SyntaxKind.XmlDescendantAccessExpression,
-                         SyntaxKind.XmlAttributeAccessExpression
+            While (TypeOf node Is InvocationExpressionSyntax OrElse
+                   TypeOf node Is MemberAccessExpressionSyntax OrElse
+                   TypeOf node Is XmlMemberAccessExpressionSyntax) AndAlso
+                   TypeOf node.Parent IsNot ConditionalAccessExpressionSyntax
 
-                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case SyntaxKind.InvocationExpression
-
-                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case SyntaxKind.ConditionalAccessExpression
-
-                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
-                        If conditional.WhenNotNull Is access Then
-                            Return conditional
-                        ElseIf conditional.Expression IsNot access Then
-                            Return Nothing
-                        End If
-
-                    Case Else
-                        Return Nothing
-                End Select
-
-                access = parent
-                parent = access.Parent
+                node = TryCast(node.Parent, ExpressionSyntax)
             End While
 
-            Return Nothing
+            ' Two cases we have to care about
+            '
+            '      1. a?.b.$$c.d        And
+            '      2. a?.b.$$c.d?.e...
+            '
+            ' Note that `a?.b.$$c.d?.e.f?.g.h.i` falls into the same bucket as two.  i.e. the parts after `.e` are
+            ' lower in the tree And are Not seen as we walk upwards.
+            '
+            '
+            ' To get the root ?. (the one after the `a`) we have to potentially consume the first ?. on the RHS of the
+            ' right spine (i.e. the one after `d`).  Once we do this, we then see if that itself Is on the RHS of a
+            ' another conditional, And if so we hten return the one on the left.  i.e. for '2' this goes in this direction:
+            '
+            '      a?.b.$$c.d?.e            // it will do:
+            '           ----->
+            '       <---------
+            '
+            ' Note that this only one CAE consumption on both sides.  GetRootConditionalAccessExpression can be used to
+            ' get the root parent in a case Like:
+            '
+            '      x?.y?.z?.a?.b.$$c.d?.e.f?.g.h.i              // It will do:
+            '                    ----->
+            '                <---------
+            '             <---
+            '          <---
+            '       <---
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).Expression Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).WhenNotNull Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            Return TryCast(node, ConditionalAccessExpressionSyntax)
+        End Function
+
+        ''' <summary>
+        ''' <see cref="ISyntaxFacts.GetRootConditionalAccessExpression"/>
+        ''' </summary>
+        <Extension>
+        Friend Function GetRootConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            ' Once we've walked up the entire RHS, now we continually walk up the conditional accesses until we're at
+            ' the root. For example, if we have `a?.b` And we're on the `.b`, this will give `a?.b`.  Similarly with
+            ' `a?.b?.c` if we're on either `.b` or `.c` this will result in `a?.b?.c` (i.e. the root of this CAE
+            ' sequence).
+
+            node = node.GetParentConditionalAccessExpression()
+            While TypeOf node?.Parent Is ConditionalAccessExpressionSyntax
+                Dim conditionalParent = DirectCast(node.Parent, ConditionalAccessExpressionSyntax)
+                If conditionalParent.WhenNotNull Is node Then
+                    node = conditionalParent
+                Else
+                    Exit While
+                End If
+            End While
+
+            Return TryCast(node, ConditionalAccessExpressionSyntax)
         End Function
 
         <Extension>

@@ -5,52 +5,52 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class InKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InInForEach1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x |</MethodBody>, "In")
-        End Function
+        Public Sub InInForEach1Test()
+            VerifyRecommendationsContain(<MethodBody>For Each x |</MethodBody>, "In")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InInForEach2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x As Goo |</MethodBody>, "In")
-        End Function
+        Public Sub InInForEach2Test()
+            VerifyRecommendationsContain(<MethodBody>For Each x As Goo |</MethodBody>, "In")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InInFromQuery1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x |</MethodBody>, "In")
-        End Function
+        Public Sub InInFromQuery1Test()
+            VerifyRecommendationsContain(<MethodBody>Dim x = From x |</MethodBody>, "In")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InInFromQuery2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x As Goo |</MethodBody>, "In")
-        End Function
+        Public Sub InInFromQuery2Test()
+            VerifyRecommendationsContain(<MethodBody>Dim x = From x As Goo |</MethodBody>, "In")
+        End Sub
 
         <WorkItem(543231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543231")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InInFromQuery3Test() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Dim x = From x As Integer |</MethodBody>, "In")
-        End Function
+        Public Sub InInFromQuery3Test()
+            VerifyRecommendationsAreExactly(<MethodBody>Dim x = From x As Integer |</MethodBody>, "In")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>For Each x 
 |</MethodBody>, "In")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>For Each x _
 |</MethodBody>, "In")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>For Each x _ ' Test
 |</MethodBody>, "In")
-        End Function
+        End Sub
     End Class
 End Namespace

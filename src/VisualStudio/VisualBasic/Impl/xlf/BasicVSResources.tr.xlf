@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="translated">Yapıştırırken eksik import ifadelerini ekle</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt; &gt; &lt;&gt; = nasıl olduğunu =</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
+        <source>Insert ' at the start of new lines when writing ' comments</source>
+        <target state="translated">' açıklamaları yazılırken yeni satırların başlangıcına ' ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -32,14 +42,24 @@
         <target state="translated">Hiçbir zaman</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="translated">'IsNot' ifadesini tercih edin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Başvuru eşitliği denetimleri için 'Is Nothing'i tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_New_expressions">
+        <source>Show hints for 'New' expressions</source>
+        <target state="translated">'New' ifadeleri için ipuçlarını göster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster (deneysel)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

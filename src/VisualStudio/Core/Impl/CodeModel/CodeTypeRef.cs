@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // Breaking changes from the legacy code model.
 //
 // CodeType: In the legacy Visual Basic code model, this property might return null. However, in

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
@@ -12,7 +13,6 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -21,10 +21,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
+
+        Private Function WithDiagnosticOptions(
+            tree As SyntaxTree,
+            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+
+            Return TestOptions.DebugDll.
+                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+        End Function
 
         <Fact>
         Public Sub PerTreeVsGlobalSuppress()
@@ -39,7 +48,8 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Warn)))
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
             comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
@@ -54,7 +64,7 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -62,8 +72,9 @@ BC42024: Unused local variable: 'x'.
             ~
                 </errors>)
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             comp2.AssertNoDiagnostics()
         End Sub
 
@@ -78,11 +89,11 @@ Class C
     End Sub
 End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Warn))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
             ' Pragma should have precedence over per-tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -101,16 +112,11 @@ End Class")
             Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
-            Dim newTree = tree.WithDiagnosticOptions(
-                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=options)
-            ' Tree options should have precedence over specific diagnostic options
-            comp2.AssertTheseDiagnostics(
-                <errors>
-BC42024: Unused local variable: 'x'.
-        Dim x As Integer
-            ~
-                </errors>)
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Specific diagnostic options should have precedence over tree options
+            comp2.AssertNoDiagnostics()
         End Sub
 
         <Fact>
@@ -120,15 +126,19 @@ Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+End Class")
             Dim newTree = SyntaxFactory.ParseSyntaxTree("
 Class D
      Sub M()
         Dim y As Integer
     End Sub
-End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC4024", ReportDiagnostic.Error)))
+End Class")
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    (tree, {("BC42024", ReportDiagnostic.Suppress)}),
+                    (newTree, {("BC4024", ReportDiagnostic.Error)})))
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -139,23 +149,26 @@ BC42024: Unused local variable: 'y'.
 
         <Fact>
         Public Sub TreeOptionsComparerRespected()
-            Dim options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("bc42024", ReportDiagnostic.Suppress))
-
             Dim tree = SyntaxFactory.ParseSyntaxTree("
 Class C
      Sub M()
         Dim x As Integer
     End Sub
-End Class").WithDiagnosticOptions(options)
+End Class")
+            ' Default provider is case insensitive
+            Dim options = WithDiagnosticOptions(tree, ("bc42024", ReportDiagnostic.Suppress))
 
-            Dim newTree = SyntaxFactory.ParseSyntaxTree("
-Class D
-     Sub M()
-        Dim y As Integer
-    End Sub
-End Class").WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer))
+            Dim comp = CreateCompilation(tree, options:=options)
+            comp.AssertNoDiagnostics()
 
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            options = options.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    StringComparer.Ordinal,
+                    Nothing,
+                    (tree, {("bc42024", ReportDiagnostic.Suppress)}))
+            )
+
+            comp = CreateCompilation(tree, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'x'.
@@ -275,7 +288,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System)
+            listRef.Add(Net451.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -521,8 +534,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -830,7 +843,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref1 = Net451.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1045,8 +1058,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1161,7 +1174,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1171,7 +1184,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1182,7 +1195,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1210,7 +1223,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = Net451.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
@@ -1248,8 +1261,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -1461,7 +1474,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>
@@ -2277,7 +2290,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim metadata = Net451.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
         Protected Overrides Function GetCodeFixAsync(root As SyntaxNode, node As SyntaxNode, document As Document, diagnostics As Diagnostic, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If Not node.IsKind(SyntaxKind.ReturnStatement) Then
-                Return Nothing
+                Return SpecializedTasks.Null(Of CodeAction)()
             End If
 
             Dim returnStatement = TryCast(node, ReturnStatementSyntax)

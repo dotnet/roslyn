@@ -26,14 +26,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractSymbolCompletionProvider : LSPCompletionProvider
+    internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext> : LSPCompletionProvider
+        where TSyntaxContext : SyntaxContext
     {
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>>();
-        private static int s_cachedPosition;
-        private static readonly object s_cacheGate = new object();
+        private static readonly ConditionalWeakTable<Document, Tuple<int, AsyncLazy<TSyntaxContext>>> s_cachedDocuments = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
@@ -41,17 +40,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
-            ISymbol symbol, SyntaxContext context);
+        protected abstract Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(CompletionContext? completionContext, TSyntaxContext syntaxContext, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
 
-        protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
+        protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
             => CompletionItemRules.Default;
 
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        protected bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
         {
             if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
                 _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
             }
 
@@ -101,21 +100,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return isConvertible;
             }
 
-            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
             return typeConvertibilityCache[type];
-        }
-
-        private static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
-        {
-            foreach (var targetType in targetTypes)
-            {
-                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -124,16 +110,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         private ImmutableArray<CompletionItem> CreateItems(
             CompletionContext completionContext,
-            IEnumerable<ISymbol> symbols,
-            Func<ISymbol, SyntaxContext> contextLookup,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
-            List<ProjectId> totalProjects,
-            bool preselect,
-            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            Func<(ISymbol symbol, bool preselect), TSyntaxContext> contextLookup,
+            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+            List<ProjectId>? totalProjects,
             TelemetryCounter telemetryCounter)
         {
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
+            // need to filter them out.
+            // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols
-                               let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
+                               let texts = GetDisplayAndSuffixAndInsertionText(symbol.symbol, contextLookup(symbol))
+                               where !string.IsNullOrWhiteSpace(texts.displayText)
                                group symbol by texts into g
                                select g;
 
@@ -142,32 +130,57 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var symbolGroup in symbolGroups)
             {
+                var includeItemInTargetTypedCompletion = false;
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
-                var item = CreateItem(
-                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
-                    symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+                var symbolList = symbolGroup.ToImmutableArray();
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
                     var tick = Environment.TickCount;
 
-                    foreach (var symbol in symbolGroup)
+                    includeItemInTargetTypedCompletion = TryFindFirstSymbolMatchesTargetTypes(contextLookup, symbolList, typeConvertibilityCache, out var index);
+                    if (includeItemInTargetTypedCompletion && index > 0)
                     {
-                        var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes.Value, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
-                        {
-                            item = item.AddTag(WellKnownTags.TargetTypeMatch);
-                            break;
-                        }
+                        // This would ensure a symbol matches target types to be used for description if there's any,
+                        // assuming the default implementation of GetDescriptionWorkerAsync is used.
+                        var firstMatch = symbolList[index];
+                        symbolList = symbolList.RemoveAt(index);
+                        symbolList = symbolList.Insert(0, firstMatch);
                     }
 
                     telemetryCounter.AddTick(Environment.TickCount - tick);
+                }
+
+                var item = CreateItem(
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
+                    symbolList, arbitraryFirstContext, invalidProjectMap, totalProjects);
+
+                if (includeItemInTargetTypedCompletion)
+                {
+                    item = item.AddTag(WellKnownTags.TargetTypeMatch);
                 }
 
                 itemListBuilder.Add(item);
             }
 
             return itemListBuilder.ToImmutable();
+        }
+
+        protected static bool TryFindFirstSymbolMatchesTargetTypes(
+            Func<(ISymbol symbol, bool preselect), TSyntaxContext> contextLookup,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbolList,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache,
+            out int index)
+        {
+            for (index = 0; index < symbolList.Length; ++index)
+            {
+                var symbol = symbolList[index];
+                var syntaxContext = contextLookup(symbol);
+                if (ShouldIncludeInTargetTypedCompletionList(symbol.symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                    break;
+            }
+
+            return index < symbolList.Length;
         }
 
         /// <summary>
@@ -178,55 +191,55 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayText,
             string displayTextSuffix,
             string insertionText,
-            List<ISymbol> symbols,
-            SyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
-            List<ProjectId> totalProjects,
-            bool preselect)
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            TSyntaxContext context,
+            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+            List<ProjectId>? totalProjects)
         {
             Contract.ThrowIfNull(symbols);
 
-            SupportedPlatformData supportedPlatformData = null;
+            SupportedPlatformData? supportedPlatformData = null;
             if (invalidProjectMap != null)
             {
-                List<ProjectId> invalidProjects = null;
+                List<ProjectId>? invalidProjects = null;
                 foreach (var symbol in symbols)
                 {
-                    if (invalidProjectMap.TryGetValue(symbol, out invalidProjects))
-                    {
+                    if (invalidProjectMap.TryGetValue(symbol.symbol, out invalidProjects))
                         break;
-                    }
                 }
 
                 if (invalidProjects != null)
-                {
                     supportedPlatformData = new SupportedPlatformData(invalidProjects, totalProjects, context.Workspace);
-                }
             }
 
             return CreateItem(
-                completionContext, displayText, displayTextSuffix, insertionText,
-                symbols, context, preselect, supportedPlatformData);
+                completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData);
         }
 
         protected virtual CompletionItem CreateItem(
-            CompletionContext completionContext, string displayText, string displayTextSuffix, string insertionText,
-            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            TSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
         {
+            var preselect = symbols.Any(t => t.preselect);
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: GetFilterText(symbols[0].symbol, displayText, context),
                 contextPosition: context.Position,
-                symbols: symbols,
+                symbols: symbols.SelectAsArray(t => t.symbol),
                 supportedPlatforms: supportedPlatformData,
                 rules: GetCompletionItemRules(symbols)
-                        .WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default)
-                        .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
+                    .WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default)
+                    .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
         }
 
-        protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
+        protected virtual string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context)
         {
             return (displayText == symbol.Name) ||
                 (displayText.Length > 0 && displayText[0] == '@') ||
@@ -234,11 +247,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 ? displayText
                 : symbol.Name;
         }
-
-        protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
-
-        protected virtual Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
@@ -269,80 +277,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    var inferredTypes = new Lazy<ImmutableArray<ITypeSymbol>>(() =>
-                    {
-                        var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-                        return typeInferenceService.InferTypes(syntaxContext.SemanticModel, position, cancellationToken);
-                    });
+                    var regularItems = await GetItemsAsync(completionContext, syntaxContext, document, position, options, telemetryCounter, cancellationToken).ConfigureAwait(false);
 
-                    var regularItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     completionContext.AddItems(regularItems);
-
-                    // We may or may not want to provide preselected items based on context. For example, C# avoids provide providing preselected items when
-                    // triggered via text insertion in an argument list.
-                    if (await ShouldProvidePreselectedItemsAsync(completionContext, syntaxContext, document, position, inferredTypes, options).ConfigureAwait(false))
-                    {
-                        var preselectedItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
-                        completionContext.AddItems(preselectedItems);
-                    }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
         }
 
-        /// <summary>
-        /// The decision for whether to provide preselected items can be contextual, e.g. based on trigger character and syntax location
-        /// </summary>
-        protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
-            => SpecializedTasks.True;
-
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
-            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect,
-            TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CompletionItem>> GetItemsAsync(
+            CompletionContext completionContext,
+            TSyntaxContext syntaxContext,
+            Document document,
+            int position,
+            OptionSet options,
+            TelemetryCounter telemetryCounter,
+            CancellationToken cancellationToken)
         {
-            var relatedDocumentIds = GetRelatedDocumentIds(document, position);
-
+            var relatedDocumentIds = document.GetLinkedDocumentIds();
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
             {
-                var itemsForCurrentDocument = await GetSymbolsAsync(position, preselect, syntaxContext, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
+                var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
+                return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, telemetryCounter);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbolsAsync(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), cancellationToken).ConfigureAwait(false);
             var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
-        }
-
-        private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
-        {
-            var relatedDocumentIds = document.GetLinkedDocumentIds();
-            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
-            lock (s_cacheGate)
-            {
-                // Invalidate the cache if it's for a different position or a different set of Documents.
-                // It's fairly likely that we'll only have to check the first document, unless someone
-                // specially constructed a Solution with mismatched linked files.
-                if (s_cachedPosition != position ||
-                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out _)))
-                {
-                    s_cachedPosition = position;
-                    foreach (var related in relatedDocuments)
-                    {
-                        s_cachedDocuments.Remove(document);
-                    }
-                }
-            }
-
-            return relatedDocumentIds;
+            return CreateItems(
+                completionContext, symbolToContextMap.Keys.ToImmutableArray(), symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, telemetryCounter);
         }
 
         protected virtual bool IsExclusive()
@@ -351,66 +321,69 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        private Task<ImmutableArray<ISymbol>> GetSymbolsAsync(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
-        {
-            try
-            {
-                return preselect
-                    ? GetPreselectedSymbolsAsync(context, position, options, cancellationToken)
-                    : GetSymbolsAsync(context, position, options, cancellationToken);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private static Dictionary<ISymbol, SyntaxContext> UnionSymbols(
-            ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)> linkedContextSymbolLists)
+        private static Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext> UnionSymbols(
+            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)> linkedContextSymbolLists)
         {
             // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
-            var result = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
+            var result = new Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext>(CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
+                foreach (var symbol in symbols.GroupBy(s => new { s.symbol.Name, s.symbol.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
-                    {
                         result.Add(symbol, syntaxContext);
-                    }
                 }
             }
 
             return result;
         }
 
-        protected async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbolsAsync(
-            Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>> GetPerContextSymbolsAsync(
+            CompletionContext completionContext, Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
         {
-            var perContextSymbols = ArrayBuilder<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>.GetInstance();
+            var solution = document.Project.Solution;
+
+            using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>>.GetInstance(out var tasks);
+            using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>.GetInstance(out var perContextSymbols);
+
             foreach (var relatedDocumentId in relatedDocuments)
             {
-                var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
-
-                if (IsCandidateProject(context, cancellationToken))
+                tasks.Add(Task.Run(async () =>
                 {
-                    var symbols = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                    perContextSymbols.Add((relatedDocument.Id, context, symbols));
-                }
+                    var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                    var syntaxContext = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                    var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
+
+                    return (relatedDocument.Id, syntaxContext, symbols);
+                }, cancellationToken));
             }
 
-            return perContextSymbols.ToImmutableAndFree();
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            foreach (var task in tasks)
+            {
+                var (relatedDocumentId, syntaxContext, symbols) = await task.ConfigureAwait(false);
+                if (!symbols.IsDefault)
+                    perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
+            }
+
+            return perContextSymbols.ToImmutable();
         }
 
-        private static bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
+        /// <summary>
+        /// If current context is in active region, returns available symbols. Otherwise, returns null.
+        /// </summary>
+        protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> TryGetSymbolsForContextAsync(
+            CompletionContext? completionContext, TSyntaxContext syntaxContext, OptionSet options, CancellationToken cancellationToken)
         {
-            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
-            return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
+            var syntaxFacts = syntaxContext.GetLanguageService<ISyntaxFactsService>();
+            return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)
+                ? default
+                : await GetSymbolsAsync(completionContext, syntaxContext, syntaxContext.Position, options, cancellationToken).ConfigureAwait(false);
         }
 
         protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
@@ -423,13 +396,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
-
-        private Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        protected static async Task<TSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            lock (s_cacheGate)
+            var workspace = document.Project.Solution.Workspace;
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return (TSyntaxContext)service.CreateContext(workspace, semanticModel, position, cancellationToken);
+        }
+
+        private static Task<TSyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            lock (s_cachedDocuments)
             {
-                var lazyContext = s_cachedDocuments.GetValue(document, d => new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true));
+                var (cachedPosition, cachedLazyContext) = s_cachedDocuments.GetValue(
+                    document, d => Tuple.Create(position, new AsyncLazy<TSyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
+
+                if (cachedPosition == position)
+                {
+                    return cachedLazyContext.GetValueAsync(cancellationToken);
+                }
+
+                var lazyContext = new AsyncLazy<TSyntaxContext>(ct => CreateContextAsync(document, position, ct), cacheResult: true);
+                s_cachedDocuments.Remove(document);
+                s_cachedDocuments.Add(document, Tuple.Create(position, lazyContext));
                 return lazyContext.GetValueAsync(cancellationToken);
             }
         }
@@ -440,30 +430,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="symbolToContext">The symbols recommended in the active context.</param>
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-        protected static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
-            Dictionary<ISymbol, SyntaxContext> symbolToContext,
-            ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)> linkedContextSymbolLists)
+        private static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+            Dictionary<(ISymbol symbol, bool preselect), TSyntaxContext> symbolToContext,
+            ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)> linkedContextSymbolLists)
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
-                foreach (var missingSymbol in symbolsMissingInLinkedContext)
-                {
-                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
-                }
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, CompletionLinkedFilesSymbolEquivalenceComparer.Instance);
+                foreach (var (symbol, _) in symbolsMissingInLinkedContext)
+                    missingSymbols.GetOrAdd(symbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
             }
 
             return missingSymbols;
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(
-            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(new TextChange(
-                selectedItem.Span, GetInsertionText(selectedItem, ch)));
-        }
+        public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+            => Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, GetInsertionText(selectedItem, ch)));
 
         private string GetInsertionText(CompletionItem item, char? ch)
         {

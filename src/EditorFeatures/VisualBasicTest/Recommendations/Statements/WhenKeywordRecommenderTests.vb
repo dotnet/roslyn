@@ -6,35 +6,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class WhenKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhenAfterCatchBlockTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub WhenAfterCatchBlockTest()
+            VerifyRecommendationsContain(<MethodBody>
 Try
 Catch x As Exception |
 End Try</MethodBody>, "When")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhenAfterCatchBlockWithoutAsTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub WhenAfterCatchBlockWithoutAsTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x
 Try
 Catch x |
 End Try</MethodBody>, "When")
-        End Function
+        End Sub
 
         <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoWhenAfterDimStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
-        End Function
+        Public Sub NoWhenAfterDimStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
+        End Sub
 
         <WorkItem(542803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542803")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoWhenAfterLambdaInExceptionFilterTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NoWhenAfterLambdaInExceptionFilterTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
 Try
 Catch ex As Exception When (Function(e As Exception) As Boolean |
@@ -43,38 +43,38 @@ Catch ex As Exception When (Function(e As Exception) As Boolean |
 End Try
 </MethodBody>,
  "When")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
 Try
 Catch x As Exception 
 |
 End Try</MethodBody>, "When")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>
 Try
 Catch x As Exception _
 |
 End Try</MethodBody>, "When")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>
 Try
 Catch x As Exception _ ' Test
 |
 End Try</MethodBody>, "When")
-        End Function
+        End Sub
     End Class
 End Namespace

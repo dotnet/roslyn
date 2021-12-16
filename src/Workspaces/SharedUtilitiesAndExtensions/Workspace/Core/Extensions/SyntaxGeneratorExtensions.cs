@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -58,10 +61,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(type);
-            return factory.MemberAccessExpression(
-                factory.TypeExpression(constructedType),
-                factory.IdentifierName(DefaultName));
+            var typeExpression = equalityComparerType == null
+                ? factory.GenericName(nameof(EqualityComparer<int>), type)
+                : factory.TypeExpression(equalityComparerType.Construct(type));
+
+            return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
@@ -72,11 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => compilation.GetSpecialType(SpecialType.System_Object),
             };
 
-#if !CODE_STYLE
-
-        public static SyntaxNode IsPatternExpression(this SyntaxGenerator generator, SyntaxNode expression, SyntaxNode pattern)
+        public static SyntaxNode IsPatternExpression(this SyntaxGeneratorInternal generator, SyntaxNode expression, SyntaxNode pattern)
             => generator.IsPatternExpression(expression, isToken: default, pattern);
-
-#endif
     }
 }

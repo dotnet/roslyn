@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal OptionsCollection RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.OtherBinaryParentheses);
 
-        private IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
+        private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions2.OtherParentheses);
 
         internal OptionsCollection IgnoreAllParentheses

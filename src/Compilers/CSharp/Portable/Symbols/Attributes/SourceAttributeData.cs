@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection.Metadata;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SourceAttributeData : CSharpAttributeData
     {
-        private readonly NamedTypeSymbol? _attributeClass;
-        private readonly MethodSymbol? _attributeConstructor; // Only null when error. Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+        private readonly NamedTypeSymbol _attributeClass;
+        private readonly MethodSymbol? _attributeConstructor;
         private readonly ImmutableArray<TypedConstant> _constructorArguments;
         private readonly ImmutableArray<int> _constructorArgumentsSourceIndices;
         private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceAttributeData(
             SyntaxReference? applicationNode,
-            NamedTypeSymbol? attributeClass,
+            NamedTypeSymbol attributeClass,
             MethodSymbol? attributeConstructor,
             ImmutableArray<TypedConstant> constructorArguments,
             ImmutableArray<int> constructorArgumentsSourceIndices,
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        public override NamedTypeSymbol? AttributeClass
+        public override NamedTypeSymbol AttributeClass
         {
             get
             {
@@ -161,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
@@ -169,12 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal protected sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get { return _constructorArguments; }
         }
 
-        internal protected sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal sealed override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get { return _namedArguments; }
         }

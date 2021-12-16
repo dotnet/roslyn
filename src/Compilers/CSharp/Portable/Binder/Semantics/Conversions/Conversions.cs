@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,13 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            var (methodSymbol, isFunctionPointer) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
+            var (methodSymbol, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
             if ((object)methodSymbol == null)
             {
                 return Conversion.NoConversion;
             }
 
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, ((NamedTypeSymbol)destination).DelegateInvokeMethod.ParameterCount);
@@ -62,7 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, destination.Signature, isFunctionPointer: true, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(
+                _binder,
+                source,
+                destination.Signature,
+                isFunctionPointer: true,
+                new CallingConventionInfo(destination.Signature.CallingConvention, destination.Signature.GetCallingConventionModifiers()),
+                ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);
@@ -83,15 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Resolve method group based on the optional delegate invoke method.
         /// If the invoke method is null, ignore arguments in resolution.
         /// </summary>
-        private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, in CallingConventionInfo callingConventionInfo, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
+                GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
                     isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
-                    isFunctionPointerResolution: isFunctionPointer, callingConvention: delegateInvokeMethodOpt.CallingConvention);
+                    isFunctionPointerResolution: isFunctionPointer, callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
                 return resolution;
             }
@@ -105,33 +113,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the Invoke method symbol if the type is a delegate
         /// type and the Invoke method is available, otherwise null.
         /// </summary>
-        private static (MethodSymbol, bool isFunctionPointer) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
+        private static (MethodSymbol, bool isFunctionPointer, CallingConventionInfo callingConventionInfo) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
         {
             if (type is FunctionPointerTypeSymbol { Signature: { } signature })
             {
-                return (signature, true);
+                return (signature, true, new CallingConventionInfo(signature.CallingConvention, signature.GetCallingConventionModifiers()));
             }
 
             var delegateType = type.GetDelegateType();
             if ((object)delegateType == null)
             {
-                return (null, false);
+                return (null, false, default);
             }
 
             MethodSymbol methodSymbol = delegateType.DelegateInvokeMethod;
             if ((object)methodSymbol == null || methodSymbol.HasUseSiteError)
             {
-                return (null, false);
+                return (null, false, default);
             }
 
-            return (methodSymbol, false);
+            return (methodSymbol, false, default);
         }
 
         public static bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
-            var (invokeMethodOpt, isFunctionPointer) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
+            var (invokeMethodOpt, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, callingConventionInfo, ref useSiteDiagnostics);
             diagnostics.Add(expr.Syntax, useSiteDiagnostics);
 
             bool hasErrors = resolution.HasAnyErrors;
@@ -221,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)delegateInvokeMethod != null && !delegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
-            GetDelegateArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
+            GetDelegateOrFunctionPointerArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
@@ -239,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        public static void GetDelegateArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
+        public static void GetDelegateOrFunctionPointerArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
         {
             foreach (var p in delegateParameters)
             {

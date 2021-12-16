@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -27,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions:
@@ -45,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => text[characterPosition] == '.';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -58,14 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
-                var syntaxTree = semanticModel.SyntaxTree;
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                    semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
+                    syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
                 {
                     return;
                 }
@@ -83,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Bind the interface name which is to the left of the dot
                 var name = specifierNode.Name;
 
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
                 if (symbol?.TypeKind != TypeKind.Interface)
                     return;
@@ -116,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

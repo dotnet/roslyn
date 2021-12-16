@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -90,16 +92,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private static async Task<Solution> CreateChangedSolutionAsync(AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CancellationToken cancellationToken)
             {
                 var currentSolution = triggerProject.Solution;
-                foreach (var kvp in diagnosticsByProject)
+                foreach (var (oldProject, diagnostics) in diagnosticsByProject)
                 {
-                    var oldProject = kvp.Key;
                     var currentProject = currentSolution.GetProject(oldProject.Id);
                     var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var suppressMessageAttribute = compilation.SuppressMessageAttributeType();
 
                     if (suppressMessageAttribute != null)
                     {
-                        var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(oldProject, kvp.Value, cancellationToken).ConfigureAwait(false);
+                        var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
                         if (diagnosticsBySymbol.Any())
                         {
                             var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(
@@ -124,11 +125,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
 
-                foreach (var kvp in _diagnosticsBySymbol)
+                foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
                 {
-                    var targetSymbol = kvp.Key;
-                    var diagnostics = kvp.Value;
-
                     foreach (var diagnostic in diagnostics)
                     {
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
@@ -146,10 +144,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private static async Task<IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>> CreateDiagnosticsBySymbolAsync(AbstractSuppressionCodeFixProvider fixer, IEnumerable<KeyValuePair<Document, ImmutableArray<Diagnostic>>> diagnosticsByDocument, CancellationToken cancellationToken)
             {
                 var diagnosticsMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, List<Diagnostic>>();
-                foreach (var kvp in diagnosticsByDocument)
+                foreach (var (document, diagnostics) in diagnosticsByDocument)
                 {
-                    var document = kvp.Key;
-                    var diagnostics = kvp.Value;
                     foreach (var diagnostic in diagnostics)
                     {
                         Contract.ThrowIfFalse(diagnostic.Location.IsInSource);
@@ -207,10 +203,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
-                foreach (var kvp in diagnosticsMapBuilder)
-                {
-                    builder.Add(KeyValuePairUtil.Create(kvp.Key, GetUniqueDiagnostics(kvp.Value)));
-                }
+                foreach (var (symbol, diagnostics) in diagnosticsMapBuilder)
+                    builder.Add(KeyValuePairUtil.Create(symbol, GetUniqueDiagnostics(diagnostics)));
 
                 return builder.OrderBy(kvp => kvp.Key.GetDocumentationCommentId() ?? string.Empty);
             }

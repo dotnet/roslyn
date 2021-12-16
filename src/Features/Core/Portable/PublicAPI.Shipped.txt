@@ -85,6 +85,7 @@ Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Remove = 1 -> Mic
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Replace = 2 -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Characters.get -> System.Collections.Immutable.ImmutableArray<char>
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.CharacterSetModificationRule() -> void
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Kind.get -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
 Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.IncludesCommitCharacter.get -> bool
@@ -187,6 +188,7 @@ Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProviders(Sy
 Microsoft.CodeAnalysis.Completion.CompletionTags
 Microsoft.CodeAnalysis.Completion.CompletionTrigger
 Microsoft.CodeAnalysis.Completion.CompletionTrigger.Character.get -> char
+Microsoft.CodeAnalysis.Completion.CompletionTrigger.CompletionTrigger() -> void
 Microsoft.CodeAnalysis.Completion.CompletionTrigger.Kind.get -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Deletion = 2 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
@@ -226,6 +228,7 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
 Microsoft.CodeAnalysis.TaggedText
 Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
+Microsoft.CodeAnalysis.TaggedText.TaggedText() -> void
 Microsoft.CodeAnalysis.TaggedText.TaggedText(string tag, string text) -> void
 Microsoft.CodeAnalysis.TaggedText.Text.get -> string
 Microsoft.CodeAnalysis.TextTags
@@ -245,8 +248,8 @@ static Microsoft.CodeAnalysis.Completion.CompletionDescription.Create(System.Col
 static Microsoft.CodeAnalysis.Completion.CompletionDescription.FromText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null, string displayTextPrefix = null, string displayTextSuffix = null, string inlineDescription = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
-static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules, string displayTextPrefix, string displayTextSuffix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules, string displayTextPrefix, string displayTextSuffix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>), Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule = Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default, bool formatOnCommit = false, int? matchPriority = null, Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior selectionBehavior = Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.Default) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules, Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule, bool formatOnCommit, int? matchPriority) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionItemRules

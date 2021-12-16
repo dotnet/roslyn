@@ -12,7 +12,7 @@ Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundMethodGroup
+    Partial Friend Class BoundMethodGroup
 
         Public Sub New(
             syntax As SyntaxNode,

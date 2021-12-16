@@ -17,5 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
                 SyntaxKind.CatchStatement,
                 SyntaxKind.Parameter,
                 SyntaxKind.TypeParameter)
+
+        Protected Overrides Function ShouldIgnore(symbol As ISymbol) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Fix_all_0_in_1">
         <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">{1}' içinde geçtiği her yerde '{0}' ifadesini düzelt</target>
+        <target state="translated">'{1}' içinde geçtiği her yerde '{0}' ifadesini düzelt</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">

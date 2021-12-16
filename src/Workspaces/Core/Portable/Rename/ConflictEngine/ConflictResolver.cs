@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -52,21 +50,18 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.RunRemoteAsync<SerializableConflictResolution?>(
-                        WellKnownServiceHubService.CodeAnalysis,
-                        nameof(IRemoteRenamer.ResolveConflictsAsync),
+                    var serializableLocationSet = renameLocationSet.Dehydrate(solution, cancellationToken);
+                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
+
+                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
-                        new object?[]
-                        {
-                            renameLocationSet.Dehydrate(solution, cancellationToken),
-                            replacementText,
-                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                        },
-                        callbackTarget: null,
+                        (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result != null)
-                        return await result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue && result.Value != null)
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                 }
             }
 
@@ -295,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 // A NullReferenceException is happening in this method, but the dumps do not
                 // contain information about this stack frame because this method is async and
@@ -340,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 if (symbol.IsOverride)
                 {
-                    var overriddenSymbol = symbol.OverriddenMember();
+                    var overriddenSymbol = symbol.GetOverriddenMember();
 
                     if (overriddenSymbol != null)
                     {

@@ -22,14 +22,19 @@
         <target state="translated">名前の違反を修正します: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">次の場所のすべての出現箇所を修正します</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">冗長な代入を削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_suppression">
-        <source>Remove redundant suppression</source>
-        <target state="translated">冗長な抑制の削除</target>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">問題の抑制または構成</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

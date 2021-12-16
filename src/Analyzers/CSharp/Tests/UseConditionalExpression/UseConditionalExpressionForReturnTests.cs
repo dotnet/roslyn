@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,11 +13,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
     public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForReturnCodeFixProvider());
@@ -571,8 +579,10 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion2_Throw1()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [InlineData(LanguageVersion.CSharp8, "(string)null")]
+        [InlineData(LanguageVersion.CSharp9, "null")]
+        public async Task TestConversion2_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
         {
             await TestInRegularAndScript1Async(
 @"
@@ -595,9 +605,9 @@ class C
 {
     string M()
     {
-        return true ? throw new System.Exception() : (string)null;
+        return true ? throw new System.Exception() : " + expectedFalseExpression + @";
     }
-}");
+}", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
@@ -630,8 +640,10 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion3()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [InlineData(LanguageVersion.CSharp8, "(string)null")]
+        [InlineData(LanguageVersion.CSharp9, "null")]
+        public async Task TestConversion3(LanguageVersion languageVersion, string expectedFalseExpression)
         {
             await TestInRegularAndScript1Async(
 @"
@@ -654,14 +666,16 @@ class C
 {
     string M()
     {
-        return true ? null : (string)null;
+        return true ? null : " + expectedFalseExpression + @";
     }
-}");
+}", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion3_Throw1()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [InlineData(LanguageVersion.CSharp8, "(string)null")]
+        [InlineData(LanguageVersion.CSharp9, "null")]
+        public async Task TestConversion3_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
         {
             await TestInRegularAndScript1Async(
 @"
@@ -684,14 +698,16 @@ class C
 {
     string M()
     {
-        return true ? throw new System.Exception() : (string)null;
+        return true ? throw new System.Exception() : " + expectedFalseExpression + @";
     }
-}");
+}", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversion3_Throw2()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [InlineData(LanguageVersion.CSharp8, "(string)null")]
+        [InlineData(LanguageVersion.CSharp9, "null")]
+        public async Task TestConversion3_Throw2(LanguageVersion languageVersion, string expectedTrue)
         {
             await TestInRegularAndScript1Async(
 @"
@@ -714,9 +730,9 @@ class C
 {
     string M()
     {
-        return true ? (string)null : throw new System.Exception();
+        return true ? " + expectedTrue + @" : throw new System.Exception();
     }
-}");
+}", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]

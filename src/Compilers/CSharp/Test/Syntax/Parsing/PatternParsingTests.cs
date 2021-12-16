@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1922,12 +1924,12 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,19): error CS8370: Feature 'parenthesized pattern' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(((x: 3)))").WithArguments("parenthesized pattern").WithLocation(1, 19),
-                // (1,20): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("parenthesized pattern", "9.0").WithLocation(1, 19),
+                // (1,20): error CS8370: Feature 'parenthesized pattern' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "((x: 3))").WithArguments("parenthesized pattern").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "((x: 3))").WithArguments("parenthesized pattern", "9.0").WithLocation(1, 20)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -8087,9 +8089,9 @@ switch (e)
         public void PatternCombinators_01()
         {
             UsingStatement("_ = e is a or b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'or pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is a or b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a or b").WithArguments("or pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8136,9 +8138,9 @@ switch (e)
         public void PatternCombinators_02()
         {
             UsingStatement("_ = e is a and b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'and pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is a and b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a and b").WithArguments("and pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a and b").WithArguments("and pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8185,9 +8187,9 @@ switch (e)
         public void PatternCombinators_03()
         {
             UsingStatement("_ = e is not b;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is not b;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not b").WithArguments("not pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not b").WithArguments("not pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8227,9 +8229,9 @@ switch (e)
         public void PatternCombinators_04()
         {
             UsingStatement("_ = e is not null;", TestOptions.RegularWithoutPatternCombinators,
-                // (1,10): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // _ = e is not null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("not pattern").WithLocation(1, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(1, 10)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8276,18 +8278,18 @@ switch (e)
     not null => 4,
 };",
                 TestOptions.RegularWithoutPatternCombinators,
-                // (2,5): error CS8652: The feature 'or pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,5): error CS8400: Feature 'or pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     a or b => 1,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a or b").WithArguments("or pattern").WithLocation(2, 5),
-                // (3,5): error CS8652: The feature 'and pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "a or b").WithArguments("or pattern", "9.0").WithLocation(2, 5),
+                // (3,5): error CS8400: Feature 'and pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     c and d => 2,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c and d").WithArguments("and pattern").WithLocation(3, 5),
-                // (4,5): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "c and d").WithArguments("and pattern", "9.0").WithLocation(3, 5),
+                // (4,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not e => 3,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not e").WithArguments("not pattern").WithLocation(4, 5),
-                // (5,5): error CS8652: The feature 'not pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not e").WithArguments("not pattern", "9.0").WithLocation(4, 5),
+                // (5,5): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     not null => 4,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "not null").WithArguments("not pattern").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "not null").WithArguments("not pattern", "9.0").WithLocation(5, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8421,24 +8423,24 @@ switch (e)
     != 5 => 5,
 };",
                 TestOptions.RegularWithoutPatternCombinators,
-                // (2,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     < 0 => 0,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "< 0").WithArguments("relational pattern").WithLocation(2, 5),
-                // (3,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "< 0").WithArguments("relational pattern", "9.0").WithLocation(2, 5),
+                // (3,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     <= 1 => 1,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<= 1").WithArguments("relational pattern").WithLocation(3, 5),
-                // (4,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "<= 1").WithArguments("relational pattern", "9.0").WithLocation(3, 5),
+                // (4,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     > 2 => 2,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "> 2").WithArguments("relational pattern").WithLocation(4, 5),
-                // (5,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "> 2").WithArguments("relational pattern", "9.0").WithLocation(4, 5),
+                // (5,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     >= 3 => 3,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">= 3").WithArguments("relational pattern").WithLocation(5, 5),
-                // (6,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">= 3").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
+                // (6,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "== 4").WithArguments("relational pattern").WithLocation(6, 5),
-                // (7,5): error CS8652: The feature 'relational pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "== 4").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
+                // (7,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!= 5").WithArguments("relational pattern").WithLocation(7, 5)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!= 5").WithArguments("relational pattern", "9.0").WithLocation(7, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -9924,79 +9926,61 @@ switch (e)
         public void PrecedenceInversionWithBlockLambda()
         {
             UsingExpression("() => {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,10): error CS1073: Unexpected token '+'
+                // (1,10): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // () => {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 10)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 10)
                 );
-            verify();
-
-            UsingExpression("()=>{} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
         public void PrecedenceInversionWithAnonymousMethod()
         {
             UsingExpression("delegate {} + d",
-                TestOptions.Regular.WithStrictFeature(),
-                // (1,13): error CS1073: Unexpected token '+'
+                // (1,13): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
                 // delegate {} + d
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "+").WithArguments("+").WithLocation(1, 13)
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(1, 13)
                 );
-            verify();
-
-            UsingExpression("delegate {} + d");
-            verify();
-
-            void verify()
+            N(SyntaxKind.AddExpression);
             {
-                N(SyntaxKind.AddExpression);
+                N(SyntaxKind.AnonymousMethodExpression);
                 {
-                    N(SyntaxKind.AnonymousMethodExpression);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                EOF();
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
             }
+            EOF();
         }
 
         [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
@@ -11064,6 +11048,823 @@ switch (e)
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
+        public void IncompleteTuplePatternInPropertySubpattern()
+        {
+            var source = @"_ = this is Program { P1: (1,  }";
+            var expectedErrors = new[]
+            {
+                // (1,32): error CS1026: ) expected
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 32),
+                // (1,33): error CS1002: ; expected
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
+            };
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.ThisExpression);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Program");
+                                }
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.Subpattern);
+                                    {
+                                        N(SyntaxKind.NameColon);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "P1");
+                                            }
+                                            N(SyntaxKind.ColonToken);
+                                        }
+                                        N(SyntaxKind.RecursivePattern);
+                                        {
+                                            N(SyntaxKind.PositionalPatternClause);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Subpattern);
+                                                {
+                                                    N(SyntaxKind.ConstantPattern);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralExpression);
+                                                        {
+                                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(45757, "https://github.com/dotnet/roslyn/issues/45757")]
+        public void IncompleteTuplePattern()
+        {
+            var source = @"_ = i is (1,   }";
+            var expectedErrors = new[]
+            {
+                // (1,1): error CS1073: Unexpected token '}'
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = i is (1,   ").WithArguments("}").WithLocation(1, 1),
+                // (1,16): error CS1026: ) expected
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 16)
+            };
+            UsingStatement(source,
+                TestOptions.RegularWithPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+            UsingStatement(source,
+                TestOptions.RegularWithoutPatternCombinators,
+                expectedErrors
+                );
+            verifyTree();
+
+            void verifyTree()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PositionalPatternClause);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Subpattern);
+                                    {
+                                        N(SyntaxKind.ConstantPattern);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(47614, "https://github.com/dotnet/roslyn/issues/47614")]
+        public void GenericTypeAsTypePatternInSwitchExpression()
+        {
+            UsingStatement(@"_ = e switch { List<X> => 1, List<Y> => 2, };",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchExpression_PredefinedType()
+        {
+            UsingStatement(@"_ = e switch { int? => 1 };",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchStatement_PredefinedType()
+        {
+            UsingStatement(@"switch(a) { case int?: break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchExpression_PredefinedType_Parenthesized()
+        {
+            UsingStatement(@"_ = e switch { (int?) => 1 };",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.NullableType);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchStatement_PredefinedType_Parenthesized()
+        {
+            UsingStatement(@"switch(a) { case (int?): break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchExpression()
+        {
+            UsingStatement(@"_ = e switch { a? => 1 };",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchStatement()
+        {
+            UsingStatement(@"switch(a) { case a?: break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchExpression_Parenthesized()
+        {
+            UsingStatement(@"_ = e switch { (a?) => 1 };",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.NullableType);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypeAsTypePatternInSwitchStatement_Parenthesized()
+        {
+            UsingStatement(@"switch(a) { case (a?): break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAsConstantPatternInSwitchExpression()
+        {
+            UsingStatement(@"_ = e switch { (a?x:y) => 1 };",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.ConditionalExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAsConstantPatternInSwitchStatement()
+        {
+            UsingStatement(@"switch(a) { case a?x:y: break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalAsConstantPatternInSwitchStatement_Parenthesized()
+        {
+            UsingStatement(@"switch(a) { case (a?x:y): break; }",
+                TestOptions.RegularWithPatternCombinators
+            );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.ConditionalExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.ColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
     }
 }
