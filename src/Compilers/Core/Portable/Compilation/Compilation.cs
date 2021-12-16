@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets all types with the compilation's assembly and all referenced assemblies that have the
-        /// given canonical CLR metadta name.
+        /// given canonical CLR metadata name.
         /// </summary>
         /// <returns>Empty array if no types match. Otherwise, all types that match the name, current assembly first if present.</returns>
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
