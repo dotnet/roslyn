@@ -4,18 +4,21 @@
 
 #nullable disable
 
+using System;
 using System.Xml.Serialization;
 
 namespace CSharpSyntaxGenerator
 {
-    public class Kind
+    public class Kind : IEquatable<Kind>
     {
         [XmlAttribute]
         public string Name;
 
         public override bool Equals(object obj)
-            => obj is Kind kind &&
-               Name == kind.Name;
+            => Equals(obj as Kind);
+
+        public bool Equals(Kind other)
+            => Name == other?.Name;
 
         public override int GetHashCode()
             => Name.GetHashCode();
