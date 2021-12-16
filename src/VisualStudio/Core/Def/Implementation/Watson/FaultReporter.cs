@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FaultReporter
     {
-        private static Dictionary<string, string>? s_capturedFileContent;
-
         private static readonly object _guard = new();
         private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
         private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
@@ -238,23 +236,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
 
             return paths;
-        }
-
-        private static void CaptureFilesInMemory(IEnumerable<string> paths)
-        {
-            s_capturedFileContent = new Dictionary<string, string>();
-
-            foreach (var path in paths)
-            {
-                try
-                {
-                    s_capturedFileContent[path] = File.ReadAllText(path);
-                }
-                catch
-                {
-                    // ignore file that can't be read
-                }
-            }
         }
     }
 }
