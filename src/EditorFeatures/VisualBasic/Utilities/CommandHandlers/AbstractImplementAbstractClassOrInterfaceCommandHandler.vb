@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -39,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
         Protected MustOverride Overloads Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
@@ -106,6 +104,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         End Function
 
         Private Overloads Function TryExecute(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
+            Dim text = textSnapshot.AsText()
+
+            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            If document Is Nothing Then
+                Return False
+            End If
+
             If Not _globalOptions.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
                 Return False
             End If
@@ -120,15 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
-            If document Is Nothing Then
-                Return False
-            End If
-
             Dim syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim token = syntaxRoot.FindTokenOnLeftOfPosition(caretPosition)
-            Dim text = textSnapshot.AsText()
 
             If text.Lines.IndexOf(token.SpanStart) <> text.Lines.IndexOf(caretPosition) Then
                 Return False
@@ -163,8 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim options = ImplementTypeOptions.From(document.Project)
-            Dim newDocument = TryGetNewDocument(document, options, identifier, cancellationToken)
+            Dim newDocument = TryGetNewDocument(document, identifier, cancellationToken)
 
             If newDocument Is Nothing Then
                 Return False

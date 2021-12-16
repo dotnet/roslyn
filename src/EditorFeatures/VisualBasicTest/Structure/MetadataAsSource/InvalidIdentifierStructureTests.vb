@@ -30,9 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
 
         Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.GetLanguageService(Of BlockStructureService)()
-            Dim options = BlockStructureOptions.From(document.Project)
 
-            Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
+            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans
         End Function
 
         <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>

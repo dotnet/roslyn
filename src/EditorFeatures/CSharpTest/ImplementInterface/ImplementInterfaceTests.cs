@@ -7287,7 +7287,7 @@ class Class : IInterface
 }",
                 Options =
                 {
-                    { ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd },
+                    { ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd },
                 },
             }.RunAsync();
         }
@@ -7462,7 +7462,7 @@ class Class : IInterface
 }",
                 Options =
                 {
-                    { ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties },
+                    { ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties },
                 },
             }.RunAsync();
         }
