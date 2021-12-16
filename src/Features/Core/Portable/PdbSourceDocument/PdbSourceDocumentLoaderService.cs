@@ -26,24 +26,28 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// binaries to be eagerly loaded even if they are never used.
         /// </summary>
         private readonly Lazy<ISourceLinkService?> _sourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbSourceDocumentLoaderService([Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService)
+        public PdbSourceDocumentLoaderService(
+            [Import(AllowDefault = true)] Lazy<ISourceLinkService?> sourceLinkService,
+            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _sourceLinkService = sourceLinkService;
+            _logger = logger;
         }
 
-        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
-            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry, logger) ??
-                TryGetOriginalFile(sourceDocument, encoding, telemetry, logger) ??
-                await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, logger, cancellationToken).ConfigureAwait(false);
+            return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry) ??
+                TryGetOriginalFile(sourceDocument, encoding, telemetry) ??
+                await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, cancellationToken).ConfigureAwait(false);
         }
 
-        private static SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger)
+        private SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
         {
             if (sourceDocument.EmbeddedTextBytes is null)
                 return null;
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false) is { } existing)
             {
                 telemetry.SetSourceFileSource("embedded");
-                logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
+                _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
                 return existing;
             }
 
@@ -99,7 +103,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                     catch (IOException ex)
                     {
-                        logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
+                        _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
                         return null;
                     }
                 }
@@ -108,11 +112,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("embedded");
-                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
+                    _logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
                 }
                 else
                 {
-                    logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
+                    _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
                 }
 
                 return result;
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
             if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
                 return null;
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var relativePath = Path.GetFileName(sourceDocument.FilePath);
 
             var delay = Task.Delay(SourceLinkTimeout, cancellationToken);
-            var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, logger, cancellationToken);
+            var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, cancellationToken);
 
             var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
 
@@ -144,11 +148,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     if (result is not null)
                     {
                         telemetry.SetSourceFileSource("sourcelink");
-                        logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
+                        _logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
                     }
                     else
                     {
-                        logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
+                        _logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
                     }
 
                     return result;
@@ -156,14 +160,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 else
                 {
                     telemetry.SetSourceFileSource("timeout");
-                    logger?.Log(FeaturesResources.Timeout_SourceLink);
+                    _logger?.Log(FeaturesResources.Timeout_SourceLink);
                 }
             }
 
             return null;
         }
 
-        private static SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger)
+        private SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
         {
             if (File.Exists(sourceDocument.FilePath))
             {
@@ -171,11 +175,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("ondisk");
-                    logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
+                    _logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
                 }
                 else
                 {
-                    logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
+                    _logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
                 }
 
                 return result;

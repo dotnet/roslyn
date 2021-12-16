@@ -21,15 +21,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private const int SymbolLocatorTimeout = 2000;
 
         private readonly ISourceLinkService? _sourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
-        public PdbFileLocatorService([Import(AllowDefault = true)] ISourceLinkService? sourceLinkService)
+        public PdbFileLocatorService(
+            [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
+            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _sourceLinkService = sourceLinkService;
+            _logger = logger;
         }
 
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
@@ -48,12 +52,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     if (pdbFilePath is null)
                     {
                         telemetry.SetPdbSource("embedded");
-                        logger?.Log(FeaturesResources.Found_embedded_PDB_file);
+                        _logger?.Log(FeaturesResources.Found_embedded_PDB_file);
                     }
                     else
                     {
                         telemetry.SetPdbSource("ondisk");
-                        logger?.Log(FeaturesResources.Found_PDB_file_at_0, pdbFilePath);
+                        _logger?.Log(FeaturesResources.Found_PDB_file_at_0, pdbFilePath);
                     }
 
                     result = new DocumentDebugInfoReader(peReader, pdbReaderProvider);
@@ -63,13 +67,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     if (_sourceLinkService is null)
                     {
-                        logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded);
+                        _logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded);
                     }
                     else
                     {
                         var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                         // Call the debugger to find the PDB from a symbol server etc.
-                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, logger, cancellationToken);
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, cancellationToken);
 
                         var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 
@@ -84,22 +88,22 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                                     var readerProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
                                     telemetry.SetPdbSource("symbolserver");
                                     result = new DocumentDebugInfoReader(peReader, readerProvider);
-                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
+                                    _logger?.Log(FeaturesResources.Found_PDB_on_symbol_server);
                                 }
                                 else
                                 {
-                                    logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_could_not_read_file);
+                                    _logger?.Log(FeaturesResources.Found_PDB_on_symbol_server_but_could_not_read_file);
                                 }
                             }
                             else
                             {
-                                logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded_or_server);
+                                _logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded_or_server);
                             }
                         }
                         else
                         {
                             telemetry.SetPdbSource("timeout");
-                            logger?.Log(FeaturesResources.Timeout_symbol_server);
+                            _logger?.Log(FeaturesResources.Timeout_symbol_server);
                         }
                     }
                 }
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             catch (BadImageFormatException ex)
             {
                 // If the PDB is corrupt in some way we can just ignore it, and let the system fall through to another provider
-                logger?.Log(FeaturesResources.Error_reading_PDB_0, ex.Message);
+                _logger?.Log(FeaturesResources.Error_reading_PDB_0, ex.Message);
                 result = null;
             }
             finally

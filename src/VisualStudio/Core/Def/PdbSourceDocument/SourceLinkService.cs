@@ -21,16 +21,21 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
     {
         private readonly IDebuggerSymbolLocatorService _debuggerSymbolLocatorService;
         private readonly IDebuggerSourceLinkService _debuggerSourceLinkService;
+        private readonly IPdbSourceDocumentLogger? _logger;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SourceLinkService(IDebuggerSymbolLocatorService debuggerSymbolLocatorService, IDebuggerSourceLinkService debuggerSourceLinkService)
+        public SourceLinkService(
+            IDebuggerSymbolLocatorService debuggerSymbolLocatorService,
+            IDebuggerSourceLinkService debuggerSourceLinkService,
+            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _debuggerSymbolLocatorService = debuggerSymbolLocatorService;
             _debuggerSourceLinkService = debuggerSourceLinkService;
+            _logger = logger;
         }
 
-        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken)
         {
             var hasCodeViewEntry = false;
             uint timeStamp = 0;
@@ -70,18 +75,18 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             {
                 return new PdbFilePathResult(result.SymbolFilePath);
             }
-            else if (logger is not null)
+            else if (_logger is not null)
             {
                 // We log specific info from the debugger if there is a failure, but the caller will log general failure
                 // information otherwise
-                logger.Log(result.Status);
-                logger.Log(result.Log);
+                _logger.Log(result.Status);
+                _logger.Log(result.Log);
             }
 
             return null;
         }
 
-        public async Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public async Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
         {
             var result = await _debuggerSourceLinkService.GetSourceLinkAsync(url, relativePath, allowInteractiveLogin: false, cancellationToken).ConfigureAwait(false);
 
@@ -89,11 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             {
                 return new SourceFilePathResult(result.Path);
             }
-            else if (logger is not null && result.Log is not null)
+            else if (_logger is not null && result.Log is not null)
             {
                 // We log specific info from the debugger if there is a failure, but the caller will log general failure
                 // information otherwise.
-                logger.Log(result.Log);
+                _logger.Log(result.Log);
             }
 
             return null;
