@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">Une arborescence de l'expression ne peut pas contenir de modèle d'accès à l'indexeur System.Index ou System.Range</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -829,7 +829,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Les sauts de ligne ne sont pas autorisés à l’intérieur d’une chaîne interpolée non textuelle</target>
+        <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1459,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Le paramètre {0} se produit après {1} dans la liste de paramètres, mais est utilisé en tant qu’argument pour les conversions de gestionnaire de chaîne interpolées. Cela demande à l’appelant de réorganiser les paramètres avec des arguments nommés sur le site d’appel. Envisagez de placer le paramètre de gestionnaire de chaîne interpolé après tous les arguments concernés.</target>
+        <target state="new">Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
