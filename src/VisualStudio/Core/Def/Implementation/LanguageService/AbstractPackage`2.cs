@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -40,6 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await TaskScheduler.Default;
+            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(false);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -106,11 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                if (_componentModel_doNotAccessDirectly == null)
-                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
-
+                Contract.ThrowIfNull(_componentModel_doNotAccessDirectly);
                 return _componentModel_doNotAccessDirectly;
             }
         }
