@@ -928,6 +928,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Indices, "Indices", logElementCount: true);
         }
 
+        public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
+        {
+            LogString(nameof(IImplicitIndexerReferenceOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Instance, "Instance");
+            Visit(operation.Argument, "Argument");
+
+            Indent();
+            LogSymbol(operation.LengthSymbol, $"{nameof(operation.LengthSymbol)}");
+            LogNewLine();
+
+            LogSymbol(operation.IndexerSymbol, $"{nameof(operation.IndexerSymbol)}");
+            LogNewLine();
+            Unindent();
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             LogString(nameof(IPointerIndirectionReferenceOperation));

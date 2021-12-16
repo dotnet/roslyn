@@ -22,12 +22,21 @@ namespace Microsoft.CodeAnalysis.Rename
         public static Option<bool> PreviewChanges { get; } = new Option<bool>(nameof(RenameOptions), nameof(PreviewChanges), defaultValue: false);
     }
 
-    internal readonly record struct RenameOptionSet(
-        bool RenameOverloads,
-        bool RenameInStrings,
-        bool RenameInComments,
-        bool RenameFile)
+    internal struct RenameOptionSet
     {
+        public readonly bool RenameOverloads;
+        public readonly bool RenameInStrings;
+        public readonly bool RenameInComments;
+        public readonly bool RenameFile;
+
+        public RenameOptionSet(bool renameOverloads, bool renameInStrings, bool renameInComments, bool renameFile)
+        {
+            RenameOverloads = renameOverloads;
+            RenameInStrings = renameInStrings;
+            RenameInComments = renameInComments;
+            RenameFile = renameFile;
+        }
+
         internal static RenameOptionSet From(Solution solution)
             => From(solution, options: null);
 

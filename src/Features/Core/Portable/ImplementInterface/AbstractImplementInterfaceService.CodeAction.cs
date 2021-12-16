@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private readonly bool _onlyRemaining;
             protected readonly ISymbol ThroughMember;
             protected readonly Document Document;
-            protected readonly ImplementTypeOptions Options;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
             private readonly string _equivalenceKey;
@@ -40,7 +39,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
@@ -49,7 +47,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 Service = service;
                 Document = document;
-                Options = options;
                 State = state;
                 Abstractly = abstractly;
                 _onlyRemaining = onlyRemaining;
@@ -61,47 +58,42 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state,
                 ISymbol throughMember)
             {
-                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public override string Title
@@ -197,15 +189,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, Options.PropertyGenerationBehavior);
+                    compilation, unimplementedMembers, propertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
                 // matters, so we don't want to much with them.
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
                 var groupMembers = !isComImport &&
-                    Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                    insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 return await CodeGenerator.AddMemberDeclarationsAsync(
                     result.Project.Solution, classOrStructType,
