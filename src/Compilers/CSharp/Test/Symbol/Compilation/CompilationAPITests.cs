@@ -3036,5 +3036,213 @@ System.Action a = () => { return; };
         }
 
         #endregion
+
+        #region GetTypesByMetadataName Tests
+
+        [Fact]
+        public void GetTypesByMetadataName_NotInSourceNotInReferences()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+            Assert.Empty(types);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_MultipleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics(
+                // (3,16): error CS0101: The namespace 'N' already contains a definition for 'C'
+                // internal class C<T> {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "N").WithLocation(3, 8 + accessibility.Length)
+            );
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Equal(2, types[0].Locations.Length);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = $@"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(source, new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+            if (useMetadataReference)
+            {
+                Assert.Same(referenceComp.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
+            }
+            else
+            {
+                Assert.False(types[1].IsInSource());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            if (useMetadataReference)
+            {
+                Assert.Same(referenceComp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            }
+            else
+            {
+                Assert.False(types[0].IsInSource());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", new[] { getReference(referenceComp1), getReference(referenceComp2) });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+            if (useMetadataReference)
+            {
+                Assert.Same(referenceComp1.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+                Assert.Same(referenceComp2.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
+            }
+            else
+            {
+                Assert.False(types[0].IsInSource());
+                Assert.False(types[1].IsInSource());
+                Assert.NotSame(types[0].ContainingAssembly, types[1].ContainingAssembly);
+            }
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            var comp = CreateCompilation(source, new[] { getReference(referenceComp1), getReference(referenceComp2) });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(3, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[2].ToTestDisplayString());
+
+            if (useMetadataReference)
+            {
+                Assert.Same(referenceComp1.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
+                Assert.Same(referenceComp2.Assembly.GetPublicSymbol(), types[2].ContainingAssembly);
+            }
+            else
+            {
+                Assert.False(types[1].IsInSource());
+                Assert.False(types[2].IsInSource());
+                Assert.NotSame(types[1].ContainingAssembly, types[2].ContainingAssembly);
+            }
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        #endregion
     }
 }

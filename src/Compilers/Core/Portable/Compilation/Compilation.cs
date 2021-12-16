@@ -1025,6 +1025,9 @@ namespace Microsoft.CodeAnalysis
         private readonly ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
             new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
 
+        private readonly ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>> _getTypesCache =
+            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50);
+
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
@@ -1038,15 +1041,58 @@ namespace Microsoft.CodeAnalysis
             if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
-                // Ignore if someone added the same value before us
-                _ = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+                var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+                Debug.Assert(result || (_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) && ReferenceEquals(addedType, val)));
             }
             return val;
         }
 
         protected abstract INamedTypeSymbol? CommonGetTypeByMetadataName(string metadataName);
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Gets all types with the compilation's assembly and all referenced assemblies that have the
+        /// given canonical CLR metadta name.
+        /// </summary>
+        /// <returns>Empty array if no types match. Otherwise, all types that match the name, current assembly first if present.</returns>
+        public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
+        {
+            if (!_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
+            {
+                val = getTypesByMetadataNameImpl();
+                var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
+                Debug.Assert(result
+                    || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
+                        && addedArray.Zip(val, (added, calculated) => (added, calculated)).All(el => ReferenceEquals(el.added, el.calculated))));
+            }
+
+            return val;
+
+            ImmutableArray<INamedTypeSymbol> getTypesByMetadataNameImpl()
+            {
+                ArrayBuilder<INamedTypeSymbol>? typesByMetadataName = null;
+
+                // Start with the current assembly, then look through all references, to mimic GetTypeByMetadataName search order.
+
+                addIfNotNull(Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
+
+                foreach (var referencedAssembly in SourceModule.ReferencedAssemblySymbols)
+                {
+                    addIfNotNull(referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
+                }
+
+                return typesByMetadataName?.ToImmutableAndFree() ?? ImmutableArray<INamedTypeSymbol>.Empty;
+
+                void addIfNotNull(INamedTypeSymbol? toAdd)
+                {
+                    if (toAdd != null)
+                    {
+                        typesByMetadataName ??= ArrayBuilder<INamedTypeSymbol>.GetInstance();
+                        typesByMetadataName.Add(toAdd);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given element types and
         /// (optional) element names, locations, and nullable annotations.
@@ -1087,7 +1133,6 @@ namespace Microsoft.CodeAnalysis
 
             return CommonCreateTupleTypeSymbol(elementTypes, elementNames, elementLocations, elementNullableAnnotations);
         }
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given element types, names, and locations.
