@@ -1160,11 +1160,11 @@ Essa opção é recomendada quando você sabe que o rastreamento inverso não se
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Uma definição de grupo de balanceamento exclui a definição de um grupo definido anteriormente e armazena, no grupo atual, o intervalo entre o grupo definido anteriormente e o grupo atual.
+        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
     
-'name1' é o grupo atual (opcional), 'name2' é um grupo definido anteriormente e 'subexpression' é qualquer padrão de expressão regular válido. A definição de grupo de balanceamento exclui a definição de name2 e armazena o intervalo entre name2 e name1 no name1. Se não for definido nenhum name2, a correspondência retrocederá. Como a exclusão da última definição de name2 revela a definição anterior de name2, esse constructo permite o uso da pilha de capturas para o grupo name2 como um contador para manter o controle de constructos aninhados, como parênteses ou colchetes de abertura e fechamento.
+'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
-A definição de grupo de balanceamento usa 'name2' como uma pilha. O caractere inicial de cada constructo aninhado é colocado no grupo e em sua coleção Group.Captures. Quando o caractere de fechamento é correspondido, seu caractere de abertura correspondente é removido do grupo e a coleção Captures é reduzida em um. Após a correspondência dos caracteres de abertura e fechamento de todas as construções aninhadas, 'name1' ficará vazio.</target>
+The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -3237,32 +3237,32 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="Generate_enum_member_1_0">
         <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Gerar membro enum '{1}.{0}'</target>
+        <target state="new">Generate enum member '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constant_1_0">
         <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">Gerar constante '{1}.{0}'</target>
+        <target state="new">Generate constant '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_1_0">
         <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">Gerar propriedade somente leitura '{1}.{0}'</target>
+        <target state="new">Generate read-only property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_property_1_0">
         <source>Generate property '{1}.{0}'</source>
-        <target state="translated">Gerar propriedade '{1}.{0}'</target>
+        <target state="new">Generate property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_1_0">
         <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">Gerar campo somente leitura '{1}.{0}'</target>
+        <target state="new">Generate read-only field '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_1_0">
         <source>Generate field '{1}.{0}'</source>
-        <target state="translated">Gerar campo '{1}.{0}'</target>
+        <target state="new">Generate field '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">
@@ -3352,7 +3352,7 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
         <source>Anonymous Types:</source>
-        <target state="translated">Tipos Anônimos:</target>
+        <target state="new">Anonymous Types:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
@@ -3481,17 +3481,17 @@ Se o especificador de formato "g" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="Generate_abstract_property_1_0">
         <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">Gerar propriedade abstrata '{1}.{0}'</target>
+        <target state="new">Generate abstract property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_1_0">
         <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">Gerar método abstrato '{1}.{0}'</target>
+        <target state="new">Generate abstract method '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_method_1_0">
         <source>Generate method '{1}.{0}'</source>
-        <target state="translated">Gerar método '{1}.{0}'</target>
+        <target state="new">Generate method '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -4167,12 +4167,12 @@ Essa versão é usada no: {2}</target>
       </trans-unit>
       <trans-unit id="Make_containing_scope_async">
         <source>Make containing scope async</source>
-        <target state="translated">Tornar o escopo contentor assíncrono</target>
+        <target state="new">Make containing scope async</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_containing_scope_async_return_Task">
         <source>Make containing scope async (return Task)</source>
-        <target state="translated">Tornar o escopo contentor assíncrono (retornar Task)</target>
+        <target state="new">Make containing scope async (return Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">
