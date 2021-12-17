@@ -44,10 +44,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(true);
+            _componentModel_doNotAccessDirectly = (IComponentModel)await this.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(_componentModel_doNotAccessDirectly);
             Assumes.Present(shell);
             Assumes.Present(solution);
 
