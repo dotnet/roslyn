@@ -1230,11 +1230,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">グループ定義の均等化では、既に定義されていたグループの定義を削除し、既に定義されていたグループと現在のグループの間隔を現在のグループに格納します。
-    
-'name1' は現在のグループ (省略可能) で、'name2' は既に定義されていたグループで、'subexpression' は有効な正規表現パターンです。グループ定義の均等化では、name2 の定義を削除し、name2 と name1 の間隔を name1 に格納します。name2 グループが定義されていない場合、一致はバックトラックされます。name2 の最後の定義を削除すると、name2 の以前の定義がわかるため、このコンストラクトによって、かっこや左右の角かっこなど入れ子になったコンストラクトを追跡するカウンターとして name2 グループのキャプチャのスタックを使用できます。
+        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
 
-グループ定義の均等化では、'name2' をスタックとして使用します。入れ子になった各コンストラクトの開始文字が、グループとその Group.Captures コレクションに配置されます。終了文字が一致すると、対応する開始文字がグループから削除され、Captures コレクションが 1 つ減らされます。入れ子になったすべてのコンストラクトの開始文字と終了文字が一致したら、name1 は空になります。</target>
+'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+
+The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
