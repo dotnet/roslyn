@@ -42,14 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await TaskScheduler.Default;
-            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(false);
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            _componentModel_doNotAccessDirectly = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(_componentModel_doNotAccessDirectly);
             Assumes.Present(shell);
             Assumes.Present(solution);
 
@@ -110,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                Contract.ThrowIfNull(_componentModel_doNotAccessDirectly);
+                Assumes.Present(_componentModel_doNotAccessDirectly);
                 return _componentModel_doNotAccessDirectly;
             }
         }
